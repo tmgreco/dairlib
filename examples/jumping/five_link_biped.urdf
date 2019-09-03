@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<robot name="KneedCompassGait">
+<robot name="five_link_biped">
   
   <link name="base"/>
   <link name="base_x"/>
@@ -185,14 +185,14 @@
     <child link="torso"/>
     <axis xyz="0 1 0"/>
   </joint>
-  <joint name="right_hip_pin" type="revolute">
-    <parent link="torso"/>
-    <child link="right_upper_leg"/>
-    <axis xyz="0 1 0"/>
-  </joint>
   <joint name="left_hip_pin" type="revolute">
     <parent link="torso"/>
     <child link="left_upper_leg"/>
+    <axis xyz="0 1 0"/>
+  </joint>
+  <joint name="right_hip_pin" type="revolute">
+    <parent link="torso"/>
+    <child link="right_upper_leg"/>
     <axis xyz="0 1 0"/>
   </joint>
   <joint name="left_knee_pin" type="revolute">
@@ -209,14 +209,14 @@
     <origin xyz="0 0 -0.5"/>
     <limit effort="100"/>
   </joint>
+  <transmission name="left_hip_trans" type="SimpleTransmission">
+    <actuator name="left_hip_torque"/>
+    <joint name="left_hip_pin"/>
+    <mechanicalReduction>1</mechanicalReduction>
+  </transmission>
   <transmission name="right_hip_trans" type="SimpleTransmission">
     <actuator name="right_hip_torque"/>
     <joint name="right_hip_pin"/>
-    <mechanicalReduction>1</mechanicalReduction>
-  </transmission>
-  <transmission name="lefthip_trans" type="SimpleTransmission">
-    <actuator name="left_hip_torque"/>
-    <joint name="left_hip_pin"/>
     <mechanicalReduction>1</mechanicalReduction>
   </transmission>
   <transmission name="left_knee_trans" type="SimpleTransmission">
@@ -234,8 +234,8 @@
     <member link="right_lower_leg_mass"/>
     <member link="left_lower_leg"/>
     <member link="right_lower_leg"/>
-    <member link="right_upper_leg"/>
     <member link="left_upper_leg"/>
+    <member link="right_upper_leg"/>
     <member link="torso"/>
     <ignored_collision_filter_group collision_filter_group="robot_links"/>
   </collision_filter_group>
