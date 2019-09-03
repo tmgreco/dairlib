@@ -1,0 +1,16 @@
+# -*- mode: python -*-
+# vi: set ft=python :
+
+
+cc_binary(
+    name = "five_link_biped_dircon",
+    srcs = ["five_link_biped_dircon.cc"],
+    data = ["five_link_biped.urdf"],
+    deps = [
+        "//systems/trajectory_optimization:dircon",
+        "//common",
+        "//systems/primitives",
+        "@drake//:drake_shared_library",
+        "@gflags",
+    ],
+)
