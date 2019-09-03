@@ -1,9 +1,12 @@
+#include <chrono>
 
 #include <gflags/gflags.h>
+
 #include "drake/lcm/drake_lcm.h"
 #include "drake/solvers/mathematical_program.h"
 #include "drake/solvers/constraint.h"
 #include "drake/solvers/snopt_solver.h"
+#include "drake/solvers/solve.h"
 #include "drake/systems/analysis/simulator.h"
 #include "drake/systems/framework/diagram.h"
 #include "drake/systems/framework/diagram_builder.h"
@@ -13,10 +16,11 @@
 #include "drake/solvers/solve.h"
 #include "drake/multibody/plant/multibody_plant.h"
 #include "drake/multibody/parsing/parser.h"
+#include "drake/multibody/rigid_body_plant/drake_visualizer.h"
 
+#include "common/find_resource.h"
 #include "multibody/multibody_utils.h"
 #include "multibody/visualization_utils.h"
-#include "common/find_resource.h"
 #include "systems/primitives/subvector_pass_through.h"
 #include "solvers/optimization_utils.h"
 #include "systems/trajectory_optimization/dircon_position_data.h"
@@ -25,16 +29,16 @@
 #include "systems/trajectory_optimization/dircon_opt_constraints.h"
 
 
-
 DEFINE_double(realtime_factor, .5,
 			  "Playback speed.  See documentation for "
 			  "Simulator::set_target_realtime_rate() for details.");
-
 DEFINE_double(gravity, 9.81,
 				"Gravity acceleration constant");
 DEFINE_double(mu_static, 0.7, "The static coefficient of friction");
 DEFINE_double(mu_kinetic, 0.7, "The dynamic coefficient of friction");
 DEFINE_double(v_tol, 0.01, "The maximum slipping speed allowed during stiction (m/s)");
+
+DEFINE_double(max_duration, 20, "Maximum trajectory duration (s)");
 
 // Simulation parameters.
 DEFINE_double(timestep, 1e-5, "The simulator time step (s)");
@@ -89,9 +93,9 @@ namespace jumping{
 // }
 
 // HybridDircon<double> run_traj_opt(MultibodyPlant<double>* plant){
-void run_traj_opt(MultibodyPlant<double>* plant){
+drake::trajectories::PiecewisePolynomial<double> run_traj_opt(MultibodyPlant<double>* plant){
 
-	Eigen::VectorXd x0 = Eigen::VectorXd::Zero(	plant->num_positions()
+	Eigen::VectorXd x_0 = Eigen::VectorXd::Zero(	plant->num_positions()
 												+ plant->num_velocities()
 												);
 
@@ -113,7 +117,7 @@ void run_traj_opt(MultibodyPlant<double>* plant){
 	std::vector<double> init_time;
 	for (int i = 0; i < 2*num_states - 1; ++i){
 		init_time.push_back(i*time_constant);
-		init_x.push_back(x0);
+		init_x.push_back(x_0);
 		init_u.push_back(VectorXd::Random(num_forces));
 	}
 
@@ -140,7 +144,9 @@ void run_traj_opt(MultibodyPlant<double>* plant){
 		init_lc_traj.push_back(init_lc_traj_j);
 		init_vc_traj.push_back(init_vc_traj_j);
 	}
+	// End of initalization
 
+	// Start of constraint specification
 	const Body<double>& left_lower_leg = plant->GetBodyByName("left_lower_leg");
 	const Body<double>& right_lower_leg = plant->GetBodyByName("right_lower_leg");
 
@@ -153,6 +159,8 @@ void run_traj_opt(MultibodyPlant<double>* plant){
 	auto rightFootConstraint = DirconPositionData<double>(*plant, right_lower_leg,
                                                         pt, isXZ);
 
+
+	// FIGURE OUT WHAT THIS IS
 	Vector3d normal;
 	normal << 0, 0, 1;
 	double mu = 1;
@@ -160,6 +168,7 @@ void run_traj_opt(MultibodyPlant<double>* plant){
 	leftFootConstraint.addFixedNormalFrictionConstraints(normal, mu);
 	rightFootConstraint.addFixedNormalFrictionConstraints(normal, mu);
 
+	// Making a vector for a single constraint seems unncessary
 	std::vector<DirconKinematicData<double>*> leftConstraints;
 	leftConstraints.push_back(&leftFootConstraint);
 	auto leftDataSet = DirconKinematicDataSet<double>(*plant, &leftConstraints);
@@ -173,19 +182,36 @@ void run_traj_opt(MultibodyPlant<double>* plant){
 
 	auto rightOptions = DirconOptions(rightDataSet.countConstraints());
 	rightOptions.setConstraintRelative(0, true);
-	// DRAKE_DEMAND()
+	// End of constraint specification
 
+	// FIGURE OUT WHAT THIS IS
+	std::vector<int> timesteps;
+	timesteps.push_back(10);
+	timesteps.push_back(10);
+	std::vector<double> min_dt;
+	min_dt.push_back(.01);
+	min_dt.push_back(.01);
+	std::vector<double> max_dt;
+	max_dt.push_back(.3);
+	max_dt.push_back(.3);
 
+	std::vector<DirconKinematicDataSet<double>*> dataset_list;
+	dataset_list.push_back(&leftDataSet);
+	dataset_list.push_back(&rightDataSet);
+
+	std::vector<DirconOptions> options_list;
+	options_list.push_back(leftOptions);
+	options_list.push_back(rightOptions);
 
 	// Trajectory Optimization Setup
-	auto trajopt = std::make_shared<HybridDircon<double>>(plant, 
+	auto trajopt = std::make_shared<HybridDircon<double>>(*plant, 
 													timesteps,
 													min_dt,
 													max_dt,
 													dataset_list,
 													options_list);
 
-	trajopt->AddDurationBounds(duration, duration);
+	trajopt->AddDurationBounds(FLAGS_max_duration, FLAGS_max_duration);
 	trajopt->SetSolverOption(drake::solvers::SnoptSolver::id(),
 							"Print file", "five_link_biped_snopt.out");
 	trajopt->SetSolverOption(drake::solvers::SnoptSolver::id(),
@@ -200,6 +226,17 @@ void run_traj_opt(MultibodyPlant<double>* plant){
 
 
 	// Linear constraints
+	auto x0 = trajopt->initial_state();
+	auto xf = trajopt->final_state();
+
+	int num_q = plant->num_positions();
+	
+	// trajopt->AddLinearConstraint(x);
+
+	const double R = 10;
+	auto u = trajopt->input();
+	trajopt->AddRunningCost(u.transpose()*R*u);
+	// trajopt->AddLinearConstraint(x0(positions_map["planar_z"]) == initial_x);
 	
 
 	// Actual solving
@@ -210,7 +247,7 @@ void run_traj_opt(MultibodyPlant<double>* plant){
 	std::cout << "Solve time:" << elapsed.count() <<std::endl;
 	std::cout << "Cost:" << result.get_optimal_cost() <<std::endl;
 
-	return;
+	return trajopt->ReconstructStateTrajectory(result);
 }
 
 void simulate_traj(MultibodyPlant<double>* plant){
@@ -242,7 +279,7 @@ int doMain(int argc, char* argv[]){
 	std::string full_name = FindResourceOrThrow("examples/jumping/five_link_biped.urdf");
 	parser.AddModelFromFile(full_name);
 
-	plant.mutable_gravity_field().set_gravity_vector(-9.81 * Eigen::Vector3d::UnitZ());
+	plant.mutable_gravity_field().set_gravity_vector(-FLAGS_gravity * Eigen::Vector3d::UnitZ());
 
 	plant.WeldFrames(
 			plant.world_frame(), 
@@ -252,15 +289,16 @@ int doMain(int argc, char* argv[]){
 
 	plant.Finalize();
 
-	// auto optimal_traj = 
-	run_traj_opt(&plant);
+	auto optimal_traj = run_traj_opt(&plant);
+	// run_traj_opt(&plant);
 
-	// const drake::trajectories::PiecewisePolynomial<double> pp_xtraj = trajopt->ReconstructStateTrajectory(result);
-	// multibody::connectTrajectoryVisualizer(	&plant, 
-	// 										&builder, 
-	// 										&scene_graph,
-	// 										pp_xtraj
-	// 										);
+	// const drake::trajectories::PiecewisePolynomial<double> pp_xtraj = optimal_traj->ReconstructStateTrajectory(result);
+	multibody::connectTrajectoryVisualizer(	&plant, 
+											&builder, 
+											&scene_graph,
+											optimal_traj
+											);
+
 	auto diagram = builder.Build();
 
 
