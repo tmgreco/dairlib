@@ -4,20 +4,6 @@
   <link name="base"/>
   <link name="base_x"/>
   <link name="base_xz"/>
-  <link name="hip">
-    <inertial>
-      <mass value="10"/>
-      <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
-    </inertial>
-    <visual>
-      <geometry>
-        <sphere radius="0.05"/>
-      </geometry>
-      <material name="green">
-        <color rgba="0 1 0 1"/>
-      </material>
-    </visual>
-  </link>
   <link name="torso">
     <visual>
       <geometry>
@@ -40,7 +26,7 @@
     </visual>
     <inertial>
       <origin xyz="0 0 0.25"/>
-      <mass value="2.5"/>
+      <mass value="5"/>
       <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
     </inertial>
   </link>
@@ -180,6 +166,10 @@
       <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
     </inertial>
   </link>
+  <joint name="right_lower_leg_mass_weld" type="fixed">
+    <parent link="right_lower_leg"/>
+    <child link="right_lower_leg_mass"/>
+  </joint>
   <joint name="planar_x" type="prismatic">
     <parent link="base"/>
     <child link="base_x"/>
@@ -192,23 +182,20 @@
   </joint>  
   <joint name="planar_roty" type="continuous">
     <parent link="base_xz"/>
-    <child link="hip"/>
+    <child link="torso"/>
     <axis xyz="0 1 0"/>
   </joint>
-  <joint name="right_lower_leg_mass_weld" type="fixed">
-    <parent link="right_lower_leg"/>
-    <child link="right_lower_leg_mass"/>
-  </joint>
-  <joint name="left_leg_weld" type="fixed">
-    <parent link="hip"/>
-    <child link="left_upper_leg"/>
-  </joint>
-  <joint name="hip_pin" type="continuous">
-    <parent link="hip"/>
+  <joint name="right_hip_pin" type="revolute">
+    <parent link="torso"/>
     <child link="right_upper_leg"/>
     <axis xyz="0 1 0"/>
   </joint>
-  <joint name="left_knee_pin" type="continuous">
+  <joint name="left_hip_pin" type="revolute">
+    <parent link="torso"/>
+    <child link="left_upper_leg"/>
+    <axis xyz="0 1 0"/>
+  </joint>
+  <joint name="left_knee_pin" type="revolute">
     <parent link="left_upper_leg"/>
     <child link="left_lower_leg"/>
     <axis xyz="0 1 0"/>
@@ -222,9 +209,14 @@
     <origin xyz="0 0 -0.5"/>
     <limit effort="100"/>
   </joint>
-  <transmission name="hip_trans" type="SimpleTransmission">
-    <actuator name="hip_torque"/>
-    <joint name="hip_pin"/>
+  <transmission name="right_hip_trans" type="SimpleTransmission">
+    <actuator name="right_hip_torque"/>
+    <joint name="right_hip_pin"/>
+    <mechanicalReduction>1</mechanicalReduction>
+  </transmission>
+  <transmission name="lefthip_trans" type="SimpleTransmission">
+    <actuator name="left_hip_torque"/>
+    <joint name="left_hip_pin"/>
     <mechanicalReduction>1</mechanicalReduction>
   </transmission>
   <transmission name="left_knee_trans" type="SimpleTransmission">
@@ -245,7 +237,6 @@
     <member link="right_upper_leg"/>
     <member link="left_upper_leg"/>
     <member link="torso"/>
-    <member link="hip"/>
     <ignored_collision_filter_group collision_filter_group="robot_links"/>
   </collision_filter_group>
 </robot>
