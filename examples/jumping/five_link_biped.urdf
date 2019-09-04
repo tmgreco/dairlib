@@ -4,8 +4,23 @@
   <link name="base"/>
   <link name="base_x"/>
   <link name="base_xz"/>
+  <link name="torso_mass">
+    <inertial>
+      <mass value="2.5"/>
+      <inertia ixx=".5" ixy="0" ixz="0" iyy=".5" iyz="0" izz=".5"/>
+    </inertial>
+    <visual>
+      <geometry>
+        <sphere radius="0.025"/>
+      </geometry>
+      <material name="green">
+        <color rgba="0 1 0 1"/>
+      </material>
+    </visual>
+  </link>
   <link name="torso">
     <visual>
+      <origin xyz="0 0 0.25"/>
       <geometry>
         <cylinder length="0.5" radius="0.0075"/>
       </geometry>
@@ -14,26 +29,6 @@
       </material>
     </visual>
   </link>
-  <link name="torso_mass">
-    <visual>
-      <origin xyz="0 0 0.25"/>
-      <geometry>
-        <sphere radius="0.025"/>
-      </geometry>
-      <material name="green">
-        <color rgba="0 1 0 1"/>
-      </material>
-    </visual>
-    <inertial>
-      <origin xyz="0 0 0.25"/>
-      <mass value="5"/>
-      <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
-    </inertial>
-  </link>
-  <joint name="torso_mass_weld" type="fixed">
-    <parent link="torso"/>
-    <child link="torso_mass"/>
-  </joint>
   <link name="left_upper_leg">
     <visual>
       <origin xyz="0 0 -0.25"/>
@@ -58,7 +53,7 @@
     <inertial>
       <origin xyz="0 0 -0.25"/>
       <mass value="2.5"/>
-      <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
+      <inertia ixx="0.5" ixy="0" ixz="0" iyy="0.5" iyz="0" izz="0.5"/>
     </inertial>
   </link>
   <joint name="left_upper_leg_mass_weld" type="fixed">
@@ -95,7 +90,7 @@
     <inertial>
       <origin xyz="0 0 -0.25"/>
       <mass value="2.5"/>
-      <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
+      <inertia ixx="0.5" ixy="0" ixz="0" iyy="0.5" iyz="0" izz="0.5"/>
     </inertial>
   </link>
   <joint name="left_lower_leg_mass_weld" type="fixed">
@@ -126,7 +121,7 @@
     <inertial>
       <origin xyz="0 0 -0.25"/>
       <mass value="2.5"/>
-      <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
+      <inertia ixx="0.5" ixy="0" ixz="0" iyy="0.5" iyz="0" izz="0.5"/>
     </inertial>
   </link>
   <joint name="right_upper_leg_mass_weld" type="fixed">
@@ -139,8 +134,8 @@
       <geometry>
         <cylinder length="0.5" radius="0.0075"/>
       </geometry>
-      <material name="green">
-        <color rgba="0 1 0 1"/>
+      <material name="blue">
+        <color rgba="0 0 1 1"/>
       </material>
     </visual>
     <collision>
@@ -163,13 +158,9 @@
     <inertial>
       <origin xyz="0 0 -0.25"/>
       <mass value="2.5"/>
-      <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
+      <inertia ixx="0.5" ixy="0" ixz="0" iyy="0.5" iyz="0" izz="0.5"/>
     </inertial>
   </link>
-  <joint name="right_lower_leg_mass_weld" type="fixed">
-    <parent link="right_lower_leg"/>
-    <child link="right_lower_leg_mass"/>
-  </joint>
   <joint name="planar_x" type="prismatic">
     <parent link="base"/>
     <child link="base_x"/>
@@ -185,15 +176,28 @@
     <child link="torso"/>
     <axis xyz="0 1 0"/>
   </joint>
+  <joint name="torso_mass_weld" type="fixed">
+    <parent link="torso"/>
+    <child link="torso_mass"/>
+    <origin xyz="0 0 0.25"/>
+  </joint>
+  <joint name="right_lower_leg_mass_weld" type="fixed">
+    <parent link="right_lower_leg"/>
+    <child link="right_lower_leg_mass"/>
+  </joint>
   <joint name="left_hip_pin" type="revolute">
     <parent link="torso"/>
     <child link="left_upper_leg"/>
     <axis xyz="0 1 0"/>
+    <origin xyz="0 0 0"/>
+    <limit effort="100"/>
   </joint>
   <joint name="right_hip_pin" type="revolute">
     <parent link="torso"/>
     <child link="right_upper_leg"/>
     <axis xyz="0 1 0"/>
+    <origin xyz="0 0 0"/>
+    <limit effort="100"/>
   </joint>
   <joint name="left_knee_pin" type="revolute">
     <parent link="left_upper_leg"/>
@@ -237,6 +241,7 @@
     <member link="left_upper_leg"/>
     <member link="right_upper_leg"/>
     <member link="torso"/>
+    <member link="torso_mass"/>
     <ignored_collision_filter_group collision_filter_group="robot_links"/>
   </collision_filter_group>
 </robot>
