@@ -1,7 +1,6 @@
 # -*- mode: python -*-
 # vi: set ft=python :
 
-
 cc_binary(
     name = "five_link_biped_dircon",
     srcs = ["five_link_biped_dircon.cc"],
@@ -9,6 +8,18 @@ cc_binary(
     deps = [
         "//systems/trajectory_optimization:dircon",
         "//common",
+        ":traj_logger",
+        "//systems/primitives",
+        "@drake//:drake_shared_library",
+        "@gflags",
+    ],
+)
+
+
+cc_library(
+    name = "traj_logger",
+    srcs = ["traj_logger.h"],
+    deps = [
         "//systems/primitives",
         "@drake//:drake_shared_library",
         "@gflags",
