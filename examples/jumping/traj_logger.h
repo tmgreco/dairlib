@@ -2,38 +2,185 @@
 
 #include <fstream>
 #include <string>
+#include <regex>
+#include "drake/solvers/mathematical_program_result.h"
+#include "drake/common/eigen_types.h"
 #include "drake/common/trajectories/piecewise_polynomial.h"
+#include "systems/goldilocks_models/file_utils.h"
+#include <Eigen/Dense>
+
+using Eigen::MatrixXd;
+using Eigen::Matrix;
+using Eigen::Dynamic;
+using Eigen::Map;
+using Eigen::RowMajor;
+using std::vector;
+using dairlib::goldilocks_models::readCSV;
+using dairlib::goldilocks_models::writeCSV;
 
 namespace dairlib{
 namespace examples{
 
-class TrajLogger{
-public:
-	TrajLogger(){
 
+/*
+Generates and writes trajectory to a file in order to visualize in a plot.
+*/
+
+void writeTimeTrajToFile(const drake::trajectories::PiecewisePolynomial<double>& traj, std::string filename){
+	std::ofstream* fout = new std::ofstream(filename);
+	double timesteps = 500.0;
+	for(double t = 0; t < traj.end_time(); t += traj.end_time() / timesteps){
+		(*fout) << t << " ";
+		(*fout) << traj.value(t).transpose();
+		(*fout) << "\n";
 	}
+	fout->flush();
+	fout->close();
+	delete fout;
+}
 
-	~TrajLogger(){
+/*
+Writes traj in PiecewisePolynomial format to file in order to be loaded back into a PP
+*/
+void writePPTrajToFile(const drake::trajectories::PiecewisePolynomial<double>& traj, std::string folderPath, std::string filename){
+	std::ofstream fout;
+	fout.open(folderPath + filename);
 
+	int n_segments = traj.get_number_of_segments();
+	for(int i = 0; i < n_segments; ++i){
+		fout << traj.getPolynomialMatrix(i);
+		// fout << "\n";
 	}
+	fout.flush();
+	fout.close();
 
-	void writeTrajToFile(drake::trajectories::PiecewisePolynomial<double> traj, std::string filename){
-		std::ofstream* fout = new std::ofstream(filename);
-		double timesteps = 500.0;
-		for(double t = 0; t < traj.end_time(); t += traj.end_time() / timesteps){
-			(*fout) << t << " ";
-			(*fout) << traj.value(t).transpose();
-			(*fout) << "\n";
-			// row = ;
-			// for(int i = 0; i < traj.rows(); ++i){
-			// 	(*fout) << traj.value()
-			// }
-		}
-		fout->flush();
-		fout->close();
-		delete fout;
+	fout.open(folderPath + "times");
+	std::vector<double> times = traj.get_segment_times();
+	for(size_t i = 0; i < times.size(); ++i){
+		fout << times[i] << " ";
 	}
-};
+	fout.flush();
+	fout.close();
+}
+
+
+void saveAllDecisionVars(drake::solvers::MathematicalProgramResult result, std::string folderPath, std::string filename){
+    std::ofstream fout;
+    fout.open(folderPath + filename);
+
+    fout << result.GetSolution();
+}
+
+drake::MatrixX<double> loadAllDecisionVars(std::string folderPath, std::string filename){
+    std::ifstream fin;
+    fin.open(folderPath + filename);
+    std::string line;
+    std::vector<double> decisionVars;
+
+    while (std::getline(fin, line)) {
+        std::stringstream lineStream(line);
+        std::string cell;
+        while(std::getline(lineStream, cell, ' ')) {
+            decisionVars.push_back(std::stod(cell));
+        }
+    }
+    fin.close();
+    return Map<const Matrix<double, Dynamic, Dynamic>>(decisionVars.data(), decisionVars.size(), 1);
+}
+
+drake::trajectories::PiecewisePolynomial<double> loadStateTrajToPP(std::string folderPath){
+	std::ifstream fin;
+	fin.open(folderPath + "times");
+    std::string line;
+    std::vector<double> times;
+
+    while (std::getline(fin, line)) {
+    	std::stringstream lineStream(line);
+    	std::string cell;
+    	while(std::getline(lineStream, cell, ' ')) {
+    		times.push_back(std::stod(cell));
+    	}
+    }
+    fin.close();
+
+    fin.open(folderPath + "states.csv");
+
+    std::vector<double> coeffs;
+    uint rows = 0;
+    while (std::getline(fin, line)) {
+        std::stringstream lineStream(line);
+        std::string cell;
+        while (std::getline(lineStream, cell, ',')) {
+            coeffs.push_back(std::stod(cell));
+        }
+        ++rows;
+    }
+    if (coeffs.size() == 0) {
+      throw std::logic_error(
+          ("Could not read " + folderPath + " to load CSV.").c_str());
+    }
+
+    std::vector<drake::MatrixX<double>> coeff_matrices;
+    int n_states = rows/times.size();
+    int n_coeffs = coeffs.size()/rows; // should always be 4 for a cubic
+
+    for(size_t i = 0; i < times.size(); ++i){
+    	coeff_matrices.push_back(Map<const Matrix<double, Dynamic, Dynamic, RowMajor>>(
+        coeffs.data() + i*(n_states * n_coeffs), n_states, n_coeffs));
+    }
+
+	return drake::trajectories::PiecewisePolynomial<double>::Cubic(	times,
+																	coeff_matrices);
+}
+
+
+drake::trajectories::PiecewisePolynomial<double> loadInputTrajToPP(std::string folderPath){
+	std::ifstream fin;
+	fin.open(folderPath + "times");
+    std::string line;
+    std::vector<double> times;
+
+    while (std::getline(fin, line)) {
+    	std::stringstream lineStream(line);
+    	std::string cell;
+    	while(std::getline(lineStream, cell, ' ')) {
+    		times.push_back(std::stod(cell));
+    	}
+    }
+
+    fin.close();
+    fin.open(folderPath + "inputs.csv");
+
+    std::vector<double> coeffs;
+    uint rows = 0;
+    while (std::getline(fin, line)) {
+        std::stringstream lineStream(line);
+        std::string cell;
+        while (std::getline(lineStream, cell, ',')) {
+            coeffs.push_back(std::stod(cell));
+        }
+        ++rows;
+    }
+    if (coeffs.size() == 0) {
+        throw std::logic_error(
+            ("Could not read " + folderPath + " to load CSV.").c_str());
+    }
+
+    std::vector<drake::MatrixX<double>> coeff_matrices;
+    int n_states = rows/times.size();
+    int n_coeffs = coeffs.size()/rows; // should always be 2 for piecewise linear
+
+    for(size_t i = 0; i < times.size(); ++i){
+    	coeff_matrices.push_back(Map<const Matrix<double, Dynamic, Dynamic, RowMajor>>(
+        coeffs.data() + i*(n_states * n_coeffs), n_states, n_coeffs));
+    }
+
+	return drake::trajectories::PiecewisePolynomial<double>::FirstOrderHold(times, 
+																			coeff_matrices);
+}
+
+
+
 
 }
 }

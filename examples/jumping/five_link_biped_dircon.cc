@@ -1,4 +1,5 @@
 #include <chrono>
+#include <thread>
 
 #include <gflags/gflags.h>
 
@@ -42,7 +43,8 @@ DEFINE_double(height, 0.75, "The jump height wrt to the torso COM (m)");
 DEFINE_int64(knot_points, 10, "Number of knot points per mode");
 
 DEFINE_double(max_duration, 1, "Maximum trajectory duration (s)");
-
+DEFINE_bool(load_previous_traj, false, "Set to true if loading in a previous trajectory");
+DEFINE_string(traj_folder, "", "Set to true if loading in a previous trajectory");
 // Simulation parameters.
 DEFINE_double(timestep, 1e-5, "The simulator time step (s)");
 
@@ -60,6 +62,7 @@ using drake::trajectories::PiecewisePolynomial;
 using drake::solvers::SolutionResult;
 using std::cout;
 using std::endl;
+
 
 namespace dairlib{
 
@@ -147,25 +150,35 @@ drake::trajectories::PiecewisePolynomial<double> run_traj_opt(MultibodyPlant<dou
 	auto mode_two_dataset = DirconKinematicDataSet<double>(*plant, &mode_two_constraints);
 	auto mode_two_options = DirconOptions(mode_two_dataset.countConstraints());
 
+	auto mode_three_options = DirconOptions(mode_one_dataset.countConstraints());
+	// allow x pos to be some constant chosen by optimizer rather than 0
+	mode_three_options.setConstraintRelative(0, true); //left foot
+	mode_three_options.setConstraintRelative(0 + (mode_one_dataset.countConstraints() / 2), true); //right foot
+
 	// Specifying parameters for optimization problem
 	std::vector<int> timesteps;
+	timesteps.push_back(FLAGS_knot_points);
 	timesteps.push_back(FLAGS_knot_points);
 	// timesteps.push_back(FLAGS_knot_points);
 	// timesteps.push_back(10);
 	std::vector<double> min_dt;
 	min_dt.push_back(.01);
+	min_dt.push_back(.01);
 	// min_dt.push_back(.01);
 	std::vector<double> max_dt;
+	max_dt.push_back(.3);
 	max_dt.push_back(.3);
 	// max_dt.push_back(.3);
 
 	std::vector<DirconKinematicDataSet<double>*> dataset_list;
 	dataset_list.push_back(&mode_one_dataset);
-	// dataset_list.push_back(&mode_two_dataset);
+	dataset_list.push_back(&mode_two_dataset);
+	// dataset_list.push_back(&mode_one_dataset);
 
 	std::vector<DirconOptions> options_list;
 	options_list.push_back(mode_one_options);
-	// options_list.push_back(mode_two_options);
+	options_list.push_back(mode_two_options);
+	// options_list.push_back(mode_three_options);
 
 
 
@@ -181,9 +194,19 @@ drake::trajectories::PiecewisePolynomial<double> run_traj_opt(MultibodyPlant<dou
 	trajopt->SetSolverOption(drake::solvers::SnoptSolver::id(),
 							"Print file", "five_link_biped_snopt.out");
 	trajopt->SetSolverOption(drake::solvers::SnoptSolver::id(),
-							"Major iterations limit", 2000);
+							"Major iterations limit", 1000);	
+	trajopt->SetSolverOption(drake::solvers::SnoptSolver::id(),
+							"Iterations limit", 100000);	
+	trajopt->SetSolverOption(drake::solvers::SnoptSolver::id(),
+							"Minor iterations limit", 5000);
 	// trajopt->SetSolverOption(drake::solvers::SnoptSolver::id(),
 							// "Verify level", 3);
+	if(FLAGS_load_previous_traj){
+		DRAKE_DEMAND(FLAGS_traj_folder != "");
+
+		init_x_traj = loadStateTrajToPP(FLAGS_traj_folder);
+		init_u_traj = loadInputTrajToPP(FLAGS_traj_folder);
+	}
 	for (uint j = 0; j < timesteps.size(); j++) {
 		trajopt->drake::systems::trajectory_optimization::MultipleShooting::SetInitialTrajectory(init_u_traj, init_x_traj);
 		trajopt->SetInitialForceTrajectory(j, 
@@ -194,28 +217,31 @@ drake::trajectories::PiecewisePolynomial<double> run_traj_opt(MultibodyPlant<dou
 
 
 	// Linear constraints
+	int n_modes = 2;
 	auto x0 = trajopt->initial_state();
-	std::cout << FLAGS_knot_points/2 << std::endl;
-	auto x_mid_point = trajopt->state(FLAGS_knot_points/2);
+	auto x_mid_point = trajopt->state(FLAGS_knot_points*n_modes/2);
 	auto xf = trajopt->final_state();
 	int n = plant->num_positions();
 	int vel_offset = n;
+
+	// Eigen::VectorXd fixed_initial_conds(14);
+	// fixed_initial_conds << 0, 0.798616, 0, -0.232994, -0.228255, 0.0889048, 0.05,
+ //            0, 0, 0, 0, 0, 0, 0;
 	// int height = 2.0;
 	// trajopt->AddLinearConstraint(xf(positions_map["planar_roty"]) == (x0(positions_map["planar_roty"] + height)));
 	// trajopt->AddLinearConstraint(x0(positions_map["planar_roty"]) == 0);
+	// trajopt->AddLinearConstraint(x0 == fixed_initial_conds);
 	trajopt->AddLinearConstraint(xf(positions_map["planar_x"]) == (x0(positions_map["planar_x"])));
 	trajopt->AddLinearConstraint(x_mid_point(positions_map["planar_x"]) == (x0(positions_map["planar_x"])));
-	trajopt->AddLinearConstraint(xf(positions_map["planar_z"]) == (x0(positions_map["planar_z"])));
-	trajopt->AddLinearConstraint(x_mid_point(positions_map["planar_z"]) == (x0(positions_map["planar_z"]) + FLAGS_height));
+	// trajopt->AddLinearConstraint(x_mid_point(positions_map["planar_z"]) == (x0(positions_map["planar_z"]) + FLAGS_height));
+	trajopt->AddLinearConstraint(x_mid_point(positions_map["planar_z"]) == (x0(positions_map["planar_z"])));
+	trajopt->AddLinearConstraint(xf(positions_map["planar_z"]) == (x0(positions_map["planar_z"]) + FLAGS_height));
 	// trajopt->AddLinearConstraint(xf(positions_map["planar_z"]) == (x0(positions_map["planar_z"])));
-	// trajopt->AddLinearConstraint(xf(positions_map["planar_z"]) == (x0(positions_map["planar_z"]) + FLAGS_height));
+	// trajopt->AddLinearConstraint(xf(positions_map["planar_z"]) == (x0(positions_map["planar_z"])));
 	// trajopt->AddLinearConstraint(x0(positions_map["planar_z"]) == 0.8);
-	trajopt->AddLinearConstraint(x0(vel_offset + velocities_map["planar_zdot"]) == 0);
-	trajopt->AddLinearConstraint(xf(vel_offset + velocities_map["planar_zdot"]) == 0);
-	trajopt->AddLinearConstraint(x0(vel_offset + velocities_map["planar_xdot"]) == 0);
-	trajopt->AddLinearConstraint(xf(vel_offset + velocities_map["planar_xdot"]) == 0);
-	trajopt->AddLinearConstraint(x0(vel_offset + velocities_map["planar_roty"]) == 0);
-	trajopt->AddLinearConstraint(xf(vel_offset + velocities_map["planar_roty"]) == 0);
+	trajopt->AddLinearConstraint(x0.tail(n) == VectorXd::Zero(n));
+	trajopt->AddLinearConstraint(xf.tail(n) == VectorXd::Zero(n));
+
 
   	auto x = trajopt->state();
 
@@ -229,9 +255,10 @@ drake::trajectories::PiecewisePolynomial<double> run_traj_opt(MultibodyPlant<dou
 	// trajopt->AddConstraintToAllKnotPoints(vel_offset + x(velocities_map["right_knee_pin"]) <= 0.1);	
 	// trajopt->AddConstraintToAllKnotPoints(vel_offset + x(velocities_map["left_knee_pin"]) >= -0.1);
 	// trajopt->AddConstraintToAllKnotPoints(vel_offset + x(velocities_map["left_knee_pin"]) <= 0.1);
-	// trajopt->AddConstraintToAllKnotPoints(x(positions_map["planar_x"]) == x0(positions_map["planar_x"]));
-	trajopt->AddConstraintToAllKnotPoints(x(positions_map["left_knee_pin"]) >= -0.05);
-	trajopt->AddConstraintToAllKnotPoints(x(positions_map["right_knee_pin"]) >= -0.05);
+	trajopt->AddConstraintToAllKnotPoints(x(positions_map["planar_x"]) >= -2.0);
+	trajopt->AddConstraintToAllKnotPoints(x(positions_map["planar_x"]) <= 2.0);
+	trajopt->AddConstraintToAllKnotPoints(x(positions_map["left_knee_pin"]) >= 0.05);
+	trajopt->AddConstraintToAllKnotPoints(x(positions_map["right_knee_pin"]) >= 0.05);
 	// trajopt->AddConstraintToAllKnotPoints(x(positions_map["left_knee_pin"]) <= 2);
 	// trajopt->AddConstraintToAllKnotPoints(x(positions_map["right_knee_pin"]) <= 2);
 	// trajopt->AddConstraintToAllKnotPoints(x(positions_map["left_hip_pin"]) >= -0.5);
@@ -248,7 +275,7 @@ drake::trajectories::PiecewisePolynomial<double> run_traj_opt(MultibodyPlant<dou
 		Q(i+n, i+n) = 10;
 	}
 	trajopt->AddRunningCost(u.transpose()*R*u);
-	// trajopt->AddRunningCost(x.transpose()*Q*x);
+	trajopt->AddRunningCost(x.transpose()*Q*x);
 	
 
 	// Actual solving
@@ -280,10 +307,11 @@ drake::trajectories::PiecewisePolynomial<double> run_traj_opt(MultibodyPlant<dou
 	// 				init_vc_traj
 	// 				);
 	// }
-
-	TrajLogger logger;
-	logger.writeTrajToFile(trajopt->ReconstructStateTrajectory(result),"state_traj.txt");
-	logger.writeTrajToFile(trajopt->ReconstructInputTrajectory(result),"input_traj.txt");
+	// writePPTrajToFile(trajopt->ReconstructStateTrajectory(result), "saved_trajs/", "states");
+	// writePPTrajToFile(trajopt->ReconstructInputTrajectory(result), "saved_trajs/", "inputs");
+	saveAllDecisionVars(result, "saved_trajs", "decision_vars");
+	writeTimeTrajToFile(trajopt->ReconstructStateTrajectory(result),"state_traj.txt");
+	writeTimeTrajToFile(trajopt->ReconstructInputTrajectory(result),"input_traj.txt");
 	return trajopt->ReconstructStateTrajectory(result);
 }
 
@@ -309,6 +337,7 @@ int doMain(int argc, char* argv[]){
 	SceneGraph<double>& scene_graph = *(builder.AddSystem<SceneGraph>());
 	Parser parser(&plant, &scene_graph);
 	std::string full_name = FindResourceOrThrow("examples/jumping/five_link_biped.urdf");
+	// std::string full_name = FindResourceOrThrow("examples/PlanarWalker/PlanarWalker.urdf");
 	parser.AddModelFromFile(full_name);
 	plant.mutable_gravity_field().set_gravity_vector(-FLAGS_gravity * Eigen::Vector3d::UnitZ());
 	plant.WeldFrames(
@@ -326,15 +355,16 @@ int doMain(int argc, char* argv[]){
 	// 											plant.num_velocities()
 	// 											);
 	Eigen::VectorXd x_0(14);
-	x_0 << 0, 0.799, 0.1, -0.1, -0.11, 0.01, 0.01, 
-			0, 0, 0.25, -0.25, -0.25, 0, 0;
+	x_0 << 0, 0.798616, 0, -0.232994, -0.228255, 0.0889048, 0.05,
+            0, 0, 0, 0, 0, 0, 0;
 
 
 	Eigen::VectorXd init_l_vec(2);
-	init_l_vec << 0, 30*FLAGS_gravity;
+	init_l_vec << 0, 15*FLAGS_gravity;
 	int num_forces = 4;
 	int num_timesteps = FLAGS_knot_points;
 
+	int n_modes = 2;
 
 	// Initial states, forces, and constraints
 	std::vector<MatrixXd> init_x; // states
@@ -347,7 +377,7 @@ int doMain(int argc, char* argv[]){
 	double time_constant = 0.2;
 
 	std::vector<double> init_time;
-	for (int i = 0; i < 2*num_timesteps - 1; ++i){
+	for (int i = 0; i < n_modes*num_timesteps - (n_modes - 1); ++i){
 		init_time.push_back(i*time_constant);
 		init_x.push_back(x_0);
 		init_u.push_back(VectorXd::Random(num_forces));
@@ -357,7 +387,7 @@ int doMain(int argc, char* argv[]){
 	auto init_x_traj = PiecewisePolynomial<double>::ZeroOrderHold(init_time, init_x);
 	auto init_u_traj = PiecewisePolynomial<double>::ZeroOrderHold(init_time, init_u);
 
-	for (int j = 0; j < 2; ++j){
+	for (int j = 0; j < n_modes; ++j){
 		std::vector<MatrixXd> init_l_j;
 		std::vector<MatrixXd> init_lc_j;
 		std::vector<MatrixXd> init_vc_j;
@@ -402,7 +432,7 @@ int doMain(int argc, char* argv[]){
 	auto diagram = builder.Build();
 
 	while (true) {
-
+		std::this_thread::sleep_for(std::chrono::seconds(2));
 		drake::systems::Simulator<double> simulator(*diagram);
 
 		simulator.set_target_realtime_rate(FLAGS_realtime_factor);

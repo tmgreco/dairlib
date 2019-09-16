@@ -220,12 +220,12 @@
   <joint name="right_foot" type="fixed">
     <parent link="right_lower_leg"/>
     <child link="right_foot"/>
-    <origin xyz="0 0 -.2"/>
+    <origin xyz="0 0 -.4"/>
   </joint>  
   <joint name="left_foot" type="fixed">
     <parent link="left_lower_leg"/>
     <child link="left_foot"/>
-    <origin xyz="0 0 -.2"/>
+    <origin xyz="0 0 -.4"/>
   </joint>
   <transmission name="left_hip_trans" type="SimpleTransmission">
     <actuator name="left_hip_torque"/>
