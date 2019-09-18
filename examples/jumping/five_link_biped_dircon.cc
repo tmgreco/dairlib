@@ -247,8 +247,8 @@ drake::trajectories::PiecewisePolynomial<double> run_traj_opt(MultibodyPlant<dou
 
   	auto x = trajopt->state();
 
-	trajopt->AddConstraintToAllKnotPoints(x(positions_map["planar_roty"]) >= -0.15);
-	trajopt->AddConstraintToAllKnotPoints(x(positions_map["planar_roty"]) <= 0.15);
+	trajopt->AddConstraintToAllKnotPoints(x(positions_map["planar_roty"]) >= -0.25);
+	trajopt->AddConstraintToAllKnotPoints(x(positions_map["planar_roty"]) <= 0.25);
 	// trajopt->AddConstraintToAllKnotPoints(vel_offset + x(velocities_map["left_hip_pin"]) >= -0.1);
 	// trajopt->AddConstraintToAllKnotPoints(vel_offset + x(velocities_map["left_hip_pin"]) <= 0.1);
 	// trajopt->AddConstraintToAllKnotPoints(vel_offset + x(velocities_map["right_hip_pin"]) >= -0.1);
@@ -257,16 +257,16 @@ drake::trajectories::PiecewisePolynomial<double> run_traj_opt(MultibodyPlant<dou
 	// trajopt->AddConstraintToAllKnotPoints(vel_offset + x(velocities_map["right_knee_pin"]) <= 0.1);	
 	// trajopt->AddConstraintToAllKnotPoints(vel_offset + x(velocities_map["left_knee_pin"]) >= -0.1);
 	// trajopt->AddConstraintToAllKnotPoints(vel_offset + x(velocities_map["left_knee_pin"]) <= 0.1);
-	trajopt->AddConstraintToAllKnotPoints(x(positions_map["planar_x"]) >= -2.0);
-	trajopt->AddConstraintToAllKnotPoints(x(positions_map["planar_x"]) <= 2.0);
+	trajopt->AddConstraintToAllKnotPoints(x(positions_map["planar_x"]) >= -0.5);
+	trajopt->AddConstraintToAllKnotPoints(x(positions_map["planar_x"]) <= 0.5);
 	trajopt->AddConstraintToAllKnotPoints(x(positions_map["left_knee_pin"]) >= 0.05);
 	trajopt->AddConstraintToAllKnotPoints(x(positions_map["right_knee_pin"]) >= 0.05);
 	trajopt->AddConstraintToAllKnotPoints(x(positions_map["left_knee_pin"]) <= 2);
 	trajopt->AddConstraintToAllKnotPoints(x(positions_map["right_knee_pin"]) <= 2);
-	trajopt->AddConstraintToAllKnotPoints(x(positions_map["left_hip_pin"]) >= -0.75);
-	trajopt->AddConstraintToAllKnotPoints(x(positions_map["right_hip_pin"]) >= -0.75);
-	trajopt->AddConstraintToAllKnotPoints(x(positions_map["left_hip_pin"]) <= 0.75);
-	trajopt->AddConstraintToAllKnotPoints(x(positions_map["right_hip_pin"]) <= 0.75);
+	trajopt->AddConstraintToAllKnotPoints(x(positions_map["left_hip_pin"]) >= -1.5);
+	trajopt->AddConstraintToAllKnotPoints(x(positions_map["right_hip_pin"]) >= -1.5);
+	trajopt->AddConstraintToAllKnotPoints(x(positions_map["left_hip_pin"]) <= 1.5);
+	trajopt->AddConstraintToAllKnotPoints(x(positions_map["right_hip_pin"]) <= 1.5);
 	
 	// trajopt->AddLinearConstraint(x);
 
@@ -289,26 +289,26 @@ drake::trajectories::PiecewisePolynomial<double> run_traj_opt(MultibodyPlant<dou
 	std::cout << "Cost:" << result.get_optimal_cost() << std::endl;
 	std::cout << "Solve result: " << result.get_solution_result() << std::endl;
 
-	// if(result.get_solution_result() == -6){
-	// 	auto pp_xtraj = trajopt->ReconstructStateTrajectory(result);
-	// 	std::vector<MatrixXd> rand_pertubation;
-	// 	for(int i = 0; i < pp_xtraj.get_segment_times().size(); ++i){
-	// 		rand_pertubation.push_back(
-	// 									Eigen::VectorXd::Random(plant->num_positions() + 
-	// 															plant->num_velocities())
-	// 									);
-	// 	}
-	// 	auto rand_x_pertubation = PiecewisePolynomial<double>::ZeroOrderHold(pp_xtraj.get_segment_times(), 
-	// 																		rand_pertubation);
-	// 	run_traj_opt(plant,
-	// 				pp_xtraj + rand_x_pertubation,
-	// 				// init_u_traj,
-	// 				trajopt->ReconstructInputTrajectory(result),
-	// 				init_l_traj,
-	// 				init_lc_traj,
-	// 				init_vc_traj
-	// 				);
-	// }
+	if(result.get_solution_result() == -6){
+		auto pp_xtraj = trajopt->ReconstructStateTrajectory(result);
+		std::vector<MatrixXd> rand_pertubation;
+		for(int i = 0; i < pp_xtraj.get_segment_times().size(); ++i){
+			rand_pertubation.push_back(
+										Eigen::VectorXd::Random(plant->num_positions() + 
+																plant->num_velocities())
+										);
+		}
+		auto rand_x_pertubation = PiecewisePolynomial<double>::ZeroOrderHold(pp_xtraj.get_segment_times(), 
+																			rand_pertubation);
+		run_traj_opt(plant,
+					pp_xtraj + rand_x_pertubation,
+					// init_u_traj,
+					trajopt->ReconstructInputTrajectory(result),
+					init_l_traj,
+					init_lc_traj,
+					init_vc_traj
+					);
+	}
 	writePPTrajToFile(trajopt->ReconstructStateTrajectory(result), "saved_trajs/", "states");
 	writePPTrajToFile(trajopt->ReconstructInputTrajectory(result), "saved_trajs/", "inputs");
 	// saveAllDecisionVars(result, "saved_trajs", "decision_vars");
@@ -440,7 +440,7 @@ int doMain(int argc, char* argv[]){
 
 		simulator.set_target_realtime_rate(FLAGS_realtime_factor);
 		simulator.Initialize();
-		simulator.StepTo(optimal_traj.end_time());
+		simulator.AdvanceTo(optimal_traj.end_time());
 	}
 
 	// simulate_traj();
