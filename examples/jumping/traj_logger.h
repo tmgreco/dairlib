@@ -28,12 +28,19 @@ Generates and writes trajectory to a file in order to visualize in a plot.
 
 void writeTimeTrajToFile(const drake::trajectories::PiecewisePolynomial<double>& traj, std::string filename){
 	std::ofstream* fout = new std::ofstream(filename);
-	double timesteps = 500.0;
-	for(double t = 0; t < traj.end_time(); t += traj.end_time() / timesteps){
-		(*fout) << t << " ";
-		(*fout) << traj.value(t).transpose();
-		(*fout) << "\n";
-	}
+	// double timesteps = 500.0;
+	// for(double t = 0; t < traj.end_time(); t += traj.end_time() / timesteps){
+	// 	(*fout) << t << " ";
+	// 	(*fout) << traj.value(t).transpose();
+	// 	(*fout) << "\n";
+	// }  
+    std::vector<double> times = traj.get_segment_times();
+
+    for(size_t i = 0; i < times.size(); ++i){
+        (*fout) << times[i] << " ";
+        (*fout) << traj.value(times[i]).transpose();
+        (*fout) << "\n";
+    }
 	fout->flush();
 	fout->close();
 	delete fout;

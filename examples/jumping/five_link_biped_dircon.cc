@@ -159,26 +159,26 @@ drake::trajectories::PiecewisePolynomial<double> run_traj_opt(MultibodyPlant<dou
 	std::vector<int> timesteps;
 	timesteps.push_back(FLAGS_knot_points);
 	timesteps.push_back(FLAGS_knot_points);
-	// timesteps.push_back(FLAGS_knot_points);
+	timesteps.push_back(FLAGS_knot_points);
 	// timesteps.push_back(10);
 	std::vector<double> min_dt;
 	min_dt.push_back(.01);
 	min_dt.push_back(.01);
-	// min_dt.push_back(.01);
+	min_dt.push_back(.01);
 	std::vector<double> max_dt;
 	max_dt.push_back(.3);
 	max_dt.push_back(.3);
-	// max_dt.push_back(.3);
+	max_dt.push_back(.3);
 
 	std::vector<DirconKinematicDataSet<double>*> dataset_list;
 	dataset_list.push_back(&mode_one_dataset);
 	dataset_list.push_back(&mode_two_dataset);
-	// dataset_list.push_back(&mode_one_dataset);
+	dataset_list.push_back(&mode_one_dataset);
 
 	std::vector<DirconOptions> options_list;
 	options_list.push_back(mode_one_options);
 	options_list.push_back(mode_two_options);
-	// options_list.push_back(mode_three_options);
+	options_list.push_back(mode_three_options);
 
 
 
@@ -217,7 +217,7 @@ drake::trajectories::PiecewisePolynomial<double> run_traj_opt(MultibodyPlant<dou
 
 
 	// Linear constraints
-	int n_modes = 2;
+	int n_modes = 3;
 	auto x0 = trajopt->initial_state();
 	auto x_mid_point = trajopt->state(FLAGS_knot_points*n_modes/2);
 	auto xf = trajopt->final_state();
@@ -231,14 +231,16 @@ drake::trajectories::PiecewisePolynomial<double> run_traj_opt(MultibodyPlant<dou
 	// trajopt->AddLinearConstraint(xf(positions_map["planar_roty"]) == (x0(positions_map["planar_roty"] + height)));
 	// trajopt->AddLinearConstraint(x0(positions_map["planar_roty"]) == 0);
 	// trajopt->AddLinearConstraint(x0 == fixed_initial_conds);
-	trajopt->AddLinearConstraint(xf(positions_map["planar_x"]) == (x0(positions_map["planar_x"])));
+	// trajopt->AddLinearConstraint(x_mid_point(positions_map["planar_x"]) == (x0(positions_map["planar_x"])));
 	trajopt->AddLinearConstraint(x_mid_point(positions_map["planar_x"]) == (x0(positions_map["planar_x"])));
-	// trajopt->AddLinearConstraint(x_mid_point(positions_map["planar_z"]) == (x0(positions_map["planar_z"]) + FLAGS_height));
-	trajopt->AddLinearConstraint(x_mid_point(positions_map["planar_z"]) == (x0(positions_map["planar_z"])));
-	trajopt->AddLinearConstraint(xf(positions_map["planar_z"]) == (x0(positions_map["planar_z"]) + FLAGS_height));
+	trajopt->AddLinearConstraint(xf(positions_map["planar_x"]) == (x0(positions_map["planar_x"])));
+	
+	trajopt->AddLinearConstraint(x_mid_point(positions_map["planar_z"]) == (x0(positions_map["planar_z"]) + FLAGS_height));
+	trajopt->AddLinearConstraint(xf(positions_map["planar_z"]) == (x0(positions_map["planar_z"])));
+	// trajopt->AddLinearConstraint(x_mid_point(positions_map["planar_z"]) == (x0(positions_map["planar_z"])));
+	// trajopt->AddLinearConstraint(xf(positions_map["planar_z"]) == (x0(positions_map["planar_z"]) + FLAGS_height));
 	// trajopt->AddLinearConstraint(xf(positions_map["planar_z"]) == (x0(positions_map["planar_z"])));
-	// trajopt->AddLinearConstraint(xf(positions_map["planar_z"]) == (x0(positions_map["planar_z"])));
-	// trajopt->AddLinearConstraint(x0(positions_map["planar_z"]) == 0.8);
+	trajopt->AddLinearConstraint(x0(positions_map["planar_z"]) == 0.799);
 	trajopt->AddLinearConstraint(x0.tail(n) == VectorXd::Zero(n));
 	trajopt->AddLinearConstraint(xf.tail(n) == VectorXd::Zero(n));
 
@@ -259,12 +261,12 @@ drake::trajectories::PiecewisePolynomial<double> run_traj_opt(MultibodyPlant<dou
 	trajopt->AddConstraintToAllKnotPoints(x(positions_map["planar_x"]) <= 2.0);
 	trajopt->AddConstraintToAllKnotPoints(x(positions_map["left_knee_pin"]) >= 0.05);
 	trajopt->AddConstraintToAllKnotPoints(x(positions_map["right_knee_pin"]) >= 0.05);
-	// trajopt->AddConstraintToAllKnotPoints(x(positions_map["left_knee_pin"]) <= 2);
-	// trajopt->AddConstraintToAllKnotPoints(x(positions_map["right_knee_pin"]) <= 2);
-	// trajopt->AddConstraintToAllKnotPoints(x(positions_map["left_hip_pin"]) >= -0.5);
-	// trajopt->AddConstraintToAllKnotPoints(x(positions_map["right_hip_pin"]) >= -0.5);
-	// trajopt->AddConstraintToAllKnotPoints(x(positions_map["left_hip_pin"]) <= 0.5);
-	// trajopt->AddConstraintToAllKnotPoints(x(positions_map["right_hip_pin"]) <= 0.5);
+	trajopt->AddConstraintToAllKnotPoints(x(positions_map["left_knee_pin"]) <= 2);
+	trajopt->AddConstraintToAllKnotPoints(x(positions_map["right_knee_pin"]) <= 2);
+	trajopt->AddConstraintToAllKnotPoints(x(positions_map["left_hip_pin"]) >= -0.75);
+	trajopt->AddConstraintToAllKnotPoints(x(positions_map["right_hip_pin"]) >= -0.75);
+	trajopt->AddConstraintToAllKnotPoints(x(positions_map["left_hip_pin"]) <= 0.75);
+	trajopt->AddConstraintToAllKnotPoints(x(positions_map["right_hip_pin"]) <= 0.75);
 	
 	// trajopt->AddLinearConstraint(x);
 
@@ -272,7 +274,7 @@ drake::trajectories::PiecewisePolynomial<double> run_traj_opt(MultibodyPlant<dou
 	auto u = trajopt->input();
 	MatrixXd Q = MatrixXd::Zero(2*n, 2*n);
 	for (int i=0; i < n; i++) {
-		Q(i+n, i+n) = 10;
+		Q(i+n, i+n) = 100;
 	}
 	trajopt->AddRunningCost(u.transpose()*R*u);
 	trajopt->AddRunningCost(x.transpose()*Q*x);
@@ -307,11 +309,11 @@ drake::trajectories::PiecewisePolynomial<double> run_traj_opt(MultibodyPlant<dou
 	// 				init_vc_traj
 	// 				);
 	// }
-	// writePPTrajToFile(trajopt->ReconstructStateTrajectory(result), "saved_trajs/", "states");
-	// writePPTrajToFile(trajopt->ReconstructInputTrajectory(result), "saved_trajs/", "inputs");
-	saveAllDecisionVars(result, "saved_trajs", "decision_vars");
-	writeTimeTrajToFile(trajopt->ReconstructStateTrajectory(result),"state_traj.txt");
-	writeTimeTrajToFile(trajopt->ReconstructInputTrajectory(result),"input_traj.txt");
+	writePPTrajToFile(trajopt->ReconstructStateTrajectory(result), "saved_trajs/", "states");
+	writePPTrajToFile(trajopt->ReconstructInputTrajectory(result), "saved_trajs/", "inputs");
+	// saveAllDecisionVars(result, "saved_trajs", "decision_vars");
+	writeTimeTrajToFile(trajopt->ReconstructStateTrajectory(result), "state_traj.txt");
+	writeTimeTrajToFile(trajopt->ReconstructInputTrajectory(result), "input_traj.txt");
 	return trajopt->ReconstructStateTrajectory(result);
 }
 
@@ -347,6 +349,7 @@ int doMain(int argc, char* argv[]){
 			);
 
 	plant.Finalize();
+
 	// print_state_map(&plant);
 
 	// Generate guesses for states, inputs, and contact forces
@@ -364,7 +367,7 @@ int doMain(int argc, char* argv[]){
 	int num_forces = 4;
 	int num_timesteps = FLAGS_knot_points;
 
-	int n_modes = 2;
+	int n_modes = 3;
 
 	// Initial states, forces, and constraints
 	std::vector<MatrixXd> init_x; // states
