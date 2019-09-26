@@ -190,7 +190,7 @@ drake::trajectories::PiecewisePolynomial<double> run_traj_opt(MultibodyPlant<dou
 													dataset_list,
 													options_list);
 
-	trajopt->AddDurationBounds(FLAGS_max_duration, 2*FLAGS_max_duration);
+	trajopt->AddDurationBounds(FLAGS_max_duration, 3*FLAGS_max_duration);
 	trajopt->SetSolverOption(drake::solvers::SnoptSolver::id(),
 							"Print file", "five_link_biped_snopt.out");
 	trajopt->SetSolverOption(drake::solvers::SnoptSolver::id(),
@@ -274,7 +274,7 @@ drake::trajectories::PiecewisePolynomial<double> run_traj_opt(MultibodyPlant<dou
 	auto u = trajopt->input();
 	MatrixXd Q = MatrixXd::Zero(2*n, 2*n);
 	for (int i=0; i < n; i++) {
-		Q(i+n, i+n) = 100;
+		Q(i+n, i+n) = 10;
 	}
 	trajopt->AddRunningCost(u.transpose()*R*u);
 	trajopt->AddRunningCost(x.transpose()*Q*x);

@@ -1,5 +1,21 @@
 <?xml version="1.0" ?>
 <robot name="rabbit">
+
+  <material name="blue">
+    <color rgba="0 0 1 1"/>
+  </material>
+
+  <material name="green">
+    <color rgba="0 1 0 1"/>
+  </material>
+
+  <material name="red">
+    <color rgba="1 0 0 1"/>
+  </material>
+
+  <material name="white">
+    <color rgba="1 1 1 1"/>
+  </material>
   
   <link name="base"/>
   <link name="base_x"/>
@@ -13,9 +29,7 @@
       <geometry>
         <sphere radius="0.025"/>
       </geometry>
-      <material name="green">
-        <color rgba="0 1 0 1"/>
-      </material>
+      <material name="green"/>
     </visual>
   </link>
   <link name="torso">
@@ -24,9 +38,7 @@
       <geometry>
         <cylinder length="0.625" radius="0.0075"/>
       </geometry>
-      <material name="green">
-        <color rgba="0 1 0 1"/>
-      </material>
+      <material name="green"/>
     </visual>
   </link>
   <link name="left_upper_leg">
@@ -35,9 +47,7 @@
       <geometry>
         <cylinder length="0.4" radius="0.0075"/>
       </geometry>
-      <material name="red">
-        <color rgba="1 0 0 1"/>
-      </material>
+      <material name="red"/>
     </visual>
   </link>
   <link name="left_upper_leg_mass">
@@ -46,9 +56,7 @@
       <geometry>
         <sphere radius="0.025"/>
       </geometry>
-      <material name="red">
-        <color rgba="1 0 0 1"/>
-      </material>
+      <material name="red"/>
     </visual>
     <inertial>
       <origin xyz="0 0 -0.2"/>
@@ -66,9 +74,7 @@
       <geometry>
         <cylinder length="0.4" radius="0.0075"/>
       </geometry>
-      <material name="red">
-        <color rgba="1 0 0 1"/>
-      </material>
+      <material name="red"/>
     </visual>
     <collision>
       <origin xyz="0 0 -0.4"/>
@@ -83,9 +89,7 @@
       <geometry>
         <sphere radius="0.025"/>
       </geometry>
-      <material name="red">
-        <color rgba="1 0 0 1"/>
-      </material>
+      <material name="red"/>
     </visual>
     <inertial>
       <origin xyz="0 0 -0.2"/>
@@ -103,9 +107,7 @@
       <geometry>
         <cylinder length="0.4" radius="0.0075"/>
       </geometry>
-      <material name="blue">
-        <color rgba="0 0 1 1"/>
-      </material>
+      <material name="blue"/>
     </visual>
   </link>
   <link name="right_upper_leg_mass">
@@ -114,9 +116,7 @@
       <geometry>
         <sphere radius="0.025"/>
       </geometry>
-      <material name="blue">
-        <color rgba="0 0 1 1"/>
-      </material>
+      <material name="blue"/>
     </visual>
     <inertial>
       <origin xyz="0 0 -0.2"/>
@@ -134,9 +134,7 @@
       <geometry>
         <cylinder length="0.4" radius="0.0075"/>
       </geometry>
-      <material name="blue">
-        <color rgba="0 0 1 1"/>
-      </material>
+      <material name="blue"/>
     </visual>
     <collision>
       <origin xyz="0 0 -0.4"/>
@@ -151,9 +149,7 @@
       <geometry>
         <sphere radius="0.025"/>
       </geometry>
-      <material name="blue">
-        <color rgba="0 0 1 1"/>
-      </material>
+      <material name="blue"/>
     </visual>
     <inertial>
       <origin xyz="0 0 -0.2"/>
@@ -162,8 +158,22 @@
     </inertial>
   </link>
   <link name="right_foot">
+    <visual>
+      <origin xyz="0 0 0"/>
+      <geometry>
+        <sphere radius="0.01"/>
+      </geometry>
+      <material name="white"/>
+    </visual>
   </link>
   <link name="left_foot">
+    <visual>
+      <origin xyz="0 0 0"/>
+      <geometry>
+        <sphere radius="0.01"/>
+      </geometry>
+      <material name="white"/>
+    </visual>
   </link>
   <joint name="planar_x" type="prismatic">
     <parent link="base"/>
@@ -248,6 +258,8 @@
     <mechanicalReduction>1</mechanicalReduction>
   </transmission>
   <collision_filter_group name="robot_links">
+    <member link="left_foot"/>
+    <member link="right_foot"/>
     <member link="left_lower_leg_mass"/>
     <member link="right_lower_leg_mass"/>
     <member link="left_lower_leg"/>

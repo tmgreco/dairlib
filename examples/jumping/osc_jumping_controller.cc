@@ -4,30 +4,41 @@
 #include <gflags/gflags.h>
 
 #include "drake/lcm/drake_lcm.h"
-#include "drake/solvers/mathematical_program.h"
-#include "drake/solvers/constraint.h"
-#include "drake/solvers/snopt_solver.h"
-#include "drake/solvers/solve.h"
-#include "drake/solvers/solution_result.h"
-#include "drake/systems/analysis/simulator.h"
+
 #include "drake/systems/framework/diagram.h"
 #include "drake/systems/framework/diagram_builder.h"
+#include "drake/systems/lcm/lcm_publisher_system.h"
+#include "drake/systems/lcm/lcm_subscriber_system.h"
+#include "drake/systems/lcm/lcm_interface_system.h"
+#include "drake/systems/analysis/simulator.h"
+
+#include "drake/multibody/plant/multibody_plant.h"
+#include "drake/multibody/rigid_body_tree_construction.h"
+#include "drake/multibody/rigid_body_plant/drake_visualizer.h"
+#include "drake/multibody/parsing/parser.h"
 #include "drake/systems/primitives/trajectory_source.h"
 #include "drake/systems/rendering/multibody_position_to_geometry_pose.h"
 #include "drake/geometry/geometry_visualization.h"
-#include "drake/multibody/plant/multibody_plant.h"
-#include "drake/multibody/parsing/parser.h"
-#include "drake/multibody/rigid_body_plant/drake_visualizer.h"
+
+
+#include "dairlib/lcmt_robot_output.hpp"
+#include "dairlib/lcmt_robot_input.hpp"
+#include "dairlib/lcmt_pd_config.hpp"
+#include "systems/robot_lcm_systems.h"
+#include "attic/multibody/rigidbody_utils.h"
+#include "examples/jumping/jumping_traj.h"
+#include "examples/jumping/jumping_fsm.h"
+#include "systems/controllers/osc/operational_space_control.h"
+#include "systems/controllers/osc/osc_tracking_data.h"
+
+
 
 #include "common/find_resource.h"
 #include "multibody/multibody_utils.h"
 #include "multibody/visualization_utils.h"
 #include "systems/primitives/subvector_pass_through.h"
-#include "solvers/optimization_utils.h"
-#include "systems/trajectory_optimization/dircon_position_data.h"
-#include "systems/trajectory_optimization/dircon_kinematic_data_set.h"
-#include "systems/trajectory_optimization/hybrid_dircon.h"
-#include "systems/trajectory_optimization/dircon_opt_constraints.h"
+#include "drake/multibody/parsers/urdf_parser.h"
+
 
 #include "examples/jumping/traj_logger.h"
 
@@ -40,11 +51,18 @@ DEFINE_double(gravity, 9.81,
 DEFINE_double(mu, 0.7, "The static coefficient of friction");
 // DEFINE_double(mu_kinetic, 0.7, "The dynamic coefficient of friction");
 DEFINE_double(v_tol, 0.01, "The maximum slipping speed allowed during stiction (m/s)");
+DEFINE_string(state_simulation_channel, "RABBIT_STATE_SIMULATION", 
+              "Channel to publish/receive state from simulation");
+DEFINE_double(wait_time, 5.0, "The length of time to wait in the neutral state before jumping (s)");
+DEFINE_double(publish_rate, 200, "Publishing frequency (Hz)");
+DEFINE_double(height, 0.8, "Standing height of the five link biped");
 
-
-using drake::multibody::MultibodyPlant;
+// using drake::multibody::MultibodyPlant;
 using drake::multibody::Body;
-using drake::multibody::Parser;
+// using drake::multibody::Parser;
+
+using drake::systems::lcm::LcmSubscriberSystem;
+using drake::systems::lcm::LcmPublisherSystem;
 using drake::geometry::SceneGraph;
 using drake::systems::DiagramBuilder;
 using Eigen::Vector3d;
@@ -53,63 +71,96 @@ using Eigen::MatrixXd;
 using Eigen::Matrix3Xd;
 using std::vector;
 using drake::trajectories::PiecewisePolynomial;
-using drake::solvers::SolutionResult;
 using std::cout;
 using std::endl;
 
 
 namespace dairlib{
 
-using systems::trajectory_optimization::HybridDircon;
-using systems::trajectory_optimization::DirconDynamicConstraint;
-using systems::trajectory_optimization::DirconKinematicConstraint;
-using systems::trajectory_optimization::DirconOptions;
-using systems::trajectory_optimization::DirconKinConstraintType;
+using multibody::GetBodyIndexFromName;
+using systems::controllers::ComTrackingData;
+using systems::controllers::TransTaskSpaceTrackingData;
+using systems::controllers::RotTaskSpaceTrackingData;
+using systems::controllers::JointSpaceTrackingData;
+using examples::jumping::osc::JumpingFiniteStateMachine;
+using examples::jumping::osc::JumpingTraj;
 using systems::SubvectorPassThrough;
 
 namespace examples{
 namespace jumping{
+namespace osc{
 
-const std::string channel_x = FLAGS_channel;
-const std::string channel_u = "CASSIE_INPUT";
+const std::string channel_x = FLAGS_state_simulation_channel;
+const std::string channel_u = "RABBIT_INPUT";
 
 int doMain(int argc, char* argv[]){
 	gflags::ParseCommandLineFlags(&argc, &argv, true);
 	DiagramBuilder<double> builder;
 	
+	std::string filename = FindResourceOrThrow("examples/jumping/five_link_biped.urdf");
 	// Initialize the plant
-	MultibodyPlant<double> plant;
-	SceneGraph<double>& scene_graph = *(builder.AddSystem<SceneGraph>());
-	Parser parser(&plant, &scene_graph);
-	std::string full_name = FindResourceOrThrow("examples/jumping/five_link_biped.urdf");
-	parser.AddModelFromFile(full_name);
-	plant.mutable_gravity_field().set_gravity_vector(-FLAGS_gravity * Eigen::Vector3d::UnitZ());
-	plant.WeldFrames(
-			plant.world_frame(), 
-			plant.GetFrameByName("base"),
-			drake::math::RigidTransform<double>()
-			);
-	plant.Finalize();
+	RigidBodyTree<double> tree_with_springs;
+	RigidBodyTree<double> tree_without_springs;
+	drake::parsers::urdf::AddModelInstanceFromUrdfFileToWorld(
+		FindResourceOrThrow(filename), drake::multibody::joints::kQuaternion, &tree_with_springs);
+	const double terrain_size = 100;
+	const double terrain_depth = 0.20;
+	drake::multibody::AddFlatTerrainToWorld(&tree_with_springs,
+	                                      terrain_size, terrain_depth);
 
-	auto osc = builder.AddSystem<systems::controllers::OperationalSpaceControl>(plant, plant, false, false);
+	// MultibodyPlant<double> plant;
+	// SceneGraph<double>& scene_graph = *(builder.AddSystem<SceneGraph>());
+	// Parser parser(&plant, &scene_graph);
+	// parser.AddModelFromFile(full_name);
+	// plant.mutable_gravity_field().set_gravity_vector(-FLAGS_gravity * Eigen::Vector3d::UnitZ());
+	// plant.WeldFrames(
+	// 		plant.world_frame(), 
+	// 		plant.GetFrameByName("base"),
+	// 		drake::math::RigidTransform<double>()
+	// 		);
+	// plant.Finalize();
 
-	int hip_index = GetBodyIndexFromName(plant, "torso");
-	int l_foot_index = GetBodyIndexFromName(plant, "l_foot");
-	int r_foot_index = GetBodyIndexFromName(plant, "r_foot");
+	int hip_index = GetBodyIndexFromName(tree_with_springs, "torso");
+	int l_foot_index = GetBodyIndexFromName(tree_with_springs, "left_foot");
+	int r_foot_index = GetBodyIndexFromName(tree_with_springs, "right_foot");
 
-	int n_v = plant.get_num_velocities();
+	// Create Operational space control
+		// Create state receiver.
+	// Create command sender.
+	auto lcm = builder.AddSystem<drake::systems::lcm::LcmInterfaceSystem>();
+
+	auto state_receiver = builder.AddSystem<systems::RobotOutputReceiver>(tree_with_springs);
+	auto command_pub = builder.AddSystem(LcmPublisherSystem::Make<dairlib::lcmt_robot_input>(
+										channel_u, lcm, 1.0 / FLAGS_publish_rate));
+	auto command_sender = builder.AddSystem<systems::RobotCommandSender>(tree_with_springs);
+	auto fsm = builder.AddSystem<JumpingFiniteStateMachine>(tree_with_springs, FLAGS_wait_time);
+	auto traj_generator = builder.AddSystem<JumpingTraj>(
+										tree_with_springs, hip_index, l_foot_index, r_foot_index);
+	auto osc = builder.AddSystem<systems::controllers::OperationalSpaceControl>(
+	           tree_with_springs, tree_with_springs, false, false);
+
+	// ******Begin osc configuration*******
+
+	// Acceleration Cost
+	int n_v = tree_with_springs.get_num_velocities();
 	MatrixXd Q_accel = 10 * MatrixXd::Identity(n_v, n_v);
 	osc->SetAccelerationCostForAllJoints(Q_accel);
 
+	// Contact Constraint Slack Variables
 	double lambda_contact_relax = 20000;
 	osc->SetWeightOfSoftContactConstraint(lambda_contact_relax);
 
+
+	// All foot contact specification for osc
 	double mu = FLAGS_mu;
-	osc->setContactFriction(mu);
+	osc->SetContactFriction(mu);
+	Vector3d foot_contact_disp(0, 0, 0);
+	osc->AddStateAndContactPoint(NEUTRAL, "left_foot", foot_contact_disp);
+	osc->AddStateAndContactPoint(NEUTRAL, "right_foot", foot_contact_disp);
+	osc->AddStateAndContactPoint(CROUCH, "left_foot", foot_contact_disp);
+	osc->AddStateAndContactPoint(CROUCH, "right_foot", foot_contact_disp);
 
-	osc->addContactPoint("l_foot");
-	osc->addContactPoint("r_foot");
-
+	// Gains for COM tracking
 	MatrixXd W_com = MatrixXd::Identity(3, 3);
 	W_com(0, 0) = 2000;
 	W_com(1, 1) = 2000;
@@ -117,8 +168,7 @@ int doMain(int argc, char* argv[]){
 
   	double xy_scale = 10;
 	double g_over_l = 9.81/FLAGS_height;
-	MatrixXd K_p_com = (xy_scale*sqrt(g_over_l)  - g_over_l) *
-	  MatrixXd::Identity(3, 3);
+	MatrixXd K_p_com = (xy_scale*sqrt(g_over_l)  - g_over_l) * MatrixXd::Identity(3, 3);
 	MatrixXd K_d_com = xy_scale * MatrixXd::Identity(3, 3);
 
 	K_p_com(2, 2) = 10;
@@ -126,85 +176,56 @@ int doMain(int argc, char* argv[]){
 
 	ComTrackingData center_of_mass_traj("com_traj", 3,
 										K_p_com, K_d_com, W_com * FLAGS_cost_weight_multiplier,
-										&tree_with_springs, &tree_without_springs);
-	osc->AddTrackingData(&center_of_mass_traj);
+										&tree_with_springs, &tree_with_springs);
+	osc->A(&center_of_mass_traj);
 
 	osc->Build();
 
-	  // Create state receiver.
-	auto state_receiver = builder.AddSystem<systems::RobotOutputReceiver>(tree_with_springs);
-	// Create command sender.
-	auto command_pub = builder.AddSystem(LcmPublisherSystem::Make<dairlib::lcmt_robot_input>(channel_u, lcm, {TriggerType::kForced}));
-	auto command_sender = builder.AddSystem<systems::RobotCommandSender>(tree_with_springs);
+
+	// ******End of osc configuration*******
 
 
-	auto traj_generator = builder.AddSystem<jumping::osc::JumpingTraj>(plant, hip_index, l_foot_index, r_foot_index);
-	build.Connect(state_receiver->get_output_port(0), traj_generator->get_input_port_state());
-	builder.Connect(command_sender->get_output_port(0), command_pub->get_input_port());
+
+	builder.Connect(state_receiver->get_output_port(0), 
+				traj_generator->get_input_port_state());
+	builder.Connect(command_sender->get_output_port(0), 
+				command_pub->get_input_port());
 	builder.Connect(state_receiver->get_output_port(0),
 	          	osc->get_robot_output_input_port());
 	builder.Connect(osc->get_output_port(0),
 	          	command_sender->get_input_port(0));
 	builder.Connect(traj_generator->get_output_port(0),
 	          	osc->get_tracking_data_input_port("com_traj"));
+	builder.Connect(state_receiver->get_output_port(0),
+					fsm->get_input_port_state());
+	builder.Connect(fsm->get_output_port(0),
+					traj_generator->get_input_port_fsm());
 
+	
+
+	// Create the diagram and context
 	auto diagram = builder.Build();
-	auto contect = diagram->CreateDefaultContext();
+	auto context = diagram->CreateDefaultContext();
 
-	const auto& diagram = *diagram;
-	drake::systems::Simulator<double> simulator(std::move(owned_diagram),
-  												std::move(context));
-	auto& diagram_context = simulator.get_mutable_context();
-
-	auto& state_receiver_context =
-	  diagram.GetMutableSubsystemContext(*state_receiver, &diagram_context);
-
-	// Wait for the first message.
-	drake::log()->info("Waiting for first state message on " + channel_x);
-	drake::lcm::Subscriber<dairlib::lcmt_robot_output> state_sub(lcm,
-	  															channel_x);
-	LcmHandleSubscriptionsUntil(lcm, [&]() {
-		return state_sub.count() > 0;
-	});
-
-	// Initialize the context based on the first message.
-	const double t0 = state_sub.message().utime * 1e-6;
-	diagram_context.SetTime(t0);
-	auto& input_value = state_receiver->get_input_port(0).FixValue(
-	                    &state_receiver_context, state_sub.message());
+	/// Use the simulator to drive at a fixed rate
+	/// If set_publish_every_time_step is true, this publishes twice
+	/// Set realtime rate. Otherwise, runs as fast as possible
+	auto stepper = std::make_unique<drake::systems::Simulator<double>>(*diagram,
+	             std::move(context));
+	stepper->set_publish_every_time_step(false);
+	stepper->set_publish_at_initialization(false);
+	stepper->set_target_realtime_rate(1.0);
+	stepper->Initialize();
 
 	drake::log()->info("controller started");
-	while (true) {
-		// Wait for an lcmt_robot_output message.
-		state_sub.clear();
-		LcmHandleSubscriptionsUntil(lcm, [&]() {
-			return state_sub.count() > 0;
-		});
-		// Write the lcmt_robot_output message into the context and advance.
-		input_value.GetMutableData()->set_value(state_sub.message());
-		const double time = state_sub.message().utime * 1e-6;
-
-		// Check if we are very far ahead or behind
-		// (likely due to a restart of the driving clock)
-		if (time > simulator.get_context().get_time() + 1.0 || time < simulator.get_context().get_time() - 1.0) {
-			
-			std::cout << "Controller time is " << simulator.get_context().get_time()
-			  << ", but stepping to " << time << std::endl;
-			std::cout << "Difference is too large, resetting controller time." <<
-			  std::endl;
-			simulator.get_mutable_context().SetTime(time);
-		}
-
-		simulator.AdvanceTo(time);
-		// Force-publish via the diagram
-		diagram.Publish(diagram_context);
-	}
+	stepper->AdvanceTo(std::numeric_limits<double>::infinity());
 
 	return 0;
 
 }
 
 
+}  // namespace osc
 }  // namespace jumping
 }  // namespace examples
 }  // namespace dairlib

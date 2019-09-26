@@ -15,6 +15,49 @@ cc_binary(
     ],
 )
 
+cc_binary(
+    name = "osc_jumping_controller",
+    srcs = ["osc_jumping_controller.cc"],
+    data = ["five_link_biped.urdf"],
+    deps = [
+        "//common",
+        "//systems:robot_lcm_systems",
+        "//systems/primitives",
+        "//attic/multibody:utils",
+        "//examples/Cassie/osc:osc",
+        ":traj_logger",
+        ":jumping_traj",
+        ":jumping_fsm",
+        "@drake//:drake_shared_library",
+        "@gflags",
+    ],
+)
+
+cc_binary(
+    name = "rabbit_simulator",
+    srcs = ["rabbit_sim.cc"],
+    data = ["five_link_biped.urdf"],
+    deps = [
+        "//common",
+        "//systems:robot_lcm_systems",
+        "//systems/primitives",
+        "@drake//:drake_shared_library",
+        "@gflags",
+    ],
+)
+
+cc_binary(
+    name = "rabbit_visualizer",
+    srcs = ["rabbit_visualizer.cc"],
+    data = ["five_link_biped.urdf"],
+    deps = [
+        "//common",
+        "//systems:robot_lcm_systems",
+        "//systems/primitives",
+        "@drake//:drake_shared_library",
+        "@gflags",
+    ],
+)
 
 cc_library(
     name = "traj_logger",
@@ -24,5 +67,23 @@ cc_library(
         "//systems/goldilocks_models",
         "@drake//:drake_shared_library",
         "@gflags",
+    ],
+)
+
+cc_library(
+    name = "jumping_traj",
+    srcs = ["jumping_traj.h"],
+    deps = [
+        "//systems/controllers:control_utils",
+        "@drake//:drake_shared_library",
+    ],
+)
+
+cc_library(
+    name = "jumping_fsm",
+    srcs = ["jumping_fsm.h"],
+    deps = [
+        "//systems/controllers:control_utils",
+        "@drake//:drake_shared_library",
     ],
 )

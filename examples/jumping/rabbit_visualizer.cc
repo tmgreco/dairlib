@@ -6,25 +6,31 @@
 #include "drake/systems/lcm/lcm_interface_system.h"
 #include "drake/systems/analysis/simulator.h"
 #include "drake/systems/rendering/multibody_position_to_geometry_pose.h"
+
+#include "drake/multibody/parsing/parser.h"
 #include "systems/primitives/subvector_pass_through.h"
 
+#include "common/find_resource.h"
 #include "dairlib/lcmt_robot_output.hpp"
 #include "systems/robot_lcm_systems.h"
-#include "examples/Cassie/cassie_utils.h"
 #include "multibody/multibody_utils.h"
 #include "multibody/com_pose_system.h"
 
+
 namespace dairlib {
 
-DEFINE_string(channel, "STATE_DISPATCHER",
+DEFINE_string(channel, "RABBIT_STATE_SIMULATION",
     "LCM channel for receiving state. ");
-    
-using std::endl;
-using std::cout;
+DEFINE_bool(com, true, "Visualize the COM as a sphere");
+DEFINE_bool(com_ground, true,
+    "If com=true, sets whether the COM should be shown on the ground (z=0)"
+    " or at the correct height.");
+
 using drake::geometry::SceneGraph;
 using drake::multibody::MultibodyPlant;
 using dairlib::systems::SubvectorPassThrough;
 using drake::systems::Simulator;
+using drake::multibody::Parser;
 using dairlib::systems::RobotOutputReceiver;
 using drake::systems::rendering::MultibodyPositionToGeometryPose;
 using drake::systems::lcm::LcmSubscriberSystem;
@@ -41,12 +47,21 @@ int do_main(int argc, char* argv[]) {
 
   drake::systems::DiagramBuilder<double> builder;
 
-  MultibodyPlant<double> plant;
-  SceneGraph<double>& scene_graph = *(builder.AddSystem<SceneGraph>());
-  Parser parser(&plant, &scene_graph);
+  // MultibodyPlant<double> plant;
   std::string full_name = FindResourceOrThrow("examples/jumping/five_link_biped.urdf");
-
-  addCassieMultibody(&plant, &scene_graph, FLAGS_floating_base);
+  // MultibodyPlant<double>& plant = *builder.AddSystem<MultibodyPlant>(FLAGS_timestep);
+  MultibodyPlant<double> plant;
+  SceneGraph<double>* scene_graph = builder.AddSystem<SceneGraph>();
+  scene_graph->set_name("scene_graph");
+  Parser parser(&plant, scene_graph);
+  parser.AddModelFromFile(full_name);
+  plant.WeldFrames(
+    plant.world_frame(), 
+    plant.GetFrameByName("base"),
+    drake::math::RigidTransform<double>()
+    );
+  plant.mutable_gravity_field().set_gravity_vector(
+      -9.81 * Eigen::Vector3d::UnitZ());
   plant.Finalize();
 
   auto lcm = builder.AddSystem<drake::systems::lcm::LcmInterfaceSystem>();
@@ -64,7 +79,7 @@ int do_main(int argc, char* argv[]) {
   auto to_pose =
       builder.AddSystem<MultibodyPositionToGeometryPose<double>>(plant);
   builder.Connect(*passthrough, *to_pose);
-  builder.Connect(to_pose->get_output_port(), scene_graph.get_source_pose_port(
+  builder.Connect(to_pose->get_output_port(), scene_graph->get_source_pose_port(
     plant.get_source_id().value()));
 
   // *******Add COM visualization**********
@@ -76,7 +91,7 @@ int do_main(int argc, char* argv[]) {
 
     const RigidBody<double>& ball = ball_plant->AddRigidBody("Ball", M_Bcm);
 
-    ball_plant->RegisterAsSourceForSceneGraph(&scene_graph);
+    ball_plant->RegisterAsSourceForSceneGraph(scene_graph);
     // Add visual for the COM.
     const Eigen::Vector4d orange(1.0, 0.55, 0.0, 1.0);
     const RigidTransformd X_BS = RigidTransformd::Identity();
@@ -103,10 +118,11 @@ int do_main(int argc, char* argv[]) {
           ball_to_pose->get_input_port());
     }
     builder.Connect(ball_to_pose->get_output_port(),
-        scene_graph.get_source_pose_port(ball_plant->get_source_id().value()));
+        scene_graph->get_source_pose_port(ball_plant->get_source_id().value()));
   }
 
-  drake::geometry::ConnectDrakeVisualizer(&builder, scene_graph);
+
+  drake::geometry::ConnectDrakeVisualizer(&builder, *scene_graph);
 
   // state_receiver->set_publish_period(1.0/30.0);  // framerate
 
@@ -126,7 +142,7 @@ int do_main(int argc, char* argv[]) {
 
   drake::log()->info("visualizer started");
 
-  stepper->StepTo(std::numeric_limits<double>::infinity());
+  stepper->AdvanceTo(std::numeric_limits<double>::infinity());
 
   return 0;
 }
