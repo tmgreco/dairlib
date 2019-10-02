@@ -224,23 +224,14 @@ drake::trajectories::PiecewisePolynomial<double> run_traj_opt(MultibodyPlant<dou
 	int n = plant->num_positions();
 	int vel_offset = n;
 
-	// Eigen::VectorXd fixed_initial_conds(14);
-	// fixed_initial_conds << 0, 0.798616, 0, -0.232994, -0.228255, 0.0889048, 0.05,
- //            0, 0, 0, 0, 0, 0, 0;
-	// int height = 2.0;
-	// trajopt->AddLinearConstraint(xf(positions_map["planar_roty"]) == (x0(positions_map["planar_roty"] + height)));
-	// trajopt->AddLinearConstraint(x0(positions_map["planar_roty"]) == 0);
-	// trajopt->AddLinearConstraint(x0 == fixed_initial_conds);
-	// trajopt->AddLinearConstraint(x_mid_point(positions_map["planar_x"]) == (x0(positions_map["planar_x"])));
+	Eigen::VectorXd fixed_initial_conds(14);
+	fixed_initial_conds << 0, 0.7768, 0, -0.3112, -0.231, 0.427, 0.4689,
+            0, 0, 0, 0, 0, 0, 0;
+	trajopt->AddLinearConstraint(x0 == fixed_initial_conds);
 	trajopt->AddLinearConstraint(x_mid_point(positions_map["planar_x"]) == (x0(positions_map["planar_x"])));
 	trajopt->AddLinearConstraint(xf(positions_map["planar_x"]) == (x0(positions_map["planar_x"])));
-	
 	trajopt->AddLinearConstraint(x_mid_point(positions_map["planar_z"]) == (x0(positions_map["planar_z"]) + FLAGS_height));
 	trajopt->AddLinearConstraint(xf(positions_map["planar_z"]) == (x0(positions_map["planar_z"])));
-	// trajopt->AddLinearConstraint(x_mid_point(positions_map["planar_z"]) == (x0(positions_map["planar_z"])));
-	// trajopt->AddLinearConstraint(xf(positions_map["planar_z"]) == (x0(positions_map["planar_z"]) + FLAGS_height));
-	// trajopt->AddLinearConstraint(xf(positions_map["planar_z"]) == (x0(positions_map["planar_z"])));
-	trajopt->AddLinearConstraint(x0(positions_map["planar_z"]) == 0.799);
 	trajopt->AddLinearConstraint(x0.tail(n) == VectorXd::Zero(n));
 	trajopt->AddLinearConstraint(xf.tail(n) == VectorXd::Zero(n));
 
@@ -249,14 +240,6 @@ drake::trajectories::PiecewisePolynomial<double> run_traj_opt(MultibodyPlant<dou
 
 	trajopt->AddConstraintToAllKnotPoints(x(positions_map["planar_roty"]) >= -0.25);
 	trajopt->AddConstraintToAllKnotPoints(x(positions_map["planar_roty"]) <= 0.25);
-	// trajopt->AddConstraintToAllKnotPoints(vel_offset + x(velocities_map["left_hip_pin"]) >= -0.1);
-	// trajopt->AddConstraintToAllKnotPoints(vel_offset + x(velocities_map["left_hip_pin"]) <= 0.1);
-	// trajopt->AddConstraintToAllKnotPoints(vel_offset + x(velocities_map["right_hip_pin"]) >= -0.1);
-	// trajopt->AddConstraintToAllKnotPoints(vel_offset + x(velocities_map["right_hip_pin"]) <= 0.1);
-	// trajopt->AddConstraintToAllKnotPoints(vel_offset + x(velocities_map["right_knee_pin"]) >= -0.1);
-	// trajopt->AddConstraintToAllKnotPoints(vel_offset + x(velocities_map["right_knee_pin"]) <= 0.1);	
-	// trajopt->AddConstraintToAllKnotPoints(vel_offset + x(velocities_map["left_knee_pin"]) >= -0.1);
-	// trajopt->AddConstraintToAllKnotPoints(vel_offset + x(velocities_map["left_knee_pin"]) <= 0.1);
 	trajopt->AddConstraintToAllKnotPoints(x(positions_map["planar_x"]) >= -0.5);
 	trajopt->AddConstraintToAllKnotPoints(x(positions_map["planar_x"]) <= 0.5);
 	trajopt->AddConstraintToAllKnotPoints(x(positions_map["left_knee_pin"]) >= 0.05);
@@ -268,8 +251,6 @@ drake::trajectories::PiecewisePolynomial<double> run_traj_opt(MultibodyPlant<dou
 	trajopt->AddConstraintToAllKnotPoints(x(positions_map["left_hip_pin"]) <= 1.5);
 	trajopt->AddConstraintToAllKnotPoints(x(positions_map["right_hip_pin"]) <= 1.5);
 	
-	// trajopt->AddLinearConstraint(x);
-
 	const double R = 10;
 	auto u = trajopt->input();
 	MatrixXd Q = MatrixXd::Zero(2*n, 2*n);
@@ -292,7 +273,7 @@ drake::trajectories::PiecewisePolynomial<double> run_traj_opt(MultibodyPlant<dou
 	if(result.get_solution_result() == -6){
 		auto pp_xtraj = trajopt->ReconstructStateTrajectory(result);
 		std::vector<MatrixXd> rand_pertubation;
-		for(int i = 0; i < pp_xtraj.get_segment_times().size(); ++i){
+		for(size_t i = 0; i < pp_xtraj.get_segment_times().size(); ++i){
 			rand_pertubation.push_back(
 										Eigen::VectorXd::Random(plant->num_positions() + 
 																plant->num_velocities())
@@ -420,9 +401,6 @@ int doMain(int argc, char* argv[]){
 																				init_vc_traj
 																				);
 
-
-
-	// std::cout << (optimal_traj.value(0)) << std::endl;
 	// run_traj_opt(&plant);
 
 	// const drake::trajectories::PiecewisePolynomial<double> pp_xtraj = optimal_traj->ReconstructStateTrajectory(result);
@@ -443,7 +421,6 @@ int doMain(int argc, char* argv[]){
 		simulator.AdvanceTo(optimal_traj.end_time());
 	}
 
-	// simulate_traj();
 	return 0;
 }
 

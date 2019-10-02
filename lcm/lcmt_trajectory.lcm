@@ -1,0 +1,27 @@
+package diarlib;
+
+struct lcmt_trajectory
+{
+	struct trajectory_t {
+		string trajectory_name;
+
+		int_32_t num_points;
+		int_32_t num_datatypes;
+		double time_vec[num_points];
+		double data_points[num_points][num_datatypes];
+		string [num_datatypes];
+	}
+
+	struct metadata_t{
+		bool git_dirty_flag;
+		string datatime;
+		string name;
+		string description;
+		string git_commit_hash;
+	}
+
+	metadata_t metadata;
+	std::vector<trajectory_t> trajectories;
+	std::vector<string> trajectory_names;  
+
+}

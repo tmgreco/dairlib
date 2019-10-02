@@ -79,8 +79,8 @@ int do_main(int argc, char* argv[]) {
 
   DiagramBuilder<double> builder;
 
-  drake::lcm::DrakeLcm lcm;
-  // auto lcm = builder.AddSystem<drake::systems::lcm::LcmInterfaceSystem>();
+  // drake::lcm::DrakeLcm lcm;
+  auto lcm = builder.AddSystem<drake::systems::lcm::LcmInterfaceSystem>();
 
 
   SceneGraph<double>& scene_graph = *builder.AddSystem<SceneGraph>();
@@ -109,8 +109,8 @@ int do_main(int argc, char* argv[]) {
   // Create input receiver.
   auto input_sub = builder.AddSystem(
       LcmSubscriberSystem::Make<dairlib::lcmt_robot_input>(
-          "RABBIT_INPUT",
-          &lcm));
+          FLAGS_input_channel,
+          lcm));
 
   auto input_receiver = builder.AddSystem<systems::RobotInputReceiver>(plant);
   builder.Connect(*input_sub, *input_receiver);
@@ -129,7 +129,7 @@ int do_main(int argc, char* argv[]) {
   auto state_pub = builder.AddSystem(
       LcmPublisherSystem::Make<dairlib::lcmt_robot_output>(
           "RABBIT_STATE_SIMULATION",
-           &lcm, 
+           lcm, 
            1.0/200.0
            ));
 
@@ -185,8 +185,10 @@ int do_main(int argc, char* argv[]) {
 
 
   Eigen::VectorXd x0(14);
-  x0  << 0, 0.798616, 0, -0.232994, -0.228255, 0.0889048, 0.05,
+  x0  << 0, 0.777, 0.0, -0.311, -0.231, 0.4273, 0.469,
             0, 0, 0, 0, 0, 0, 0;
+  // x0  << 0, 0.799,   -0.0533989,   -0.0179129,   -0.0149962,         0.07,    0.0503966,
+  //           0, 0, 0, 0, 0, 0, 0;
   plant.SetPositionsAndVelocities(&plant_context, x0);
 
 
