@@ -124,8 +124,10 @@ int doMain(int argc, char* argv[]){
 	int l_foot_index = GetBodyIndexFromName(tree_with_springs, "left_foot");
 	int r_foot_index = GetBodyIndexFromName(tree_with_springs, "right_foot");
 	// int netural_height = FLAGS_height;
-	// PiecewisePolynomial<double> jumping_traj_from_optimization = 
-		// loadTrajFromFile("saved_trajs")["simulation"].getStates()["torso"];
+	PiecewisePolynomial<double> jumping_traj_from_optimization = 
+		loadStateTrajToPP("saved_trajs/");
+	MatrixXd com_traj_from_optimization = readCSV("com_pos_matrix.csv");
+
 
 	// Create Operational space control
 		// Create state receiver.
@@ -137,6 +139,7 @@ int doMain(int argc, char* argv[]){
 	auto state_receiver = builder.AddSystem<systems::RobotOutputReceiver>(tree_with_springs);
 	auto traj_generator = builder.AddSystem<CoMTraj>(tree_with_springs, 
 														hip_index, l_foot_index, r_foot_index,
+														com_traj_from_optimization,
 														FLAGS_height);
 	auto l_foot_traj_generator = builder.AddSystem<FlightFootTraj>(tree_with_springs, 
 														hip_index, l_foot_index, r_foot_index,
@@ -144,7 +147,6 @@ int doMain(int argc, char* argv[]){
 	auto r_foot_traj_generator = builder.AddSystem<FlightFootTraj>(tree_with_springs, 
 														hip_index, l_foot_index, r_foot_index,
 														false, FLAGS_height);
-														// jumping_traj_from_optimization);
 	auto fsm = builder.AddSystem<dairlib::examples::JumpingFiniteStateMachine>(tree_with_springs, FLAGS_wait_time);
 	auto command_pub = builder.AddSystem(LcmPublisherSystem::Make<dairlib::lcmt_robot_input>(
 										channel_u, lcm, 1.0 / FLAGS_publish_rate));
@@ -175,6 +177,8 @@ int doMain(int argc, char* argv[]){
 	osc->AddStateAndContactPoint(NEUTRAL, "right_foot", foot_contact_disp);
 	osc->AddStateAndContactPoint(CROUCH, "left_foot", foot_contact_disp);
 	osc->AddStateAndContactPoint(CROUCH, "right_foot", foot_contact_disp);
+	osc->AddStateAndContactPoint(LAND, "left_foot", foot_contact_disp);
+	osc->AddStateAndContactPoint(LAND, "right_foot", foot_contact_disp);
 
 	// ***** COM tracking term ******
 	// Gains for COM tracking
@@ -264,7 +268,8 @@ int doMain(int argc, char* argv[]){
 	builder.Connect(fsm->get_output_port(0),
 				r_foot_traj_generator->get_fsm_input_port());
 	builder.Connect(traj_generator->get_output_port(0),
-          		osc->get_tracking_data_input_port("com_traj"));	
+          		osc->get_tracking_data_input_port("com_traj"));
+	
 	builder.Connect(l_foot_traj_generator->get_output_port(0),
           		osc->get_tracking_data_input_port("l_foot_traj"));	
 	builder.Connect(r_foot_traj_generator->get_output_port(0),

@@ -42,7 +42,7 @@ EventStatus JumpingFiniteStateMachine::DiscreteVariableUpdate(const Context<doub
 	bool trigger = false;
 
 	auto fsm_state = discrete_state->get_mutable_vector(fsm_idx_).get_mutable_value();
-	// auto prev_time = discrete_state->get_mutable_vector(time_idx_).get_mutable_value();
+	auto prev_time = discrete_state->get_mutable_vector(time_idx_).get_mutable_value();
 
 	const OutputVector<double>* robot_output = (OutputVector<double>*)this->EvalVectorInput(context, state_port_);
 	double timestamp = robot_output->get_timestamp();
@@ -50,28 +50,34 @@ EventStatus JumpingFiniteStateMachine::DiscreteVariableUpdate(const Context<doub
 
 	switch((FSM_STATE)fsm_state(0)){
 		case(NEUTRAL):
-			// std::cout << "Current time: " << current_time << std::endl;
-			// std::cout << "Wait time: " << wait_time_ << std::endl;
-			if(current_time > initial_timestamp_ + wait_time_){
+			if(current_time > prev_time(0) + wait_time_){
 				fsm_state << CROUCH;
 				std::cout << "Setting fsm to CROUCH" << std::endl;
 				std::cout << "fsm: " << (FSM_STATE)fsm_state(0) << std::endl;
+				prev_time(0) = current_time;
 			}
 			break;
 		case(CROUCH):
-			if(trigger){
+			if(current_time > prev_time(0) + 1.0){
 				fsm_state << FLIGHT;
+				std::cout << "Setting fsm to FLIGHT" << std::endl;
+				std::cout << "fsm: " << (FSM_STATE)fsm_state(0) << std::endl;
+				prev_time(0) = current_time;
 			}
 			break;
 		case(FLIGHT):
-			if(trigger){
+			if(current_time > prev_time(0) + 0.25){
 				fsm_state << LAND;
+				std::cout << "Setting fsm to LAND" << std::endl;
+				std::cout << "fsm: " << (FSM_STATE)fsm_state(0) << std::endl;
+				prev_time(0) = current_time;
 			}
 			break;
 		case(LAND):
-			if(trigger){
-				fsm_state << NEUTRAL;
-			}
+			// if(current_time > prev_time(0) + 1.25){
+			// 	fsm_state << NEUTRAL;
+			// 	prev_time(0) = current_time;
+			// }
 			break;
 		default:
 			std::cerr << "Invalid state: " << (FSM_STATE)fsm_state(0) << ", defaulting to NEUTRAL: " << NEUTRAL << std::endl;

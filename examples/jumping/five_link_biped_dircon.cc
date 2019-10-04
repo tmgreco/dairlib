@@ -2,6 +2,8 @@
 #include <thread>
 
 #include <gflags/gflags.h>
+#include "attic/multibody/rigidbody_utils.h"
+
 
 #include "drake/lcm/drake_lcm.h"
 #include "drake/solvers/mathematical_program.h"
@@ -18,6 +20,8 @@
 #include "drake/multibody/plant/multibody_plant.h"
 #include "drake/multibody/parsing/parser.h"
 #include "drake/multibody/rigid_body_plant/drake_visualizer.h"
+#include "drake/multibody/parsers/urdf_parser.h"
+
 
 #include "common/find_resource.h"
 #include "multibody/multibody_utils.h"
@@ -222,14 +226,14 @@ drake::trajectories::PiecewisePolynomial<double> run_traj_opt(MultibodyPlant<dou
 	auto x_mid_point = trajopt->state(FLAGS_knot_points*n_modes/2);
 	auto xf = trajopt->final_state();
 	int n = plant->num_positions();
-	int vel_offset = n;
+	// int vel_offset = n;
 
 	Eigen::VectorXd fixed_initial_conds(14);
 	fixed_initial_conds << 0, 0.7768, 0, -0.3112, -0.231, 0.427, 0.4689,
             0, 0, 0, 0, 0, 0, 0;
 	trajopt->AddLinearConstraint(x0 == fixed_initial_conds);
 	trajopt->AddLinearConstraint(x_mid_point(positions_map["planar_x"]) == (x0(positions_map["planar_x"])));
-	trajopt->AddLinearConstraint(xf(positions_map["planar_x"]) == (x0(positions_map["planar_x"])));
+	// trajopt->AddLinearConstraint(xf(positions_map["planar_x"]) == (x0(positions_map["planar_x"])));
 	trajopt->AddLinearConstraint(x_mid_point(positions_map["planar_z"]) == (x0(positions_map["planar_z"]) + FLAGS_height));
 	trajopt->AddLinearConstraint(xf(positions_map["planar_z"]) == (x0(positions_map["planar_z"])));
 	trajopt->AddLinearConstraint(x0.tail(n) == VectorXd::Zero(n));
@@ -251,11 +255,11 @@ drake::trajectories::PiecewisePolynomial<double> run_traj_opt(MultibodyPlant<dou
 	trajopt->AddConstraintToAllKnotPoints(x(positions_map["left_hip_pin"]) <= 1.5);
 	trajopt->AddConstraintToAllKnotPoints(x(positions_map["right_hip_pin"]) <= 1.5);
 	
-	const double R = 10;
+	const double R = 1;
 	auto u = trajopt->input();
 	MatrixXd Q = MatrixXd::Zero(2*n, 2*n);
 	for (int i=0; i < n; i++) {
-		Q(i+n, i+n) = 10;
+		Q(i+n, i+n) = 1;
 	}
 	trajopt->AddRunningCost(u.transpose()*R*u);
 	trajopt->AddRunningCost(x.transpose()*Q*x);
@@ -290,6 +294,7 @@ drake::trajectories::PiecewisePolynomial<double> run_traj_opt(MultibodyPlant<dou
 					init_vc_traj
 					);
 	}
+
 	writePPTrajToFile(trajopt->ReconstructStateTrajectory(result), "saved_trajs/", "states");
 	writePPTrajToFile(trajopt->ReconstructInputTrajectory(result), "saved_trajs/", "inputs");
 	// saveAllDecisionVars(result, "saved_trajs", "decision_vars");

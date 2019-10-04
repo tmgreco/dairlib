@@ -57,6 +57,21 @@ cc_binary(
         "//common",
         ":traj_logger",
         "//systems/primitives",
+        "//attic/multibody:utils",
+        "@drake//:drake_shared_library",
+        "@gflags",
+    ],
+)
+
+cc_binary(
+    name = "center_of_mass_generator",
+    srcs = ["center_of_mass_generator.cpp"],
+    data = ["five_link_biped.urdf"],
+    deps = [
+        "//common",
+        "//attic/multibody:utils",
+        ":traj_logger",
+        "//systems/primitives",
         "@drake//:drake_shared_library",
         "@gflags",
     ],

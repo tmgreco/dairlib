@@ -22,6 +22,7 @@ public:
 				int hip_idx,
 				int left_foot_idx,
 				int right_foot_idx,
+        Eigen::MatrixXd crouch_traj,
 				double height = 0.7);
 
   const drake::systems::InputPort<double>& get_state_input_port() const {
@@ -48,9 +49,13 @@ private:
 				 drake::trajectories::Trajectory<double>* traj) const;
 
   const RigidBodyTree<double>& tree_;
+  int time_idx_;
+  int fsm_idx_;
+  
   int hip_idx_;
   int left_foot_idx_;
   int right_foot_idx_;
+  Eigen::MatrixXd crouch_traj_;
   double height_;
 
   int state_port_;
