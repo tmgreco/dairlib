@@ -135,7 +135,7 @@ PiecewisePolynomial<double> CoMTraj::generateCrouchTraj(const drake::systems::Co
 
 	int t = (int)((current_time - prev_time)/(1.22/100.0));
 	// VectorXd state_at_time_t = crouch_traj_((int)((current_time - 10.0)/(0.5/500)), Eigen::all);
-	Vector3d desired_com(crouch_traj_(t, 1), 0, crouch_traj_(t, 3));
+	Vector3d desired_com(crouch_traj_(t, 1), 0, crouch_traj_(t, 3) - 0.05);
 	// std::cout << desired_com.transpose() << std::endl;
 	// desired_com(2) += -0.1;
 

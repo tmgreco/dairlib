@@ -54,7 +54,7 @@ int doMain(int argc, char* argv[]){
 	VectorXd q(tree.get_num_positions());
 	Vector3d center_of_mass(3);
 	std::vector<double> points;
-	for(double i = 0; i < traj.end_time(); i += traj.end_time() / 100){
+	for(double i = 0; i < traj.end_time(); i += traj.end_time() / 500){
 		q << traj.value(i);
 		cache.initialize(q);
 		tree.doKinematics(cache);
