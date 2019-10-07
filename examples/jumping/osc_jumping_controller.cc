@@ -191,8 +191,8 @@ int doMain(int argc, char* argv[]){
 	double g_over_l = 9.81/FLAGS_height;
 	MatrixXd K_p_com = (xy_scale*sqrt(g_over_l)  - g_over_l) * MatrixXd::Identity(3, 3);
 	MatrixXd K_d_com = xy_scale * MatrixXd::Identity(3, 3);
-	K_p_com(2, 2) = 50;
-	K_d_com(2, 2) = 14;
+	K_p_com(2, 2) = 144;
+	K_d_com(2, 2) = 24;
 
 	ComTrackingData com_tracking_data("com_traj", 3,
 		K_p_com, K_d_com, W_com,
@@ -269,7 +269,7 @@ int doMain(int argc, char* argv[]){
 				r_foot_traj_generator->get_fsm_input_port());
 	builder.Connect(traj_generator->get_output_port(0),
           		osc->get_tracking_data_input_port("com_traj"));
-	
+
 	builder.Connect(l_foot_traj_generator->get_output_port(0),
           		osc->get_tracking_data_input_port("l_foot_traj"));	
 	builder.Connect(r_foot_traj_generator->get_output_port(0),
