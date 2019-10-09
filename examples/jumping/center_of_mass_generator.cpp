@@ -53,22 +53,34 @@ int doMain(int argc, char* argv[]){
 
 	VectorXd q(tree.get_num_positions());
 	Vector3d center_of_mass(3);
-	std::vector<double> points;
+	std::vector<double> knots;
+	std::vector<double> breaks;
 	for(double i = 0; i < traj.end_time(); i += traj.end_time() / 500){
 		q << traj.value(i);
 		cache.initialize(q);
 		tree.doKinematics(cache);
 		center_of_mass = tree.centerOfMass(cache);
-		points.push_back(i);
+		// points.push_back(i);
+		breaks.push_back(i);
 		for(int j = 0; j < 3; ++j){
-			points.push_back(center_of_mass(j));
+			// points.push_back(center_of_mass(j));
+			knots.push_back(center_of_mass(j));
 		}
 	}
+	// std::cout << "points size: " << points.size() << std::endl;
+	// MatrixXd com_pos_matrix = Eigen::Map<const Matrix<double, Dynamic, Dynamic, RowMajor>>(points.data(), points.size()/4, 4);
+	MatrixXd knots_matrix = MatrixXd::Zero(3, knots.size()/3);
+	MatrixXd breaks_vector = VectorXd::Zero(breaks.size());
+	knots_matrix = Matrix<double, Dynamic, Dynamic>(Eigen::Map<const Matrix<double, Dynamic, Dynamic>>(knots.data(), 3, knots.size()/3));
+	breaks_vector = VectorXd(Eigen::Map<Eigen::VectorXd, Eigen::Unaligned>(breaks.data(), breaks.size()));
+	// VectorXd breaks_vector = Eigen::Map<Eigen::VectorXd, Eigen::Unaligned>(breaks.data(), breaks.size());
+	std::cout << "breaks: " << breaks_vector << std::endl;
+	std::cout << "knots_matrix: " << knots_matrix << std::endl;
+	PiecewisePolynomial<double> com_traj = PiecewisePolynomial<double>::FirstOrderHold(breaks_vector, knots_matrix);
 	std::cout << "Creating matrix " << std::endl;
-	std::cout << "points size: " << points.size() << std::endl;
-	MatrixXd com_pos_matrix = Eigen::Map<const Matrix<double, Dynamic, Dynamic, RowMajor>>(points.data(), points.size()/4, 4);
-	MatrixXd copy = com_pos_matrix;
-	writeCSV("com_pos_matrix.csv", copy);
+	writePPTrajToFile(com_traj, "com_traj/", "com_traj");
+	// MatrixXd copy = com_pos_matrix;
+	// writeCSV("com_pos_matrix.csv", copy);
 	return 0;
 }
 

@@ -36,7 +36,7 @@ CoMTraj::CoMTraj(const RigidBodyTree<double>& tree,
 				int hip_idx,
 				int left_foot_idx,
 				int right_foot_idx,
-				MatrixXd crouch_traj,
+				PiecewisePolynomial<double> crouch_traj,
 				double height):
 				tree_(tree),
 				hip_idx_(hip_idx),
@@ -120,39 +120,12 @@ PiecewisePolynomial<double> CoMTraj::generateCrouchTraj(const drake::systems::Co
 	double current_time = static_cast<double>(timestamp);
 
 	double prev_time = static_cast<double>(context.get_discrete_state().get_vector(time_idx_).get_value()(0));
-	// // Modify the quaternion in the begining when the state is not received from
-	// // the robot yet
-	// // Always remember to check 0-norm quaternion when using doKinematics
-	// multibody::SetZeroQuaternionToIdentity(&q);
-	// cache.initialize(q);
-	// tree_.doKinematics(cache);
-
-
-	// Vector3d CoM = tree_.centerOfMass(cache);
-	// MatrixXd J = tree_.centerOfMassJacobian(cache);
-	// Vector3d dCoM = J * v;
-	// MatrixXd state_at_time_t = crouch_traj_.value(current_time - 15.0);
 
 	int t = (int)((current_time - prev_time)/(1.22/100.0));
-	// VectorXd state_at_time_t = crouch_traj_((int)((current_time - 10.0)/(0.5/500)), Eigen::all);
-	Vector3d desired_com(crouch_traj_(t, 1), 0, crouch_traj_(t, 3) - 0.05);
-	// std::cout << desired_com.transpose() << std::endl;
-	// desired_com(2) += -0.1;
+	// Vector3d desired_com(crouch_traj_(t, 1), 0, crouch_traj_(t, 3));
 
-	// Vector3d torso_pos = tree_.transformPoints(cache, 
-	// 	VectorXd::Zero(3), hip_idx_, 0);
-
-	// const double CoM_wrt_torso_x = CoM(0) - torso_pos(0);
-	// const double CoM_wrt_torso_z = CoM(2) - torso_pos(2);
-	// const double dCoM_wrt_foot_x = dCoM(0);
-	// const double dCoM_wrt_foot_z = dCoM(2);
-	// const double CoM_wrt_torso_y = CoM(1) - torso_pos(1);
-
-	//Follow the saved trajectory generated from trajectory optimization
-	// Maybe parameterized by q,v from the neutral traj??
-
-
-	return PiecewisePolynomial<double>(desired_com);
+	// return PiecewisePolynomial<double>(desired_com);
+	return crouch_traj_;
 }
 
 /*

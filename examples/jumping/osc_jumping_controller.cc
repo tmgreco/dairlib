@@ -139,7 +139,7 @@ int doMain(int argc, char* argv[]){
 	auto state_receiver = builder.AddSystem<systems::RobotOutputReceiver>(tree_with_springs);
 	auto traj_generator = builder.AddSystem<CoMTraj>(tree_with_springs, 
 														hip_index, l_foot_index, r_foot_index,
-														com_traj_from_optimization,
+														jumping_traj_from_optimization,
 														FLAGS_height);
 	auto l_foot_traj_generator = builder.AddSystem<FlightFootTraj>(tree_with_springs, 
 														hip_index, l_foot_index, r_foot_index,

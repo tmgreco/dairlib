@@ -22,8 +22,8 @@ public:
 				int hip_idx,
 				int left_foot_idx,
 				int right_foot_idx,
-        Eigen::MatrixXd crouch_traj,
-				double height = 0.7);
+        PiecewisePolynomial<double> crouch_traj,
+				double height = 0.7138);
 
   const drake::systems::InputPort<double>& get_state_input_port() const {
     return this->get_input_port(state_port_);
@@ -55,7 +55,8 @@ private:
   int hip_idx_;
   int left_foot_idx_;
   int right_foot_idx_;
-  Eigen::MatrixXd crouch_traj_;
+  // Eigen::MatrixXd crouch_traj_;
+  PiecewisePolynomial<double> crouch_traj_;
   double height_;
 
   int state_port_;
