@@ -1,3 +1,5 @@
+#include <gflags/gflags.h>
+
 #include "drake/systems/framework/diagram_builder.h"
 #include "drake/systems/lcm/lcm_publisher_system.h"
 #include "drake/systems/lcm/lcm_subscriber_system.h"
@@ -12,6 +14,8 @@
 #include "systems/controllers/pd_config_lcm.h"
 #include "examples/Cassie/cassie_utils.h"
 
+DEFINE_bool(floating_base, false, "Fixed or floating base model");
+
 namespace dairlib {
 
 using drake::systems::lcm::LcmSubscriberSystem;
@@ -21,7 +25,9 @@ using drake::geometry::SceneGraph;
 using drake::systems::DiagramBuilder;
 
 
-int doMain() {
+int do_main(int argc, char* argv[]) {
+  gflags::ParseCommandLineFlags(&argc, &argv, true);
+
   DiagramBuilder<double> builder;
   DiagramBuilder<double> builder_null;
 
@@ -33,7 +39,7 @@ int doMain() {
 
   MultibodyPlant<double>& plant =
       *builder_null.AddSystem<MultibodyPlant>(1.0);
-  addCassieMultibody(&plant, &scene_graph, false);
+  addCassieMultibody(&plant, &scene_graph, FLAGS_floating_base);
   plant.Finalize();
 
   const std::string channel_x = "CASSIE_STATE";
@@ -101,4 +107,6 @@ int doMain() {
 
 }
 
-int main() { return dairlib::doMain(); }
+int main(int argc, char* argv[]) {
+  return dairlib::do_main(argc, argv);
+}

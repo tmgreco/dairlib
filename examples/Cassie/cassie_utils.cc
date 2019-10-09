@@ -6,6 +6,7 @@
 #include "drake/multibody/parsing/parser.h"
 #include "drake/geometry/scene_graph.h"
 #include "drake/math/rigid_transform.h"
+#include "drake/multibody/tree/linear_spring_damper.h"
 
 #include "drake/multibody/tree/revolute_spring.h"
 #include "drake/multibody/rigid_body_tree_construction.h"
@@ -62,6 +63,32 @@ void addCassieMultibody(MultibodyPlant<double>* plant,
       0, 1250);
 
   // TOOO(mposa): add loop closures when implemented in Drake
+
+  //Add a spring to represent loop closure
+  double achilles_stiffness = 200000;
+  double achilles_damping = 200;
+  double achilles_length = .5012;
+  const auto& heel_spring_left = plant->GetBodyByName("heel_spring_left");
+  const auto& thigh_left = plant->GetBodyByName("thigh_left");
+  const auto& heel_spring_right = plant->GetBodyByName("heel_spring_right");
+  const auto& thigh_right = plant->GetBodyByName("thigh_right");
+
+  Vector3d rod_on_heel_spring;  // symmetric left and right
+  rod_on_heel_spring << .11877, -.01, 0.0;
+
+  Vector3d rod_on_thigh_left;
+  rod_on_thigh_left << 0.0, 0.0, 0.045;
+
+  Vector3d rod_on_thigh_right;
+  rod_on_thigh_right << 0.0, 0.0, -0.045;
+
+  plant->AddForceElement<drake::multibody::LinearSpringDamper>(
+      heel_spring_left, rod_on_heel_spring, thigh_left, rod_on_thigh_left,
+      achilles_length, achilles_stiffness, achilles_damping);
+
+  plant->AddForceElement<drake::multibody::LinearSpringDamper>(
+      heel_spring_right, rod_on_heel_spring, thigh_right, rod_on_thigh_right,
+      achilles_length, achilles_stiffness, achilles_damping);
 }
 
 std::unique_ptr<RigidBodyTree<double>> makeCassieTreePointer(

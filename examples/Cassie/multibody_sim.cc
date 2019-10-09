@@ -4,6 +4,7 @@
 #include "drake/lcm/drake_lcm.h"
 #include "drake/systems/lcm/lcm_publisher_system.h"
 #include "drake/systems/lcm/lcm_subscriber_system.h"
+#include "drake/systems/lcm/lcm_interface_system.h"
 #include "drake/multibody/joints/floating_base_types.h" 
 #include "drake/geometry/geometry_visualization.h"
 #include "drake/systems/analysis/simulator.h"
@@ -12,6 +13,8 @@
 #include "drake/systems/primitives/constant_vector_source.h"
 #include "drake/multibody/tree/revolute_joint.h"
 #include "drake/systems/analysis/runge_kutta2_integrator.h"
+#include "drake/systems/analysis/implicit_euler_integrator.h"
+#include "drake/systems/analysis/radau_integrator.h"
 
 #include "systems/robot_lcm_systems.h"
 #include "dairlib/lcmt_robot_output.hpp"
@@ -42,13 +45,15 @@ DEFINE_bool(time_stepping, false, "If 'true', the plant is modeled as a "
     "discrete system with periodic updates. "
     "If 'false', the plant is modeled as a continuous system.");
 DEFINE_double(dt, 1e-4, "The step size to use for compliant, ignored for time_stepping)");
+DEFINE_double(accuracy, 1e-5, "Integrator accuracy (ignored for time_stepping))");
+DEFINE_double(publish_rate, 1000, "Publishing frequency (Hz)");
 
 int do_main(int argc, char* argv[]) {
   gflags::ParseCommandLineFlags(&argc, &argv, true);
 
   DiagramBuilder<double> builder;
 
-  drake::lcm::DrakeLcm lcm;
+  auto lcm = builder.AddSystem<drake::systems::lcm::LcmInterfaceSystem>();
 
   SceneGraph<double>& scene_graph = *builder.AddSystem<SceneGraph>();
   scene_graph.set_name("scene_graph");
@@ -69,7 +74,7 @@ int do_main(int argc, char* argv[]) {
   // Create input receiver.
   auto input_sub = builder.AddSystem(
       LcmSubscriberSystem::Make<dairlib::lcmt_robot_input>("CASSIE_INPUT",
-                                                           &lcm));
+                                                           lcm));
   auto input_receiver = builder.AddSystem<systems::RobotInputReceiver>(plant);
   builder.Connect(*input_sub, *input_receiver);
 
@@ -86,7 +91,7 @@ int do_main(int argc, char* argv[]) {
   // Create state publisher.
   auto state_pub = builder.AddSystem(
       LcmPublisherSystem::Make<dairlib::lcmt_robot_output>("CASSIE_STATE",
-                                                           &lcm, 1.0/200.0));
+                                                           lcm, 1.0/FLAGS_publish_rate));
   auto state_sender = builder.AddSystem<systems::RobotOutputSender>(plant);
 
   // connect state publisher
@@ -141,12 +146,20 @@ int do_main(int argc, char* argv[]) {
 
   Simulator<double> simulator(*diagram, std::move(diagram_context));
 
+
+  // Different continuous time integrator choices
   if (!FLAGS_time_stepping) {
     // simulator.get_mutable_integrator()->set_maximum_step_size(0.01);
     // simulator.get_mutable_integrator()->set_target_accuracy(1e-1);
     // simulator.get_mutable_integrator()->set_fixed_step_mode(true);
-    simulator.reset_integrator<drake::systems::RungeKutta2Integrator<double>>(
-      *diagram, FLAGS_dt, &simulator.get_mutable_context());
+    // simulator.reset_integrator<drake::systems::RungeKutta2Integrator<double>>(
+    //   *diagram, FLAGS_dt, &simulator.get_mutable_context());
+    simulator.reset_integrator<drake::systems::ImplicitEulerIntegrator<double>>(
+      *diagram, &simulator.get_mutable_context());
+    // simulator.reset_integrator<drake::systems::RadauIntegrator<double, 2>>(
+    //   *diagram, &simulator.get_mutable_context());
+    simulator.get_mutable_integrator().set_maximum_step_size(FLAGS_dt);
+    simulator.get_mutable_integrator().set_target_accuracy(FLAGS_accuracy);
   }
 
   simulator.set_publish_every_time_step(false);
