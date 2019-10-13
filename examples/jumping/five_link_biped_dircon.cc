@@ -4,7 +4,6 @@
 #include <gflags/gflags.h>
 #include "attic/multibody/rigidbody_utils.h"
 
-
 #include "drake/lcm/drake_lcm.h"
 #include "drake/solvers/mathematical_program.h"
 #include "drake/solvers/constraint.h"
@@ -36,8 +35,8 @@
 #include "examples/jumping/traj_logger.h"
 
 DEFINE_double(realtime_factor, .5,
-			  "Playback speed.  See documentation for "
-			  "Simulator::set_target_realtime_rate() for details.");
+				"Playback speed.  See documentation for "
+				"Simulator::set_target_realtime_rate() for details.");
 DEFINE_double(gravity, 9.81,
 				"Gravity acceleration constant");
 DEFINE_double(mu_static, 0.7, "The static coefficient of friction");
@@ -67,7 +66,6 @@ using drake::solvers::SolutionResult;
 using std::cout;
 using std::endl;
 
-
 namespace dairlib{
 
 using systems::trajectory_optimization::HybridDircon;
@@ -80,40 +78,12 @@ using systems::SubvectorPassThrough;
 namespace examples{
 namespace jumping{
 
-// Simple example which simulates the (passive) Kneed walker.  Run drake-visualizer
-// to see the animated result.
-
-
-// MultibodyPlant<double> build_model(drake::systems::DiagramBuilder<double>& builder) {
-// 	MultibodyPlant<double> plant;
-// 	SceneGraph<double>& scene_graph = *(builder.AddSystem<SceneGraph>());
-// 	Parser parser(&plant, &scene_graph);
-// 	std::string full_name = FindResourceOrThrow("examples/jumping/five_link_biped.urdf");
-// 	parser.AddModelFromFile(full_name);
-
-// 	plant.mutable_gravity_field().set_gravity_vector(-9.81 * Eigen::Vector3d::UnitZ());
-
-// 	plant.WeldFrames(
-// 			plant.world_frame(), 
-// 			plant.GetFrameByName("base"),
-// 	  		drake::math::RigidTransform<double>()
-// 	  		);
-
-// 	plant.Finalize();
-
-// 	return plant;
-// }
-
-// HybridDircon<double> run_traj_opt(MultibodyPlant<double>* plant){
 drake::trajectories::PiecewisePolynomial<double> run_traj_opt(MultibodyPlant<double>* plant,
 													PiecewisePolynomial<double> init_x_traj,
-												    PiecewisePolynomial<double> init_u_traj,
-												    vector<PiecewisePolynomial<double>> init_l_traj,
-												    vector<PiecewisePolynomial<double>> init_lc_traj,
-												    vector<PiecewisePolynomial<double>> init_vc_traj
-												    ){
-
-
+													PiecewisePolynomial<double> init_u_traj,
+													vector<PiecewisePolynomial<double>> init_l_traj,
+													vector<PiecewisePolynomial<double>> init_lc_traj,
+													vector<PiecewisePolynomial<double>> init_vc_traj){
 
 	auto positions_map = multibody::makeNameToPositionsMap(*plant);
 	auto velocities_map = multibody::makeNameToVelocitiesMap(*plant);
@@ -127,35 +97,34 @@ drake::trajectories::PiecewisePolynomial<double> run_traj_opt(MultibodyPlant<dou
 	bool isXZ = true;
 
 	auto leftFootConstraint = DirconPositionData<double>(*plant, left_lower_leg,
-	                                                   pt, isXZ);
+																										 pt, isXZ);
 	auto rightFootConstraint = DirconPositionData<double>(*plant, right_lower_leg,
-                                                        pt, isXZ);
+																												pt, isXZ);
 
 	Vector3d normal;
 	normal << 0, 0, 1;
-	// double mu = 1;
 
 	// Specifies that the foot has to be on the ground with normal/friction specified by normal/mu
 	leftFootConstraint.addFixedNormalFrictionConstraints(normal, FLAGS_mu_static);
 	rightFootConstraint.addFixedNormalFrictionConstraints(normal, FLAGS_mu_static);
 
-	// Making a vector for a single constraint seems unncessary
+	// Constraint for each contact mode
 	std::vector<DirconKinematicData<double>*> mode_one_constraints;
 	mode_one_constraints.push_back(&leftFootConstraint);
 	mode_one_constraints.push_back(&rightFootConstraint);
 	auto mode_one_dataset = DirconKinematicDataSet<double>(*plant, &mode_one_constraints);
 
+	// allow x pos to be some constant decision variable instead of 0
 	auto mode_one_options = DirconOptions(mode_one_dataset.countConstraints());
-	// allow x pos to be some constant chosen by optimizer rather than 0
 	mode_one_options.setConstraintRelative(0, true); //left foot
 	mode_one_options.setConstraintRelative(0 + (mode_one_dataset.countConstraints() / 2), true); //right foot
 
-	std::vector<DirconKinematicData<double>*> mode_two_constraints; // no foot contact constraints
+	// no foot contact constraints
+	std::vector<DirconKinematicData<double>*> mode_two_constraints; 
 	auto mode_two_dataset = DirconKinematicDataSet<double>(*plant, &mode_two_constraints);
 	auto mode_two_options = DirconOptions(mode_two_dataset.countConstraints());
 
 	auto mode_three_options = DirconOptions(mode_one_dataset.countConstraints());
-	// allow x pos to be some constant chosen by optimizer rather than 0
 	mode_three_options.setConstraintRelative(0, true); //left foot
 	mode_three_options.setConstraintRelative(0 + (mode_one_dataset.countConstraints() / 2), true); //right foot
 
@@ -164,7 +133,6 @@ drake::trajectories::PiecewisePolynomial<double> run_traj_opt(MultibodyPlant<dou
 	timesteps.push_back(FLAGS_knot_points);
 	timesteps.push_back(FLAGS_knot_points);
 	timesteps.push_back(FLAGS_knot_points);
-	// timesteps.push_back(10);
 	std::vector<double> min_dt;
 	min_dt.push_back(.01);
 	min_dt.push_back(.01);
@@ -174,24 +142,23 @@ drake::trajectories::PiecewisePolynomial<double> run_traj_opt(MultibodyPlant<dou
 	max_dt.push_back(.3);
 	max_dt.push_back(.3);
 
-	std::vector<DirconKinematicDataSet<double>*> dataset_list;
-	dataset_list.push_back(&mode_one_dataset);
-	dataset_list.push_back(&mode_two_dataset);
-	dataset_list.push_back(&mode_one_dataset);
+	// Add contact modes and contact decision variables to single vector for DIRCON
+	std::vector<DirconKinematicDataSet<double>*> contact_mode_list;
+	contact_mode_list.push_back(&mode_one_dataset);
+	contact_mode_list.push_back(&mode_two_dataset);
+	contact_mode_list.push_back(&mode_one_dataset);
 
 	std::vector<DirconOptions> options_list;
 	options_list.push_back(mode_one_options);
 	options_list.push_back(mode_two_options);
 	options_list.push_back(mode_three_options);
 
-
-
 	// Trajectory Optimization Setup
 	auto trajopt = std::make_shared<HybridDircon<double>>(*plant, 
 													timesteps,
 													min_dt,
 													max_dt,
-													dataset_list,
+													contact_mode_list,
 													options_list);
 
 	trajopt->AddDurationBounds(FLAGS_max_duration, 3*FLAGS_max_duration);
@@ -203,34 +170,33 @@ drake::trajectories::PiecewisePolynomial<double> run_traj_opt(MultibodyPlant<dou
 							"Iterations limit", 100000);	
 	trajopt->SetSolverOption(drake::solvers::SnoptSolver::id(),
 							"Minor iterations limit", 5000);
-	// trajopt->SetSolverOption(drake::solvers::SnoptSolver::id(),
-							// "Verify level", 3);
+
 	if(FLAGS_load_previous_traj){
 		DRAKE_DEMAND(FLAGS_traj_folder != "");
 
 		init_x_traj = loadStateTrajToPP(FLAGS_traj_folder);
 		init_u_traj = loadInputTrajToPP(FLAGS_traj_folder);
 	}
+
+	// Set initial guesses
 	for (uint j = 0; j < timesteps.size(); j++) {
 		trajopt->drake::systems::trajectory_optimization::MultipleShooting::SetInitialTrajectory(init_u_traj, init_x_traj);
 		trajopt->SetInitialForceTrajectory(j, 
 								init_l_traj[j],
 								init_lc_traj[j],
-		                        init_vc_traj[j]);
+								init_vc_traj[j]);
 	}
 
-
-	// Linear constraints
+	// Set linear constraints
 	int n_modes = 3;
 	auto x0 = trajopt->initial_state();
 	auto x_mid_point = trajopt->state(FLAGS_knot_points*n_modes/2);
 	auto xf = trajopt->final_state();
 	int n = plant->num_positions();
-	// int vel_offset = n;
 
 	Eigen::VectorXd fixed_initial_conds(14);
 	fixed_initial_conds << 0, 0.7768, 0, -0.3112, -0.231, 0.427, 0.4689,
-            0, 0, 0, 0, 0, 0, 0;
+						0, 0, 0, 0, 0, 0, 0;
 	trajopt->AddLinearConstraint(x0 == fixed_initial_conds);
 	trajopt->AddLinearConstraint(x_mid_point(positions_map["planar_x"]) == (x0(positions_map["planar_x"])));
 	// trajopt->AddLinearConstraint(xf(positions_map["planar_x"]) == (x0(positions_map["planar_x"])));
@@ -239,8 +205,7 @@ drake::trajectories::PiecewisePolynomial<double> run_traj_opt(MultibodyPlant<dou
 	trajopt->AddLinearConstraint(x0.tail(n) == VectorXd::Zero(n));
 	trajopt->AddLinearConstraint(xf.tail(n) == VectorXd::Zero(n));
 
-
-  	auto x = trajopt->state();
+	auto x = trajopt->state();
 
 	trajopt->AddConstraintToAllKnotPoints(x(positions_map["planar_roty"]) >= -0.25);
 	trajopt->AddConstraintToAllKnotPoints(x(positions_map["planar_roty"]) <= 0.25);
@@ -255,6 +220,7 @@ drake::trajectories::PiecewisePolynomial<double> run_traj_opt(MultibodyPlant<dou
 	trajopt->AddConstraintToAllKnotPoints(x(positions_map["left_hip_pin"]) <= 1.5);
 	trajopt->AddConstraintToAllKnotPoints(x(positions_map["right_hip_pin"]) <= 1.5);
 	
+	// Define cost function
 	const double R = 1;
 	auto u = trajopt->input();
 	MatrixXd Q = MatrixXd::Zero(2*n, 2*n);
@@ -264,8 +230,7 @@ drake::trajectories::PiecewisePolynomial<double> run_traj_opt(MultibodyPlant<dou
 	trajopt->AddRunningCost(u.transpose()*R*u);
 	trajopt->AddRunningCost(x.transpose()*Q*x);
 	
-
-	// Actual solving
+	// Solve the traj optimization problem
 	auto start = std::chrono::high_resolution_clock::now();
 	const auto result = Solve(*trajopt, trajopt->initial_guess());
 	auto finish = std::chrono::high_resolution_clock::now();
@@ -274,6 +239,7 @@ drake::trajectories::PiecewisePolynomial<double> run_traj_opt(MultibodyPlant<dou
 	std::cout << "Cost:" << result.get_optimal_cost() << std::endl;
 	std::cout << "Solve result: " << result.get_solution_result() << std::endl;
 
+	// Rerun optimization if solver reached iteration limits
 	if(result.get_solution_result() == -6){
 		auto pp_xtraj = trajopt->ReconstructStateTrajectory(result);
 		std::vector<MatrixXd> rand_pertubation;
@@ -295,16 +261,15 @@ drake::trajectories::PiecewisePolynomial<double> run_traj_opt(MultibodyPlant<dou
 					);
 	}
 
+	// saveAllDecisionVars(result, "saved_trajs", "decision_vars");
 	writePPTrajToFile(trajopt->ReconstructStateTrajectory(result), "saved_trajs/", "states");
 	writePPTrajToFile(trajopt->ReconstructInputTrajectory(result), "saved_trajs/", "inputs");
-	// saveAllDecisionVars(result, "saved_trajs", "decision_vars");
 	writeTimeTrajToFile(trajopt->ReconstructStateTrajectory(result), "state_traj.txt");
 	writeTimeTrajToFile(trajopt->ReconstructInputTrajectory(result), "input_traj.txt");
 	return trajopt->ReconstructStateTrajectory(result);
 }
 
 void print_state_map(MultibodyPlant<double>* plant){
-
 	//output initial states
 	auto positions_map = multibody::makeNameToPositionsMap(*plant);
 	auto velocities_map = multibody::makeNameToVelocitiesMap(*plant);
@@ -345,7 +310,7 @@ int doMain(int argc, char* argv[]){
 	// 											);
 	Eigen::VectorXd x_0(14);
 	x_0 << 0, 0.798616, 0, -0.232994, -0.228255, 0.0889048, 0.05,
-            0, 0, 0, 0, 0, 0, 0;
+						0, 0, 0, 0, 0, 0, 0;
 
 
 	Eigen::VectorXd init_l_vec(2);
@@ -362,7 +327,6 @@ int doMain(int argc, char* argv[]){
 	std::vector<PiecewisePolynomial<double>> init_lc_traj; // contact forces at collocation points
 	std::vector<PiecewisePolynomial<double>> init_vc_traj; // velocity constraint at collocation points
 
-
 	double time_constant = 0.2;
 
 	std::vector<double> init_time;
@@ -371,7 +335,6 @@ int doMain(int argc, char* argv[]){
 		init_x.push_back(x_0);
 		init_u.push_back(VectorXd::Random(num_forces));
 	}
-
 
 	auto init_x_traj = PiecewisePolynomial<double>::ZeroOrderHold(init_time, init_x);
 	auto init_u_traj = PiecewisePolynomial<double>::ZeroOrderHold(init_time, init_u);
@@ -405,9 +368,6 @@ int doMain(int argc, char* argv[]){
 																				init_lc_traj,
 																				init_vc_traj
 																				);
-
-	// run_traj_opt(&plant);
-
 	// const drake::trajectories::PiecewisePolynomial<double> pp_xtraj = optimal_traj->ReconstructStateTrajectory(result);
 	multibody::connectTrajectoryVisualizer(	&plant, 
 											&builder, 
