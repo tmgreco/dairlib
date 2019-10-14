@@ -114,14 +114,14 @@ PiecewisePolynomial<double> CoMTraj::generateCrouchTraj(const drake::systems::Co
 										VectorXd& q, VectorXd& v) const{
 	// Kinematics cache and indices
 	// KinematicsCache<double> cache = tree_.CreateKinematicsCache();
-	const OutputVector<double>* robot_output = (OutputVector<double>*)
-		this->EvalVectorInput(context, state_port_);
-	double timestamp = robot_output->get_timestamp();
-	double current_time = static_cast<double>(timestamp);
+	// const OutputVector<double>* robot_output = (OutputVector<double>*)
+	// 	this->EvalVectorInput(context, state_port_);
+	// double timestamp = robot_output->get_timestamp();
+	// double current_time = static_cast<double>(timestamp);
 
-	double prev_time = static_cast<double>(context.get_discrete_state().get_vector(time_idx_).get_value()(0));
+	// double prev_time = static_cast<double>(context.get_discrete_state().get_vector(time_idx_).get_value()(0));
 
-	int t = (int)((current_time - prev_time)/(1.22/100.0));
+	// int t = (int)((current_time - prev_time)/(1.22/100.0));
 	// Vector3d desired_com(crouch_traj_(t, 1), 0, crouch_traj_(t, 3));
 
 	// return PiecewisePolynomial<double>(desired_com);

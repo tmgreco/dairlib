@@ -56,7 +56,7 @@ DEFINE_string(state_simulation_channel, "RABBIT_STATE_SIMULATION",
               "Channel to publish/receive state from simulation");
 DEFINE_double(wait_time, 5.0, "The length of time to wait in the neutral state before jumping (s)");
 DEFINE_double(publish_rate, 200, "Publishing frequency (Hz)");
-DEFINE_double(height, 0.7, "Standing height of the five link biped");
+DEFINE_double(height, 0.7138, "Standing height of the five link biped");
 
 DEFINE_double(torso_orientation_cost, 0.1,"Weight to scale the torso orientation cost");
 
@@ -124,9 +124,11 @@ int doMain(int argc, char* argv[]){
 	int l_foot_index = GetBodyIndexFromName(tree_with_springs, "left_foot");
 	int r_foot_index = GetBodyIndexFromName(tree_with_springs, "right_foot");
 	// int netural_height = FLAGS_height;
+	// PiecewisePolynomial<double> jumping_traj_from_optimization = 
+	// 	loadStateTrajToPP("saved_trajs/");	
 	PiecewisePolynomial<double> jumping_traj_from_optimization = 
-		loadStateTrajToPP("saved_trajs/");
-	MatrixXd com_traj_from_optimization = readCSV("com_pos_matrix.csv");
+		loadStateTrajToPP("examples/jumping/saved_trajs/com_traj/", 1);
+	// MatrixXd com_traj_from_optimization = readCSV("com_pos_matrix.csv");
 
 
 	// Create Operational space control

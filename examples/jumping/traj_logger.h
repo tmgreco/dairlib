@@ -95,7 +95,7 @@ drake::MatrixX<double> loadAllDecisionVars(std::string folderPath, std::string f
     return Map<const Matrix<double, Dynamic, Dynamic>>(decisionVars.data(), decisionVars.size(), 1);
 }
 
-drake::trajectories::PiecewisePolynomial<double> loadStateTrajToPP(std::string folderPath){
+drake::trajectories::PiecewisePolynomial<double> loadStateTrajToPP(std::string folderPath, int polynomial_order){
 	std::ifstream fin;
 	fin.open(folderPath + "times");
     std::string line;
@@ -136,8 +136,15 @@ drake::trajectories::PiecewisePolynomial<double> loadStateTrajToPP(std::string f
         coeffs.data() + i*(n_states * n_coeffs), n_states, n_coeffs));
     }
 
-	return drake::trajectories::PiecewisePolynomial<double>::Cubic(	times,
+    if(polynomial_order == 1){
+	   return drake::trajectories::PiecewisePolynomial<double>::FirstOrderHold(times,
 																	coeff_matrices);
+    }
+    else if(polynomial_order == 3){
+        return drake::trajectories::PiecewisePolynomial<double>::Cubic(times,
+                                                                    coeff_matrices);
+    }
+    return drake::trajectories::PiecewisePolynomial<double>();
 }
 
 

@@ -97,9 +97,9 @@ drake::trajectories::PiecewisePolynomial<double> run_traj_opt(MultibodyPlant<dou
 	bool isXZ = true;
 
 	auto leftFootConstraint = DirconPositionData<double>(*plant, left_lower_leg,
-																										 pt, isXZ);
+														 pt, isXZ);
 	auto rightFootConstraint = DirconPositionData<double>(*plant, right_lower_leg,
-																												pt, isXZ);
+			  											 pt, isXZ);
 
 	Vector3d normal;
 	normal << 0, 0, 1;
@@ -174,7 +174,7 @@ drake::trajectories::PiecewisePolynomial<double> run_traj_opt(MultibodyPlant<dou
 	if(FLAGS_load_previous_traj){
 		DRAKE_DEMAND(FLAGS_traj_folder != "");
 
-		init_x_traj = loadStateTrajToPP(FLAGS_traj_folder);
+		init_x_traj = loadStateTrajToPP(FLAGS_traj_folder, 3);
 		init_u_traj = loadInputTrajToPP(FLAGS_traj_folder);
 	}
 
@@ -261,11 +261,12 @@ drake::trajectories::PiecewisePolynomial<double> run_traj_opt(MultibodyPlant<dou
 					);
 	}
 
+
+	writePPTrajToFile(trajopt->ReconstructStateTrajectory(result), "examples/jumping/saved_trajs/", "states");
+	writePPTrajToFile(trajopt->ReconstructInputTrajectory(result), "examples/jumping/saved_trajs/", "inputs");
 	// saveAllDecisionVars(result, "saved_trajs", "decision_vars");
-	writePPTrajToFile(trajopt->ReconstructStateTrajectory(result), "saved_trajs/", "states");
-	writePPTrajToFile(trajopt->ReconstructInputTrajectory(result), "saved_trajs/", "inputs");
-	writeTimeTrajToFile(trajopt->ReconstructStateTrajectory(result), "state_traj.txt");
-	writeTimeTrajToFile(trajopt->ReconstructInputTrajectory(result), "input_traj.txt");
+	writeTimeTrajToFile(trajopt->ReconstructStateTrajectory(result), "examples/jumping/state_traj.txt");
+	writeTimeTrajToFile(trajopt->ReconstructInputTrajectory(result), "examples/jumping/input_traj.txt");
 	return trajopt->ReconstructStateTrajectory(result);
 }
 
@@ -309,8 +310,8 @@ int doMain(int argc, char* argv[]){
 	// 											plant.num_velocities()
 	// 											);
 	Eigen::VectorXd x_0(14);
-	x_0 << 0, 0.798616, 0, -0.232994, -0.228255, 0.0889048, 0.05,
-						0, 0, 0, 0, 0, 0, 0;
+	x_0 << 0, 0.7768, 0, -0.3112, -0.231, 0.427, 0.4689,
+			0, 0, 0, 0, 0, 0, 0;
 
 
 	Eigen::VectorXd init_l_vec(2);
@@ -388,8 +389,6 @@ int doMain(int argc, char* argv[]){
 
 	return 0;
 }
-
-
 
 }  // namespace jumping
 }  // namespace examples
