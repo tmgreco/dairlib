@@ -36,6 +36,8 @@ using std::vector;
 using drake::trajectories::PiecewisePolynomial;
 using std::cout;
 using std::endl;
+using drake::multibody::MultibodyPlant;
+
 
 
 namespace dairlib{
@@ -49,21 +51,37 @@ int doMain(int argc, char* argv[]){
 	RigidBodyTree<double> tree;
 	drake::parsers::urdf::AddModelInstanceFromUrdfFileToWorld(
 		FindResourceOrThrow(filename), drake::multibody::joints::kFixed, &tree);
-	KinematicsCache<double> cache = tree.CreateKinematicsCache();
+
+	// MultibodyPlant<double>& plant = *builder.AddSystem<MultibodyPlant>(FLAGS_timestep);
+
+	// Parser parser(&plant, &scene_graph);
+	// std::string full_name = FindResourceOrThrow("examples/jumping/five_link_biped.urdf");
+	// parser.AddModelFromFile(full_name);
+	// plant.WeldFrames(
+	// plant.world_frame(), 
+	// plant.GetFrameByName("base"),
+	// drake::math::RigidTransform<double>()
+	// );
+
 
 	VectorXd q(tree.get_num_positions());
 	Vector3d center_of_mass(3);
 	std::vector<double> knots;
 	std::vector<double> breaks;
-	for(double i = 0; i < traj.end_time(); i += traj.end_time() / 500){
+	std::vector<double> points;
+	std::cout << tree.get_num_positions() << std::endl;
+	for(double i = 0; i < traj.end_time(); i += traj.end_time() / 100){
 		q << traj.value(i);
+		KinematicsCache<double> cache = tree.CreateKinematicsCache();
+		dairlib::multibody::SetZeroQuaternionToIdentity(&q);
 		cache.initialize(q);
+		std::cout << cache.getQ() << std::endl;
 		tree.doKinematics(cache);
 		center_of_mass = tree.centerOfMass(cache);
-		// points.push_back(i);
+		points.push_back(i);
 		breaks.push_back(i);
 		for(int j = 0; j < 3; ++j){
-			// points.push_back(center_of_mass(j));
+			points.push_back(center_of_mass(j));
 			knots.push_back(center_of_mass(j));
 		}
 	}

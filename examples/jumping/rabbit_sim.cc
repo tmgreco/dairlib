@@ -90,10 +90,6 @@ int do_main(int argc, char* argv[]) {
 
   MultibodyPlant<double>& plant = *builder.AddSystem<MultibodyPlant>(FLAGS_timestep);
 
-  if (FLAGS_floating_base) {
-    multibody::addFlatTerrain(&plant, &scene_graph, .8, .8);
-  }
-
   Parser parser(&plant, &scene_graph);
   std::string full_name = FindResourceOrThrow("examples/jumping/five_link_biped.urdf");
   parser.AddModelFromFile(full_name);
@@ -103,6 +99,7 @@ int do_main(int argc, char* argv[]) {
     drake::math::RigidTransform<double>()
     );
   plant.mutable_gravity_field().set_gravity_vector(-9.81 * Eigen::Vector3d::UnitZ());
+  multibody::addFlatTerrain(&plant, &scene_graph, .8, .8); // Add ground
 
   plant.Finalize();
 
@@ -185,7 +182,8 @@ int do_main(int argc, char* argv[]) {
 
 
   Eigen::VectorXd x0(14);
-  x0  << 0, 0.777, 0.0, -0.311, -0.231, 0.4273, 0.469,
+  // x0  << 0, 0.7768, 0, -0.3112, -0.231, 0.427, 0.4689,
+  x0  << 0, 0.7768, -0.25, -0.0163806, 0.159979, 0.48, 0.42,
             0, 0, 0, 0, 0, 0, 0;
   // x0  << 0, 0.799,   -0.0533989,   -0.0179129,   -0.0149962,         0.07,    0.0503966,
   //           0, 0, 0, 0, 0, 0, 0;

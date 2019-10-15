@@ -106,7 +106,8 @@ PiecewisePolynomial<double> CoMTraj::generateNeutralTraj(const drake::systems::C
 
 	Vector3d feet_center = (l_foot + r_foot) / 2;
 
-	Vector3d desired_com(feet_center(0), feet_center(1), feet_center(2) + height_);
+	// Vector3d desired_com(feet_center(0), feet_center(1), feet_center(2) + height_);
+	Vector3d desired_com(feet_center(0), feet_center(1), 0 + height_);
 	return PiecewisePolynomial<double>(desired_com);
 }
 
