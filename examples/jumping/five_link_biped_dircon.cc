@@ -161,7 +161,7 @@ drake::trajectories::PiecewisePolynomial<double> run_traj_opt(MultibodyPlant<dou
 													contact_mode_list,
 													options_list);
 
-	trajopt->AddDurationBounds(FLAGS_max_duration, 3*FLAGS_max_duration);
+	trajopt->AddDurationBounds(FLAGS_max_duration, 1.5*FLAGS_max_duration);
 	trajopt->SetSolverOption(drake::solvers::SnoptSolver::id(),
 							"Print file", "five_link_biped_snopt.out");
 	trajopt->SetSolverOption(drake::solvers::SnoptSolver::id(),
@@ -171,12 +171,12 @@ drake::trajectories::PiecewisePolynomial<double> run_traj_opt(MultibodyPlant<dou
 	trajopt->SetSolverOption(drake::solvers::SnoptSolver::id(),
 							"Minor iterations limit", 5000);
 
-	if(FLAGS_load_previous_traj){
-		DRAKE_DEMAND(FLAGS_traj_folder != "");
+	// if(FLAGS_load_previous_traj){
+	// 	DRAKE_DEMAND(FLAGS_traj_folder != "");
 
-		init_x_traj = loadStateTrajToPP(FLAGS_traj_folder, 3);
-		init_u_traj = loadInputTrajToPP(FLAGS_traj_folder);
-	}
+	// 	init_x_traj = loadStateTrajToPP(FLAGS_traj_folder, 3);
+	// 	init_u_traj = loadInputTrajToPP(FLAGS_traj_folder);
+	// }
 
 	// Set initial guesses
 	for (uint j = 0; j < timesteps.size(); j++) {
@@ -194,14 +194,14 @@ drake::trajectories::PiecewisePolynomial<double> run_traj_opt(MultibodyPlant<dou
 	auto xf = trajopt->final_state();
 	int n = plant->num_positions();
 
-	// Eigen::VectorXd fixed_initial_conds(14);
-	// fixed_initial_conds << 0, 0.7768, 0, -0.3112, -0.231, 0.427, 0.4689,
-	// 					0, 0, 0, 0, 0, 0, 0;
-	// trajopt->AddLinearConstraint(x0 == fixed_initial_conds);
-	trajopt->AddLinearConstraint(x0(positions_map["left_hip_pin"]) == -0.3112);
-	trajopt->AddLinearConstraint(x0(positions_map["right_hip_pin"]) == -0.231);
-	trajopt->AddLinearConstraint(x0(positions_map["left_knee_pin"]) == 0.427);
-	trajopt->AddLinearConstraint(x0(positions_map["right_knee_pin"]) == 0.4689);
+	Eigen::VectorXd fixed_initial_conds(14);
+	fixed_initial_conds << 0, 0.778109, 0, -.3112, -.231, 0.427, 0.4689,
+            0, 0, 0, 0, 0, 0, 0;
+	trajopt->AddLinearConstraint(x0 == fixed_initial_conds);
+	// trajopt->AddLinearConstraint(x0(positions_map["left_hip_pin"]) == -0.3112);
+	// trajopt->AddLinearConstraint(x0(positions_map["right_hip_pin"]) == -0.231);
+	// trajopt->AddLinearConstraint(x0(positions_map["left_knee_pin"]) == 0.427);
+	// trajopt->AddLinearConstraint(x0(positions_map["right_knee_pin"]) == 0.4689);
 	// trajopt->AddLinearConstraint(x0(positions_map["planar_z"]) == 0.7768);
 	trajopt->AddLinearConstraint(x_mid_point(positions_map["planar_x"]) == (x0(positions_map["planar_x"])));
 	// trajopt->AddLinearConstraint(xf(positions_map["planar_x"]) == (x0(positions_map["planar_x"])));

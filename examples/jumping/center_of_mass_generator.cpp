@@ -1,5 +1,5 @@
 #include <chrono>
-#include <thread>
+#include <fstream>
 
 #include <gflags/gflags.h>
 #include "attic/multibody/rigidbody_utils.h"
@@ -46,7 +46,7 @@ namespace examples{
 namespace jumping{
 
 int doMain(int argc, char* argv[]){
-	PiecewisePolynomial<double> traj = loadStateTrajToPP("examples/jumping/saved_trajs/", 3);
+	PiecewisePolynomial<double> traj = loadTrajToPP("examples/jumping/saved_trajs/", "states.csv", 3);
 	std::string filename = "examples/jumping/five_link_biped.urdf";
 	RigidBodyTree<double> tree;
 	drake::parsers::urdf::AddModelInstanceFromUrdfFileToWorld(
@@ -63,22 +63,26 @@ int doMain(int argc, char* argv[]){
 	// drake::math::RigidTransform<double>()
 	// );
 
-
+	KinematicsCache<double> cache = tree.CreateKinematicsCache();
 	VectorXd q(tree.get_num_positions());
 	Vector3d center_of_mass(3);
 	std::vector<double> knots;
 	std::vector<double> breaks;
 	std::vector<double> points;
-	std::cout << tree.get_num_positions() << std::endl;
-	for(double i = 0; i < traj.end_time(); i += traj.end_time() / 100){
+	std::vector<double> times;
+	for (auto const& element : multibody::makeNameToPositionsMap(tree))
+		cout << element.first << " = " << element.second << endl;
+	for(double i = 0; i < traj.end_time(); i += traj.end_time() / 200){
 		q << traj.value(i);
-		KinematicsCache<double> cache = tree.CreateKinematicsCache();
+		double temp = q[5]; // Order of states are not the same for multibody and rigid bodies
+		q[5] = q[4];
+		q[4] = temp;
 		dairlib::multibody::SetZeroQuaternionToIdentity(&q);
 		cache.initialize(q);
-		std::cout << cache.getQ() << std::endl;
+		// std::cout << cache.getQ() << std::endl;
 		tree.doKinematics(cache);
 		center_of_mass = tree.centerOfMass(cache);
-		points.push_back(i);
+		times.push_back(i);
 		breaks.push_back(i);
 		for(int j = 0; j < 3; ++j){
 			points.push_back(center_of_mass(j));
@@ -86,11 +90,12 @@ int doMain(int argc, char* argv[]){
 		}
 	}
 	// std::cout << "points size: " << points.size() << std::endl;
-	MatrixXd com_pos_matrix = Eigen::Map<const Matrix<double, Dynamic, Dynamic, RowMajor>>(points.data(), points.size()/4, 4);
-	MatrixXd knots_matrix = MatrixXd::Zero(3, knots.size()/3);
-	MatrixXd breaks_vector = VectorXd::Zero(breaks.size());
-	knots_matrix = Eigen::Map<const Matrix<double, Dynamic, Dynamic>>(knots.data(), 3, knots.size()/3);
-	breaks_vector = Eigen::Map<Eigen::VectorXd, Eigen::Unaligned>(breaks.data(), breaks.size());
+	MatrixXd com_pos_matrix = Eigen::Map<const Matrix<double, Dynamic, Dynamic, RowMajor>>(points.data(), points.size()/3, 3);
+	MatrixXd com_pos_time_matrix = Eigen::Map<const Eigen::VectorXd, Eigen::Unaligned>(times.data(), times.size());
+	// MatrixXd knots_matrix = MatrixXd::Zero(3, knots.size()/3);
+	// MatrixXd breaks_vector = VectorXd::Zero(breaks.size());
+	MatrixXd knots_matrix = Eigen::Map<const Matrix<double, Dynamic, Dynamic>>(knots.data(), 3, knots.size()/3);
+	VectorXd breaks_vector = Eigen::Map<const Eigen::VectorXd, Eigen::Unaligned>(breaks.data(), breaks.size());
 	// VectorXd breaks_vector = Eigen::Map<Eigen::VectorXd, Eigen::Unaligned>(breaks.data(), breaks.size());
 	// std::cout << "breaks: " << breaks_vector << std::endl;
 	// std::cout << "knots_matrix: " << knots_matrix << std::endl;
@@ -98,7 +103,16 @@ int doMain(int argc, char* argv[]){
 	std::cout << "Creating matrix " << std::endl;
 	writePPTrajToFile(com_traj, "examples/jumping/saved_trajs/com_traj/", "com_traj");
 	MatrixXd copy = com_pos_matrix;
-	writeCSV("com_pos_matrix.csv", copy);
+	writeCSV("examples/jumping/saved_trajs/com_traj/com_pos_matrix.csv", copy);
+
+	std::ofstream fout;
+	fout.open("examples/jumping/saved_trajs/com_traj/times");
+	for(double t : times){
+		fout << t << " ";
+	}
+	fout.flush();
+	fout.close();
+	std::cout << "Wrote Matrix " << std::endl;
 	return 0;
 }
 

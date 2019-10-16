@@ -127,7 +127,13 @@ int doMain(int argc, char* argv[]){
 	// PiecewisePolynomial<double> jumping_traj_from_optimization = 
 	// 	loadStateTrajToPP("saved_trajs/");	
 	PiecewisePolynomial<double> jumping_traj_from_optimization = 
-		loadStateTrajToPP("examples/jumping/saved_trajs/com_traj/", 1);
+		loadTrajToPP("examples/jumping/saved_trajs/com_traj/", "com_pos.csv", 1);
+	// int n_segments = jumping_traj_from_optimization.get_number_of_segments();
+	// for(int i = 0; i < n_segments; ++i){
+	std::cout << jumping_traj_from_optimization.getPolynomialMatrix(0);
+		// fout << "\n";
+	// }
+	std::cout << jumping_traj_from_optimization.value(0).transpose() <<std::endl;
 	// MatrixXd com_traj_from_optimization = readCSV("com_pos_matrix.csv");
 
 
@@ -205,7 +211,7 @@ int doMain(int argc, char* argv[]){
 	osc->AddTrackingData(&com_tracking_data);
 
 	// ***** Torso balance term ******
-	double w_pelvis_balance = 200;
+	double w_pelvis_balance = 300;
 	double w_heading = 200;
 	double k_p_pelvis_balance = 10;
 	double k_d_pelvis_balance = 10;
