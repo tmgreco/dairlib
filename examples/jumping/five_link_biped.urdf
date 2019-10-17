@@ -68,6 +68,33 @@
     <parent link="left_upper_leg"/>
     <child link="left_upper_leg_mass"/>
   </joint>
+  <link name="right_upper_leg">
+    <visual>
+      <origin xyz="0 0 -0.2"/>
+      <geometry>
+        <cylinder length="0.4" radius="0.0075"/>
+      </geometry>
+      <material name="blue"/>
+    </visual>
+  </link>
+  <link name="right_upper_leg_mass">
+    <visual>
+      <origin xyz="0 0 -0.2"/>
+      <geometry>
+        <sphere radius="0.025"/>
+      </geometry>
+      <material name="blue"/>
+    </visual>
+    <inertial>
+      <origin xyz="0 0 -0.2"/>
+      <mass value="6.4"/>
+      <inertia ixx="0.47" ixy="0" ixz="0" iyy="0.47" iyz="0" izz="0.47"/>
+    </inertial>
+  </link>
+  <joint name="right_upper_leg_mass_weld" type="fixed">
+    <parent link="right_upper_leg"/>
+    <child link="right_upper_leg_mass"/>
+  </joint>
   <link name="left_lower_leg">
     <visual>
       <origin xyz="0 0 -0.2"/>
@@ -101,33 +128,6 @@
     <parent link="left_lower_leg"/>
     <child link="left_lower_leg_mass"/>
   </joint>
-  <link name="right_upper_leg">
-    <visual>
-      <origin xyz="0 0 -0.2"/>
-      <geometry>
-        <cylinder length="0.4" radius="0.0075"/>
-      </geometry>
-      <material name="blue"/>
-    </visual>
-  </link>
-  <link name="right_upper_leg_mass">
-    <visual>
-      <origin xyz="0 0 -0.2"/>
-      <geometry>
-        <sphere radius="0.025"/>
-      </geometry>
-      <material name="blue"/>
-    </visual>
-    <inertial>
-      <origin xyz="0 0 -0.2"/>
-      <mass value="6.4"/>
-      <inertia ixx="0.47" ixy="0" ixz="0" iyy="0.47" iyz="0" izz="0.47"/>
-    </inertial>
-  </link>
-  <joint name="right_upper_leg_mass_weld" type="fixed">
-    <parent link="right_upper_leg"/>
-    <child link="right_upper_leg_mass"/>
-  </joint>
   <link name="right_lower_leg">
     <visual>
       <origin xyz="0 0 -0.2"/>
@@ -157,7 +157,7 @@
       <inertia ixx="0.2" ixy="0" ixz="0" iyy="0.2" iyz="0" izz="0.2"/>
     </inertial>
   </link>
-  <link name="right_foot">
+  <link name="left_foot">
     <visual>
       <origin xyz="0 0 0"/>
       <geometry>
@@ -166,7 +166,7 @@
       <material name="white"/>
     </visual>
   </link>
-  <link name="left_foot">
+  <link name="right_foot">
     <visual>
       <origin xyz="0 0 0"/>
       <geometry>
@@ -204,7 +204,7 @@
     <child link="left_upper_leg"/>
     <axis xyz="0 1 0"/>
     <origin xyz="0 0 0"/>
-    <limit effort="100"/>
+    <limit effort="200"/>
     <dynamics damping="0.1" />
   </joint>
   <joint name="right_hip_pin" type="revolute">
@@ -212,7 +212,7 @@
     <child link="right_upper_leg"/>
     <axis xyz="0 1 0"/>
     <origin xyz="0 0 0"/>
-    <limit effort="100"/>
+    <limit effort="200"/>
     <dynamics damping="0.1" />
   </joint>
   <joint name="left_knee_pin" type="revolute">
@@ -220,7 +220,7 @@
     <child link="left_lower_leg"/>
     <axis xyz="0 1 0"/>
     <origin xyz="0 0 -0.4"/>
-    <limit effort="100"/>
+    <limit effort="200"/>
     <dynamics damping="0.1" />
   </joint>
   <joint name="right_knee_pin" type="revolute">
@@ -228,7 +228,7 @@
     <child link="right_lower_leg"/>
     <axis xyz="0 1 0"/>
     <origin xyz="0 0 -0.4"/>
-    <limit effort="100"/>
+    <limit effort="200"/>
     <dynamics damping="0.1" />
   </joint>
   <joint name="right_foot" type="fixed">

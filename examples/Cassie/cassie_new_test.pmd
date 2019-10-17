@@ -3,14 +3,6 @@ group "0.operator" {
         exec = "bazel-bin/examples/Cassie/visualizer --floating_base=true --channel=CASSIE_STATE_DISPATCHER";
         host = "localhost";
     }
-    cmd "1.state-visualizer" {
-        exec = "bazel-bin/examples/Cassie/visualizer --floating_base=false";
-        host = "localhost";
-    }
-    cmd "3.state-visualizer-real-robot" {
-        exec = "bazel-bin/examples/Cassie/visualizer --floating_base=true --channel NETWORK_CASSIE_STATE_DISPATCHER";
-        host = "localhost";
-    }
     cmd "2.drake-director-real-robot" {
         exec = "bazel-bin/director/drake-director --use_builtin_scripts=contact,frame,image --script examples/Cassie/director_scripts/set_channel_network.py --script examples/Cassie/director_scripts/pd_panel.py --script examples/Cassie/director_scripts/show_time.py";
         host = "localhost";
@@ -19,8 +11,16 @@ group "0.operator" {
         exec = "bazel-bin/director/drake-director --use_builtin_scripts=contact,frame,image --script examples/Cassie/director_scripts/pd_panel.py --script examples/Cassie/director_scripts/show_time.py";
         host = "localhost";
     }
+    cmd "1.state-visualizer" {
+        exec = "bazel-bin/examples/Cassie/visualizer --floating_base=false";
+        host = "localhost";
+    }
     cmd "5.state-visualizer (from simulation)" {
         exec = "bazel-bin/examples/Cassie/visualizer --floating_base=true --channel=CASSIE_STATE_SIMULATION";
+        host = "localhost";
+    }
+    cmd "3.state-visualizer-real-robot" {
+        exec = "bazel-bin/examples/Cassie/visualizer --floating_base=true --channel NETWORK_CASSIE_STATE_DISPATCHER";
         host = "localhost";
     }
 }
@@ -38,51 +38,19 @@ group "3.cassie-robot" {
         exec = "bazel-bin/examples/Cassie/dispatcher_robot_out --port 25001 --address 10.10.10.100 --test_mode=0";
         host = "dair-cassie";
     }
-    cmd "3.standing-controller-real-robot" {
-        exec = "/home/dair/workspace/dairlib/bazel-bin/examples/Cassie/run_osc_standing_controller --channel=CASSIE_STATE_DISPATCHER";
-        host = "dair-cassie";
-    }
     cmd "2.pd-controller-real-robot" {
         exec = "/home/dair/workspace/dairlib/bazel-bin/examples/Cassie/run_pd_controller";
+        host = "dair-cassie";
+    }
+    cmd "3.standing-controller-real-robot" {
+        exec = "/home/dair/workspace/dairlib/bazel-bin/examples/Cassie/run_osc_standing_controller --channel=CASSIE_STATE_DISPATCHER";
         host = "dair-cassie";
     }
 }
 
 group "1.simulated-robot" {
-    cmd "4.osc-walking-controller (no dispatcher)" {
-        exec = "bazel-bin/examples/Cassie/run_osc_walking_controller";
-        host = "localhost";
-    }
-    cmd "4.osc-standing-controller (dispatched)" {
-        exec = "bazel-bin/examples/Cassie/run_osc_standing_controller --channel=CASSIE_STATE_DISPATCHER --cost_weight_multiplier=1";
-        host = "localhost";
-    }
-    cmd "3.dispatcher-robot-in" {
-        exec = "bazel-bin/examples/Cassie/dispatcher_robot_in --port 25000";
-        host = "localhost";
-    }
-    cmd "2.a.dispatcher-robot-out (lcm, fixed-base)" {
-        exec = "bazel-bin/examples/Cassie/dispatcher_robot_out --port 25001 --simulation=true --floating_base=false";
-        host = "localhost";
-    }
-    cmd "1.simulator for OSC controller" {
-        exec = "bazel-bin/examples/Cassie/run_simple_sim --floating_base=true --publish_rate=200";
-        host = "localhost";
-    }
     cmd "0.pd-controller" {
         exec = "bazel-bin/examples/Cassie/run_pd_controller";
-        host = "localhost";
-    }
-    cmd "2.a.dispatcher-robot-out (lcm, floating-base)" {
-        exec = "bazel-bin/examples/Cassie/dispatcher_robot_out --port 25001 --simulation=true";
-        host = "localhost";
-    }
-    cmd "4.osc-walking-controller (dispatched)" {
-        exec = "bazel-bin/examples/Cassie/run_osc_walking_controller --channel=CASSIE_STATE_DISPATCHER";
-        host = "localhost";
-    }
-    cmd "2.b.dispatcher-robot-out (gazebo)" {
-        exec = "bazel-bin/examples/Cassie/dispatcher_robot_out --port 25001";
         host = "localhost";
     }
     cmd "1.simulator" {
@@ -93,15 +61,47 @@ group "1.simulated-robot" {
         exec = "bazel-bin/examples/Cassie/run_osc_standing_controller --cost_weight_multiplier=1";
         host = "localhost";
     }
+    cmd "3.dispatcher-robot-in" {
+        exec = "bazel-bin/examples/Cassie/dispatcher_robot_in --port 25000";
+        host = "localhost";
+    }
+    cmd "2.a.dispatcher-robot-out (lcm, fixed-base)" {
+        exec = "bazel-bin/examples/Cassie/dispatcher_robot_out --port 25001 --simulation=true --floating_base=false";
+        host = "localhost";
+    }
+    cmd "4.osc-walking-controller (no dispatcher)" {
+        exec = "bazel-bin/examples/Cassie/run_osc_walking_controller";
+        host = "localhost";
+    }
+    cmd "2.a.dispatcher-robot-out (lcm, floating-base)" {
+        exec = "bazel-bin/examples/Cassie/dispatcher_robot_out --port 25001 --simulation=true";
+        host = "localhost";
+    }
+    cmd "1.simulator for OSC controller" {
+        exec = "bazel-bin/examples/Cassie/run_simple_sim --floating_base=true --publish_rate=200";
+        host = "localhost";
+    }
+    cmd "2.b.dispatcher-robot-out (gazebo)" {
+        exec = "bazel-bin/examples/Cassie/dispatcher_robot_out --port 25001";
+        host = "localhost";
+    }
+    cmd "4.osc-standing-controller (dispatched)" {
+        exec = "bazel-bin/examples/Cassie/run_osc_standing_controller --channel=CASSIE_STATE_DISPATCHER --cost_weight_multiplier=1";
+        host = "localhost";
+    }
+    cmd "4.osc-walking-controller (dispatched)" {
+        exec = "bazel-bin/examples/Cassie/run_osc_walking_controller --channel=CASSIE_STATE_DISPATCHER";
+        host = "localhost";
+    }
 }
 
 group "2.lcm-tools" {
-    cmd "1.signal-scope" {
-        exec = "bazel-bin/signalscope/signal-scope";
-        host = "localhost";
-    }
     cmd "0.lcm-spy" {
         exec = "bazel-bin/lcmtypes/dair-lcm-spy";
+        host = "localhost";
+    }
+    cmd "1.signal-scope" {
+        exec = "bazel-bin/signalscope/signal-scope";
         host = "localhost";
     }
 }
@@ -109,10 +109,6 @@ group "2.lcm-tools" {
 group "4.other-simulators" {
     cmd "2.cassie-mujoco" {
         exec = "./../cassie-mujoco-sim/test/cassiesim -r -v -s";
-        host = "localhost";
-    }
-    cmd "0.launch-gazebo" {
-        exec = "bash ../cassie-gazebo-sim/cassie/launch_sim.sh";
         host = "localhost";
     }
     cmd "1.launch-gazebo-fixed-base" {
@@ -123,23 +119,27 @@ group "4.other-simulators" {
         exec = "./../cassie-mujoco-sim/test/cassiesim -r -v -h -s";
         host = "localhost";
     }
+    cmd "0.launch-gazebo" {
+        exec = "bash ../cassie-gazebo-sim/cassie/launch_sim.sh";
+        host = "localhost";
+    }
 }
 
 group "5.simulated-robot" {
-    cmd "rabbit_visualizer" {
-        exec = "bazel-bin/examples/jumping/rabbit_visualizer --com_ground=true";
-        host = "localhost";
-    }
-    cmd "jumping" {
-        exec = "bazel-bin/examples/jumping/five_link_biped_dircon --height=0.2 --knot_points=15 --max_duration=1.0";
-        host = "localhost";
-    }
     cmd "rabbit_sim" {
         exec = "bazel-bin/examples/jumping/rabbit_simulator --visualize=false";
         host = "localhost";
     }
+    cmd "jumping" {
+        exec = "bazel-bin/examples/jumping/five_link_biped_dircon --height=0.2 --knot_points=15 --max_duration=0.5";
+        host = "localhost";
+    }
     cmd "rabbit_jumping" {
-        exec = "bazel-bin/examples/jumping/osc_jumping_controller --wait_time=5.0 --height=0.7";
+        exec = "bazel-bin/examples/jumping/osc_jumping_controller --wait_time=0.9 --height=0.7";
+        host = "localhost";
+    }
+    cmd "rabbit_visualizer" {
+        exec = "bazel-bin/examples/jumping/rabbit_visualizer --com_ground=false";
         host = "localhost";
     }
 }
