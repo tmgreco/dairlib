@@ -67,14 +67,13 @@ CoMTraj::CoMTraj(const RigidBodyTree<double>& tree,
 EventStatus CoMTraj::DiscreteVariableUpdate(
   const Context<double>& context,
   DiscreteValues<double>* discrete_state) const {
-
   auto prev_fsm_state = discrete_state->get_mutable_vector(
                           fsm_idx_).get_mutable_value();
   auto prev_time = discrete_state->get_mutable_vector(
                      time_idx_).get_mutable_value();
 
   const BasicVector<double>* fsm_output = (BasicVector<double>*)
-                                          this->EvalVectorInput(context, fsm_port_);
+                                      this->EvalVectorInput(context, fsm_port_);
   VectorXd fsm_state = fsm_output->get_value();
 
   const OutputVector<double>* robot_output = (OutputVector<double>*)
@@ -82,7 +81,7 @@ EventStatus CoMTraj::DiscreteVariableUpdate(
   double timestamp = robot_output->get_timestamp();
   double current_time = static_cast<double>(timestamp);
 
-  if (prev_fsm_state(0) != fsm_state(0)) { //When to reset the clock
+  if (prev_fsm_state(0) != fsm_state(0)) {  // When to reset the clock
     prev_fsm_state(0) = fsm_state(0);
     prev_time(0) = current_time;
   }
@@ -92,7 +91,6 @@ EventStatus CoMTraj::DiscreteVariableUpdate(
 PiecewisePolynomial<double> CoMTraj::generateNeutralTraj(
   const drake::systems::Context<double>& context,
   VectorXd& q, VectorXd& v) const {
-
   // Kinematics cache and indices
   KinematicsCache<double> cache = tree_.CreateKinematicsCache();
   // Modify the quaternion in the begining when the state is not received from
@@ -112,7 +110,7 @@ PiecewisePolynomial<double> CoMTraj::generateNeutralTraj(
   Vector3d feet_center = (l_foot + r_foot) / 2;
 
   // Vector3d desired_com(feet_center(0), feet_center(1), feet_center(2) + height_);
-  Vector3d desired_com(feet_center(0), feet_center(1), 0 + height_);
+  Vector3d desired_com(feet_center(0), feet_center(1), height_);
   return PiecewisePolynomial<double>(desired_com);
 }
 
@@ -122,30 +120,15 @@ PiecewisePolynomial<double> CoMTraj::generateCrouchTraj(
   // Kinematics cache and indices
   // KinematicsCache<double> cache = tree_.CreateKinematicsCache();
   // const OutputVector<double>* robot_output = (OutputVector<double>*)
-  // 	this->EvalVectorInput(context, state_port_);
+  //  this->EvalVectorInput(context, state_port_);
   // double timestamp = robot_output->get_timestamp();
   // double current_time = static_cast<double>(timestamp);
-
-  // double prev_time = static_cast<double>(context.get_discrete_state().get_vector(time_idx_).get_value()(0));
 
   // int t = ((current_time - prev_time)/(1.22/100.0));
   // Vector3d desired_com(crouch_traj_(t, 1), 0, crouch_traj_(t, 3));
 
   // return PiecewisePolynomial<double>(desired_com);
   return crouch_traj_;
-}
-
-/*
-	Move the feet relative to the COM
-	The trajectory of the COM cannot be altered, so must solve for
-	foot positions as a function of COM.
-
-*/
-PiecewisePolynomial<double> CoMTraj::generateFlightTraj(
-  const drake::systems::Context<double>& context,
-  VectorXd& q, VectorXd& v) const {
-  // Do nothing
-  return PiecewisePolynomial<double>(VectorXd(0));
 }
 
 PiecewisePolynomial<double> CoMTraj::generateLandingTraj(

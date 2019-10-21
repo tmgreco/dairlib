@@ -112,34 +112,15 @@ int doMain(int argc, char* argv[]) {
   drake::multibody::AddFlatTerrainToWorld(&tree_with_springs,
                                           terrain_size, terrain_depth);
 
-  // MultibodyPlant<double> plant;
-  // SceneGraph<double>& scene_graph = *(builder.AddSystem<SceneGraph>());
-  // Parser parser(&plant, &scene_graph);
-  // parser.AddModelFromFile(full_name);
-  // plant.mutable_gravity_field().set_gravity_vector(-FLAGS_gravity * Eigen::Vector3d::UnitZ());
-  // plant.WeldFrames(
-  //        plant.world_frame(),
-  //        plant.GetFrameByName("base"),
-  //        drake::math::RigidTransform<double>()
-  //        );
-  // plant.Finalize();
-
   int hip_index = GetBodyIndexFromName(tree_with_springs, "torso");
   int l_foot_index = GetBodyIndexFromName(tree_with_springs, "left_foot");
   int r_foot_index = GetBodyIndexFromName(tree_with_springs, "right_foot");
   // int netural_height = FLAGS_height;
-  // PiecewisePolynomial<double> jumping_traj_from_optimization =
-  //    loadStateTrajToPP("saved_trajs/");
   PiecewisePolynomial<double> jumping_traj_from_optimization =
     loadTrajToPP("examples/jumping/saved_trajs/com_traj/", "com_pos.csv", 1);
-  // int n_segments = jumping_traj_from_optimization.get_number_of_segments();
-  // for(int i = 0; i < n_segments; ++i){
   std::cout << jumping_traj_from_optimization.getPolynomialMatrix(0);
-  // fout << "\n";
-  // }
   std::cout << jumping_traj_from_optimization.value(0).transpose() <<
             std::endl;
-  // MatrixXd com_traj_from_optimization = readCSV("com_pos_matrix.csv");
 
 
   // Create Operational space control
@@ -187,7 +168,7 @@ int doMain(int argc, char* argv[]) {
   osc->SetAccelerationCostForAllJoints(Q_accel);
 
   // Contact Constraint Slack Variables
-  double lambda_contact_relax = 20000;
+  double lambda_contact_relax = 200;  // originally 20000
   osc->SetWeightOfSoftContactConstraint(lambda_contact_relax);
 
   // All foot contact specification for osc
@@ -204,7 +185,7 @@ int doMain(int argc, char* argv[]) {
   // ***** COM tracking term ******
   // Gains for COM tracking
   MatrixXd W_com = MatrixXd::Identity(3, 3);
-  W_com(0, 0) = 2000;
+  W_com(0, 0) = 1000;  // originally 2000
   W_com(1, 1) = 1;
   W_com(2, 2) = 2000;
 
@@ -213,8 +194,8 @@ int doMain(int argc, char* argv[]) {
   MatrixXd K_p_com = (xy_scale * sqrt(g_over_l)  - g_over_l) *
                      MatrixXd::Identity(3, 3);
   MatrixXd K_d_com = xy_scale * MatrixXd::Identity(3, 3);
-  K_p_com(2, 2) = 144;
-  K_d_com(2, 2) = 24;
+  K_p_com(2, 2) = 80;  // originally 144 and 24
+  K_d_com(2, 2) = 40;
 
   ComTrackingData com_tracking_data("com_traj", 3,
                                     K_p_com, K_d_com, W_com,
@@ -252,8 +233,8 @@ int doMain(int argc, char* argv[]) {
   // osc->AddConstTrackingData(&pelvis_rot_traj, pelvis_desired_quat);
 
   // ****** Feet tracking term ******
-  MatrixXd W_swing_foot = 200 * MatrixXd::Identity(3, 3);
-  MatrixXd K_p_sw_ft = 10 * MatrixXd::Identity(3, 3);
+  MatrixXd W_swing_foot = 1 * MatrixXd::Identity(3, 3);
+  MatrixXd K_p_sw_ft = 1 * MatrixXd::Identity(3, 3);
   MatrixXd K_d_sw_ft = 1 * MatrixXd::Identity(3, 3);
   TransTaskSpaceTrackingData flight_phase_left_foot_traj("l_foot_traj", 3,
       K_p_sw_ft, K_d_sw_ft, W_swing_foot,
