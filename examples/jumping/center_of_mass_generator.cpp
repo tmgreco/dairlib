@@ -39,8 +39,9 @@ using std::endl;
 using drake::multibody::MultibodyPlant;
 
 DEFINE_double(time_offset, 0.0,
-           "Number of timesteps to remain in neutral state");
-
+              "Number of timesteps to remain in neutral state");
+const static Eigen::IOFormat CSVFormat(Eigen::StreamPrecision,
+                                       Eigen::DontAlignCols, ", ", "\n");
 
 namespace dairlib {
 
@@ -64,6 +65,7 @@ int doMain(int argc, char* argv[]) {
   // std::vector<double> breaks;
   std::vector<double> points;
   std::vector<double> times;
+  points.reserve(10000);
   for (auto const& element : multibody::makeNameToPositionsMap(tree))
     cout << element.first << " = " << element.second << endl;
 
@@ -82,7 +84,8 @@ int doMain(int argc, char* argv[]) {
       // knots.push_back(center_of_mass(j));
     }
   }
-  double time_offset = times.empty() ? 0 : times.back() + traj.end_time() / 200;
+  double time_offset = times.empty() ? 0 : times.back() + traj.end_time() /
+                       200;
   for (double i = 0; i < traj.end_time(); i += traj.end_time() / 200) {
     q << traj.value(i);
     // Order of states are not the same for multibody and rigid bodies
@@ -98,13 +101,12 @@ int doMain(int argc, char* argv[]) {
       // knots.push_back(center_of_mass(j));
     }
   }
-  // std::cout << "points size: " << points.size() << std::endl;
-  MatrixXd com_pos_matrix =
-    Eigen::Map<const Matrix<double, Dynamic, Dynamic, RowMajor>>(points.data(),
-        points.size() / 3, 3);
-  MatrixXd com_pos_time_matrix =
-    Eigen::Map<const Eigen::VectorXd, Eigen::Unaligned>(times.data(),
-        times.size());
+  // MatrixXd com_pos_matrix =
+  //   Eigen::Map<const Matrix<double, Dynamic, Dynamic, RowMajor>>(points.data(),
+  //       points.size() / 3, 3);
+  // MatrixXd com_pos_time_matrix =
+  //   Eigen::Map<const Eigen::VectorXd, Eigen::Unaligned>(times.data(),
+  //       times.size());
   // MatrixXd knots_matrix = MatrixXd::Zero(3, knots.size()/3);
   // MatrixXd breaks_vector = VectorXd::Zero(breaks.size());
   // MatrixXd knots_matrix =
@@ -121,10 +123,25 @@ int doMain(int argc, char* argv[]) {
   std::cout << "Creating matrix " << std::endl;
   // writePPTrajToFile(com_traj, "examples/jumping/saved_trajs/com_traj/",
   //                   "com_traj");
-  MatrixXd copy = com_pos_matrix;
-  writeCSV("examples/jumping/saved_trajs/com_traj/com_pos_matrix.csv", copy);
-
+  // MatrixXd copy = com_pos_matrix;
   std::ofstream fout;
+  fout.open("examples/jumping/saved_trajs/com_traj/com_pos_matrix.csv");
+  int count = 0;
+  for (double pt : points) {
+    fout << pt;
+    if (count++ % 3 == 2) {
+      fout << "\n";
+    } else {
+      fout << ", ";
+    }
+  }
+  // fout << Eigen::Map<const Matrix<double, Dynamic, Dynamic, RowMajor>>
+  //      (points.data(),
+  //       points.size() / 3, 3).format(CSVFormat);
+  fout.close();
+  // writeCSV("examples/jumping/saved_trajs/com_traj/com_pos_matrix.csv", com_pos_matrix);
+
+  // std::ofstream fout;
   fout.open("examples/jumping/saved_trajs/com_traj/times");
   for (double t : times) {
     fout << t << " ";

@@ -87,15 +87,12 @@ PiecewisePolynomial<double> FlightFootTraj::generateFlightTraj(
   // Vector3d pt_on_foot = Eigen::VectorXd::Zero(3);
   // find a function that calculates the center of mass for a rigidbodytree
 
-  // Vector3d l_foot = tree_.transformPoints(cache, pt_on_foot, left_foot_idx_, 0);
-  // Vector3d r_foot = tree_.transformPoints(cache, pt_on_foot, right_foot_idx_, 0);
   Vector3d center_of_mass = tree_.centerOfMass(cache);
 
-  //reflect about COM in x pos
   Vector3d desired_foot_pos(center_of_mass(0) - foot_offset_,
                             center_of_mass(1),
                             center_of_mass(2) - height_);
-  // TODO: calculate the feet pos as a function of COM
+                            // 0);
 
   return PiecewisePolynomial<double>(desired_foot_pos);
 }

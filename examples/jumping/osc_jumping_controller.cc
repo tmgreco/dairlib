@@ -117,7 +117,7 @@ int doMain(int argc, char* argv[]) {
   int r_foot_index = GetBodyIndexFromName(tree_with_springs, "right_foot");
   // int netural_height = FLAGS_height;
   PiecewisePolynomial<double> jumping_traj_from_optimization =
-    loadTrajToPP("examples/jumping/saved_trajs/com_traj/", "com_pos.csv", 1);
+    loadTrajToPP("examples/jumping/saved_trajs/com_traj/", "com_pos_matrix.csv", 1);
   std::cout << jumping_traj_from_optimization.getPolynomialMatrix(0);
   std::cout << jumping_traj_from_optimization.value(0).transpose() <<
             std::endl;
@@ -164,11 +164,11 @@ int doMain(int argc, char* argv[]) {
 
   // Acceleration Cost
   int n_v = tree_with_springs.get_num_velocities();
-  MatrixXd Q_accel = 1 * MatrixXd::Identity(n_v, n_v);
+  MatrixXd Q_accel = 10 * MatrixXd::Identity(n_v, n_v);
   osc->SetAccelerationCostForAllJoints(Q_accel);
 
   // Contact Constraint Slack Variables
-  double lambda_contact_relax = 200;  // originally 20000
+  double lambda_contact_relax = 1;  // originally 20000
   osc->SetWeightOfSoftContactConstraint(lambda_contact_relax);
 
   // All foot contact specification for osc
@@ -194,8 +194,8 @@ int doMain(int argc, char* argv[]) {
   MatrixXd K_p_com = (xy_scale * sqrt(g_over_l)  - g_over_l) *
                      MatrixXd::Identity(3, 3);
   MatrixXd K_d_com = xy_scale * MatrixXd::Identity(3, 3);
-  K_p_com(2, 2) = 80;  // originally 144 and 24
-  K_d_com(2, 2) = 40;
+  K_p_com(2, 2) = 144;  // originally 144 and 24
+  K_d_com(2, 2) = 10;
 
   ComTrackingData com_tracking_data("com_traj", 3,
                                     K_p_com, K_d_com, W_com,
@@ -206,36 +206,40 @@ int doMain(int argc, char* argv[]) {
   osc->AddTrackingData(&com_tracking_data);
 
   // ***** Torso balance term ******
-  // double w_pelvis_balance = 300;
-  // double w_heading = 200;
-  // double k_p_pelvis_balance = 10;
-  // double k_d_pelvis_balance = 10;
-  // double k_p_heading = 10;
-  // double k_d_heading = 10;
-  // Matrix3d W_pelvis = MatrixXd::Identity(3, 3);
-  // W_pelvis(0, 0) = w_pelvis_balance;
-  // W_pelvis(1, 1) = w_pelvis_balance;
-  // W_pelvis(2, 2) = w_heading;
-  // Matrix3d K_p_pelvis = MatrixXd::Identity(3, 3);
-  // K_p_pelvis(0, 0) = k_p_pelvis_balance * 2;
-  // K_p_pelvis(1, 1) = k_p_pelvis_balance * 2;
-  // K_p_pelvis(2, 2) = k_p_heading;
-  // Matrix3d K_d_pelvis = MatrixXd::Identity(3, 3);
-  // K_d_pelvis(0, 0) = k_d_pelvis_balance;
-  // K_d_pelvis(1, 1) = k_d_pelvis_balance;
-  // K_d_pelvis(2, 2) = k_d_heading;
-  // RotTaskSpaceTrackingData pelvis_rot_traj("pelvis_rot_traj", 3,
-  //     K_p_pelvis, K_d_pelvis, W_pelvis * FLAGS_torso_orientation_cost,
-  //     &tree_with_springs, &tree_with_springs);
-  // pelvis_rot_traj.AddFrameToTrack("torso");
-  // VectorXd pelvis_desired_quat(4);
-  // pelvis_desired_quat << 1, 0, 0, 0;
-  // osc->AddConstTrackingData(&pelvis_rot_traj, pelvis_desired_quat);
+  double w_pelvis_balance = 300;
+  double w_heading = 200;
+  double k_p_pelvis_balance = 10;
+  double k_d_pelvis_balance = 10;
+  double k_p_heading = 10;
+  double k_d_heading = 10;
+  Matrix3d W_pelvis = MatrixXd::Identity(3, 3);
+  W_pelvis(0, 0) = w_pelvis_balance;
+  W_pelvis(1, 1) = w_pelvis_balance;
+  W_pelvis(2, 2) = w_heading;
+  Matrix3d K_p_pelvis = MatrixXd::Identity(3, 3);
+  K_p_pelvis(0, 0) = k_p_pelvis_balance * 2;
+  K_p_pelvis(1, 1) = k_p_pelvis_balance * 2;
+  K_p_pelvis(2, 2) = k_p_heading;
+  Matrix3d K_d_pelvis = MatrixXd::Identity(3, 3);
+  K_d_pelvis(0, 0) = k_d_pelvis_balance;
+  K_d_pelvis(1, 1) = k_d_pelvis_balance;
+  K_d_pelvis(2, 2) = k_d_heading;
+  RotTaskSpaceTrackingData pelvis_rot_traj("pelvis_rot_traj", 3,
+      K_p_pelvis, K_d_pelvis, W_pelvis * FLAGS_torso_orientation_cost,
+      &tree_with_springs, &tree_with_springs);
+  pelvis_rot_traj.AddStateAndFrameToTrack(NEUTRAL, "torso");
+  // pelvis_rot_traj.AddStateAndFrameToTrack(CROUCH, "torso");
+  pelvis_rot_traj.AddStateAndFrameToTrack(LAND, "torso");
+  VectorXd pelvis_desired_quat(4);
+  pelvis_desired_quat << 1, 0, 0, 0;
+  osc->AddConstTrackingData(&pelvis_rot_traj, pelvis_desired_quat);
 
   // ****** Feet tracking term ******
   MatrixXd W_swing_foot = 1 * MatrixXd::Identity(3, 3);
-  MatrixXd K_p_sw_ft = 1 * MatrixXd::Identity(3, 3);
-  MatrixXd K_d_sw_ft = 1 * MatrixXd::Identity(3, 3);
+  W_swing_foot(0, 0) = 100;
+  W_swing_foot(2, 2) = 100;
+  MatrixXd K_p_sw_ft = 200 * MatrixXd::Identity(3, 3);
+  MatrixXd K_d_sw_ft = 200 * MatrixXd::Identity(3, 3);
   TransTaskSpaceTrackingData flight_phase_left_foot_traj("l_foot_traj", 3,
       K_p_sw_ft, K_d_sw_ft, W_swing_foot,
       &tree_with_springs, &tree_with_springs);

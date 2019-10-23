@@ -61,7 +61,7 @@ EventStatus JumpingFiniteStateMachine::DiscreteVariableUpdate(
     }
     break;
   case (CROUCH):
-    if (current_time > prev_time(0) + 0.68) {
+    if (current_time > prev_time(0) + (1.4 - wait_time_)) {
       fsm_state << FLIGHT;
       std::cout << "Setting fsm to FLIGHT" << std::endl;
       std::cout << "fsm: " << (FSM_STATE)fsm_state(0) << std::endl;
@@ -69,7 +69,7 @@ EventStatus JumpingFiniteStateMachine::DiscreteVariableUpdate(
     }
     break;
   case (FLIGHT):
-    if (current_time > prev_time(0) + 0.45) {
+    if (current_time > prev_time(0) + 0.3) {
       fsm_state << LAND;
       std::cout << "Setting fsm to LAND" << std::endl;
       std::cout << "fsm: " << (FSM_STATE)fsm_state(0) << std::endl;
