@@ -150,11 +150,10 @@ drake::trajectories::PiecewisePolynomial<double> loadTrajToPP(
         Map<const Matrix<double, Dynamic, Dynamic, RowMajor>>(
           coeffs.data() + i * (n_states * n_coeffs), n_coeffs, n_states));
     }
-    return drake::trajectories::PiecewisePolynomial<double>::FirstOrderHold(
+    return drake::trajectories::PiecewisePolynomial<double>::Pchip(
              times,
              coeff_matrices);
-  }
-  else if (polynomial_order == 3) {
+  }  else if (polynomial_order == 3) {
     for (size_t i = 0; i < times.size(); ++i) {
       coeff_matrices.push_back(
         Map<const Matrix<double, Dynamic, Dynamic, RowMajor>>(

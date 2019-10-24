@@ -187,7 +187,7 @@ int doMain(int argc, char* argv[]) {
   MatrixXd W_com = MatrixXd::Identity(3, 3);
   W_com(0, 0) = 1000;  // originally 2000
   W_com(1, 1) = 1;
-  W_com(2, 2) = 2000;
+  W_com(2, 2) = 1000;
 
   double xy_scale = 10;
   double g_over_l = 9.81 / FLAGS_height;
@@ -236,10 +236,10 @@ int doMain(int argc, char* argv[]) {
 
   // ****** Feet tracking term ******
   MatrixXd W_swing_foot = 1 * MatrixXd::Identity(3, 3);
-  W_swing_foot(0, 0) = 100;
-  W_swing_foot(2, 2) = 100;
-  MatrixXd K_p_sw_ft = 200 * MatrixXd::Identity(3, 3);
-  MatrixXd K_d_sw_ft = 200 * MatrixXd::Identity(3, 3);
+  W_swing_foot(0, 0) = 1;
+  W_swing_foot(2, 2) = 1;
+  MatrixXd K_p_sw_ft = 1 * MatrixXd::Identity(3, 3);
+  MatrixXd K_d_sw_ft = 1 * MatrixXd::Identity(3, 3);
   TransTaskSpaceTrackingData flight_phase_left_foot_traj("l_foot_traj", 3,
       K_p_sw_ft, K_d_sw_ft, W_swing_foot,
       &tree_with_springs, &tree_with_springs);

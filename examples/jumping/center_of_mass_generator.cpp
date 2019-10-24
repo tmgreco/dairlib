@@ -86,7 +86,7 @@ int doMain(int argc, char* argv[]) {
   }
   double time_offset = times.empty() ? 0 : times.back() + traj.end_time() /
                        200;
-  for (double i = 0; i < traj.end_time(); i += traj.end_time() / 200) {
+  for (double i = 0; i < traj.end_time(); i += traj.end_time() / 500) {
     q << traj.value(i);
     // Order of states are not the same for multibody and rigid bodies
     dairlib::multibody::SetZeroQuaternionToIdentity(&q);
