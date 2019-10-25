@@ -43,7 +43,7 @@ void addCassieMultibody(MultibodyPlant<double>* plant,
       drake::math::RigidTransform<double>(Vector3d::Zero()));
   }
 
-  // Add springss
+  // Add springs
   // stiffness is 2300 in URDF, 1500 from gazebo
   plant->AddForceElement<RevoluteSpring>(
       dynamic_cast<const drake::multibody::RevoluteJoint<double>&>(

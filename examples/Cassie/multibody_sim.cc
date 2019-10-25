@@ -75,6 +75,10 @@ int do_main(int argc, char* argv[]) {
   addCassieMultibody(&plant, &scene_graph, FLAGS_floating_base);
 
   plant.Finalize();
+  std::cout << "Before calling ToSymbolic" << std::endl;
+  auto tmp = drake::systems::System<double>::ToSymbolic(plant);
+  const MultibodyPlant<drake::symbolic::Expression>& symbolic_plant = *tmp;
+  std::cout << symbolic_plant.num_joints() << std::endl;
 
   // Create input receiver.
   auto input_sub = builder.AddSystem(
@@ -115,6 +119,10 @@ int do_main(int argc, char* argv[]) {
 
   auto diagram = builder.Build();
 
+std::cout << "a" << std::endl;
+auto diagram_sym = diagram->ToSymbolic();
+const auto& plant_sym = dynamic_cast<const MultibodyPlant<drake::symbolic::Expression>&>(diagram->GetSubsystemByName(plant.get_name()));
+std::cout << plant_sym.num_joints() << std::endl;
 
   // Create a context for this system:
   std::unique_ptr<Context<double>> diagram_context =
