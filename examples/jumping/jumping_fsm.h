@@ -16,7 +16,7 @@ enum FSM_STATE {NEUTRAL, CROUCH, FLIGHT, LAND};
 class JumpingFiniteStateMachine : public drake::systems::LeafSystem<double> {
 public:
 	JumpingFiniteStateMachine(	const RigidBodyTree<double>& tree,
-								const double wait_time);
+								double wait_time);
 
 	const drake::systems::InputPort<double>& get_state_input_port() const {
 		return this->get_input_port(state_port_);
