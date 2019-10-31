@@ -2,7 +2,6 @@
 #include <string>
 #include <map>
 
-
 #include <gflags/gflags.h>
 #include "drake/lcm/drake_lcm.h"
 #include "drake/manipulation/util/sim_diagram_builder.h"
@@ -60,15 +59,18 @@ DEFINE_double(x_initial, 0, "The initial x position of the torso");
 
 DEFINE_bool(floating_base, true, "Fixed or floating base model");
 
-DEFINE_double(target_realtime_rate, 1.0,  
+DEFINE_double(target_realtime_rate, 1.0,
               "Desired rate relative to real time.  See documentation for "
               "Simulator::set_target_realtime_rate() for details.");
-DEFINE_bool(time_stepping, false, "If 'true', the plant is modeled as a "
-    "discrete system with periodic updates. "
-    "If 'false', the plant is modeled as a continuous system.");
-DEFINE_double(dt, 1e-4, "The step size to use for compliant, ignored for time_stepping)");
+DEFINE_bool(time_stepping, false,
+            "If 'true', the plant is modeled as a "
+            "discrete system with periodic updates. "
+            "If 'false', the plant is modeled as a continuous system.");
+DEFINE_double(dt,
+              1e-4,
+              "The step size to use for compliant, ignored for time_stepping)");
 
-DEFINE_string(state_simulation_channel, "RABBIT_STATE_SIMULATION", 
+DEFINE_string(state_simulation_channel, "RABBIT_STATE_SIMULATION",
               "Channel to publish/receive state from simulation");
 DEFINE_string(input_channel, "RABBIT_INPUT",
               "Channel to publish/receive inputs from controller");
@@ -83,23 +85,25 @@ int do_main(int argc, char* argv[]) {
   // drake::lcm::DrakeLcm lcm;
   auto lcm = builder.AddSystem<drake::systems::lcm::LcmInterfaceSystem>();
 
-
   SceneGraph<double>& scene_graph = *builder.AddSystem<SceneGraph>();
   scene_graph.set_name("scene_graph");
 
   // const double time_step = FLAGS_time_stepping ? FLAGS_dt : 0.0;
 
-  MultibodyPlant<double>& plant = *builder.AddSystem<MultibodyPlant>(FLAGS_timestep);
+  MultibodyPlant<double>
+      & plant = *builder.AddSystem<MultibodyPlant>(FLAGS_timestep);
 
   Parser parser(&plant, &scene_graph);
-  std::string full_name = FindResourceOrThrow("examples/jumping/five_link_biped.urdf");
+  std::string
+      full_name = FindResourceOrThrow("examples/jumping/five_link_biped.urdf");
   parser.AddModelFromFile(full_name);
   plant.WeldFrames(
-    plant.world_frame(), 
-    plant.GetFrameByName("base"),
-    drake::math::RigidTransform<double>()
-    );
-  plant.mutable_gravity_field().set_gravity_vector(-9.81 * Eigen::Vector3d::UnitZ());
+      plant.world_frame(),
+      plant.GetFrameByName("base"),
+      drake::math::RigidTransform<double>()
+  );
+  plant.mutable_gravity_field().set_gravity_vector(
+      -9.81 * Eigen::Vector3d::UnitZ());
   multibody::addFlatTerrain(&plant, &scene_graph, .8, .8); // Add ground
 
   plant.Finalize();
@@ -127,26 +131,26 @@ int do_main(int argc, char* argv[]) {
   auto state_pub = builder.AddSystem(
       LcmPublisherSystem::Make<dairlib::lcmt_robot_output>(
           "RABBIT_STATE_SIMULATION",
-           lcm, 
-           1.0/200.0
-           ));
+          lcm,
+          1.0 / 200.0
+      ));
 
   auto state_sender = builder.AddSystem<systems::RobotOutputSender>(plant);
 
   // connect state publisher
   builder.Connect(plant.get_state_output_port(),
                   state_sender->get_input_port_state());
-  builder.Connect(state_sender->get_output_port(0), state_pub->get_input_port());
+  builder.Connect(state_sender->get_output_port(0),
+                  state_pub->get_input_port());
   builder.Connect(plant.get_geometry_poses_output_port(),
-                  scene_graph.get_source_pose_port(plant.get_source_id().value()));
+                  scene_graph.get_source_pose_port(
+                      plant.get_source_id().value()));
   builder.Connect(scene_graph.get_query_output_port(),
                   plant.get_geometry_query_input_port());
 
-
-  if(FLAGS_visualize){
+  if (FLAGS_visualize) {
     drake::geometry::ConnectDrakeVisualizer(&builder, scene_graph);
   }
-
 
   auto diagram = builder.Build();
 
@@ -184,12 +188,9 @@ int do_main(int argc, char* argv[]) {
 
   Eigen::VectorXd x0(14);
   // x0  << 0, 0.7768, 0, -0.3112, -0.231, 0.427, 0.4689,
-  x0  << FLAGS_x_initial, 0.778109, 0, -.3112, -.231, 0.427, 0.4689,
-            0, 0, 0, 0, 0, 0, 0;
-  // x0  << 0, 0.799,   -0.0533989,   -0.0179129,   -0.0149962,         0.07,    0.0503966,
-  //           0, 0, 0, 0, 0, 0, 0;
+  x0 << FLAGS_x_initial, 0.778109, 0, -.3112, -.231, 0.427, 0.4689,
+      0, 0, 0, 0, 0, 0, 0;
   plant.SetPositionsAndVelocities(&plant_context, x0);
-
 
   Simulator<double> simulator(*diagram, std::move(diagram_context));
 

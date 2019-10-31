@@ -52,8 +52,10 @@ DEFINE_double(v_tol, 0.01,
               "The maximum slipping speed allowed during stiction (m/s)");
 DEFINE_string(state_simulation_channel, "RABBIT_STATE_SIMULATION",
               "Channel to publish/receive state from simulation");
-DEFINE_double(wait_time, 5.0,
-              "The length of time to wait in the neutral state before jumping (s)");
+DEFINE_double(wait_time,
+              5.0,
+              "The length of time to wait in the "
+              "neutral state before jumping (s)");
 DEFINE_double(publish_rate, 200, "Publishing frequency (Hz)");
 DEFINE_double(height, 0.7138, "Standing height of the five link biped");
 
@@ -93,7 +95,7 @@ namespace osc {
 const std::string channel_x = FLAGS_state_simulation_channel;
 const std::string channel_u = "RABBIT_INPUT";
 
-int doMain(int argc, char *argv[]) {
+int doMain(int argc, char* argv[]) {
   gflags::ParseCommandLineFlags(&argc, &argv, true);
   DiagramBuilder<double> builder;
 
@@ -101,8 +103,8 @@ int doMain(int argc, char *argv[]) {
   // Initialize the plant
   RigidBodyTree<double> tree_with_springs;
   drake::parsers::urdf::AddModelInstanceFromUrdfFileToWorld(
-    FindResourceOrThrow(filename), drake::multibody::joints::kQuaternion,
-    &tree_with_springs);
+      FindResourceOrThrow(filename), drake::multibody::joints::kQuaternion,
+      &tree_with_springs);
   const double terrain_size = 100;
   const double terrain_depth = 0.20;
   drake::multibody::AddFlatTerrainToWorld(&tree_with_springs,
@@ -113,7 +115,9 @@ int doMain(int argc, char *argv[]) {
   int r_foot_index = GetBodyIndexFromName(tree_with_springs, "right_foot");
   // int netural_height = FLAGS_height;
   PiecewisePolynomial<double> jumping_traj_from_optimization =
-    loadTrajToPP("examples/jumping/saved_trajs/com_traj/", "com_pos_matrix.csv", 1);
+      loadTrajToPP("examples/jumping/saved_trajs/com_traj/",
+                   "com_pos_matrix.csv",
+                   1);
   std::cout << jumping_traj_from_optimization.getPolynomialMatrix(0);
   std::cout << jumping_traj_from_optimization.value(0).transpose() <<
             std::endl;
@@ -125,32 +129,34 @@ int doMain(int argc, char *argv[]) {
   auto lcm = builder.AddSystem<drake::systems::lcm::LcmInterfaceSystem>();
   // Create state receiver.
   auto state_sub = builder.AddSystem(
-    LcmSubscriberSystem::Make<dairlib::lcmt_robot_output>(
-      channel_x, lcm));
+      LcmSubscriberSystem::Make<dairlib::lcmt_robot_output>(
+          channel_x, lcm));
   auto state_receiver = builder.AddSystem<systems::RobotOutputReceiver>
-    (tree_with_springs);
+      (tree_with_springs);
   auto traj_generator = builder.AddSystem<CoMTraj>(tree_with_springs,
-                                                   hip_index, l_foot_index, r_foot_index,
+                                                   hip_index,
+                                                   l_foot_index,
+                                                   r_foot_index,
                                                    jumping_traj_from_optimization,
                                                    FLAGS_height);
   auto l_foot_traj_generator = builder.AddSystem<FlightFootTraj>
-    (tree_with_springs,
-     hip_index, l_foot_index, r_foot_index,
-     true, FLAGS_height);
+      (tree_with_springs,
+       hip_index, l_foot_index, r_foot_index,
+       true, FLAGS_height);
   auto r_foot_traj_generator = builder.AddSystem<FlightFootTraj>
-    (tree_with_springs,
-     hip_index, l_foot_index, r_foot_index,
-     false, FLAGS_height);
+      (tree_with_springs,
+       hip_index, l_foot_index, r_foot_index,
+       false, FLAGS_height);
   auto fsm = builder.AddSystem<dairlib::examples::JumpingFiniteStateMachine>
-    (tree_with_springs, FLAGS_wait_time);
+      (tree_with_springs, FLAGS_wait_time);
   auto command_pub = builder.AddSystem(
-    LcmPublisherSystem::Make<dairlib::lcmt_robot_input>(
-      channel_u, lcm, 1.0 / FLAGS_publish_rate));
+      LcmPublisherSystem::Make<dairlib::lcmt_robot_input>(
+          channel_u, lcm, 1.0 / FLAGS_publish_rate));
   auto command_sender = builder.AddSystem<systems::RobotCommandSender>
-    (tree_with_springs);
+      (tree_with_springs);
   auto osc =
-    builder.AddSystem<systems::controllers::OperationalSpaceControl>(
-      tree_with_springs, tree_with_springs, true, true);
+      builder.AddSystem<systems::controllers::OperationalSpaceControl>(
+          tree_with_springs, tree_with_springs, true, true);
 
   // Acceleration Cost
 //  int n_v = tree_with_springs.get_num_velocities();
@@ -158,7 +164,7 @@ int doMain(int argc, char *argv[]) {
 //  osc->SetAccelerationCostForAllJoints(Q_accel);
 
   // Contact Constraint Slack Variables
-  double lambda_contact_relax = 20000;  // originally 20000
+  double lambda_contact_relax = 1;  // originally 20000
   osc->SetWeightOfSoftContactConstraint(lambda_contact_relax);
 
   // All foot contact specification for osc
@@ -177,12 +183,12 @@ int doMain(int argc, char *argv[]) {
   MatrixXd W_com = MatrixXd::Identity(3, 3);
   W_com(0, 0) = 100;  // originally 2000
   W_com(1, 1) = 1;
-  W_com(2, 2) = 10000;
+  W_com(2, 2) = 1000;
 
   double xy_scale = 10;
   double g_over_l = 9.81 / FLAGS_height;
   MatrixXd K_p_com = (xy_scale * sqrt(g_over_l) - g_over_l) *
-    MatrixXd::Identity(3, 3);
+      MatrixXd::Identity(3, 3);
   MatrixXd K_d_com = xy_scale * MatrixXd::Identity(3, 3);
 //  K_p_com(2, 2) = 144;  // originally 144 and 24
   //  K_d_com(2, 2) = 10;
@@ -214,9 +220,14 @@ int doMain(int argc, char *argv[]) {
   K_d_pelvis(0, 0) = k_d_pelvis_balance;
   K_d_pelvis(1, 1) = k_d_pelvis_balance;
   K_d_pelvis(2, 2) = k_d_heading;
-  RotTaskSpaceTrackingData pelvis_rot_traj("pelvis_rot_traj", 3,
-                                           K_p_pelvis, K_d_pelvis, W_pelvis * FLAGS_torso_orientation_cost,
-                                           &tree_with_springs, &tree_with_springs);
+  RotTaskSpaceTrackingData pelvis_rot_traj("pelvis_rot_traj",
+                                           3,
+                                           K_p_pelvis,
+                                           K_d_pelvis,
+                                           W_pelvis
+                                               * FLAGS_torso_orientation_cost,
+                                           &tree_with_springs,
+                                           &tree_with_springs);
   pelvis_rot_traj.AddStateAndFrameToTrack(NEUTRAL, "torso");
   // pelvis_rot_traj.AddStateAndFrameToTrack(CROUCH, "torso");
   pelvis_rot_traj.AddStateAndFrameToTrack(LAND, "torso");
@@ -230,12 +241,20 @@ int doMain(int argc, char *argv[]) {
   W_swing_foot(2, 2) = 1;
   MatrixXd K_p_sw_ft = 1 * MatrixXd::Identity(3, 3);
   MatrixXd K_d_sw_ft = 1 * MatrixXd::Identity(3, 3);
-  TransTaskSpaceTrackingData flight_phase_left_foot_traj("l_foot_traj", 3,
-                                                         K_p_sw_ft, K_d_sw_ft, W_swing_foot,
-                                                         &tree_with_springs, &tree_with_springs);
-  TransTaskSpaceTrackingData flight_phase_right_foot_traj("r_foot_traj", 3,
-                                                          K_p_sw_ft, K_d_sw_ft, W_swing_foot,
-                                                          &tree_with_springs, &tree_with_springs);
+  TransTaskSpaceTrackingData flight_phase_left_foot_traj("l_foot_traj",
+                                                         3,
+                                                         K_p_sw_ft,
+                                                         K_d_sw_ft,
+                                                         W_swing_foot,
+                                                         &tree_with_springs,
+                                                         &tree_with_springs);
+  TransTaskSpaceTrackingData flight_phase_right_foot_traj("r_foot_traj",
+                                                          3,
+                                                          K_p_sw_ft,
+                                                          K_d_sw_ft,
+                                                          W_swing_foot,
+                                                          &tree_with_springs,
+                                                          &tree_with_springs);
   flight_phase_left_foot_traj.AddStateAndPointToTrack(FLIGHT, "left_foot");
   flight_phase_right_foot_traj.AddStateAndPointToTrack(FLIGHT, "right_foot");
   osc->AddTrackingData(&flight_phase_left_foot_traj);
@@ -266,7 +285,6 @@ int doMain(int argc, char *argv[]) {
                   r_foot_traj_generator->get_fsm_input_port());
   builder.Connect(traj_generator->get_output_port(0),
                   osc->get_tracking_data_input_port("com_traj"));
-
   builder.Connect(l_foot_traj_generator->get_output_port(0),
                   osc->get_tracking_data_input_port("l_foot_traj"));
   builder.Connect(r_foot_traj_generator->get_output_port(0),
@@ -288,8 +306,8 @@ int doMain(int argc, char *argv[]) {
   /// If set_publish_every_time_step is true, this publishes twice
   /// Set realtime rate. Otherwise, runs as fast as possible
   auto stepper = std::make_unique<drake::systems::Simulator<double>>
-    (*diagram,
-     std::move(context));
+      (*diagram,
+       std::move(context));
   stepper->set_publish_every_time_step(false);
   stepper->set_publish_at_initialization(false);
   stepper->set_target_realtime_rate(1.0);
@@ -307,6 +325,6 @@ int doMain(int argc, char *argv[]) {
 }  // namespace examples
 }  // namespace dairlib
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   return dairlib::examples::jumping::osc::doMain(argc, argv);
 }

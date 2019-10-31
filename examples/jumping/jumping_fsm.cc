@@ -35,7 +35,7 @@ JumpingFiniteStateMachine::JumpingFiniteStateMachine(
 
 EventStatus JumpingFiniteStateMachine::DiscreteVariableUpdate(
     const Context<double>& context,
-    DiscreteValues<double> *discrete_state) const {
+    DiscreteValues<double>* discrete_state) const {
   // placeholder
 
   auto fsm_state = discrete_state->get_mutable_vector(
@@ -43,7 +43,7 @@ EventStatus JumpingFiniteStateMachine::DiscreteVariableUpdate(
   auto prev_time = discrete_state->get_mutable_vector(
       time_idx_).get_mutable_value();
 
-  const OutputVector<double> *robot_output = (OutputVector<double> *)
+  const OutputVector<double>* robot_output = (OutputVector<double>*)
       this->EvalVectorInput(context, state_port_);
   double timestamp = robot_output->get_timestamp();
   double current_time = static_cast<double>(timestamp);
@@ -88,46 +88,10 @@ EventStatus JumpingFiniteStateMachine::DiscreteVariableUpdate(
   return EventStatus::Succeeded();
 }
 
-void JumpingFiniteStateMachine::CalcFiniteState(const Context<double>&
-context,
-                                                BasicVector<double> *fsm_state) const {
+void JumpingFiniteStateMachine::CalcFiniteState(const Context<double>& context,
+                                                BasicVector<double>* fsm_state)
+                                                const {
 
-  // const OutputVector<double>* robot_output = (OutputVector<double>*)this->EvalVectorInput(context, state_port_);
-
-  // bool trigger = false;
-  // // std::vector<double> ground_reaction_forces = context.getReactionForces();
-  // double timestamp = robot_output->get_timestamp();
-  // double current_sim_time = static_cast<double>(timestamp);
-
-  // switch(curr_state_){
-  //    case(NEUTRAL):
-  //        if(current_sim_time > initial_timestamp_ + wait_time_){
-  //            curr_state_ = CROUCH;
-  //            break;
-  //        }
-  //    case(CROUCH):
-  //        if(trigger){
-  //            curr_state_ = FLIGHT;
-  //            break;
-  //        }
-  //    case(FLIGHT):
-  //        if(trigger){
-  //            curr_state_ = LAND;
-  //            break;
-  //        }
-  //    case(LAND):
-  //        if(trigger){
-  //            curr_state_ = NEUTRAL;
-  //            break;
-  //        }
-  //    default:
-  //        std::cerr << "Invalid state, defaulting to NEUTRAL." << std::endl;
-  //        curr_state_ = NEUTRAL;
-  // }
-  // std::cout << "Current state: " << curr_state_ << std::endl;
-  // VectorXd current_state(1);
-  // current_state << init_state_;
-  // fsm_state->get_mutable_value() = current_state;
   fsm_state->get_mutable_value() = context.get_discrete_state().get_vector(
       fsm_idx_).get_value();
 }
