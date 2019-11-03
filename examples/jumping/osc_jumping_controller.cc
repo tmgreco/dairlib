@@ -56,6 +56,10 @@ DEFINE_double(wait_time,
               5.0,
               "The length of time to wait in the "
               "neutral state before jumping (s)");
+DEFINE_double(crouch_time,
+              0.0,
+              "The length of time to wait in the "
+              "crouch state before transitioning to the flight phase (s)");
 DEFINE_double(publish_rate, 200, "Publishing frequency (Hz)");
 DEFINE_double(height, 0.7138, "Standing height of the five link biped");
 
@@ -116,7 +120,8 @@ int doMain(int argc, char* argv[]) {
   // int netural_height = FLAGS_height;
   PiecewisePolynomial<double> jumping_traj_from_optimization =
       loadTrajToPP("examples/jumping/saved_trajs/com_traj/",
-                   "com_pos_matrix.csv",
+                   "squat.csv",
+                   "squat_times",
                    1);
   std::cout << jumping_traj_from_optimization.getPolynomialMatrix(0);
   std::cout << jumping_traj_from_optimization.value(0).transpose() <<
@@ -148,7 +153,7 @@ int doMain(int argc, char* argv[]) {
        hip_index, l_foot_index, r_foot_index,
        false, FLAGS_height);
   auto fsm = builder.AddSystem<dairlib::examples::JumpingFiniteStateMachine>
-      (tree_with_springs, FLAGS_wait_time);
+      (tree_with_springs, FLAGS_wait_time, FLAGS_crouch_time);
   auto command_pub = builder.AddSystem(
       LcmPublisherSystem::Make<dairlib::lcmt_robot_input>(
           channel_u, lcm, 1.0 / FLAGS_publish_rate));
@@ -158,13 +163,13 @@ int doMain(int argc, char* argv[]) {
       builder.AddSystem<systems::controllers::OperationalSpaceControl>(
           tree_with_springs, tree_with_springs, true, true);
 
-  // Acceleration Cost
-//  int n_v = tree_with_springs.get_num_velocities();
-//  MatrixXd Q_accel = 10 * MatrixXd::Identity(n_v, n_v);
-//  osc->SetAccelerationCostForAllJoints(Q_accel);
+//   Acceleration Cost
+  int n_v = tree_with_springs.get_num_velocities();
+  MatrixXd Q_accel = 0.1 * MatrixXd::Identity(n_v, n_v);
+  osc->SetAccelerationCostForAllJoints(Q_accel);
 
   // Contact Constraint Slack Variables
-  double lambda_contact_relax = 1;  // originally 20000
+  double lambda_contact_relax = 20000;  // originally 20000
   osc->SetWeightOfSoftContactConstraint(lambda_contact_relax);
 
   // All foot contact specification for osc
@@ -181,17 +186,17 @@ int doMain(int argc, char* argv[]) {
   // ***** COM tracking term ******
   // Gains for COM tracking
   MatrixXd W_com = MatrixXd::Identity(3, 3);
-  W_com(0, 0) = 100;  // originally 2000
+  W_com(0, 0) = 1;  // originally 2000
   W_com(1, 1) = 1;
-  W_com(2, 2) = 1000;
+  W_com(2, 2) = 1;
 
   double xy_scale = 10;
   double g_over_l = 9.81 / FLAGS_height;
   MatrixXd K_p_com = (xy_scale * sqrt(g_over_l) - g_over_l) *
       MatrixXd::Identity(3, 3);
   MatrixXd K_d_com = xy_scale * MatrixXd::Identity(3, 3);
-//  K_p_com(2, 2) = 144;  // originally 144 and 24
-  //  K_d_com(2, 2) = 10;
+  K_p_com(2, 2) = 400;  // originally 144 and 24
+  K_d_com(2, 2) = 40;
 
   ComTrackingData com_tracking_data("com_traj", 3,
                                     K_p_com, K_d_com, W_com,

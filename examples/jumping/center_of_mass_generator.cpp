@@ -52,7 +52,7 @@ int doMain(int argc, char* argv[]) {
   gflags::ParseCommandLineFlags(&argc, &argv, true);
 
   PiecewisePolynomial<double> traj =
-    loadTrajToPP("examples/jumping/saved_trajs/", "states.csv", 3);
+    loadTrajToPP("examples/jumping/saved_trajs/", "states.csv", "times", 3);
   std::string filename = "examples/jumping/five_link_biped.urdf";
   RigidBodyTree<double> tree;
   drake::parsers::urdf::AddModelInstanceFromUrdfFileToWorld(
@@ -125,7 +125,7 @@ int doMain(int argc, char* argv[]) {
   //                   "com_traj");
   // MatrixXd copy = com_pos_matrix;
   std::ofstream fout;
-  fout.open("examples/jumping/saved_trajs/com_traj/com_pos_matrix.csv");
+  fout.open("examples/jumping/saved_trajs/com_traj/squat.csv");
   int count = 0;
   for (double pt : points) {
     fout << pt;
@@ -142,7 +142,7 @@ int doMain(int argc, char* argv[]) {
   // writeCSV("examples/jumping/saved_trajs/com_traj/com_pos_matrix.csv", com_pos_matrix);
 
   // std::ofstream fout;
-  fout.open("examples/jumping/saved_trajs/com_traj/times");
+  fout.open("examples/jumping/saved_trajs/com_traj/squat_times");
   for (double t : times) {
     fout << t << " ";
   }

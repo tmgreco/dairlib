@@ -22,7 +22,6 @@ using dairlib::goldilocks_models::writeCSV;
 namespace dairlib {
 namespace examples {
 
-
 /*
 Generates and writes trajectory to a file in order to visualize in a plot.
 */
@@ -75,7 +74,6 @@ void writePPTrajToFile(const
   fout.close();
 }
 
-
 void saveAllDecisionVars(drake::solvers::MathematicalProgramResult result,
                          std::string folderPath, std::string filename) {
   std::ofstream fout;
@@ -85,7 +83,7 @@ void saveAllDecisionVars(drake::solvers::MathematicalProgramResult result,
 }
 
 drake::MatrixX<double> loadAllDecisionVars(std::string folderPath,
-    std::string filename) {
+                                           std::string filename) {
   std::ifstream fin;
   fin.open(folderPath + filename);
   std::string line;
@@ -100,13 +98,14 @@ drake::MatrixX<double> loadAllDecisionVars(std::string folderPath,
   }
   fin.close();
   return Map<const Matrix<double, Dynamic, Dynamic>>(decisionVars.data(),
-         decisionVars.size(), 1);
+                                                     decisionVars.size(), 1);
 }
 
 drake::trajectories::PiecewisePolynomial<double> loadTrajToPP(
-  std::string folderPath, std::string filename, int polynomial_order) {
+    std::string folderPath, std::string filename, std::string time_vector,
+    int polynomial_order) {
   std::ifstream fin;
-  fin.open(folderPath + "times");
+  fin.open(folderPath + time_vector);
   std::string line;
   std::vector<double> times;
 
@@ -133,7 +132,7 @@ drake::trajectories::PiecewisePolynomial<double> loadTrajToPP(
   }
   if (coeffs.size() == 0) {
     throw std::logic_error(
-      ("Could not read " + folderPath + " to load CSV.").c_str());
+        ("Could not read " + folderPath + " to load CSV.").c_str());
   }
 
   std::vector<drake::MatrixX<double>> coeff_matrices;
@@ -147,20 +146,23 @@ drake::trajectories::PiecewisePolynomial<double> loadTrajToPP(
   if (polynomial_order == 1) {
     for (size_t i = 0; i < times.size(); ++i) {
       coeff_matrices.push_back(
-        Map<const Matrix<double, Dynamic, Dynamic, RowMajor>>(
-          coeffs.data() + i * (n_states * n_coeffs), n_coeffs, n_states));
+          Map<const Matrix<double, Dynamic, Dynamic, RowMajor>>(
+              coeffs.data() + i * (n_states * n_coeffs), n_coeffs, n_states));
     }
+//    return drake::trajectories::PiecewisePolynomial<double>::FirstOrderHold(
+//        times,
+//        coeff_matrices);
     return drake::trajectories::PiecewisePolynomial<double>::Pchip(
-             times,
-             coeff_matrices);
-  }  else if (polynomial_order == 3) {
+        times,
+        coeff_matrices);
+  } else if (polynomial_order == 3) {
     for (size_t i = 0; i < times.size(); ++i) {
       coeff_matrices.push_back(
-        Map<const Matrix<double, Dynamic, Dynamic, RowMajor>>(
-          coeffs.data() + i * (n_states * n_coeffs), n_states,  n_coeffs));
+          Map<const Matrix<double, Dynamic, Dynamic, RowMajor>>(
+              coeffs.data() + i * (n_states * n_coeffs), n_states, n_coeffs));
     }
     return drake::trajectories::PiecewisePolynomial<double>::Cubic(times,
-           coeff_matrices);
+                                                                   coeff_matrices);
   }
   return drake::trajectories::PiecewisePolynomial<double>();
 }

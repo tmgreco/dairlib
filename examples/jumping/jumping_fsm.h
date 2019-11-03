@@ -16,7 +16,8 @@ enum FSM_STATE { NEUTRAL, CROUCH, FLIGHT, LAND };
 class JumpingFiniteStateMachine : public drake::systems::LeafSystem<double> {
  public:
   JumpingFiniteStateMachine(const RigidBodyTree<double>& tree,
-                            double wait_time);
+                            double wait_time,
+                            double crouch_time);
 
   const drake::systems::InputPort<double>& get_state_input_port() const {
     return this->get_input_port(state_port_);
@@ -31,6 +32,7 @@ class JumpingFiniteStateMachine : public drake::systems::LeafSystem<double> {
                        drake::systems::BasicVector<double>* fsm_state) const;
 
   int state_port_;
+  double crouch_time_;
 
   // indices for discrete variables in drake leafsystem
   int time_idx_;

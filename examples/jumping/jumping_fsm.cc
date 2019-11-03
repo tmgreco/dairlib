@@ -14,10 +14,11 @@ namespace examples {
 // namespace jumping {
 // namespace osc {
 
-JumpingFiniteStateMachine::JumpingFiniteStateMachine(
-    const RigidBodyTree<double>& tree,
-    double wait_time)
-    : wait_time_(wait_time) {
+JumpingFiniteStateMachine::JumpingFiniteStateMachine(const RigidBodyTree<
+    double>& tree,
+                                                     double wait_time,
+                                                     double crouch_time)
+    : wait_time_(wait_time), crouch_time_(crouch_time) {
   initial_timestamp_ = 0.0;
   state_port_ = this->DeclareVectorInputPort(OutputVector<double>(
       tree.get_num_positions(),
@@ -58,7 +59,7 @@ EventStatus JumpingFiniteStateMachine::DiscreteVariableUpdate(
       }
       break;
     case (CROUCH):
-      if (current_time > prev_time(0) + (1.36 - wait_time_)) {
+      if (current_time > prev_time(0) + (10.0 - wait_time_)) {
         fsm_state << FLIGHT;
         std::cout << "Setting fsm to FLIGHT" << std::endl;
         std::cout << "fsm: " << (FSM_STATE) fsm_state(0) << std::endl;
