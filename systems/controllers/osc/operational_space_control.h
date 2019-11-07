@@ -67,7 +67,7 @@ namespace controllers {
 /// the outputs of trajectory blocks need to be of the derived classes of
 ///     drake::trajectories::Trajectory<double>
 /// such as `PiecewisePolynomial` and `ExponentialPlusPiecewisePolynomial`.
-/// The users can connect the output ports of the desired trajecotry blocks to
+/// The users can connect the output ports of the desired trajectory blocks to
 /// the corresponding input ports of `OperationalSpaceControl` by using
 /// the method get_tracking_data_input_port().
 

@@ -165,11 +165,12 @@ int doMain(int argc, char* argv[]) {
 
 //   Acceleration Cost
   int n_v = tree_with_springs.get_num_velocities();
-  MatrixXd Q_accel = 0.1 * MatrixXd::Identity(n_v, n_v);
+  MatrixXd Q_accel = 0.01 * MatrixXd::Identity(n_v, n_v);
   osc->SetAccelerationCostForAllJoints(Q_accel);
 
   // Contact Constraint Slack Variables
   double lambda_contact_relax = 20000;  // originally 20000
+//  double lambda_contact_relax = 10;  // originally 20000
   osc->SetWeightOfSoftContactConstraint(lambda_contact_relax);
 
   // All foot contact specification for osc
@@ -186,17 +187,19 @@ int doMain(int argc, char* argv[]) {
   // ***** COM tracking term ******
   // Gains for COM tracking
   MatrixXd W_com = MatrixXd::Identity(3, 3);
-  W_com(0, 0) = 1;  // originally 2000
+  W_com(0, 0) = 2000;  // originally 2000
   W_com(1, 1) = 1;
-  W_com(2, 2) = 1;
+  W_com(2, 2) = 2000;
 
   double xy_scale = 10;
   double g_over_l = 9.81 / FLAGS_height;
   MatrixXd K_p_com = (xy_scale * sqrt(g_over_l) - g_over_l) *
       MatrixXd::Identity(3, 3);
   MatrixXd K_d_com = xy_scale * MatrixXd::Identity(3, 3);
-  K_p_com(2, 2) = 400;  // originally 144 and 24
-  K_d_com(2, 2) = 40;
+  K_p_com(2, 2) = 144;  // originally 144 and 24
+  K_d_com(2, 2) = 24;
+//  K_p_com(2, 2) = 1;  // originally 144 and 24
+//  K_d_com(2, 2) = 1;
 
   ComTrackingData com_tracking_data("com_traj", 3,
                                     K_p_com, K_d_com, W_com,

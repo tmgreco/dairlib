@@ -132,7 +132,7 @@ int do_main(int argc, char* argv[]) {
       LcmPublisherSystem::Make<dairlib::lcmt_robot_output>(
           "RABBIT_STATE_SIMULATION",
           lcm,
-          1.0 / 200.0
+          1.0 / 10000.0
       ));
 
   auto state_sender = builder.AddSystem<systems::RobotOutputSender>(plant);
@@ -161,30 +161,6 @@ int do_main(int argc, char* argv[]) {
   diagram->SetDefaultContext(diagram_context.get());
   Context<double>& plant_context =
       diagram->GetMutableSubsystemContext(plant, diagram_context.get());
-
-
-
-
-  // plant.GetJointByName<RevoluteJoint>("left_knee_pin").
-  //     set_angle(&plant_context, -0.1);
-  // plant.GetJointByName<RevoluteJoint>("right_knee_pin").
-  //     set_angle(&plant_context, -0.1);
-  // plant.GetJointByName<RevoluteJoint>("left_hip_pin").
-  //     set_angle(&plant_context, .1);
-  // plant.GetJointByName<RevoluteJoint>("right_hip_pin").
-  //     set_angle(&plant_context, .1);
-  // plant.GetJointByName<PrismaticJoint>("planar_z").
-  //     set_translation(&plant_context, 1.0);
-
-  // if (FLAGS_floating_base) {
-  //   const drake::math::RigidTransformd transform(
-  //       drake::math::RotationMatrix<double>(), Eigen::Vector3d(0, 0, 1.2));
-  //   plant.SetFreeBodyPose(&plant_context, plant.GetBodyByName("torso"),
-  //       transform);
-  // }
-  // std::cout << plant.GetPositions(plant_context) << std::endl;
-  // std::cout << plant.GetPositionsAndVelocities(plant_context) << std::endl;
-
 
   Eigen::VectorXd x0(14);
   // x0  << 0, 0.7768, 0, -0.3112, -0.231, 0.427, 0.4689,
