@@ -296,7 +296,7 @@ void OperationalSpaceControl::Build() {
   // 4. Tracking cost
   for (unsigned int i = 0; i < tracking_data_vec_->size(); i++) {
     tracking_cost_.push_back(prog_->AddQuadraticCost(
-        MatrixXd::Zero(n_v_, n_v_),
+        MatrixXd::Identity(n_v_, n_v_),
         VectorXd::Zero(n_v_), dv_).
         evaluator().get());
   }
@@ -500,6 +500,7 @@ VectorXd OperationalSpaceControl::SolveQp(
       // We ignore the constant term
       // 0.5 * (JdotV - y_command)^T * W * (JdotV - y_command),
       // since it doesn't change the result of QP.
+//      std::cout << "W: " << W << std::endl;
       tracking_cost_.at(i)->UpdateCoefficients(J_t.transpose() * W * J_t,
                                                J_t.transpose() * W
                                                    * (JdotV_t - ddy_t));

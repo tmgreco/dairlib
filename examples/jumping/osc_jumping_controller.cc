@@ -30,8 +30,7 @@
 #include "examples/jumping/jumping_fsm.h"
 #include "systems/controllers/osc/operational_space_control.h"
 // #include "systems/controllers/osc/osc_tracking_data.h"
-
-
+#include "lcm/lcm_trajectory.h"
 
 #include "common/find_resource.h"
 #include "multibody/multibody_utils.h"
@@ -62,6 +61,8 @@ DEFINE_double(crouch_time,
               "crouch state before transitioning to the flight phase (s)");
 DEFINE_double(publish_rate, 200, "Publishing frequency (Hz)");
 DEFINE_double(height, 0.7138, "Standing height of the five link biped");
+DEFINE_double(kp, 1.0, "Kp gain for COM tracking");
+DEFINE_double(kd, 1.0, "Kd gain for COM tracking");
 
 DEFINE_double(torso_orientation_cost, 0.1,
               "Weight to scale the torso orientation cost");
@@ -118,15 +119,15 @@ int doMain(int argc, char* argv[]) {
   int l_foot_index = GetBodyIndexFromName(tree_with_springs, "left_foot");
   int r_foot_index = GetBodyIndexFromName(tree_with_springs, "right_foot");
   // int netural_height = FLAGS_height;
-  PiecewisePolynomial<double> jumping_traj_from_optimization =
-      loadTrajToPP("examples/jumping/saved_trajs/com_traj/",
-                   "squat.csv",
-                   "squat_times",
-                   1);
-  std::cout << jumping_traj_from_optimization.getPolynomialMatrix(0);
-  std::cout << jumping_traj_from_optimization.value(0).transpose() <<
-            std::endl;
+  const LcmTrajectory& loaded_traj =
+      LcmTrajectory(LcmTrajectory::loadFromFile
+                        ("examples/jumping/saved_trajs/jumping_com_11_13"));
 
+  const LcmTrajectory::Trajectory& jumping_traj = loaded_traj.getTrajectory
+                                                                 ("center_of_mass_trajectory");
+  const PiecewisePolynomial<double>& center_of_mass_traj =
+      PiecewisePolynomial<double>::Pchip(jumping_traj.time_vector,
+                                                  jumping_traj.datapoints);
 
   // Create Operational space control
   // Create state receiver.
@@ -137,40 +138,46 @@ int doMain(int argc, char* argv[]) {
       LcmSubscriberSystem::Make<dairlib::lcmt_robot_output>(
           channel_x, lcm));
   auto state_receiver = builder.AddSystem<systems::RobotOutputReceiver>
-      (tree_with_springs);
+                                   (tree_with_springs);
   auto traj_generator = builder.AddSystem<CoMTraj>(tree_with_springs,
                                                    hip_index,
                                                    l_foot_index,
                                                    r_foot_index,
-                                                   jumping_traj_from_optimization,
+                                                   center_of_mass_traj,
                                                    FLAGS_height);
   auto l_foot_traj_generator = builder.AddSystem<FlightFootTraj>
-      (tree_with_springs,
-       hip_index, l_foot_index, r_foot_index,
-       true, FLAGS_height);
+                                          (tree_with_springs,
+                                           hip_index,
+                                           l_foot_index,
+                                           r_foot_index,
+                                           true,
+                                           FLAGS_height);
   auto r_foot_traj_generator = builder.AddSystem<FlightFootTraj>
-      (tree_with_springs,
-       hip_index, l_foot_index, r_foot_index,
-       false, FLAGS_height);
+                                          (tree_with_springs,
+                                           hip_index,
+                                           l_foot_index,
+                                           r_foot_index,
+                                           false,
+                                           FLAGS_height);
   auto fsm = builder.AddSystem<dairlib::examples::JumpingFiniteStateMachine>
-      (tree_with_springs, FLAGS_wait_time, FLAGS_crouch_time);
+                        (tree_with_springs, FLAGS_wait_time, FLAGS_crouch_time);
   auto command_pub = builder.AddSystem(
       LcmPublisherSystem::Make<dairlib::lcmt_robot_input>(
           channel_u, lcm, 1.0 / FLAGS_publish_rate));
   auto command_sender = builder.AddSystem<systems::RobotCommandSender>
-      (tree_with_springs);
+                                   (tree_with_springs);
   auto osc =
       builder.AddSystem<systems::controllers::OperationalSpaceControl>(
           tree_with_springs, tree_with_springs, true, true);
 
-//   Acceleration Cost
+  //   Acceleration Cost
   int n_v = tree_with_springs.get_num_velocities();
-  MatrixXd Q_accel = 0.01 * MatrixXd::Identity(n_v, n_v);
+  MatrixXd Q_accel = 1.0 * MatrixXd::Identity(n_v, n_v);
   osc->SetAccelerationCostForAllJoints(Q_accel);
 
   // Contact Constraint Slack Variables
   double lambda_contact_relax = 20000;  // originally 20000
-//  double lambda_contact_relax = 10;  // originally 20000
+  //  double lambda_contact_relax = 10;  // originally 20000
   osc->SetWeightOfSoftContactConstraint(lambda_contact_relax);
 
   // All foot contact specification for osc
@@ -196,10 +203,10 @@ int doMain(int argc, char* argv[]) {
   MatrixXd K_p_com = (xy_scale * sqrt(g_over_l) - g_over_l) *
       MatrixXd::Identity(3, 3);
   MatrixXd K_d_com = xy_scale * MatrixXd::Identity(3, 3);
-  K_p_com(2, 2) = 144;  // originally 144 and 24
-  K_d_com(2, 2) = 24;
-//  K_p_com(2, 2) = 1;  // originally 144 and 24
-//  K_d_com(2, 2) = 1;
+  K_p_com(2, 2) = FLAGS_kp;  // originally 144 and 24
+  K_d_com(2, 2) = FLAGS_kd;
+  //  K_p_com(2, 2) = 1;  // originally 144 and 24
+  //  K_d_com(2, 2) = 1;
 
   ComTrackingData com_tracking_data("com_traj", 3,
                                     K_p_com, K_d_com, W_com,
@@ -245,10 +252,10 @@ int doMain(int argc, char* argv[]) {
 
   // ****** Feet tracking term ******
   MatrixXd W_swing_foot = 1 * MatrixXd::Identity(3, 3);
-  W_swing_foot(0, 0) = 1;
+  W_swing_foot(0, 0) = 0;
   W_swing_foot(2, 2) = 1;
-  MatrixXd K_p_sw_ft = 1 * MatrixXd::Identity(3, 3);
-  MatrixXd K_d_sw_ft = 1 * MatrixXd::Identity(3, 3);
+  MatrixXd K_p_sw_ft = 0.01 * MatrixXd::Identity(3, 3);
+  MatrixXd K_d_sw_ft = 0.01 * MatrixXd::Identity(3, 3);
   TransTaskSpaceTrackingData flight_phase_left_foot_traj("l_foot_traj",
                                                          3,
                                                          K_p_sw_ft,

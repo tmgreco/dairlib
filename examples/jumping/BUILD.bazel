@@ -1,13 +1,12 @@
 # -*- mode: python -*-
 # vi: set ft=python :
 
-
 cc_library(
     name = "traj_logger",
     srcs = ["traj_logger.h"],
     deps = [
-        "//systems/primitives",
         "//systems/goldilocks_models",
+        "//systems/primitives",
         "@drake//:drake_shared_library",
         "@gflags",
     ],
@@ -18,8 +17,8 @@ cc_library(
     srcs = ["com_traj.cc"],
     hdrs = ["com_traj.h"],
     deps = [
-        "//systems/controllers:control_utils",
         "//attic/multibody:utils",
+        "//systems/controllers:control_utils",
         "//systems/framework:vector",
         "@drake//:drake_shared_library",
     ],
@@ -30,8 +29,8 @@ cc_library(
     srcs = ["flight_foot_traj.cc"],
     hdrs = ["flight_foot_traj.h"],
     deps = [
-        "//systems/controllers:control_utils",
         "//attic/multibody:utils",
+        "//systems/controllers:control_utils",
         "//systems/framework:vector",
         "@drake//:drake_shared_library",
     ],
@@ -53,11 +52,12 @@ cc_binary(
     srcs = ["five_link_biped_dircon.cc"],
     data = ["five_link_biped.urdf"],
     deps = [
-        "//systems/trajectory_optimization:dircon",
-        "//common",
         ":traj_logger",
-        "//systems/primitives",
         "//attic/multibody:utils",
+        "//common",
+        "//lcm:lcm_trajectory_saver",
+        "//systems/primitives",
+        "//systems/trajectory_optimization:dircon",
         "@drake//:drake_shared_library",
         "@gflags",
     ],
@@ -68,9 +68,25 @@ cc_binary(
     srcs = ["center_of_mass_generator.cpp"],
     data = ["five_link_biped.urdf"],
     deps = [
-        "//common",
-        "//attic/multibody:utils",
         ":traj_logger",
+        "//attic/multibody:utils",
+        "//common",
+        "//lcm:lcm_trajectory_saver",
+        "//systems/primitives",
+        "@drake//:drake_shared_library",
+        "@gflags",
+    ],
+)
+
+cc_binary(
+    name = "com_traj_generator",
+    srcs = ["com_traj_generator.cc"],
+    data = ["five_link_biped.urdf"],
+    deps = [
+        ":traj_logger",
+        "//attic/multibody:utils",
+        "//common",
+        "//lcm:lcm_trajectory_saver",
         "//systems/primitives",
         "@drake//:drake_shared_library",
         "@gflags",
@@ -81,16 +97,17 @@ cc_binary(
     name = "osc_jumping_controller",
     srcs = ["osc_jumping_controller.cc"],
     deps = [
-        "//systems/controllers/osc:operational_space_control",
-        "//systems/controllers/osc:osc_tracking_data",
-        "//systems:robot_lcm_systems",
-        "//systems/primitives",
-        "//attic/multibody:utils",
         ":com_traj",
         ":flight_foot_traj",
         ":jumping_fsm",
-        "//common",
         ":traj_logger",
+        "//attic/multibody:utils",
+        "//common",
+        "//lcm:lcm_trajectory_saver",
+        "//systems:robot_lcm_systems",
+        "//systems/controllers/osc:operational_space_control",
+        "//systems/controllers/osc:osc_tracking_data",
+        "//systems/primitives",
         "@drake//:drake_shared_library",
         "@gflags",
     ],
@@ -121,4 +138,3 @@ cc_binary(
         "@gflags",
     ],
 )
-

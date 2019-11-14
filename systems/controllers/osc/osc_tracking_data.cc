@@ -70,6 +70,9 @@ bool OscTrackingData::Update(VectorXd x_w_spr,
 
     // Update command output (desired output with pd control)
     ddy_command_ = ddy_des_ + K_p_ * (error_y_) + K_d_ * (dy_des_ - dy_);
+//    if(ddy_command_(2) < -9.8){
+//      ddy_command_(2) = -9.8;
+//    }
 
     return track_at_current_step_;
   }
