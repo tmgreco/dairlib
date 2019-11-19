@@ -296,7 +296,7 @@ void OperationalSpaceControl::Build() {
   // 4. Tracking cost
   for (unsigned int i = 0; i < tracking_data_vec_->size(); i++) {
     tracking_cost_.push_back(prog_->AddQuadraticCost(
-        MatrixXd::Identity(n_v_, n_v_),
+        MatrixXd::Zero(n_v_, n_v_),
         VectorXd::Zero(n_v_), dv_).
         evaluator().get());
   }
@@ -342,6 +342,10 @@ VectorXd OperationalSpaceControl::SolveQp(
     int fsm_state, double time_since_last_state_switch) const {
 
   vector<bool> active_contact_flags = CalcActiveContactIndices(fsm_state);
+
+//  for (auto flag : active_contact_flags) {
+//    std::cout << flag << std::endl;
+//  }
 
   // Get Kinematics Cache
   KinematicsCache<double> cache_w_spr = tree_w_spr_.doKinematics(
