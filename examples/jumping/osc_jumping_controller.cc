@@ -123,7 +123,7 @@ int doMain(int argc, char* argv[]) {
   // int netural_height = FLAGS_height;
   const LcmTrajectory& loaded_traj =
       LcmTrajectory(LcmTrajectory::loadFromFile
-                        ("examples/jumping/saved_trajs/jumping_com_11_13"));
+                        ("examples/jumping/saved_trajs/jumping_11_19"));
 
   const LcmTrajectory::Trajectory& jumping_traj = loaded_traj.getTrajectory
                                                                  ("center_of_mass_trajectory");
@@ -176,7 +176,7 @@ int doMain(int argc, char* argv[]) {
 
   //   Acceleration Cost
   int n_v = tree_with_springs.get_num_velocities();
-  MatrixXd Q_accel = 1.0 * MatrixXd::Identity(n_v, n_v);
+  MatrixXd Q_accel = 0.1 * MatrixXd::Identity(n_v, n_v);
   osc->SetAccelerationCostForAllJoints(Q_accel);
 
   // Contact Constraint Slack Variables
@@ -258,7 +258,7 @@ int doMain(int argc, char* argv[]) {
   MatrixXd W_swing_foot = 1 * MatrixXd::Identity(3, 3);
   W_swing_foot(0, 0) = 100;
   W_swing_foot(2, 2) = 1000;
-  MatrixXd K_p_sw_ft = 64 * MatrixXd::Identity(3, 3);
+  MatrixXd K_p_sw_ft = 200 * MatrixXd::Identity(3, 3);
   MatrixXd K_d_sw_ft = 16 * MatrixXd::Identity(3, 3);
   K_p_sw_ft(1,1) = 0;
   K_d_sw_ft(1,1) = 0;

@@ -95,11 +95,11 @@ PiecewisePolynomial<double> FlightFootTraj::generateFlightTraj(
   Vector3d desired_foot_pos_post(
     center_of_mass(0) + com_velocity(0) * 0.001 - foot_offset_,
     center_of_mass(1),
-    center_of_mass(2) + com_velocity(2) * 0.005 - height_);
+    center_of_mass(2) + com_velocity(2) * 0.001 - height_);
 
 //  std::vector<double> breaks = {0.0, 0.001};
   VectorXd breaks(2);
-  breaks << 0.0, 0.01;
+  breaks << 0.0, 0.001;
   MatrixXd knots(3, 2);
   knots << desired_foot_pos, desired_foot_pos_post;
 

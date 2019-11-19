@@ -1,50 +1,49 @@
 //
 // Created by yangwill on 11/13/19.
 //
-#include <gflags/gflags.h>
 #include <chrono>
 #include <fstream>
+#include <gflags/gflags.h>
 
 #include "attic/multibody/rigidbody_utils.h"
 
 #include "drake/multibody/rigid_body_tree_construction.h"
 
+#include "drake/geometry/geometry_visualization.h"
 #include "drake/lcm/drake_lcm.h"
-#include "drake/solvers/mathematical_program.h"
+#include "drake/multibody/parsers/urdf_parser.h"
+#include "drake/multibody/parsing/parser.h"
+#include "drake/multibody/plant/multibody_plant.h"
+#include "drake/multibody/rigid_body_plant/drake_visualizer.h"
 #include "drake/solvers/constraint.h"
+#include "drake/solvers/mathematical_program.h"
 #include "drake/solvers/snopt_solver.h"
-#include "drake/solvers/solve.h"
 #include "drake/solvers/solution_result.h"
+#include "drake/solvers/solve.h"
 #include "drake/systems/analysis/simulator.h"
 #include "drake/systems/framework/diagram.h"
 #include "drake/systems/framework/diagram_builder.h"
 #include "drake/systems/primitives/trajectory_source.h"
 #include "drake/systems/rendering/multibody_position_to_geometry_pose.h"
-#include "drake/geometry/geometry_visualization.h"
-#include "drake/multibody/plant/multibody_plant.h"
-#include "drake/multibody/parsing/parser.h"
-#include "drake/multibody/rigid_body_plant/drake_visualizer.h"
-#include "drake/multibody/parsers/urdf_parser.h"
 
 #include "common/find_resource.h"
 
 #include "examples/jumping/traj_logger.h"
 #include "lcm/lcm_trajectory.h"
 
+using drake::multibody::MultibodyPlant;
 using drake::multibody::Parser;
+using drake::trajectories::PiecewisePolynomial;
+using Eigen::MatrixXd;
 using Eigen::Vector3d;
 using Eigen::VectorXd;
-using Eigen::MatrixXd;
-using std::vector;
-using drake::trajectories::PiecewisePolynomial;
 using std::cout;
 using std::endl;
-using drake::multibody::MultibodyPlant;
+using std::vector;
 
 DEFINE_double(time_offset, 0.0,
               "Length of time (s) to remain in neutral state");
-DEFINE_string(file_name, "",
-              "Name of file to write COM traj to");
+DEFINE_string(file_name, "", "Name of file to write COM traj to");
 DEFINE_int32(resolution, 200, "Number of timesteps per states");
 
 namespace dairlib {
@@ -61,21 +60,18 @@ int doMain(int argc, char* argv[]) {
       FindResourceOrThrow(filename), drake::multibody::joints::kFixed, &tree);
 
   KinematicsCache<double> cache = tree.CreateKinematicsCache();
-  const LcmTrajectory& loaded_traj =
-      LcmTrajectory(LcmTrajectory::loadFromFile
-                        ("examples/jumping/saved_trajs/jumping_11_13"));
-  const LcmTrajectory::Trajectory& jumping_traj = loaded_traj.getTrajectory
-                                                                 ("jumping_trajectory_x_u");
+  const LcmTrajectory& loaded_traj = LcmTrajectory(LcmTrajectory::loadFromFile(
+      "examples/jumping/saved_trajs/jumping_11_18"));
+  const LcmTrajectory::Trajectory& jumping_traj =
+      loaded_traj.getTrajectory("jumping_trajectory_x_u");
   int num_positions = tree.get_num_positions();
-  int num_states = num_positions + tree
-      .get_num_velocities();
-  cout << jumping_traj.datapoints
-                      .topRows(num_states).cols() << endl;
+  int num_states = num_positions + tree.get_num_velocities();
+  cout << jumping_traj.datapoints.topRows(num_states).cols() << endl;
   cout << jumping_traj.time_vector.size() << endl;
   const PiecewisePolynomial<double>& datapoints =
-      PiecewisePolynomial<double>::Pchip(jumping_traj.time_vector,
-                                         jumping_traj.datapoints
-                                                     .topRows(num_states));
+      PiecewisePolynomial<double>::Pchip(
+          jumping_traj.time_vector,
+          jumping_traj.datapoints.topRows(num_states));
 
   for (auto const& element : multibody::makeNameToPositionsMap(tree)) {
     cout << element.first << " = " << element.second << endl;
@@ -96,18 +92,20 @@ int doMain(int argc, char* argv[]) {
     cache.initialize(q);
     tree.doKinematics(cache);
     center_of_mass = tree.centerOfMass(cache);
+    std::cout << center_of_mass.transpose() << std::endl;
     times.push_back(i * FLAGS_time_offset / FLAGS_resolution);
     for (int j = 0; j < 3; ++j) {
       points.push_back(center_of_mass(j));
     }
   }
-  cout << "Adding more points to trajectory: " << endl;
-  double time_offset = times.empty() ? 0 : times.back() +
-      datapoints.end_time() / FLAGS_resolution;
+  //  cout << "Adding more points to trajectory: " << endl;
+  double time_offset =
+      times.empty() ? 0
+                    : times.back() + datapoints.end_time() / FLAGS_resolution;
   double end_time = datapoints.end_time();
   for (int i = 0; i < FLAGS_resolution; ++i) {
     q << datapoints.value(i * end_time / FLAGS_resolution)
-                   .topRows(num_positions);
+             .topRows(num_positions);
     dairlib::multibody::SetZeroQuaternionToIdentity(&q);
     cache.initialize(q);
     tree.doKinematics(cache);
@@ -121,10 +119,8 @@ int doMain(int argc, char* argv[]) {
 
   std::cout << "Creating matrix " << std::endl;
 
-  MatrixXd com_pos_matrix =
-      Eigen::Map<const Matrix<double, Dynamic, Dynamic>>(
-          points.data(),
-          3, points.size() / 3);
+  MatrixXd com_pos_matrix = Eigen::Map<const Matrix<double, Dynamic, Dynamic>>(
+      points.data(), 3, points.size() / 3);
   VectorXd com_pos_time_matrix =
       Eigen::Map<const Eigen::VectorXd, Eigen::Unaligned>(times.data(),
                                                           times.size());
@@ -166,9 +162,9 @@ int doMain(int argc, char* argv[]) {
   return 0;
 }
 
-}
-}
-}
+}  // namespace jumping
+}  // namespace examples
+}  // namespace dairlib
 
 int main(int argc, char* argv[]) {
   return dairlib::examples::jumping::doMain(argc, argv);
