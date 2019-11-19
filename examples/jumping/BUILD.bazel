@@ -64,21 +64,6 @@ cc_binary(
 )
 
 cc_binary(
-    name = "center_of_mass_generator",
-    srcs = ["center_of_mass_generator.cpp"],
-    data = ["five_link_biped.urdf"],
-    deps = [
-        ":traj_logger",
-        "//attic/multibody:utils",
-        "//common",
-        "//lcm:lcm_trajectory_saver",
-        "//systems/primitives",
-        "@drake//:drake_shared_library",
-        "@gflags",
-    ],
-)
-
-cc_binary(
     name = "com_traj_generator",
     srcs = ["com_traj_generator.cc"],
     data = ["five_link_biped.urdf"],

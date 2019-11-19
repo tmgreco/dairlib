@@ -61,6 +61,8 @@ DEFINE_double(crouch_time,
               "crouch state before transitioning to the flight phase (s)");
 DEFINE_double(publish_rate, 200, "Publishing frequency (Hz)");
 DEFINE_double(height, 0.7138, "Standing height of the five link biped");
+DEFINE_double(foot_offset, 0.0, "Target x deviation from COM when in flight "
+                                "phase");
 DEFINE_double(kp, 1.0, "Kp gain for COM tracking");
 DEFINE_double(kd, 1.0, "Kd gain for COM tracking");
 
@@ -151,14 +153,16 @@ int doMain(int argc, char* argv[]) {
                                            l_foot_index,
                                            r_foot_index,
                                            true,
-                                           FLAGS_height);
+                                           FLAGS_height,
+                                           FLAGS_foot_offset);
   auto r_foot_traj_generator = builder.AddSystem<FlightFootTraj>
                                           (tree_with_springs,
                                            hip_index,
                                            l_foot_index,
                                            r_foot_index,
                                            false,
-                                           FLAGS_height);
+                                           FLAGS_height,
+                                           FLAGS_foot_offset);
   auto fsm = builder.AddSystem<dairlib::examples::JumpingFiniteStateMachine>
                         (tree_with_springs, FLAGS_wait_time, FLAGS_crouch_time);
   auto command_pub = builder.AddSystem(
@@ -252,10 +256,12 @@ int doMain(int argc, char* argv[]) {
 
   // ****** Feet tracking term ******
   MatrixXd W_swing_foot = 1 * MatrixXd::Identity(3, 3);
-  W_swing_foot(0, 0) = 0;
-  W_swing_foot(2, 2) = 1;
-  MatrixXd K_p_sw_ft = 0.01 * MatrixXd::Identity(3, 3);
-  MatrixXd K_d_sw_ft = 0.01 * MatrixXd::Identity(3, 3);
+  W_swing_foot(0, 0) = 100;
+  W_swing_foot(2, 2) = 1000;
+  MatrixXd K_p_sw_ft = 64 * MatrixXd::Identity(3, 3);
+  MatrixXd K_d_sw_ft = 16 * MatrixXd::Identity(3, 3);
+  K_p_sw_ft(1,1) = 0;
+  K_d_sw_ft(1,1) = 0;
   TransTaskSpaceTrackingData flight_phase_left_foot_traj("l_foot_traj",
                                                          3,
                                                          K_p_sw_ft,

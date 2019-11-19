@@ -90,12 +90,6 @@ int doMain(int argc, char* argv[]) {
   times.reserve(10000);
 
   for (int i = 0; i < FLAGS_resolution; ++i) {
-    //    cout << traj.value(0).transpose().topLeftCorner(1, tree.get_num_positions())
-    //         << endl;
-    //    q << traj.value(0).transpose().topLeftCorner(1, tree.get_num_positions());
-    //    std::cout << datapoints.value(i * FLAGS_time_offset / FLAGS_resolution)
-    //    .topRows(num_positions) <<
-    //              std::endl;
     q << datapoints.value(0).topRows(num_positions);
     //     Order of states are not the same for multibody and rigid bodies
     dairlib::multibody::SetZeroQuaternionToIdentity(&q);
@@ -112,15 +106,8 @@ int doMain(int argc, char* argv[]) {
       datapoints.end_time() / FLAGS_resolution;
   double end_time = datapoints.end_time();
   for (int i = 0; i < FLAGS_resolution; ++i) {
-    //    cout << traj.value(0).transpose().topLeftCorner(1, tree.get_num_positions())
-    //         << endl;
-    //    q << traj.value(0).transpose().topLeftCorner(1, tree.get_num_positions());
-    //    std::cout << datapoints.value(i * FLAGS_time_offset / FLAGS_resolution)
-    //    .topRows(num_positions) <<
-    //              std::endl;
     q << datapoints.value(i * end_time / FLAGS_resolution)
                    .topRows(num_positions);
-    //     Order of states are not the same for multibody and rigid bodies
     dairlib::multibody::SetZeroQuaternionToIdentity(&q);
     cache.initialize(q);
     tree.doKinematics(cache);

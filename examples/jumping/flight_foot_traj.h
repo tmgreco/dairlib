@@ -23,7 +23,7 @@ class FlightFootTraj : public drake::systems::LeafSystem<double> {
                  int right_foot_idx,
                  bool isLeftFoot,
                  double height = 0.8,
-                 double foot_offset = 0.1);
+                 double foot_offset = 0.3);
 
   const drake::systems::InputPort<double>& get_state_input_port() const {
     return this->get_input_port(state_port_);

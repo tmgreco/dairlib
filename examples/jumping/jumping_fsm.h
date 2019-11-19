@@ -32,15 +32,15 @@ class JumpingFiniteStateMachine : public drake::systems::LeafSystem<double> {
                        drake::systems::BasicVector<double>* fsm_state) const;
 
   int state_port_;
-  double crouch_time_;
-
   // indices for discrete variables in drake leafsystem
   int time_idx_;
-  int fsm_idx_;
 
+  int fsm_idx_;
   double timestamp_;
+
   double initial_timestamp_;
   double wait_time_;
+  double crouch_time_;
   const FSM_STATE init_state_ = NEUTRAL;
 };
 
