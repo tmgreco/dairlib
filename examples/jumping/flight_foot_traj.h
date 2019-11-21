@@ -7,8 +7,6 @@
 #include "systems/controllers/control_utils.h"
 #include "attic/multibody/rigidbody_utils.h"
 
-using drake::trajectories::PiecewisePolynomial;
-using Eigen::VectorXd;
 
 namespace dairlib {
 namespace examples {
@@ -22,6 +20,7 @@ class FlightFootTraj : public drake::systems::LeafSystem<double> {
                  int left_foot_idx,
                  int right_foot_idx,
                  bool isLeftFoot,
+                 drake::trajectories::PiecewisePolynomial<double> foot_traj,
                  double height = 0.8,
                  double foot_offset = 0.3);
 
@@ -33,10 +32,10 @@ class FlightFootTraj : public drake::systems::LeafSystem<double> {
   }
 
  private:
-  PiecewisePolynomial<double> generateFlightTraj(
+  drake::trajectories::PiecewisePolynomial<double> generateFlightTraj(
       const drake::systems::Context<double>& context,
-      VectorXd* q,
-      VectorXd* v) const;
+      Eigen::VectorXd* q,
+      Eigen::VectorXd* v) const;
 
   void CalcTraj(const drake::systems::Context<double>& context,
                 drake::trajectories::Trajectory<double>* traj) const;
@@ -46,6 +45,7 @@ class FlightFootTraj : public drake::systems::LeafSystem<double> {
   int left_foot_idx_;
   int right_foot_idx_;
   bool isLeftFoot_;
+  drake::trajectories::PiecewisePolynomial<double> foot_traj_;
   double height_;
   double foot_offset_;
 

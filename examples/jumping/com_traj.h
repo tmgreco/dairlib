@@ -66,6 +66,7 @@ class CoMTraj : public drake::systems::LeafSystem<double> {
 
   int state_port_;
   int fsm_port_;
+  PiecewisePolynomial<double> generateBalancingComTraj(VectorXd& q) const;
 };
 
 }  // namespace osc

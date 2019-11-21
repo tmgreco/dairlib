@@ -61,26 +61,37 @@ int doMain(int argc, char* argv[]) {
 
   KinematicsCache<double> cache = tree.CreateKinematicsCache();
   const LcmTrajectory& loaded_traj = LcmTrajectory(LcmTrajectory::loadFromFile(
-      "examples/jumping/saved_trajs/jumping_11_18"));
+      "examples/jumping/saved_trajs/jumping_11_19"));
   const LcmTrajectory::Trajectory& jumping_traj =
       loaded_traj.getTrajectory("jumping_trajectory_x_u");
   int num_positions = tree.get_num_positions();
   int num_states = num_positions + tree.get_num_velocities();
-  cout << jumping_traj.datapoints.topRows(num_states).cols() << endl;
-  cout << jumping_traj.time_vector.size() << endl;
+//  cout << jumping_traj.datapoints.topRows(num_states).cols() << endl;
+//  cout << jumping_traj.time_vector.size() << endl;
   const PiecewisePolynomial<double>& datapoints =
       PiecewisePolynomial<double>::Pchip(
           jumping_traj.time_vector,
           jumping_traj.datapoints.topRows(num_states));
 
-  for (auto const& element : multibody::makeNameToPositionsMap(tree)) {
-    cout << element.first << " = " << element.second << endl;
-  }
+//  for (auto const& element : multibody::makeNameToPositionsMap(tree)) {
+//    cout << element.first << " = " << element.second << endl;
+//  }
 
   VectorXd q(num_positions);
-  VectorXd center_of_mass(3);
+  Vector3d center_of_mass;
+  Vector3d l_foot;
+  Vector3d r_foot;
+  Vector3d pt_on_foot = VectorXd::Zero(3);
+  int l_foot_idx = multibody::GetBodyIndexFromName(tree, "left_foot");
+  int r_foot_idx = multibody::GetBodyIndexFromName(tree, "right_foot");
+
+
+  std::cout << "l_foot_idx" << l_foot_idx << std::endl;
+  std::cout << "r_foot_idx" << r_foot_idx << std::endl;
 
   std::vector<double> points;
+  std::vector<double> l_foot_points;
+  std::vector<double> r_foot_points;
   std::vector<double> times;
   points.reserve(10000);
   times.reserve(10000);
@@ -92,10 +103,18 @@ int doMain(int argc, char* argv[]) {
     cache.initialize(q);
     tree.doKinematics(cache);
     center_of_mass = tree.centerOfMass(cache);
-    std::cout << center_of_mass.transpose() << std::endl;
+    l_foot = tree.CalcBodyPoseInWorldFrame(cache, tree.get_body(l_foot_idx))
+                 .linear()
+                 .col(0);
+    r_foot = tree.CalcBodyPoseInWorldFrame(cache, tree.get_body(r_foot_idx))
+                 .linear()
+                 .col(0);
+//    std::cout << center_of_mass.transpose() << std::endl;
     times.push_back(i * FLAGS_time_offset / FLAGS_resolution);
     for (int j = 0; j < 3; ++j) {
       points.push_back(center_of_mass(j));
+      l_foot_points.push_back(l_foot(j));
+      r_foot_points.push_back(r_foot(j));
     }
   }
   //  cout << "Adding more points to trajectory: " << endl;
@@ -103,6 +122,7 @@ int doMain(int argc, char* argv[]) {
       times.empty() ? 0
                     : times.back() + datapoints.end_time() / FLAGS_resolution;
   double end_time = datapoints.end_time();
+
   for (int i = 0; i < FLAGS_resolution; ++i) {
     q << datapoints.value(i * end_time / FLAGS_resolution)
              .topRows(num_positions);
@@ -110,10 +130,23 @@ int doMain(int argc, char* argv[]) {
     cache.initialize(q);
     tree.doKinematics(cache);
     center_of_mass = tree.centerOfMass(cache);
-    std::cout << center_of_mass.transpose() << std::endl;
+
+    l_foot = tree.transformPoints(cache, pt_on_foot,
+        l_foot_idx, 0);
+    r_foot = tree.transformPoints(cache, pt_on_foot,
+        r_foot_idx, 0);
+//    l_foot = tree.CalcBodyPoseInWorldFrame(cache, tree.get_body(l_foot_idx))
+//                 .linear()
+//                 .col(0);
+//    r_foot = tree.CalcBodyPoseInWorldFrame(cache, tree.get_body(r_foot_idx))
+//                 .linear()
+//                 .col(0);
+    std::cout << l_foot.transpose() << std::endl;
     times.push_back(i * end_time / FLAGS_resolution + time_offset);
     for (int j = 0; j < 3; ++j) {
       points.push_back(center_of_mass(j));
+      l_foot_points.push_back(l_foot(j));
+      r_foot_points.push_back(r_foot(j));
     }
   }
 
@@ -121,21 +154,40 @@ int doMain(int argc, char* argv[]) {
 
   MatrixXd com_pos_matrix = Eigen::Map<const Matrix<double, Dynamic, Dynamic>>(
       points.data(), 3, points.size() / 3);
-  VectorXd com_pos_time_matrix =
+  MatrixXd l_foot_matrix = Eigen::Map<const Matrix<double, Dynamic, Dynamic>>(
+      l_foot_points.data(), 3, l_foot_points.size() / 3);
+  MatrixXd r_foot_matrix= Eigen::Map<const Matrix<double, Dynamic, Dynamic>>(
+      r_foot_points.data(), 3, r_foot_points.size() / 3);
+  VectorXd time_matrix =
       Eigen::Map<const Eigen::VectorXd, Eigen::Unaligned>(times.data(),
                                                           times.size());
 
-  LcmTrajectory::Trajectory traj_block;
-  traj_block.traj_name = "center_of_mass_trajectory";
-  traj_block.datapoints = com_pos_matrix;
-  traj_block.time_vector = com_pos_time_matrix;
-  traj_block.datatypes = {"com_x", "com_y", "com_z"};
+  LcmTrajectory::Trajectory com_traj_block;
+  com_traj_block.traj_name = "center_of_mass_trajectory";
+  com_traj_block.datapoints = com_pos_matrix;
+  com_traj_block.time_vector = time_matrix;
+  com_traj_block.datatypes = {"com_x", "com_y", "com_z"};
+  LcmTrajectory::Trajectory l_foot_traj_block;
+  l_foot_traj_block.traj_name = "left_foot_trajectory";
+  l_foot_traj_block.datapoints = l_foot_matrix;
+  l_foot_traj_block.time_vector = time_matrix;
+  l_foot_traj_block.datatypes = {"l_foot_x", "l_foot_y", "l_foot_z"};
+  LcmTrajectory::Trajectory r_foot_traj_block;
+  r_foot_traj_block.traj_name = "right_foot_trajectory";
+  r_foot_traj_block.datapoints = r_foot_matrix;
+  r_foot_traj_block.time_vector = time_matrix;
+  r_foot_traj_block.datatypes = {"r_foot_x", "r_foot_y", "r_foot_z"};
   std::vector<LcmTrajectory::Trajectory> trajectories;
-  trajectories.push_back(traj_block);
+  trajectories.push_back(com_traj_block);
+  trajectories.push_back(l_foot_traj_block);
+  trajectories.push_back(r_foot_traj_block);
   std::vector<std::string> trajectory_names;
   trajectory_names.push_back("center_of_mass_trajectory");
-  LcmTrajectory saved_traj(trajectories, trajectory_names, "COM_trajectory",
-                           "Center of mass trajectory for jumping");
+  trajectory_names.push_back("left_foot_trajectory");
+  trajectory_names.push_back("right_foot_trajectory");
+  LcmTrajectory saved_traj(trajectories, trajectory_names, "jumping_trajectory",
+                           "Center of mass, and feet trajectory for "
+                           "jumping");
   saved_traj.writeToFile("examples/jumping/saved_trajs/" + FLAGS_file_name);
   //
   //  {

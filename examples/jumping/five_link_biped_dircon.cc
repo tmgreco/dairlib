@@ -113,9 +113,8 @@ drake::trajectories::PiecewisePolynomial<double> run_traj_opt(
 
   // Specifies that the foot has to be on the
   // ground with normal/friction specified by normal/mu
-  leftFootConstraint.addFixedNormalFrictionConstraints(normal, FLAGS_mu_static);
-  rightFootConstraint.addFixedNormalFrictionConstraints(normal,
-                                                        FLAGS_mu_static);
+  leftFootConstraint.addFixedNormalFrictionConstraints(FLAGS_mu_static);
+  rightFootConstraint.addFixedNormalFrictionConstraints(FLAGS_mu_static);
 
   // Constraint for each contact mode
   std::vector<DirconKinematicData<double>*> mode_one_constraints;
@@ -204,6 +203,7 @@ drake::trajectories::PiecewisePolynomial<double> run_traj_opt(
   auto u = trajopt->input();
   int n = plant->num_positions();
   auto lambda_init = trajopt->force_vars(0);
+  auto lambda_final = trajopt->force_vars(2);
   //  auto lambda_init = trajopt->force(0, 1);
 
   Eigen::VectorXd fixed_initial_conds(14);
@@ -226,6 +226,7 @@ drake::trajectories::PiecewisePolynomial<double> run_traj_opt(
   std::cout << "lambda size: " << lambda_init.size() << std::endl;
   for (int i = 1; i < lambda_init.size(); i += 2) {
     trajopt->AddLinearConstraint(lambda_init(i) >= 0.5 * 15 * FLAGS_gravity);
+    trajopt->AddLinearConstraint(lambda_final(i) <= 10 * 15 * FLAGS_gravity);
   }
   //  trajopt->AddLinearConstraint()
   //  trajopt->AddConstraintToAllKnotPoints(lambda_init(0) >=
@@ -248,9 +249,9 @@ drake::trajectories::PiecewisePolynomial<double> run_traj_opt(
   trajopt->AddConstraintToAllKnotPoints(x(positions_map["planar_x"]) >= -0.5);
   trajopt->AddConstraintToAllKnotPoints(x(positions_map["planar_x"]) <= 0.5);
   trajopt->AddConstraintToAllKnotPoints(x(positions_map["left_knee_pin"]) >=
-                                        0.05);
+                                        0.2);
   trajopt->AddConstraintToAllKnotPoints(x(positions_map["right_knee_pin"]) >=
-                                        0.05);
+                                        0.2);
   trajopt->AddConstraintToAllKnotPoints(x(positions_map["left_knee_pin"]) <= 2);
   trajopt->AddConstraintToAllKnotPoints(x(positions_map["right_knee_pin"]) <=
                                         2);

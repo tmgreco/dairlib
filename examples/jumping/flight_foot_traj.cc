@@ -29,6 +29,7 @@ FlightFootTraj::FlightFootTraj(const RigidBodyTree<double>& tree,
                                int left_foot_idx,
                                int right_foot_idx,
                                bool isLeftFoot,
+                               PiecewisePolynomial<double> foot_traj,
                                double height,
                                double foot_offset) :
   tree_(tree),
@@ -36,6 +37,7 @@ FlightFootTraj::FlightFootTraj(const RigidBodyTree<double>& tree,
   left_foot_idx_(left_foot_idx),
   right_foot_idx_(right_foot_idx),
   isLeftFoot_(isLeftFoot),
+  foot_traj_(foot_traj),
   height_(height) {
   PiecewisePolynomial<double> empty_pp_traj(VectorXd(0));
   Trajectory<double>& traj_inst = empty_pp_traj;
@@ -102,6 +104,8 @@ PiecewisePolynomial<double> FlightFootTraj::generateFlightTraj(
   breaks << 0.0, 0.001;
   MatrixXd knots(3, 2);
   knots << desired_foot_pos, desired_foot_pos_post;
+
+//  return foot_traj_;
 
 //  return PiecewisePolynomial<double>(desired_foot_pos);
   return PiecewisePolynomial<double>::FirstOrderHold(breaks, knots);
