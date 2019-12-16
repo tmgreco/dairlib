@@ -56,11 +56,11 @@ class CoMTraj : public drake::systems::LeafSystem<double> {
   const RigidBodyTree<double>& tree_;
   int time_idx_;
   int fsm_idx_;
+  int com_x_offset_idx_;
 
   int hip_idx_;
   int left_foot_idx_;
   int right_foot_idx_;
-  // Eigen::MatrixXd crouch_traj_;
   PiecewisePolynomial<double> crouch_traj_;
   double height_;
 

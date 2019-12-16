@@ -113,8 +113,9 @@ drake::trajectories::PiecewisePolynomial<double> run_traj_opt(
 
   // Specifies that the foot has to be on the
   // ground with normal/friction specified by normal/mu
-  leftFootConstraint.addFixedNormalFrictionConstraints(FLAGS_mu_static);
-  rightFootConstraint.addFixedNormalFrictionConstraints(FLAGS_mu_static);
+  leftFootConstraint.addFixedNormalFrictionConstraints(normal, FLAGS_mu_static);
+  rightFootConstraint.addFixedNormalFrictionConstraints(normal,
+                                                        FLAGS_mu_static);
 
   // Constraint for each contact mode
   std::vector<DirconKinematicData<double>*> mode_one_constraints;
@@ -170,7 +171,7 @@ drake::trajectories::PiecewisePolynomial<double> run_traj_opt(
   auto trajopt = std::make_shared<HybridDircon<double>>(
       *plant, timesteps, min_dt, max_dt, contact_mode_list, options_list);
 
-  trajopt->AddDurationBounds(FLAGS_max_duration, 1.5 * FLAGS_max_duration);
+  trajopt->AddDurationBounds(FLAGS_max_duration, 2.0* FLAGS_max_duration);
   trajopt->SetSolverOption(drake::solvers::SnoptSolver::id(), "Print file",
                            "five_link_biped_snopt.out");
   trajopt->SetSolverOption(drake::solvers::SnoptSolver::id(),
@@ -222,17 +223,12 @@ drake::trajectories::PiecewisePolynomial<double> run_traj_opt(
 
   auto x = trajopt->state();
 
-  //  input constraints
   std::cout << "lambda size: " << lambda_init.size() << std::endl;
   for (int i = 1; i < lambda_init.size(); i += 2) {
     trajopt->AddLinearConstraint(lambda_init(i) >= 0.5 * 15 * FLAGS_gravity);
     trajopt->AddLinearConstraint(lambda_final(i) <= 10 * 15 * FLAGS_gravity);
   }
-  //  trajopt->AddLinearConstraint()
-  //  trajopt->AddConstraintToAllKnotPoints(lambda_init(0) >=
-  //      0.5 * 15 * FLAGS_gravity);
-  //  trajopt->AddConstraintToAllKnotPoints(lambda_init(1) >=
-  //      0.5 * 15 * FLAGS_gravity);
+  //  input constraints
   trajopt->AddConstraintToAllKnotPoints(u(0) >= -300);
   trajopt->AddConstraintToAllKnotPoints(u(1) >= -300);
   trajopt->AddConstraintToAllKnotPoints(u(2) >= -300);
@@ -326,9 +322,9 @@ drake::trajectories::PiecewisePolynomial<double> run_traj_opt(
   //                    "examples/jumping/saved_trajs/", "inputs");
   //  // saveAllDecisionVars(result, "saved_trajs", "decision_vars");
   writeTimeTrajToFile(trajopt->ReconstructStateTrajectory(result),
-                      "examples/jumping/state_traj.txt");
+                      "examples/jumping/saved_trajs/state_traj.txt");
   writeTimeTrajToFile(trajopt->ReconstructInputTrajectory(result),
-                      "examples/jumping/input_traj.txt");
+                      "examples/jumping/saved_trajs/input_traj.txt");
   return trajopt->ReconstructStateTrajectory(result);
 }
 

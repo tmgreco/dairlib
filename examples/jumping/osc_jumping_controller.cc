@@ -50,6 +50,7 @@ DEFINE_double(v_tol, 0.01,
               "The maximum slipping speed allowed during stiction (m/s)");
 DEFINE_string(state_simulation_channel, "RABBIT_STATE_SIMULATION",
               "Channel to publish/receive state from simulation");
+DEFINE_string(traj_name, "", "File to load saved jumping traj from");
 DEFINE_double(wait_time, 5.0,
               "The length of time to wait in the "
               "neutral state before jumping (s)");
@@ -58,11 +59,11 @@ DEFINE_double(crouch_time, 0.0,
               "crouch state before transitioning to the flight phase (s)");
 DEFINE_double(publish_rate, 200, "Publishing frequency (Hz)");
 DEFINE_double(height, 0.7138, "Standing height of the five link biped");
-DEFINE_double(foot_offset, 0.0,
+DEFINE_double(foot_offset, 0.05,
               "Target x deviation from COM when in flight "
               "phase");
-DEFINE_double(kp, 1.0, "Kp gain for COM tracking");
-DEFINE_double(kd, 1.0, "Kd gain for COM tracking");
+DEFINE_double(kp, 100.0, "Kp gain for COM tracking");
+DEFINE_double(kd, 20.0, "Kd gain for COM tracking");
 
 DEFINE_double(torso_orientation_cost, 0.1,
               "Weight to scale the torso orientation cost");
@@ -120,7 +121,7 @@ int doMain(int argc, char* argv[]) {
   int r_foot_index = GetBodyIndexFromName(tree_with_springs, "right_foot");
   // int netural_height = FLAGS_height;
   const LcmTrajectory& loaded_traj = LcmTrajectory(LcmTrajectory::loadFromFile(
-      "examples/jumping/saved_trajs/jumping_11_19_w_feet"));
+      "examples/jumping/saved_trajs/" + FLAGS_traj_name));
 
   const LcmTrajectory::Trajectory& com_traj =
       loaded_traj.getTrajectory("center_of_mass_trajectory");
@@ -128,6 +129,8 @@ int doMain(int argc, char* argv[]) {
       loaded_traj.getTrajectory("left_foot_trajectory");
   const LcmTrajectory::Trajectory& lcm_r_foot_traj =
       loaded_traj.getTrajectory("right_foot_trajectory");
+
+  cout << lcm_r_foot_traj.time_vector.size();
   const PiecewisePolynomial<double>& center_of_mass_traj =
       PiecewisePolynomial<double>::Pchip(com_traj.time_vector,
                                          com_traj.datapoints);
@@ -243,7 +246,7 @@ int doMain(int argc, char* argv[]) {
 
   // ****** Feet tracking term ******
   MatrixXd W_swing_foot = 1 * MatrixXd::Identity(3, 3);
-  W_swing_foot(0, 0) = 100;
+  W_swing_foot(0, 0) = 1000;
   W_swing_foot(2, 2) = 1000;
   MatrixXd K_p_sw_ft = 100 * MatrixXd::Identity(3, 3);
   MatrixXd K_d_sw_ft = 20 * MatrixXd::Identity(3, 3);
