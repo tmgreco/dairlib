@@ -202,6 +202,10 @@ void CPTrajGenerator::calcCpAndStanceFootHeight(const Context<double>& context,
 
   double pred_omega = sqrt(9.81 / CoM(2));
 
+  Vector2d raibert_foot_pos =
+      dCoM.head(2) * t_st_ / 2 +
+          K_ * (dCoM.head(2) - v_des->get_value());
+
   Vector2d CP;
   CP << (CoM(0) + dCoM(0) / pred_omega),
         (CoM(1) + dCoM(1) / pred_omega);

@@ -10,6 +10,7 @@
 #include "systems/controllers/cp_traj_gen.h"
 #include "systems/controllers/lipm_traj_gen.h"
 #include "systems/controllers/osc/operational_space_control.h"
+#include "systems/controllers/raibert.h"
 #include "systems/controllers/time_based_fsm.h"
 #include "systems/framework/lcm_driven_loop.h"
 #include "systems/robot_lcm_systems.h"
@@ -159,13 +160,13 @@ int DoMain(int argc, char* argv[]) {
                   lipm_traj_generator->get_input_port_state());
 
   // Create velocity control by foot placement
-  auto deviation_from_cp =
-      builder.AddSystem<cassie::osc_walk::DeviationFromCapturePoint>(
-          tree_with_springs, pelvis_idx);
-  builder.Connect(high_level_command->get_xy_output_port(),
-                  deviation_from_cp->get_input_port_des_hor_vel());
-  builder.Connect(simulator_drift->get_output_port(0),
-                  deviation_from_cp->get_input_port_state());
+  //  auto deviation_from_cp =
+  //      builder.AddSystem<cassie::osc_walk::DeviationFromCapturePoint>(
+  //          tree_with_springs, pelvis_idx);
+  //  builder.Connect(high_level_command->get_xy_output_port(),
+  //                  deviation_from_cp->get_input_port_des_hor_vel());
+  //  builder.Connect(simulator_drift->get_output_port(0),
+  //                  deviation_from_cp->get_input_port_state());
 
   // Create swing leg trajectory generator (capture point)
   double mid_foot_height = 0.1;
@@ -175,25 +176,35 @@ int DoMain(int argc, char* argv[]) {
   // to the hardware testing.
   // Additionally, implementing a double support phase might mitigate the
   // instability around state transition.
-  double desired_final_foot_height = 0.01;
-  double desired_final_vertical_foot_velocity = 0;  //-1;
-  double max_CoM_to_CP_dist = 0.4;
-  double cp_offset = 0.06;
+  //  double desired_final_foot_height = 0.01;
+  //  double desired_final_vertical_foot_velocity = 0;  //-1;
+  //  double max_CoM_to_CP_dist = 0.4;
+  //  double cp_offset = 0.06;
   double center_line_offset = 0.06;
-  auto cp_traj_generator = builder.AddSystem<systems::CPTrajGenerator>(
-      tree_with_springs, mid_foot_height, desired_final_foot_height,
-      desired_final_vertical_foot_velocity, max_CoM_to_CP_dist,
-      duration_per_state, left_toe_idx, Eigen::VectorXd::Zero(3), right_toe_idx,
-      Eigen::VectorXd::Zero(3), pelvis_idx, true, true, true, cp_offset,
-      center_line_offset);
-  builder.Connect(fsm->get_output_port(0),
-                  cp_traj_generator->get_input_port_fsm());
+  Vector3d foot_offset;
+  foot_offset << center_line_offset, 0, 0;
+  auto raibert = builder.AddSystem<systems::RaibertFootTraj>(
+      tree_with_springs, pelvis_idx, duration_per_state, foot_offset);
+  //  auto cp_traj_generator = builder.AddSystem<systems::CPTrajGenerator>(
+  //      tree_with_springs, mid_foot_height, desired_final_foot_height,
+  //      desired_final_vertical_foot_velocity, max_CoM_to_CP_dist,
+  //      duration_per_state, left_toe_idx, Eigen::VectorXd::Zero(3),
+  //      right_toe_idx, Eigen::VectorXd::Zero(3), pelvis_idx, true, true, true,
+  //      cp_offset, center_line_offset);
+  builder.Connect(high_level_command->get_xy_output_port(),
+      raibert->get_input_port_des_xy_vel());
+  builder.Connect(fsm->get_output_port(0), raibert->get_input_port_fsm());
   builder.Connect(simulator_drift->get_output_port(0),
-                  cp_traj_generator->get_input_port_state());
-  builder.Connect(lipm_traj_generator->get_output_port(0),
-                  cp_traj_generator->get_input_port_com());
-  builder.Connect(deviation_from_cp->get_output_port(0),
-                  cp_traj_generator->get_input_port_fp());
+      raibert->get_input_port_state());
+
+  //  builder.Connect(fsm->get_output_port(0),
+  //                  cp_traj_generator->get_input_port_fsm());
+  //  builder.Connect(simulator_drift->get_output_port(0),
+  //                  cp_traj_generator->get_input_port_state());
+  //  builder.Connect(lipm_traj_generator->get_output_port(0),
+  //                  cp_traj_generator->get_input_port_com());
+  //  builder.Connect(deviation_from_cp->get_output_port(0),
+  //                  cp_traj_generator->get_input_port_fp());
 
   // Create Operational space control
   auto osc = builder.AddSystem<systems::controllers::OperationalSpaceControl>(
@@ -308,8 +319,10 @@ int DoMain(int argc, char* argv[]) {
   builder.Connect(fsm->get_output_port(0), osc->get_fsm_input_port());
   builder.Connect(lipm_traj_generator->get_output_port(0),
                   osc->get_tracking_data_input_port("lipm_traj"));
-  builder.Connect(cp_traj_generator->get_output_port(0),
+  builder.Connect(raibert->get_output_port(0),
                   osc->get_tracking_data_input_port("cp_traj"));
+  //  builder.Connect(cp_traj_generator->get_output_port(0),
+  //                  osc->get_tracking_data_input_port("cp_traj"));
   builder.Connect(head_traj_gen->get_output_port(0),
                   osc->get_tracking_data_input_port("pelvis_balance_traj"));
   builder.Connect(head_traj_gen->get_output_port(0),
