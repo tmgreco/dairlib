@@ -259,8 +259,10 @@ void RaibertFootTraj::CalcFootPlacement(
 
     Vector2d raibert_foot_pos =
         local_com_vel.head(2) * t_st_ / 2 +
-        K_ * (v_des->get_value() - local_com_vel.head(2));
-    std::cout << raibert_foot_pos << std::endl;
+        K_ * (local_com_vel.head(2) - v_des->get_value());
+
+//    std::cout << "des local_pos:" << raibert_foot_pos.transpose() << std::endl;
+    std::cout << "v_des:" << v_des->get_value().transpose() << std::endl;
     // Calc local and global desired foot pos
     //    Vector2d raibert_foot_pos =
     //        com_vel.head(2) * t_st_ / 2 +
@@ -278,15 +280,21 @@ void RaibertFootTraj::CalcFootPlacement(
     Vector3d stance_foot_pos =
         tree_.transformPoints(cache, pt_on_stance_foot, stance_foot_idx, 0);
 
-    raibert_foot_pos = ImposeHalfplaneGuard(
-        raibert_foot_pos, (left_stance_ == fsm->get_value()(0)),
-        approx_pelvis_yaw, CoM.head(2), stance_foot_pos.head(2),
-        center_line_offset_);
-
     Vector3d foot_pos_des_local;
     foot_pos_des_local << raibert_foot_pos, 0;
-    //    foot_pos_des_local = foot_pos_des_local + center_line_offset_;
     foot_pos_des_global = drake::math::quatRotateVec(quat, foot_pos_des_local);
+
+    foot_pos_des_global.head(2) = ImposeHalfplaneGuard(
+        foot_pos_des_global.head(2), (left_stance_ == fsm->get_value()(0)),
+        approx_pelvis_yaw, CoM.head(2), stance_foot_pos.head(2),
+        center_line_offset_);
+    std::cout << "raibert foot pos:" << foot_pos_des_global.transpose() <<
+    std::endl;
+
+//    Vector3d foot_pos_des_local;
+//    foot_pos_des_local << raibert_foot_pos, 0;
+//    foot_pos_des_global = drake::math::quatRotateVec(quat, foot_pos_des_local);
+    //    foot_pos_des_local = foot_pos_des_local + center_line_offset_;
 
     // Assign foot placement
     //    traj->get_mutable_value() =

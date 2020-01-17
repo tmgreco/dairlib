@@ -117,7 +117,8 @@ int DoMain(int argc, char* argv[]) {
                   simulator_drift->get_input_port_state());
 
   // Create human high-level control
-  Eigen::Vector2d global_target_position(5, 5);
+//  Eigen::Vector2d global_target_position(5, 5);
+  Eigen::Vector2d global_target_position(0, 0);
   Eigen::Vector2d params_of_no_turning(5, 1);
   // Logistic function 1/(1+5*exp(x-1))
   // The function ouputs 0.0007 when x = 0
@@ -180,7 +181,7 @@ int DoMain(int argc, char* argv[]) {
   //  double desired_final_vertical_foot_velocity = 0;  //-1;
   //  double max_CoM_to_CP_dist = 0.4;
   //  double cp_offset = 0.06;
-  double center_line_offset = 0.06;
+  double center_line_offset = 0.2;
   //  Vector3d foot_offset;
   //  foot_offset << center_line_offset, 0, 0;
   auto raibert = builder.AddSystem<systems::RaibertFootTraj>(
