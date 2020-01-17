@@ -181,21 +181,25 @@ int DoMain(int argc, char* argv[]) {
   //  double max_CoM_to_CP_dist = 0.4;
   //  double cp_offset = 0.06;
   double center_line_offset = 0.06;
-  Vector3d foot_offset;
-  foot_offset << center_line_offset, 0, 0;
+  //  Vector3d foot_offset;
+  //  foot_offset << center_line_offset, 0, 0;
   auto raibert = builder.AddSystem<systems::RaibertFootTraj>(
-      tree_with_springs, pelvis_idx, duration_per_state, foot_offset);
+      tree_with_springs, mid_foot_height, duration_per_state, left_toe_idx,
+      Eigen::VectorXd::Zero(3), right_toe_idx, Eigen::VectorXd::Zero(3),
+      pelvis_idx, center_line_offset);
   //  auto cp_traj_generator = builder.AddSystem<systems::CPTrajGenerator>(
   //      tree_with_springs, mid_foot_height, desired_final_foot_height,
   //      desired_final_vertical_foot_velocity, max_CoM_to_CP_dist,
   //      duration_per_state, left_toe_idx, Eigen::VectorXd::Zero(3),
   //      right_toe_idx, Eigen::VectorXd::Zero(3), pelvis_idx, true, true, true,
   //      cp_offset, center_line_offset);
+  builder.Connect(high_level_command->get_yaw_output_port(),
+                  raibert->get_input_port_des_yaw());
   builder.Connect(high_level_command->get_xy_output_port(),
-      raibert->get_input_port_des_xy_vel());
+                  raibert->get_input_port_des_xy_vel());
   builder.Connect(fsm->get_output_port(0), raibert->get_input_port_fsm());
   builder.Connect(simulator_drift->get_output_port(0),
-      raibert->get_input_port_state());
+                  raibert->get_input_port_state());
 
   //  builder.Connect(fsm->get_output_port(0),
   //                  cp_traj_generator->get_input_port_fsm());
