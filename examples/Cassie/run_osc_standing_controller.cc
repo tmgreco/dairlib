@@ -168,7 +168,8 @@ int DoMain(int argc, char* argv[]) {
        std::move(owned_diagram),
        state_receiver,
        FLAGS_channel_x,
-       false);
+       true);
+//       false);
   loop.Simulate();
 
   return 0;
