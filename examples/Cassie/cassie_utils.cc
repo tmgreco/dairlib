@@ -63,9 +63,8 @@ void addCassieMultibody(MultibodyPlant<double>* plant,
       0, 1250);
 
   // TOOO(mposa): add loop closures when implemented in Drake
-
   //Add a spring to represent loop closure
-  double achilles_stiffness = 200000; //originally 200000
+  double achilles_stiffness = 2e6;
   double achilles_damping = 200;
   double achilles_length = .5012;
   const auto& heel_spring_left = plant->GetBodyByName("heel_spring_left");
