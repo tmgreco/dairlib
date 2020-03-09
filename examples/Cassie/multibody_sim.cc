@@ -1,12 +1,13 @@
 #include <memory>
 
+#include <drake/multibody/inverse_kinematics/inverse_kinematics.h>
 #include <drake/systems/lcm/lcm_interface_system.h>
 #include <gflags/gflags.h>
-#include "systems/goldilocks_models/file_utils.h"
 #include "drake/geometry/geometry_visualization.h"
 #include "drake/lcm/drake_lcm.h"
 #include "drake/multibody/joints/floating_base_types.h"
 #include "drake/multibody/tree/revolute_joint.h"
+#include "drake/solvers/solve.h"
 #include "drake/systems/analysis/runge_kutta2_integrator.h"
 #include "drake/systems/analysis/simulator.h"
 #include "drake/systems/framework/diagram.h"
@@ -34,6 +35,11 @@ using drake::systems::Simulator;
 using drake::systems::lcm::LcmPublisherSystem;
 using drake::systems::lcm::LcmSubscriberSystem;
 
+using drake::math::RotationMatrix;
+using Eigen::Matrix3d;
+using Eigen::Vector3d;
+using Eigen::VectorXd;
+
 // Simulation parameters.
 DEFINE_bool(floating_base, true, "Fixed or floating base model");
 
@@ -52,6 +58,10 @@ DEFINE_double(penetration_allowance, 1e-4,
 DEFINE_double(end_time, std::numeric_limits<double>::infinity(),
               "End time for simulator");
 DEFINE_double(publish_rate, 1000, "Publish rate for simulator");
+DEFINE_double(init_height, 0.2, "Initial starting height above ground");
+
+Eigen::VectorXd GetInitialState(const MultibodyPlant<double>& plant,
+                                double init_height);
 
 int do_main(int argc, char* argv[]) {
   gflags::ParseCommandLineFlags(&argc, &argv, true);
@@ -123,24 +133,10 @@ int do_main(int argc, char* argv[]) {
   diagram->SetDefaultContext(diagram_context.get());
   Context<double>& plant_context =
       diagram->GetMutableSubsystemContext(plant, diagram_context.get());
+  VectorXd q_init = GetInitialState(plant, FLAGS_init_height);
 
-  plant.GetJointByName<RevoluteJoint>("hip_pitch_left")
-      .set_angle(&plant_context, .269);
-  plant.GetJointByName<RevoluteJoint>("knee_left")
-      .set_angle(&plant_context, -.644);
-  plant.GetJointByName<RevoluteJoint>("ankle_joint_left")
-      .set_angle(&plant_context, .792);
-  plant.GetJointByName<RevoluteJoint>("toe_left")
-      .set_angle(&plant_context, -M_PI / 3);
-
-  plant.GetJointByName<RevoluteJoint>("hip_pitch_right")
-      .set_angle(&plant_context, .269);
-  plant.GetJointByName<RevoluteJoint>("knee_right")
-      .set_angle(&plant_context, -.644);
-  plant.GetJointByName<RevoluteJoint>("ankle_joint_right")
-      .set_angle(&plant_context, .792);
-  plant.GetJointByName<RevoluteJoint>("toe_right")
-      .set_angle(&plant_context, -M_PI / 3);
+  plant.SetPositions(&plant_context, q_init);
+  plant.SetVelocities(&plant_context, VectorXd::Zero(plant.num_velocities()));
 
   if (FLAGS_floating_base) {
     const drake::math::RigidTransformd transform(
@@ -166,6 +162,65 @@ int do_main(int argc, char* argv[]) {
   simulator.AdvanceTo(FLAGS_end_time);
 
   return 0;
+}
+
+Eigen::VectorXd GetInitialState(const MultibodyPlant<double>& plant,
+                                double init_height) {
+  int n_q = plant.num_positions();
+  std::map<std::string, int> positions_map =
+      multibody::makeNameToPositionsMap(plant);
+
+  VectorXd q_ik_guess = VectorXd::Zero(plant.num_positions());
+  Eigen::Vector4d quat(2000.06, -0.339462, -0.609533, -0.760854);
+  q_ik_guess << quat.normalized(), 0.000889849, 0.000626865, 1.0009, -0.0112109,
+      0.00927845, -0.000600725, -0.000895805, 1.15086, 0.610808, -1.38608,
+      -1.35926, 0.806192, 1.00716, -M_PI / 2, -M_PI / 2;
+
+  double eps = 1e-3;
+  Vector3d eps_vec = eps * VectorXd::Ones(3);
+  Vector3d pelvis_pos(0.0, 0.0, 1.0 + init_height);
+  Vector3d left_toe_pos(0.0, 0.12, 0.05 + init_height);
+  Vector3d right_toe_pos(0.0, -0.12, 0.05 + init_height);
+
+  const auto& world_frame = plant.world_frame();
+  const auto& pelvis_frame = plant.GetFrameByName("pelvis");
+  const auto& toe_left_frame = plant.GetFrameByName("toe_left");
+  const auto& toe_right_frame = plant.GetFrameByName("toe_right");
+
+  drake::multibody::InverseKinematics ik(plant);
+  ik.AddPositionConstraint(pelvis_frame, Vector3d(0, 0, 0), world_frame,
+                           pelvis_pos - eps * VectorXd::Ones(3),
+                           pelvis_pos + eps * VectorXd::Ones(3));
+  ik.AddOrientationConstraint(pelvis_frame, RotationMatrix<double>(),
+                              world_frame, RotationMatrix<double>(), eps);
+  ik.AddPositionConstraint(toe_left_frame, Vector3d(0, 0, 0), world_frame,
+                           left_toe_pos - eps_vec, left_toe_pos + eps_vec);
+  ik.AddPositionConstraint(toe_right_frame, Vector3d(0, 0, 0), world_frame,
+                           right_toe_pos - eps_vec, right_toe_pos + eps_vec);
+  ik.get_mutable_prog()->AddLinearConstraint(
+      (ik.q())(positions_map.at("hip_yaw_left")) == 0);
+  ik.get_mutable_prog()->AddLinearConstraint(
+      (ik.q())(positions_map.at("hip_yaw_right")) == 0);
+  // Four bar linkage constraint (without spring)
+  ik.get_mutable_prog()->AddLinearConstraint(
+      (ik.q())(positions_map.at("knee_left")) +
+          (ik.q())(positions_map.at("ankle_joint_left")) ==
+      M_PI * 13 / 180.0);
+  ik.get_mutable_prog()->AddLinearConstraint(
+      (ik.q())(positions_map.at("knee_right")) +
+          (ik.q())(positions_map.at("ankle_joint_right")) ==
+      M_PI * 13 / 180.0);
+  ik.get_mutable_prog()->AddLinearConstraint(
+      (ik.q())(positions_map.at("toe_left")) == -1.3);
+  ik.get_mutable_prog()->AddLinearConstraint(
+      (ik.q())(positions_map.at("toe_right")) == -1.3);
+
+  ik.get_mutable_prog()->SetInitialGuess(ik.q(), q_ik_guess);
+  const auto result = Solve(ik.prog());
+  const auto q_sol = result.GetSolution(ik.q());
+  VectorXd q_sol_normd(n_q);
+  q_sol_normd << q_sol.head(4).normalized(), q_sol.tail(n_q - 4);
+  return q_sol_normd;
 }
 
 }  // namespace dairlib
