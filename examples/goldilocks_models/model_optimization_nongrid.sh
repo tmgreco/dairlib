@@ -6,9 +6,9 @@ model=0 # 1Drom 2,3   2Drom 0,1  3Drom 4,5
 echo robot_option = $robot, rom_option = $model
 
 # Set sample size
-n_sl=2
-n_gi=2
-n_v=2
+n_sl=1
+n_gi=1
+n_v=1
 n_tr=1
 
 # Set optimization range
@@ -23,11 +23,11 @@ tr_min=0
 tr_max=0
 # large range
 # Other parameters
-is_grid=false
+is_grid=true
 iter_start=0
-final_iter=1
-snopt_scaling=true
-N_rerun=2
+final_iter=0
+snopt_scaling=false
+N_rerun=1
 
 # Delete and create a new data folder if specified in the argument
 if [ "$1" = "rm" ]; then
