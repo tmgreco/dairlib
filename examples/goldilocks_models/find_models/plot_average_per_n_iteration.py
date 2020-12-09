@@ -47,11 +47,11 @@ else:
 file_dir = "../dairlib_data/goldilocks_models/find_models/"
 file_dir2 = "../dairlib_data/goldilocks_models/find_boundary/"
 
-rom = rom2
+rom = rom3
 task_space = task_space2
-method ='(grid)'
+method ='(nongrid)'
 iter_start = 1
-iter_end = 300
+iter_end = 200
 dir1 = file_dir+robot+rom+'/'+task_space+'/robot_1/'
 label1 = 'optimizing '+rom+' over '+task_space+method
 line_type1 = 'k-'

@@ -85,6 +85,7 @@ void visualizeGait(int argc, char* argv[]) {
                            + to_string(FLAGS_robot_option) + "/";*/
   string directory = "../dairlib_data/goldilocks_models/find_models/robot_" +
                      to_string(FLAGS_robot_option) + "/";
+  directory = "../dairlib_data/goldilocks_models/find_models/cassie/3D_LIP/3D_task_space/nongrid_gi_sl_v_without_snopt_scaling_third_monomial/";
   //  string directory =
   //  "../dairlib_data/goldilocks_models/find_boundary/robot_" +
   //                     to_string(FLAGS_robot_option) + "/";
