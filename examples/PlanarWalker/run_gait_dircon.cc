@@ -17,7 +17,7 @@
 #include "multibody/multibody_utils.h"
 #include "multibody/visualization_utils.h"
 
-DEFINE_double(strideLength, 0.1, "The stride length.");
+DEFINE_double(strideLength, 2, "The stride length.");
 DEFINE_double(duration, 1, "The stride duration");
 DEFINE_bool(autodiff, false, "Double or autodiff version");
 
@@ -103,13 +103,24 @@ void runDircon(
       min_T, max_T);
   mode_right.MakeConstraintRelative(0, 0);  // x-coordinate
 
+  auto evaluators_both = multibody::KinematicEvaluatorSet<T>(plant);
+  evaluators_both.add_evaluator(&left_foot_eval);
+  evaluators_both.add_evaluator(&right_foot_eval);
+
+  auto mode_double_support = DirconMode<T>(evaluators_both, num_knotpoints,
+                                  min_T, max_T);
+  mode_double_support.MakeConstraintRelative(0, 0);  // x-coordinate
+  mode_double_support.MakeConstraintRelative(1, 0);  // x-coordinate
+
   auto sequence = DirconModeSequence<T>(plant);
-  sequence.AddMode(&mode_left);
+
+  sequence.AddMode(&mode_double_support);
   sequence.AddMode(&mode_right);
-  auto trajopt = Dircon<T>(sequence);  
+  sequence.AddMode(&mode_left);
+
+  auto trajopt = Dircon<T>(sequence);
 
   trajopt.AddDurationBounds(duration, duration);
-
   trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(),
                            "Print file", "../snopt.out");
   trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(),
@@ -118,8 +129,8 @@ void runDircon(
   for (int j = 0; j < sequence.num_modes(); j++) {
     trajopt.drake::systems::trajectory_optimization::MultipleShooting::
         SetInitialTrajectory(init_u_traj, init_x_traj);
-    trajopt.SetInitialForceTrajectory(j, init_l_traj[j], init_lc_traj[j],
-                                      init_vc_traj[j]);
+    trajopt.SetInitialForceTrajectory(j, init_l_traj[j%2], init_lc_traj[j%2],
+                                      init_vc_traj[j%2]);
   }
 
 // Periodicity constraints
@@ -177,13 +188,15 @@ void runDircon(
   for (int i = 0; i < 10; i++) {
     trajopt.AddBoundingBoxConstraint(0, 0, trajopt.force_vars(0, i)(1));
     trajopt.AddBoundingBoxConstraint(0, 0, trajopt.force_vars(1, i)(1));
+    trajopt.AddBoundingBoxConstraint(0, 0, trajopt.force_vars(2, i)(1));
   }
 
   const double R = 10;  // Cost on input effort
   auto u = trajopt.input();
   trajopt.AddRunningCost(u.transpose()*R*u);
-
+  
   std::vector<unsigned int> visualizer_poses;
+  visualizer_poses.push_back(3);
   visualizer_poses.push_back(3);
   visualizer_poses.push_back(3);
 

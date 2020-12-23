@@ -118,8 +118,9 @@ template <typename T>
 void KinematicEvaluatorSet<T>::EvalFullJacobian(
     const Context<T>& context, drake::EigenPtr<MatrixX<T>> J) const {
   const int num_velocities = plant_.num_velocities();
-  DRAKE_THROW_UNLESS(J->rows() == count_full());
+  std::cout << (J ->rows()) << count_full() << std::endl;
   DRAKE_THROW_UNLESS(J->cols() == num_velocities);
+  DRAKE_THROW_UNLESS(J->rows() == count_full());
   int ind = 0;
   for (const auto& e : evaluators_) {
     auto J_i = J->block(ind, 0, e->num_full(), num_velocities);
