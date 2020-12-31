@@ -118,6 +118,7 @@ template <typename T>
 void KinematicEvaluatorSet<T>::EvalFullJacobian(
     const Context<T>& context, drake::EigenPtr<MatrixX<T>> J) const {
   const int num_velocities = plant_.num_velocities();
+  std::cout<<"num rows = " << J->rows() << " cont_full = " << count_full() << std::endl;
   DRAKE_THROW_UNLESS(J->rows() == count_full());
   DRAKE_THROW_UNLESS(J->cols() == num_velocities);
   int ind = 0;
@@ -226,7 +227,7 @@ VectorX<T> KinematicEvaluatorSet<T>::CalcMassMatrixTimesVDot(
 template <typename T>
 VectorX<T> KinematicEvaluatorSet<T>::CalcTimeDerivativesWithForce(
     Context<T>* context, const VectorX<T>& lambda) const {
-  MatrixX<T> J(count_full(), plant_.num_velocities());
+  static MatrixX<T> J(count_full(), plant_.num_velocities());
   EvalFullJacobian(*context, &J);
   VectorX<T> J_transpose_lambda = J.transpose() * lambda;
 
