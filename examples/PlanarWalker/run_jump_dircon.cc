@@ -53,6 +53,9 @@ using std::cout;
 using std::endl;
 
 template <typename T>
+void addConstraints(Dircon<T> &trajopt, const MultibodyPlant<T>& plant, multibody::KinematicPositionConstraint<T> foot_x_constraint);
+
+template <typename T>
 void runDircon(
     std::unique_ptr<MultibodyPlant<T>> plant_ptr,
     MultibodyPlant<double>* plant_double_ptr,
@@ -138,42 +141,10 @@ void runDircon(
     trajopt.SetInitialForceTrajectory(j, init_l_traj[j%1], init_lc_traj[j%1],
                                       init_vc_traj[j%1]);
   }
-
   int n_v = plant.num_velocities();
   int n_q = plant.num_positions();
 
-  // Constraints
-  auto u = trajopt.input();
-  auto x = trajopt.state();
-  auto x0 = trajopt.initial_state();
-  auto xf = trajopt.final_state();
-  auto xmid = trajopt.state_vars(0, (trajopt.N() - 1) / 2);
-
-  // Initial height
-  trajopt.AddBoundingBoxConstraint(FLAGS_bottomHeight-FLAGS_eps, FLAGS_bottomHeight+FLAGS_eps, x0(positions_map.at("planar_z")));
-  // Mid height
-  trajopt.AddBoundingBoxConstraint(FLAGS_minHeight, 100, xmid(positions_map.at("planar_z")));
-  // Bottom height
-  trajopt.AddBoundingBoxConstraint(FLAGS_bottomHeight-FLAGS_eps, FLAGS_bottomHeight+FLAGS_eps, xf(positions_map.at("planar_z")));
-
-  // Initial and final rotation of "torso""
-  trajopt.AddLinearConstraint( x0(positions_map.at("right_knee_pin")) ==  -x0(positions_map.at("left_knee_pin")));
-  trajopt.AddLinearConstraint( xf(positions_map.at("right_knee_pin")) ==  -xf(positions_map.at("left_knee_pin")));
-
-  // Fore-aft position
-  trajopt.AddBoundingBoxConstraint(0, 0, x0(positions_map["planar_x"]));
-  trajopt.AddBoundingBoxConstraint(FLAGS_distance, FLAGS_distance, xf(positions_map["planar_x"]));
-
-  // start/end velocity constraints
-  trajopt.AddBoundingBoxConstraint(VectorXd::Zero(n_v), VectorXd::Zero(n_v),
-                                   x0.tail(n_v));
-  trajopt.AddBoundingBoxConstraint(VectorXd::Zero(n_v), VectorXd::Zero(n_v),
-                                   xf.tail(n_v));
-
-
-  // Set foot distances
-  std::vector<int> x_active({0});
-  auto distance_foot_distance_eval = multibody::DistanceEvaluator<T>(
+  multibody::DistanceEvaluator<T> distance_foot_distance_eval = multibody::DistanceEvaluator<T>(
       plant, pt, right_lower_leg, pt, left_lower_leg, 0);
 
   auto foot_distance_evalutors = multibody::KinematicEvaluatorSet<T>(plant);
@@ -186,12 +157,20 @@ void runDircon(
   foot_distance_lb(0) = 0.1;
   foot_distance_ub(0) = 0.3;
 
-  auto foot_x_constraint =
-      std::make_shared<multibody::KinematicPositionConstraint<T>>(
+  auto foot_x_constraint = multibody::KinematicPositionConstraint<T>(
           plant, foot_distance_evalutors, foot_distance_lb, foot_distance_ub);
 
-  trajopt.AddConstraint(foot_x_constraint, x0.head(n_q));
-  trajopt.AddConstraint(foot_x_constraint, xf.head(n_q));
+  addConstraints(trajopt, plant, foot_x_constraint);
+
+  auto x0 = trajopt.initial_state();
+  auto xf = trajopt.final_state();
+
+
+
+  // Constraints
+  auto u = trajopt.input();
+  auto x = trajopt.state();
+  auto xmid = trajopt.state_vars(0, (trajopt.N() - 1) / 2);
 
   const double R_w = 10;  // Cost on power
   const MatrixXd Q = 3  * MatrixXd::Identity(n_v, n_v); // Cost on velocity
@@ -237,6 +216,47 @@ void runDircon(
     simulator.AdvanceTo(pp_xtraj.end_time());
     sleep(2);
   }
+}
+template <typename T>
+void addConstraints(Dircon<T> &trajopt, const MultibodyPlant<T>& plant, multibody::KinematicPositionConstraint<T> foot_x_constraint)
+{
+  auto positions_map = multibody::makeNameToPositionsMap(plant);
+  auto velocities_map = multibody::makeNameToVelocitiesMap(plant);
+  auto act_map = multibody::makeNameToActuatorsMap(plant);
+  int n_v = plant.num_velocities();
+  int n_q = plant.num_positions();
+
+  // Constraints
+  auto u = trajopt.input();
+  auto x = trajopt.state();
+  auto x0 = trajopt.initial_state();
+  auto xf = trajopt.final_state();
+  auto xmid = trajopt.state_vars(0, (trajopt.N() - 1) / 2);
+
+  // Initial height
+  trajopt.AddBoundingBoxConstraint(FLAGS_bottomHeight-FLAGS_eps, FLAGS_bottomHeight+FLAGS_eps, x0(positions_map.at("planar_z")));
+  // Mid height
+  trajopt.AddBoundingBoxConstraint(FLAGS_minHeight, 100, xmid(positions_map.at("planar_z")));
+  // Bottom height
+  trajopt.AddBoundingBoxConstraint(FLAGS_bottomHeight-FLAGS_eps, FLAGS_bottomHeight+FLAGS_eps, xf(positions_map.at("planar_z")));
+
+  // Initial and final rotation of "torso""
+  trajopt.AddLinearConstraint( x0(positions_map.at("right_knee_pin")) ==  -x0(positions_map.at("left_knee_pin")));
+  trajopt.AddLinearConstraint( xf(positions_map.at("right_knee_pin")) ==  -xf(positions_map.at("left_knee_pin")));
+
+  // Fore-aft position
+  trajopt.AddBoundingBoxConstraint(0, 0, x0(positions_map["planar_x"]));
+  trajopt.AddBoundingBoxConstraint(FLAGS_distance, FLAGS_distance, xf(positions_map["planar_x"]));
+
+  // start/end velocity constraints
+  trajopt.AddBoundingBoxConstraint(VectorXd::Zero(n_v), VectorXd::Zero(n_v),
+                                  x0.tail(n_v));
+  trajopt.AddBoundingBoxConstraint(VectorXd::Zero(n_v), VectorXd::Zero(n_v),
+                                  xf.tail(n_v));
+
+  // Set foot distances
+  trajopt.AddConstraint(&foot_x_constraint, x0.head(n_q));
+  trajopt.AddConstraint(&foot_x_constraint, xf.head(n_q));
 }
 }  // namespace
 }  // namespace dairlib
