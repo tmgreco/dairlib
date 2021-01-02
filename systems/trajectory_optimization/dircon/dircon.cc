@@ -249,11 +249,12 @@ Dircon<T>::Dircon(std::unique_ptr<DirconModeSequence<T>> my_sequence,
         auto pre_impact_velocity = state_vars(i_mode - 1, pre_impact_index)
                                        .tail(plant_.num_velocities());
         std::cout << "Line 251-dircon" <<std::endl;
-        std::cout << i_mode - 1 <<std::endl;
-        post_impact_velocity_vars(0);
+        for(int index = 0; index < pre_impact_velocity.size(); index ++ )
+        {
+          //DRAKE_DEMAND(!pre_impact_velocity(index).is_dummy());
+        }
         std::cout << "Line 253-dircon" <<std::endl;
-        AddLinearConstraint(pre_impact_velocity ==
-                            post_impact_velocity_vars(i_mode - 1));
+        AddLinearConstraint(pre_impact_velocity == VectorXd::Zero(plant_.num_velocities()));
         std::cout << "Line 256-dricon" <<std::endl;
       }
     }

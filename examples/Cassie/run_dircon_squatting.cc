@@ -85,6 +85,7 @@ namespace dairlib {
 using systems::trajectory_optimization::Dircon;
 using systems::trajectory_optimization::DirconMode;
 using systems::trajectory_optimization::KinematicConstraintType;
+using systems::trajectory_optimization::DirconModeSequence;
 
 void DoMain(double duration, int max_iter, string data_directory,
             string init_file, double tol, bool to_store_data) {
@@ -223,7 +224,11 @@ void DoMain(double duration, int max_iter, string data_directory,
   // double_support.set_constraint_type(num_knotpoints - 1,
   //                                   KinematicConstraintType::kAccelOnly);
 
-  auto trajopt = Dircon<double>(&double_support);
+  auto sequence = DirconModeSequence<double>(plant);
+  sequence.AddMode(&double_support);
+  //sequence.AddMode(&double_support);
+
+  auto trajopt = Dircon<double>(sequence);
 
   if (FLAGS_ipopt) {
     // Ipopt settings adapted from CaSaDi and FROST
