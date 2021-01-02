@@ -163,19 +163,19 @@ void runSpiritStand(
   const auto& toe3_backRight  = plant.GetFrameByName( "toe" + std::to_string(3) );
   // Create offset worldpoints
   auto toe0_eval = multibody::WorldPointEvaluator<T>(plant, toeOffset, toe0_frontLeft , Matrix3d::Identity(), Vector3d::Zero(), {0, 1, 2}); //Shift to tip;
-  //auto toe1_eval = multibody::WorldPointEvaluator<T>(plant, toeOffset, toe1_backLeft  , Matrix3d::Identity(), Vector3d::Zero(), {0, 1, 2}); //Shift to tip;
-  //auto toe2_eval = multibody::WorldPointEvaluator<T>(plant, toeOffset, toe2_frontRight, Matrix3d::Identity(), Vector3d::Zero(), {0, 1, 2}); //Shift to tip;
-  //auto toe3_eval = multibody::WorldPointEvaluator<T>(plant, toeOffset, toe3_backRight , Matrix3d::Identity(), Vector3d::Zero(), {0, 1, 2}); //Shift to tip;
+  auto toe1_eval = multibody::WorldPointEvaluator<T>(plant, toeOffset, toe1_backLeft  , Matrix3d::Identity(), Vector3d::Zero(), {0, 1, 2}); //Shift to tip;
+  auto toe2_eval = multibody::WorldPointEvaluator<T>(plant, toeOffset, toe2_frontRight, Matrix3d::Identity(), Vector3d::Zero(), {0, 1, 2}); //Shift to tip;
+  auto toe3_eval = multibody::WorldPointEvaluator<T>(plant, toeOffset, toe3_backRight , Matrix3d::Identity(), Vector3d::Zero(), {0, 1, 2}); //Shift to tip;
   // Set frictional properties (not sure what this does to the optimization)
   toe0_eval.set_frictional(); toe0_eval.set_mu(mu);
-  //toe1_eval.set_frictional(); toe1_eval.set_mu(mu);
-  //toe2_eval.set_frictional(); toe2_eval.set_mu(mu);
-  //toe3_eval.set_frictional(); toe3_eval.set_mu(mu);
+  toe1_eval.set_frictional(); toe1_eval.set_mu(mu);
+  toe2_eval.set_frictional(); toe2_eval.set_mu(mu);
+  toe3_eval.set_frictional(); toe3_eval.set_mu(mu);
   // Consolidate the evaluators for contant constraint
   evaluators.add_evaluator(&(toe0_eval));
-  //evaluators.add_evaluator(&(toe1_eval));
-  //evaluators.add_evaluator(&(toe2_eval));
-  //evaluators.add_evaluator(&(toe3_eval));
+  evaluators.add_evaluator(&(toe1_eval));
+  evaluators.add_evaluator(&(toe2_eval));
+  evaluators.add_evaluator(&(toe3_eval));
 
   /// Setup the standing mode. This behavior only has one mode.
   int num_knotpoints = 15; // number of knot points in the collocation
@@ -185,19 +185,19 @@ void runSpiritStand(
                                    0.03, 3);
 
   for (int i = 0; i < num_legs; i++ ){
-    //full_support.MakeConstraintRelative(i, 0);  // x-coordinate can be non-zero
-    //full_support.MakeConstraintRelative(i, 1);  // y-coordinate can be non-zero
+    full_support.MakeConstraintRelative(i, 0);  // x-coordinate can be non-zero
+    full_support.MakeConstraintRelative(i, 1);  // y-coordinate can be non-zero
   }
 
   for (int i = 0; i < num_knotpoints; i++) {
-    //full_support.SkipQuaternionConstraint(i);
-    //flight_mode.SkipQuaternionConstraint(i);
+    full_support.SkipQuaternionConstraint(i);
+    flight_mode.SkipQuaternionConstraint(i);
   }
 
     ///Mode Sequence
   // Adding the ONE mode to the sequence, will not leave full_support
   auto sequence = DirconModeSequence<T>(plant);
-  sequence.AddMode(&flight_mode);
+  sequence.AddMode(&full_support);
   sequence.AddMode(&flight_mode);
 
   ///Setup trajectory optimization

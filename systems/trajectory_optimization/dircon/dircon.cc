@@ -248,8 +248,13 @@ Dircon<T>::Dircon(std::unique_ptr<DirconModeSequence<T>> my_sequence,
         // Linear equality constraint on velocity variables
         auto pre_impact_velocity = state_vars(i_mode - 1, pre_impact_index)
                                        .tail(plant_.num_velocities());
+        std::cout << "Line 251-dircon" <<std::endl;
+        std::cout << i_mode - 1 <<std::endl;
+        post_impact_velocity_vars(0);
+        std::cout << "Line 253-dircon" <<std::endl;
         AddLinearConstraint(pre_impact_velocity ==
                             post_impact_velocity_vars(i_mode - 1));
+        std::cout << "Line 256-dricon" <<std::endl;
       }
     }
 
