@@ -197,19 +197,26 @@ void runSpiritStand(
     ///Mode Sequence
   // Adding the ONE mode to the sequence, will not leave full_support
   auto sequence = DirconModeSequence<T>(plant);
-  sequence.AddMode(&full_support);
+  //sequence.AddMode(&full_support);
   sequence.AddMode(&flight_mode);
+  sequence.AddMode(&full_support);
 
   ///Setup trajectory optimization
   std::cout<<"Line223"<<std::endl;
   auto trajopt = Dircon<T>(sequence);
+  int i_mode = 1;
+  int pre_impact_index = trajopt.mode_length(i_mode - 1) - 1;
+  auto pre_impact_velocity = trajopt.state_vars(i_mode - 1, pre_impact_index)
+      .head(plant.num_velocities());
+  trajopt.AddLinearConstraint(pre_impact_velocity == VectorXd::Zero(plant.num_velocities()));
+
   std::cout<<"Line225"<<std::endl;
   // Set up Trajectory Optimization options
   trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(),
                            "Print file", "/home/shane/snopt.out");
   trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(),
-                           "Major iterations limit", 20000);
-  trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(), "Iterations limit", 10000);
+                           "Major iterations limit", 200000);
+  trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(), "Iterations limit", 100000);
   // Add duration constraint, currently constrained not bounded
   trajopt.AddDurationBounds(0, 2*duration);
   // Initialize the trajectory control state and forces

@@ -53,7 +53,7 @@ using std::cout;
 using std::endl;
 
 template <typename T>
-void addConstraints(Dircon<T> &trajopt, const MultibodyPlant<T>& plant, multibody::KinematicPositionConstraint<T> foot_x_constraint);
+void addConstraints(Dircon<T> &trajopt, const MultibodyPlant<T>& plant);
 
 template <typename T>
 void runDircon(
@@ -157,10 +157,7 @@ void runDircon(
   foot_distance_lb(0) = 0.1;
   foot_distance_ub(0) = 0.3;
 
-  auto foot_x_constraint = multibody::KinematicPositionConstraint<T>(
-          plant, foot_distance_evalutors, foot_distance_lb, foot_distance_ub);
-
-  addConstraints(trajopt, plant, foot_x_constraint);
+  addConstraints(trajopt, plant);
 
   auto x0 = trajopt.initial_state();
   auto xf = trajopt.final_state();
@@ -218,7 +215,7 @@ void runDircon(
   }
 }
 template <typename T>
-void addConstraints(Dircon<T> &trajopt, const MultibodyPlant<T>& plant, multibody::KinematicPositionConstraint<T> foot_x_constraint)
+void addConstraints(Dircon<T> &trajopt, const MultibodyPlant<T>& plant)
 {
   auto positions_map = multibody::makeNameToPositionsMap(plant);
   auto velocities_map = multibody::makeNameToVelocitiesMap(plant);
@@ -253,10 +250,6 @@ void addConstraints(Dircon<T> &trajopt, const MultibodyPlant<T>& plant, multibod
                                   x0.tail(n_v));
   trajopt.AddBoundingBoxConstraint(VectorXd::Zero(n_v), VectorXd::Zero(n_v),
                                   xf.tail(n_v));
-
-  // Set foot distances
-  trajopt.AddConstraint(&foot_x_constraint, x0.head(n_q));
-  trajopt.AddConstraint(&foot_x_constraint, xf.head(n_q));
 }
 }  // namespace
 }  // namespace dairlib
