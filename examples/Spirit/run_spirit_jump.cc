@@ -204,14 +204,15 @@ void runSpiritStand(
   ///Setup trajectory optimization
   std::cout<<"Line223"<<std::endl;
   auto trajopt = Dircon<T>(sequence);
+  /*
   int i_mode = 1;
   int pre_impact_index = trajopt.mode_length(i_mode - 1) - 1;
-  auto pre_impact_state= trajopt.state_vars(i_mode - 1, pre_impact_index);
-  auto pre_impact_velocities = pre_impact_state.tail(plant.num_velocities());
+  auto pre_impact_state= trajopt.state_vars(i_mode - 1, pre_impact_index).tail(plant.num_velocities());
+  auto pre_impact_velocities = pre_impact_state;
   std::cout<< pre_impact_state.size() <<std::endl;
   std::cout<< pre_impact_velocities.size() <<std::endl;
   trajopt.AddLinearConstraint(pre_impact_velocities == VectorXd::Zero(pre_impact_velocities.size()));
-
+  */
   std::cout<<"Line225"<<std::endl;
   // Set up Trajectory Optimization options
   trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(),
