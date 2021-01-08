@@ -50,8 +50,8 @@ DEFINE_double(knotpointsPerMode, 10, "Number of knotpoints in each contact mode"
 DEFINE_double(inputCost, 10, "The standing height.");
 DEFINE_double(velocityCost, 10, "The standing height.");
 DEFINE_double(eps, 1e-2, "The wiggle room.");
-DEFINE_double(optTol, 1e-6,"Optimization Tolerance");
-DEFINE_double(feasTol, 1e-5,"Feasibility Tolerance");
+DEFINE_double(optTol, 1e-4,"Optimization Tolerance");
+DEFINE_double(feasTol, 1e-4,"Feasibility Tolerance");
 DEFINE_bool(autodiff, false, "Double or autodiff version");
 DEFINE_bool(runInitTraj, false, "Animate initial conditions?");
 // Parameters which enable dircon-improving features
@@ -237,11 +237,18 @@ void runSpiritJump(
   trajopt.AddDurationBounds(0, duration*2);
   // Initialize the trajectory control state and forces
   
-  for (int j = 0; j < sequence.num_modes(); j++) {
-    trajopt.drake::systems::trajectory_optimization::MultipleShooting::
-        SetInitialTrajectory(init_u_traj, init_x_traj);
-    trajopt.SetInitialForceTrajectory(j, init_l_traj[j], init_lc_traj[j],
-                                      init_vc_traj[j]);
+
+   // initial guess
+  if (!FLAGS_init_file.empty()) {
+    dairlib::DirconTrajectory init_traj_from_file(FLAGS_data_directory + FLAGS_init_file);
+    trajopt.SetInitialGuessForAllVariables( init_traj_from_file.GetDecisionVariables());
+  }else{
+    for (int j = 0; j < sequence.num_modes(); j++) {
+      trajopt.drake::systems::trajectory_optimization::MultipleShooting::
+          SetInitialTrajectory(init_u_traj, init_x_traj);
+      trajopt.SetInitialForceTrajectory(j, init_l_traj[j], init_lc_traj[j],
+                                        init_vc_traj[j]);
+    }
   }
 
   
