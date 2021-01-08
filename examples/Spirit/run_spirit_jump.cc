@@ -1,9 +1,11 @@
 #include <memory>
 #include <chrono>
+#include <fstream>
 #include <unistd.h>
 #include <gflags/gflags.h>
 #include <string.h>
 #include <cmath>
+#include <filesystem>
 
 #include "drake/solvers/snopt_solver.h"
 #include "drake/systems/analysis/simulator.h"
@@ -13,6 +15,10 @@
 #include <drake/multibody/inverse_kinematics/inverse_kinematics.h>
 #include "drake/geometry/geometry_visualization.h"
 #include "drake/solvers/solve.h"
+
+#include "common/file_utils.h"
+#include "lcm/dircon_saved_trajectory.h"
+#include "solvers/optimization_utils.h"
 
 #include "common/find_resource.h"
 #include "systems/trajectory_optimization/dircon/dircon.h"
@@ -24,6 +30,14 @@
 #include "multibody/kinematic/kinematic_constraints.h"
 
 #include "examples/Spirit/animate_spirit.h"
+
+
+DEFINE_string(init_file, "", "the file name of initial guess");
+DEFINE_string(data_directory, "/home/jdcap/dairlib/examples/Spirit/saved_trajectories/",
+              "directory to save/read data");
+DEFINE_string(save_filename, "last_unnamed",
+              "Filename to save decision vars to.");
+DEFINE_bool(store_data, false, "To store solution or not");
 
 DEFINE_double(duration, 2, "The stand duration");
 DEFINE_double(front2BackToeDistance, 0.35, "Nominal distance between the back and front toes.");
@@ -66,6 +80,7 @@ using systems::trajectory_optimization::KinematicConstraintType;
 using std::vector;
 using std::cout;
 using std::endl;
+using std::string;
 
 
 /// Get a nominal Spirit Stand (i.e. zero hip ad/abduction motor torque, toes below motors) for initializing
@@ -523,6 +538,37 @@ void runSpiritJump(
   multibody::connectTrajectoryVisualizer(plant_double_ptr,
       &builder, &scene_graph, pp_xtraj);
   auto diagram = builder.Build();
+
+//**** SAVE FILES ****/
+  // Save trajectory to file
+  if (!FLAGS_save_filename.empty() ) {
+    dairlib::DirconTrajectory saved_traj(
+        plant, trajopt, result, "Jumping trajectory",
+        "Decision variables and state/input trajectories "
+        "for jumping");
+    saved_traj.WriteToFile(FLAGS_data_directory + FLAGS_save_filename);
+    std::cout << "Wrote to file: " << FLAGS_data_directory + FLAGS_save_filename
+              << std::endl;
+  }
+
+  // Check which solver was used
+  cout << "Solver: " << result.get_solver_id().name() << endl;
+
+  // store the solution of the decision variable
+  VectorXd z = result.GetSolution(trajopt.decision_variables());
+  VectorXd constraint_y, constraint_lb, constraint_ub;
+  MatrixXd constraint_A;
+  solvers::LinearizeConstraints(trajopt, z, &constraint_y, &constraint_A,
+                                &constraint_lb, &constraint_ub);
+  if (FLAGS_store_data) {
+    writeCSV(FLAGS_data_directory + string("z.csv"), z);
+    writeCSV(FLAGS_data_directory + string("A.csv"), constraint_A);
+    writeCSV(FLAGS_data_directory + string("y.csv"), constraint_y);
+    writeCSV(FLAGS_data_directory + string("lb.csv"), constraint_lb);
+    writeCSV(FLAGS_data_directory + string("ub.csv"), constraint_ub);
+  }
+
+//**** /SAVE FILES ****/
   while (true) {
     
     drake::systems::Simulator<double> simulator(*diagram);
@@ -667,14 +713,7 @@ int main(int argc, char* argv[]) {
     init_vc_traj.push_back(init_vc_traj_j);
   }
 
-  if (FLAGS_autodiff) {
-    std::unique_ptr<MultibodyPlant<drake::AutoDiffXd>> plant_autodiff =
-        drake::systems::System<double>::ToAutoDiffXd(*plant);
-    dairlib::runSpiritJump<drake::AutoDiffXd>(
-      std::move(plant_autodiff), plant_vis.get(), std::move(scene_graph),
-      FLAGS_duration, init_x_traj, init_u_traj, init_l_traj,
-      init_lc_traj, init_vc_traj);
-  } else if (FLAGS_runInitTraj){
+  if (FLAGS_runInitTraj){
     dairlib::runAnimate<double>(
       std::move(plant), plant_vis.get(), std::move(scene_graph), init_x_traj);
   }else {
