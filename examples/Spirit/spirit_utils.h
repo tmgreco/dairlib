@@ -154,7 +154,7 @@ template <typename T>
 void setSpiritActuationLimits(
           drake::multibody::MultibodyPlant<T> & plant, 
           dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,
-          double actuatorLimit = 40.0);//From URDF this default seems a bit high
+          double actuatorLimit = 3.5 * 6);// URDF has 40 this is more realistic based on the modules 
 
 /// Constrains the system to a single symmetric leg behavior
 ///    @param plant a pointer to a multibodyPlant
@@ -164,7 +164,8 @@ template <typename T>
 void setSpiritSymmetry(
         drake::multibody::MultibodyPlant<T> & plant, 
         dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,
-        std::string symmetry = "sagittal");
+        std::string symmetry = "sagittal",
+        bool ignoreWarning = false);
 
 
 /// Constrains the system to a set symmetric leg behaviors handling internal

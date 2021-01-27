@@ -248,8 +248,8 @@ void setSpiritJointLimits(drake::multibody::MultibodyPlant<T> & plant,
                           dairlib::systems::trajectory_optimization::Dircon<T>& trajopt ){
   // Upper doesn't need a joint limit for now, but we may eventually want to
   // change this to help the optimizations
-  // double minValUpper = -M_PI ;
-  // double maxValUpper =  M_PI ;
+  double minValUpper = -2 * M_PI ;
+  double maxValUpper =  2 * M_PI ;
 
   // Lower limits are set to 0 and pi in the URDF might be better to include
   // the few degrees that come with the body collision and to remove a few to stay
@@ -271,17 +271,17 @@ void setSpiritJointLimits(drake::multibody::MultibodyPlant<T> & plant,
   std::vector<int> indicesAbduc = {8,9,10,11};
 
 //See above: Upper doesn't need joint limit since there isnt a meaningful set
-// setSpiritJointLimits( plant, 
-//                      trajopt,  
-//                      indicesUpper, 
-//                      minValUpper, 
-//                      maxValUpper  );
+setSpiritJointLimits( plant, 
+                     trajopt,  
+                     indicesUpper, 
+                     minValUpper, 
+                     maxValUpper  );
                      
 setSpiritJointLimits( plant, 
                      trajopt,  
                      indicesLower, 
-                     minValLower, 
-                     maxValLower  );
+                     minValLower , 
+                     maxValLower );
                      
 setSpiritJointLimits( plant, 
                      trajopt,  
@@ -300,12 +300,37 @@ void setSpiritActuationLimits(drake::multibody::MultibodyPlant<T> & plant,
                           dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,
                           double actuatorLimit){
   auto actuators_map = multibody::makeNameToActuatorsMap(plant);
-  // std::cout<<"joint_" + std::to_string(iJoint)<<std::endl;
+
+  // Upper 0,2,4,6
+  std::vector<int> indicesUpper = {0,2,4,6};
+  // Lower 1,3,5,7
+  std::vector<int> indicesLower = {1,3,5,7};
+  // Hips  8,9,10,11
+  std::vector<int> indicesAbduc = {8,9,10,11};
+
+  double mechanicalReductionKnee = 1.5;
+  
+  
   int N_knotpoints = trajopt.N();
   for(int iKnot = 0; iKnot<N_knotpoints;iKnot++){
     auto ui = trajopt.input(iKnot);
-    for (int iMotor = 0; iMotor<12; iMotor++){
-      trajopt.AddBoundingBoxConstraint(-actuatorLimit,actuatorLimit,ui(actuators_map.at("motor_" + std::to_string(iMotor))));
+    for (int iMotor : indicesUpper){
+      trajopt.AddBoundingBoxConstraint(
+        -actuatorLimit,
+         actuatorLimit,
+         ui(actuators_map.at("motor_" + std::to_string(iMotor))));
+    }
+    for (int iMotor : indicesLower){
+      trajopt.AddBoundingBoxConstraint(
+        -actuatorLimit*mechanicalReductionKnee,
+         actuatorLimit*mechanicalReductionKnee,
+         ui(actuators_map.at("motor_" + std::to_string(iMotor))));
+    }
+    for (int iMotor : indicesAbduc){
+      trajopt.AddBoundingBoxConstraint(
+        -actuatorLimit,
+         actuatorLimit,
+         ui(actuators_map.at("motor_" + std::to_string(iMotor))));
     }
   }
 
@@ -345,14 +370,6 @@ void setSpiritSymmetry(
         dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,
         std::vector<std::string> symmetries){
   
-  
-  static bool hasRun = false;
-  if(hasRun){
-    std::cerr << "Warning: Running different symmetries seperately could cause system to be overconstrained. Use vector overload to avoid this." 
-              << std::endl;
-  }else{
-    hasRun = true;
-  }
   bool hasSaggital = false;
   bool hasForeAft  = false;
   hasSaggital = std::any_of(symmetries.begin(), symmetries.end(), [](const std::string & str) {
@@ -371,7 +388,7 @@ void setSpiritSymmetry(
   }else if (hasForeAft){
     std::cerr << "Warning: ForeAft not implemented yet. No constraints added" << std::endl;
   }else{
-    std::cerr << "Warning: Failed to add symmetric constraint. No constraints added" << std::endl;
+    std::cerr << "Warning: Failed to add symmetric constraint. Check spelling or implemenation. No constraints added" << std::endl;
   }
 
 }
@@ -379,8 +396,17 @@ void setSpiritSymmetry(
 template <typename T>
 void setSpiritSymmetry(drake::multibody::MultibodyPlant<T> & plant, 
                        dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,
-                       std::string symmetry){
-                         
+                       std::string symmetry,
+                       bool ignoreWarning){
+
+  static bool hasRun = false;
+  if(hasRun && !ignoreWarning){
+    std::cerr << "Warning: Running different symmetries seperately could cause system to be overconstrained. Use vector overload to avoid this or set ignoreWarning flag if not a problem." 
+              << std::endl;
+  }else{
+    hasRun = true;
+  }
+
   std::vector<std::string> symmetries;
   symmetries.push_back(symmetry);
   setSpiritSymmetry(
@@ -457,7 +483,8 @@ template void setSpiritActuationLimits(
 template void setSpiritSymmetry(
         drake::multibody::MultibodyPlant<double> & plant, 
         dairlib::systems::trajectory_optimization::Dircon<double>& trajopt,
-        std::string symmetry = "sagittal");
+        std::string symmetry,
+        bool ignoreWarning);
 
 template void setSpiritSymmetry(
         drake::multibody::MultibodyPlant<double> & plant, 

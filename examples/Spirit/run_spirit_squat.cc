@@ -69,10 +69,6 @@ using std::cout;
 using std::endl;
 
 
-
-
-
-
 template <typename T>
 void addConstraints(const MultibodyPlant<T>& plant, Dircon<T>& trajopt){
   // Get position and velocity dictionaries 
