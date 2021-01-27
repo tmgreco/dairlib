@@ -2,6 +2,27 @@
 
 namespace dairlib {
 
+class ModeSequenceHelper {
+  public:
+    std::vector<Eigen::Matrix<bool,1,4>> modes; // bool matrix describing toe contacts as true or false e.g. {{1,1,1,1},{0,0,0,0}} would be a full support mode and flight mode
+    std::vector<int> knots; // Matrix of knot points for each mode  
+    std::vector<Eigen::Vector3d> normals;
+    std::vector<Eigen::Vector3d> offsets;
+    std::vector<double> mus;
+    void addMode(
+      Eigen::Matrix<bool,1,4> activeContactVector, 
+      int num_knots, 
+      Eigen::Vector3d normal, 
+      Eigen::Vector3d offset,
+      double mu){
+        modes.push_back(activeContactVector);
+        knots.push_back(num_knots);
+        normals.push_back(normal);
+        offsets.push_back(offset);
+        mus.push_back(mu);
+    }
+};
+
 /// Outputs a nominal stand state into the xState vector pointer based on the 
 /// height. This is an approximation for use in initial conditions.
 ///   @param plant a pointer to the MultibodyPlant

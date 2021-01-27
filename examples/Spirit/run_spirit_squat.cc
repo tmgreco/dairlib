@@ -70,26 +70,6 @@ using std::endl;
 
 
 
-class ModeSequenceHelper {
-  public:
-    std::vector<Eigen::Matrix<bool,1,4>> modeSeqVect; // bool matrix describing toe contacts as true or false e.g. {{1,1,1,1},{0,0,0,0}} would be a full support mode and flight mode
-    std::vector<int> knotpointVect; // Matrix of knot points for each mode  
-    std::vector<Eigen::Vector3d> normals;
-    std::vector<Eigen::Vector3d> offsets;
-    std::vector<double> mus;
-    void addMode(
-      Eigen::Matrix<bool,1,4> activeContactVector, 
-      int num_knots, 
-      Eigen::Vector3d normal, 
-      Eigen::Vector3d offset,
-      double mu){
-        modeSeqVect.push_back(activeContactVector);
-        knotpointVect.push_back(num_knots);
-        normals.push_back(normal);
-        offsets.push_back(offset);
-        mus.push_back(mu);
-    }
-};
 
 
 
@@ -162,32 +142,40 @@ void runSpiritSquat(
   int num_knotpoints_per_mode = 10; // number of knot points in the collocation
 
   auto sequence = DirconModeSequence<T>(plant);
-  std::vector<Eigen::Matrix<bool,1,4>> modes;
-  std::vector<int> knotpoints;
-  std::vector<Eigen::Vector3d> normals;
-  std::vector<Eigen::Vector3d> offsets;
-  std::vector<double> mus;
+  // std::vector<Eigen::Matrix<bool,1,4>> modes;
+  // std::vector<int> knotpoints;
+  // std::vector<Eigen::Vector3d> normals;
+  // std::vector<Eigen::Vector3d> offsets;
+  // std::vector<double> mus;
 
-  Eigen::Matrix<bool,1,4> mode1;
-  mode1 << 1, 1, 1, 1;
+  // Eigen::Matrix<bool,1,4> mode1;
+  // mode1 << 1, 1, 1, 1;
 
-  int knots1 = 10;
+  // int knots1 = 10;
   
-  Eigen::Vector3d normal1;
-  normal1 << 0, 0, 1 ;
+  // Eigen::Vector3d normal1;
+  // normal1 << 0, 0, 1 ;
   
-  Eigen::Vector3d offset1;
-  offset1 << 0, 0, 0 ;
+  // Eigen::Vector3d offset1;
+  // offset1 << 0, 0, 0 ;
 
-  double mu1 = 1;
+  // double mu1 = 1;
 
-  modes.push_back(mode1);
-  knotpoints.push_back(knots1);
-  normals.push_back(normal1);
-  offsets.push_back(offset1);
-  mus.push_back(mu1);
+  // modes.push_back(mode1);
+  // knotpoints.push_back(knots1);
+  // normals.push_back(normal1);
+  // offsets.push_back(offset1);
+  // mus.push_back(mu1);
+  dairlib::ModeSequenceHelper msh;
+  msh.addMode( // FIRST MODE 1
+    (Eigen::Matrix<bool,1,4>() << 1,1,1,1 ).finished(), 
+    10, 
+    Eigen::Vector3d::UnitZ(), 
+    Eigen::Vector3d::Zero(), 
+    1 
+    );
 
-  auto [modeVector, toeEvals, toeEvalSets] = createSpiritModeSequence(plant, modes , knotpoints,normals, offsets, mus);
+  auto [modeVector, toeEvals, toeEvalSets] = createSpiritModeSequence(plant, msh.modes , msh.knots , msh.normals , msh.offsets, msh.mus);
   
   for (auto& mode : modeVector){
     for (int i = 0; i < num_legs; i++ ){
