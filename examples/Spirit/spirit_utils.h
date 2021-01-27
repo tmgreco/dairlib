@@ -130,6 +130,13 @@ void setSpiritJointLimits(
                     drake::multibody::MultibodyPlant<T> & plant, 
                     dairlib::systems::trajectory_optimization::Dircon<T>& trajopt );
 
+
+template <typename T> 
+void setSpiritActuationLimits(
+          drake::multibody::MultibodyPlant<T> & plant, 
+          dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,
+          double actuatorLimit = 40.0);//From URDF this default seems a bit high
+
 template <typename T> 
 void setSpiritSymmetry(
         drake::multibody::MultibodyPlant<T> & plant, 

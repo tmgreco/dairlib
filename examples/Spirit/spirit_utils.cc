@@ -248,8 +248,8 @@ void setSpiritJointLimits(drake::multibody::MultibodyPlant<T> & plant,
                           dairlib::systems::trajectory_optimization::Dircon<T>& trajopt ){
   // Upper doesn't need a joint limit for now, but we may eventually want to
   // change this to help the optimizations
-  double minValUpper = -M_PI ;
-  double maxValUpper =  M_PI ;
+  // double minValUpper = -M_PI ;
+  // double maxValUpper =  M_PI ;
 
   // Lower limits are set to 0 and pi in the URDF might be better to include
   // the few degrees that come with the body collision and to remove a few to stay
@@ -291,6 +291,27 @@ setSpiritJointLimits( plant,
 
 }
 //   \SETSPIRITJOINTLIMITS 
+
+
+// **********************************************************
+//   SETSPIRITACTUATIONLIMITS
+template <typename T>  
+void setSpiritActuationLimits(drake::multibody::MultibodyPlant<T> & plant, 
+                          dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,
+                          double actuatorLimit){
+  auto actuators_map = multibody::makeNameToActuatorsMap(plant);
+  // std::cout<<"joint_" + std::to_string(iJoint)<<std::endl;
+  int N_knotpoints = trajopt.N();
+  for(int iKnot = 0; iKnot<N_knotpoints;iKnot++){
+    auto ui = trajopt.input(iKnot);
+    for (int iMotor = 0; iMotor<12; iMotor++){
+      trajopt.AddBoundingBoxConstraint(-actuatorLimit,actuatorLimit,ui(actuators_map.at("motor_" + std::to_string(iMotor))));
+    }
+  }
+
+}
+//   \SETSPIRITACTUATIONLIMITS
+
 
 // **********************************************************
 //   SETSPIRITSYMMETRY
@@ -427,6 +448,11 @@ template void setSpiritJointLimits(
 template void setSpiritJointLimits(
           drake::multibody::MultibodyPlant<double> & plant, 
           dairlib::systems::trajectory_optimization::Dircon<double>& trajopt );
+
+template void setSpiritActuationLimits(
+          drake::multibody::MultibodyPlant<double> & plant, 
+          dairlib::systems::trajectory_optimization::Dircon<double>& trajopt,
+          double actuatorLimit);
 
 template void setSpiritSymmetry(
         drake::multibody::MultibodyPlant<double> & plant, 

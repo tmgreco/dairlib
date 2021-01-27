@@ -136,43 +136,22 @@ void runSpiritSquat(
   int num_legs = 4;
   double toeRadius = 0.02; // Radius of toe ball
   Vector3d toeOffset(toeRadius,0,0); // vector to "contact point"
+  double mu = 1; // Coeff of friction
   
 
+  int num_knotpoints_per_mode = 10; 
   
-  int num_knotpoints_per_mode = 10; // number of knot points in the collocation
 
   auto sequence = DirconModeSequence<T>(plant);
-  // std::vector<Eigen::Matrix<bool,1,4>> modes;
-  // std::vector<int> knotpoints;
-  // std::vector<Eigen::Vector3d> normals;
-  // std::vector<Eigen::Vector3d> offsets;
-  // std::vector<double> mus;
 
-  // Eigen::Matrix<bool,1,4> mode1;
-  // mode1 << 1, 1, 1, 1;
-
-  // int knots1 = 10;
-  
-  // Eigen::Vector3d normal1;
-  // normal1 << 0, 0, 1 ;
-  
-  // Eigen::Vector3d offset1;
-  // offset1 << 0, 0, 0 ;
-
-  // double mu1 = 1;
-
-  // modes.push_back(mode1);
-  // knotpoints.push_back(knots1);
-  // normals.push_back(normal1);
-  // offsets.push_back(offset1);
-  // mus.push_back(mu1);
   dairlib::ModeSequenceHelper msh;
+  
   msh.addMode( // FIRST MODE 1
-    (Eigen::Matrix<bool,1,4>() << 1,1,1,1 ).finished(), 
-    10, 
-    Eigen::Vector3d::UnitZ(), 
-    Eigen::Vector3d::Zero(), 
-    1 
+    (Eigen::Matrix<bool,1,4>() << 1,1,1,1 ).finished(), // contact bools 
+    num_knotpoints_per_mode,  // number of knot points in the collocation
+    Eigen::Vector3d::UnitZ(), // normal
+    Eigen::Vector3d::Zero(),  // world offset
+    mu //friction
     );
 
   auto [modeVector, toeEvals, toeEvalSets] = createSpiritModeSequence(plant, msh.modes , msh.knots , msh.normals , msh.offsets, msh.mus);
@@ -304,6 +283,7 @@ void runSpiritSquat(
   }
   setSpiritSymmetry(plant, trajopt, "sagittal");
   setSpiritJointLimits(plant, trajopt);
+  setSpiritActuationLimits(plant,trajopt);
 
  double upperLegLength = 0.206; // length of the upper leg link
 
@@ -417,6 +397,7 @@ int main(int argc, char* argv[]) {
 
   auto positions_map = dairlib::multibody::makeNameToPositionsMap(*plant);
   auto velocities_map = dairlib::multibody::makeNameToVelocitiesMap(*plant);
+  auto actuators_map = dairlib::multibody::makeNameToActuatorsMap(*plant);
   int num_joints = 12;
 
   // Print joint dictionary
@@ -424,6 +405,8 @@ int main(int argc, char* argv[]) {
   for (auto const& element : positions_map)
     std::cout << element.first << " = " << element.second << std::endl;
   for (auto const& element : velocities_map)
+    std::cout << element.first << " = " << element.second << std::endl;
+  for (auto const& element : actuators_map)
     std::cout << element.first << " = " << element.second << std::endl;
   std::cout<<"***************************************************"<<std::endl;
     
