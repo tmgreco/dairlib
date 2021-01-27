@@ -66,5 +66,56 @@ std::tuple<  std::vector<std::unique_ptr<dairlib::systems::trajectory_optimizati
           Eigen::VectorXi knotpointMat, // Matrix of knot points for each mode  
           double mu = 1);
 
-}
 
+
+/// Add joint kinematic limits to the spirit joints
+
+// template <typename T>
+// void setSpiritJointLimits(
+//     drake::multibody::MultibodyPlant<T> & plant
+// )
+
+
+
+template <typename T>
+void setSpiritJointLimits(
+                    drake::multibody::MultibodyPlant<T> & plant, 
+                    dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,  
+                    int iJoint, 
+                    double minVal, 
+                    double maxVal  );
+
+template <typename T>
+void setSpiritJointLimits(
+                    drake::multibody::MultibodyPlant<T> & plant, 
+                    dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,  
+                    std::vector<int> iJoints, 
+                    std::vector<double> minVals, 
+                    std::vector<double> maxVals  );
+
+template <typename T>
+void setSpiritJointLimits(
+                    drake::multibody::MultibodyPlant<T> & plant, 
+                    dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,  
+                    std::vector<int> iJoints, 
+                    double minVal, 
+                    double maxVal  );
+
+template <typename T>
+void setSpiritJointLimits(
+                    drake::multibody::MultibodyPlant<T> & plant, 
+                    dairlib::systems::trajectory_optimization::Dircon<T>& trajopt );
+
+template <typename T> 
+void setSpiritSymmetry(
+        drake::multibody::MultibodyPlant<T> & plant, 
+        dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,
+        std::string symmetry = "sagittal");
+
+template <typename T>
+void setSpiritSymmetry(
+        drake::multibody::MultibodyPlant<T> & plant, 
+        dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,
+        std::vector<std::string> symmetries);
+
+} //namespace dairlib

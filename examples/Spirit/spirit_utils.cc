@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <gflags/gflags.h>
 #include <string.h>
+#include <assert.h>
 
 #include "drake/solvers/snopt_solver.h"
 #include "drake/systems/analysis/simulator.h"
@@ -175,6 +176,196 @@ std::tuple<
 // }
 
 
+
+
+
+
+
+
+
+
+
+// **********************************************************
+//   SETSPIRITJOINTLIMITS 
+
+
+template <typename T> 
+void setSpiritJointLimits(drake::multibody::MultibodyPlant<T> & plant, 
+                          dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,  
+                          int iJoint, 
+                          double minVal, 
+                          double maxVal  ){
+
+  auto positions_map = multibody::makeNameToPositionsMap(plant);
+  auto velocities_map = multibody::makeNameToVelocitiesMap(plant);
+  // std::cout<<"joint_" + std::to_string(iJoint)<<std::endl;
+  int N_knotpoints = trajopt.N();
+  for(int i = 0; i<N_knotpoints;i++){
+    auto xi = trajopt.state(i);
+    trajopt.AddBoundingBoxConstraint(minVal,maxVal,xi(positions_map.at("joint_" + std::to_string(iJoint))));
+  }
+}
+
+template <typename T> 
+void setSpiritJointLimits(drake::multibody::MultibodyPlant<T> & plant, 
+                          dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,  
+                          std::vector<int> iJoints, 
+                          std::vector<double> minVals, 
+                          std::vector<double> maxVals  ){
+  int numJoints = iJoints.size();
+  assert(numJoints==minVals.size());
+  assert(numJoints==maxVals.size());
+  for (int i = 0; i<numJoints; i++){
+    setSpiritJointLimits( plant, 
+                          trajopt,  
+                          iJoints[i], 
+                          minVals[i], 
+                          maxVals[i] );
+  }
+}
+template <typename T> 
+void setSpiritJointLimits(drake::multibody::MultibodyPlant<T> & plant, 
+                          dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,  
+                          std::vector<int> iJoints, 
+                          double minVal, 
+                          double maxVal  ){
+
+  for (int iJoint: iJoints){
+    setSpiritJointLimits( plant, 
+                          trajopt,  
+                          iJoint, 
+                          minVal, 
+                          maxVal );
+  }
+}
+template <typename T> 
+void setSpiritJointLimits(drake::multibody::MultibodyPlant<T> & plant, 
+                          dairlib::systems::trajectory_optimization::Dircon<T>& trajopt ){
+  // Upper doesn't need a joint limit for now, but we may eventually want to
+  // change this to help the optimizations
+  double minValUpper = -M_PI ;
+  double maxValUpper =  M_PI ;
+
+  // Lower limits are set to 0 and pi in the URDF might be better to include
+  // the few degrees that come with the body collision and to remove a few to stay
+  // away from singularity
+  double minValLower =  0;
+  double maxValLower =  M_PI;
+  
+  // The URDF defines symmetric limits if asymmetric constraints we need to
+  // add a mirror since the hips are positive in the same direction
+  double abKinLimit = 0.707 ; //From the URDF
+  double minValAbduc = -abKinLimit ;
+  double maxValAbduc =  abKinLimit ;
+  
+  // Upper 0,2,4,6
+  std::vector<int> indicesUpper = {0,2,4,6};
+  // Lower 1,3,5,7
+  std::vector<int> indicesLower = {1,3,5,7};
+  // Hips  8,9,10,11
+  std::vector<int> indicesAbduc = {8,9,10,11};
+
+//See above: Upper doesn't need joint limit since there isnt a meaningful set
+// setSpiritJointLimits( plant, 
+//                      trajopt,  
+//                      indicesUpper, 
+//                      minValUpper, 
+//                      maxValUpper  );
+                     
+setSpiritJointLimits( plant, 
+                     trajopt,  
+                     indicesLower, 
+                     minValLower, 
+                     maxValLower  );
+                     
+setSpiritJointLimits( plant, 
+                     trajopt,  
+                     indicesAbduc, 
+                     minValAbduc, 
+                     maxValAbduc  );
+
+}
+//   \SETSPIRITJOINTLIMITS 
+
+// **********************************************************
+//   SETSPIRITSYMMETRY
+
+template <typename T>
+void makeSaggitalSymmetric(
+        drake::multibody::MultibodyPlant<T> & plant, 
+        dairlib::systems::trajectory_optimization::Dircon<T>& trajopt){
+
+  // Get position and velocity dictionaries 
+  auto positions_map = multibody::makeNameToPositionsMap(plant);
+  auto velocities_map = multibody::makeNameToVelocitiesMap(plant);
+  int num_knotpoints = trajopt.N();
+  /// Symmetry constraints
+  for (int i = 0; i < num_knotpoints; i++){
+    
+    auto xi = trajopt.state(i);  
+    // Symmetry constraints (mirrored hips all else equal across)
+    trajopt.AddLinearConstraint( xi( positions_map.at("joint_8") ) == -xi( positions_map.at("joint_10") ) );
+    trajopt.AddLinearConstraint( xi( positions_map.at("joint_9") ) == -xi( positions_map.at("joint_11") ) );
+    // // Front legs equal and back legs equal constraints 
+    trajopt.AddLinearConstraint( xi( positions_map.at("joint_0") ) ==  xi( positions_map.at("joint_4") ) );
+    trajopt.AddLinearConstraint( xi( positions_map.at("joint_1") ) ==  xi( positions_map.at("joint_5") ) );
+    trajopt.AddLinearConstraint( xi( positions_map.at("joint_2") ) ==  xi( positions_map.at("joint_6") ) );
+    trajopt.AddLinearConstraint( xi( positions_map.at("joint_3") ) ==  xi( positions_map.at("joint_7") ) );
+  }
+}
+template <typename T>
+void setSpiritSymmetry(
+        drake::multibody::MultibodyPlant<T> & plant, 
+        dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,
+        std::vector<std::string> symmetries){
+  
+  
+  static bool hasRun = false;
+  if(hasRun){
+    std::cerr << "Warning: Running different symmetries seperately could cause system to be overconstrained. Use vector overload to avoid this." 
+              << std::endl;
+  }else{
+    hasRun = true;
+  }
+  bool hasSaggital = false;
+  bool hasForeAft  = false;
+  hasSaggital = std::any_of(symmetries.begin(), symmetries.end(), [](const std::string & str) {
+                                                        return str == "sagittal";
+                                                    });
+                                                    
+  hasForeAft = std::any_of(symmetries.begin(), symmetries.end(), [](const std::string & str) {
+                                                        return str == "foreaft";
+                                                    });
+  if (hasSaggital&&hasForeAft){
+    // Avoids having overconstrained system of symmetry
+    std::cerr << "Warning: Simultaneous Saggital and ForeAft not implemented yet. Only adding saggital constraints." << std::endl;
+    makeSaggitalSymmetric(plant,trajopt);
+  }else if (hasSaggital){
+    makeSaggitalSymmetric(plant,trajopt);
+  }else if (hasForeAft){
+    std::cerr << "Warning: ForeAft not implemented yet. No constraints added" << std::endl;
+  }else{
+    std::cerr << "Warning: Failed to add symmetric constraint. No constraints added" << std::endl;
+  }
+
+}
+
+template <typename T>
+void setSpiritSymmetry(drake::multibody::MultibodyPlant<T> & plant, 
+                       dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,
+                       std::string symmetry){
+                         
+  std::vector<std::string> symmetries;
+  symmetries.push_back(symmetry);
+  setSpiritSymmetry(
+                    plant,
+                    trajopt,
+                    symmetries);
+}
+//   \SETSPIRITSYMMETRY
+
+
+
 template void nominalSpiritStand(
     drake::multibody::MultibodyPlant<double>& plant, 
     Eigen::VectorXd& xState, 
@@ -203,4 +394,39 @@ template std::tuple<  std::vector<std::unique_ptr<dairlib::systems::trajectory_o
           Eigen::VectorXi knotpointMat, // Matrix of knot points for each mode  
           double mu); // NOLINT
   
+template void setSpiritJointLimits(
+          drake::multibody::MultibodyPlant<double> & plant, 
+          dairlib::systems::trajectory_optimization::Dircon<double>& trajopt,  
+          int iJoint, 
+          double minVal, 
+          double maxVal  );
+
+template void setSpiritJointLimits(
+          drake::multibody::MultibodyPlant<double> & plant, 
+          dairlib::systems::trajectory_optimization::Dircon<double>& trajopt,  
+          std::vector<int> iJoints, 
+          std::vector<double> minVals, 
+          std::vector<double> maxVals  );
+
+template void setSpiritJointLimits(
+          drake::multibody::MultibodyPlant<double> & plant, 
+          dairlib::systems::trajectory_optimization::Dircon<double>& trajopt,  
+          std::vector<int> iJoints, 
+          double minVal, 
+          double maxVal  );
+
+template void setSpiritJointLimits(
+          drake::multibody::MultibodyPlant<double> & plant, 
+          dairlib::systems::trajectory_optimization::Dircon<double>& trajopt );
+
+template void setSpiritSymmetry(
+        drake::multibody::MultibodyPlant<double> & plant, 
+        dairlib::systems::trajectory_optimization::Dircon<double>& trajopt,
+        std::string symmetry = "sagittal");
+
+template void setSpiritSymmetry(
+        drake::multibody::MultibodyPlant<double> & plant, 
+        dairlib::systems::trajectory_optimization::Dircon<double>& trajopt,
+        std::vector<std::string> symmetries);
+
 }//namespace dairlib
