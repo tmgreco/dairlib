@@ -37,11 +37,12 @@ const drake::multibody::Frame<T>& getSpiritToeFrame(
 template <typename T>
 std::unique_ptr<multibody::WorldPointEvaluator<T>> getSpiritToeEvaluator( 
                       drake::multibody::MultibodyPlant<T>& plant, 
+                      const Eigen::Vector3d toePoint,
                       u_int8_t toeIndex,
-                      const Eigen::Vector3d toePoint = Eigen::Vector3d::Zero(),
-                      double mu = 0.0,
                       const Eigen::Vector3d normal = Eigen::Vector3d::UnitZ(),
-                      bool xy_active = true
+                      const Eigen::Vector3d offset = Eigen::Vector3d::Zero(),
+                      bool xy_active = true, 
+                      double mu = 0.0
                       );
 
 
@@ -52,7 +53,7 @@ std::unique_ptr<multibody::WorldPointEvaluator<T>> getSpiritToeEvaluator(
 ///    @param plant a pointer to a multibodyPlant
 ///    @param modeSeqMat a bool matrix describing toe contacts as true or false 
 ///             e.g. {{1,1,1,1},{0,0,0,0}} would be a full support mode and flight mode
-///    @param knotpointMat  Vector of knot points for each mode  
+///    @param knotpointVect  Vector of knot points for each mode  
 ///    @param mu Friction coefficient
 
 template <typename T>
@@ -62,9 +63,11 @@ std::tuple<  std::vector<std::unique_ptr<dairlib::systems::trajectory_optimizati
           >     
     createSpiritModeSequence( 
           drake::multibody::MultibodyPlant<T>& plant, // multibodyPlant
-          Eigen::Matrix<bool,-1,4> modeSeqMat, // bool matrix describing toe contacts as true or false e.g. {{1,1,1,1},{0,0,0,0}} would be a full support mode and flight mode
-          Eigen::VectorXi knotpointMat, // Matrix of knot points for each mode  
-          double mu = 1);
+          std::vector<Eigen::Matrix<bool,1,4>> modeSeqVect, // bool matrix describing toe contacts as true or false e.g. {{1,1,1,1},{0,0,0,0}} would be a full support mode and flight mode
+          std::vector<int> knotpointVect, // Matrix of knot points for each mode  
+          std::vector<Eigen::Vector3d> normals,
+          std::vector<Eigen::Vector3d> offsets, 
+          std::vector<double> mus );
 
 
 

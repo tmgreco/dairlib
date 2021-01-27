@@ -5,6 +5,7 @@
 #include <gflags/gflags.h>
 #include <string.h>
 #include <assert.h>
+#include <Eigen/StdVector>
 
 #include "drake/solvers/snopt_solver.h"
 #include "drake/systems/analysis/simulator.h"
@@ -66,6 +67,31 @@ using systems::trajectory_optimization::KinematicConstraintType;
 using std::vector;
 using std::cout;
 using std::endl;
+
+
+
+class ModeSequenceHelper {
+  public:
+    std::vector<Eigen::Matrix<bool,1,4>> modeSeqVect; // bool matrix describing toe contacts as true or false e.g. {{1,1,1,1},{0,0,0,0}} would be a full support mode and flight mode
+    std::vector<int> knotpointVect; // Matrix of knot points for each mode  
+    std::vector<Eigen::Vector3d> normals;
+    std::vector<Eigen::Vector3d> offsets;
+    std::vector<double> mus;
+    void addMode(
+      Eigen::Matrix<bool,1,4> activeContactVector, 
+      int num_knots, 
+      Eigen::Vector3d normal, 
+      Eigen::Vector3d offset,
+      double mu){
+        modeSeqVect.push_back(activeContactVector);
+        knotpointVect.push_back(num_knots);
+        normals.push_back(normal);
+        offsets.push_back(offset);
+        mus.push_back(mu);
+    }
+};
+
+
 
 template <typename T>
 void addConstraints(const MultibodyPlant<T>& plant, Dircon<T>& trajopt){
@@ -130,18 +156,38 @@ void runSpiritSquat(
   int num_legs = 4;
   double toeRadius = 0.02; // Radius of toe ball
   Vector3d toeOffset(toeRadius,0,0); // vector to "contact point"
-  double mu = 1; //friction
   
 
   
   int num_knotpoints_per_mode = 10; // number of knot points in the collocation
 
   auto sequence = DirconModeSequence<T>(plant);
-  Eigen::Matrix<bool,1,4> modeSeqMat;
-  modeSeqMat << 1, 1, 1, 1;
-  Eigen::VectorXi knotpointMat = Eigen::MatrixXi::Constant(1,1,num_knotpoints_per_mode);
+  std::vector<Eigen::Matrix<bool,1,4>> modes;
+  std::vector<int> knotpoints;
+  std::vector<Eigen::Vector3d> normals;
+  std::vector<Eigen::Vector3d> offsets;
+  std::vector<double> mus;
 
-  auto [modeVector, toeEvals, toeEvalSets] = createSpiritModeSequence(plant, modeSeqMat , knotpointMat, mu);
+  Eigen::Matrix<bool,1,4> mode1;
+  mode1 << 1, 1, 1, 1;
+
+  int knots1 = 10;
+  
+  Eigen::Vector3d normal1;
+  normal1 << 0, 0, 1 ;
+  
+  Eigen::Vector3d offset1;
+  offset1 << 0, 0, 0 ;
+
+  double mu1 = 1;
+
+  modes.push_back(mode1);
+  knotpoints.push_back(knots1);
+  normals.push_back(normal1);
+  offsets.push_back(offset1);
+  mus.push_back(mu1);
+
+  auto [modeVector, toeEvals, toeEvalSets] = createSpiritModeSequence(plant, modes , knotpoints,normals, offsets, mus);
   
   for (auto& mode : modeVector){
     for (int i = 0; i < num_legs; i++ ){
@@ -156,7 +202,7 @@ void runSpiritSquat(
   }          
 
 
-  
+ 
   
 
   ///Setup trajectory optimization

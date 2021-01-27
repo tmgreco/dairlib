@@ -5,6 +5,7 @@
 #include <gflags/gflags.h>
 #include <string.h>
 #include <assert.h>
+#include <Eigen/StdVector>
 
 #include "drake/solvers/snopt_solver.h"
 #include "drake/systems/analysis/simulator.h"
@@ -94,11 +95,12 @@ const drake::multibody::Frame<T>& getSpiritToeFrame( MultibodyPlant<T>& plant, u
 template <typename T>
 std::unique_ptr<dairlib::multibody::WorldPointEvaluator<T>> getSpiritToeEvaluator( 
                       MultibodyPlant<T>& plant, 
-                      u_int8_t toeIndex,
                       const Eigen::Vector3d toePoint ,
-                      double mu ,
+                      u_int8_t toeIndex,
                       const Eigen::Vector3d normal ,
-                      bool xy_active 
+                      const Eigen::Vector3d offset ,
+                      bool xy_active, 
+                      double mu 
                       ){
   assert(toeIndex<4); // Check that toeIndex is an actual Spirit leg
   auto toe_eval =  std::make_unique<dairlib::multibody::WorldPointEvaluator<T>>(
@@ -106,7 +108,7 @@ std::unique_ptr<dairlib::multibody::WorldPointEvaluator<T>> getSpiritToeEvaluato
         toePoint, 
         getSpiritToeFrame(plant, toeIndex ) , 
         normal, 
-        Eigen::Vector3d::Zero(), 
+        offset, 
         xy_active );
   if(mu){
     toe_eval->set_frictional(); toe_eval->set_mu(mu);
@@ -121,35 +123,38 @@ std::tuple<
                 std::vector<std::unique_ptr<dairlib::multibody::KinematicEvaluatorSet<T>>>
           > createSpiritModeSequence( 
           MultibodyPlant<T>& plant, // multibodyPlant
-          Eigen::Matrix<bool,-1,4> modeSeqMat, // bool matrix describing toe contacts as true or false e.g. {{1,1,1,1},{0,0,0,0}} would be a full support mode and flight mode
-          Eigen::VectorXi knotpointMat, // Matrix of knot points for each mode  
-          double mu ){
+          std::vector<Eigen::Matrix<bool,1,4>> modeSeqVect, // bool matrix describing toe contacts as true or false e.g. {{1,1,1,1},{0,0,0,0}} would be a full support mode and flight mode
+          std::vector<int> knotpointVect, // Matrix of knot points for each mode  
+          std::vector<Eigen::Vector3d> normals,
+          std::vector<Eigen::Vector3d> offsets, 
+          std::vector<double> mus ){
 
-  std::cout<<modeSeqMat<<std::endl;
-  std::cout<<knotpointMat<<std::endl;  
+  // std::cout<<modeSeqMat<<std::endl;
+  // std::cout<<knotpointVect<<std::endl;  
 
   const double toeRadius = 0.02;
   const Vector3d toeOffset(toeRadius,0,0); // vector to "contact point"
-  
-  assert( modeSeqMat.rows()==knotpointMat.rows() );
+  int num_modes = modeSeqVect.size();
+  assert( num_modes == knotpointVect.size() );
+  assert( num_modes == mus.size() );
 
   std::vector<std::unique_ptr<dairlib::multibody::WorldPointEvaluator<T>>> toeEvals;
   std::vector<std::unique_ptr<dairlib::multibody::KinematicEvaluatorSet<T>>> toeEvalSets;
   std::vector<std::unique_ptr<DirconMode<T>>> modeVector;
   // DirconModeSequence<T> sequence = DirconModeSequence<T>(plant);
 
-  for (int iMode = 0; iMode<modeSeqMat.rows(); iMode++)
+  for (int iMode = 0; iMode<num_modes; iMode++)
   {
     
     toeEvalSets.push_back( std::move( std::make_unique<dairlib::multibody::KinematicEvaluatorSet<T>>(plant) ));
     for ( int iLeg = 0; iLeg < 4; iLeg++ ){
-      if (modeSeqMat(iMode,iLeg)){
-        toeEvals.push_back( std::move( getSpiritToeEvaluator(plant, iLeg, toeOffset, mu )) );//Default Normal (z) and xy_active=true
+      if (modeSeqVect.at(iMode)(iLeg)){
+        toeEvals.push_back( std::move( getSpiritToeEvaluator(plant, toeOffset, iLeg, normals.at(iMode), offsets.at(iMode), mus.at(iMode) )) );//Default Normal (z), offset, and xy_active=true
         (toeEvalSets.back())->add_evaluator(  (toeEvals.back()).get()  ); //add evaluator to the set if active //Works ish
       }
     }
     auto dumbToeEvalPtr = (toeEvalSets.back()).get() ;
-    int num_knotpoints = knotpointMat(iMode);
+    int num_knotpoints = knotpointVect.at(iMode);
     modeVector.push_back(std::move( std::make_unique<DirconMode<T>>( *dumbToeEvalPtr , num_knotpoints )));
     // DirconMode<T> modeDum = DirconMode<T>( *dumbToeEvalPtr , num_knotpoints );
     // sequence.AddMode(  &modeDum  ); // Add the evaluator set to the mode sequence
@@ -171,8 +176,8 @@ std::tuple<
 //   uint16_t knotpoints, // Number of knot points per mode
 //   double mu = 1){
 //   int numModes = modeSeqMat.rows(); 
-//   Eigen::VectorXi knotpointMat = Eigen::MatrixXi::Constant(numModes,1,knotpoints);
-//   return createSpiritModeSequence(plant, modeSeqMat,knotpointMat, mu);
+//   std::vector<int> knotpointVect = Eigen::MatrixXi::Constant(numModes,1,knotpoints);
+//   return createSpiritModeSequence(plant, modeSeqMat,knotpointVect, mu);
 // }
 
 
@@ -376,12 +381,13 @@ template const drake::multibody::Frame<double>& getSpiritToeFrame(
     u_int8_t toeIndex ); // NOLINT 
 
 template std::unique_ptr<multibody::WorldPointEvaluator<double>> getSpiritToeEvaluator( 
-                      drake::multibody::MultibodyPlant<double>& plant, 
+                      MultibodyPlant<double>& plant, 
+                      const Eigen::Vector3d toePoint ,
                       u_int8_t toeIndex,
-                      const Eigen::Vector3d toePoint,
-                      double mu ,
-                      const Eigen::Vector3d normal,
-                      bool xy_active
+                      const Eigen::Vector3d normal ,
+                      const Eigen::Vector3d offset ,
+                      bool xy_active, 
+                      double mu 
                       ); // NOLINT
                       
 template std::tuple<  std::vector<std::unique_ptr<dairlib::systems::trajectory_optimization::DirconMode<double>>>,
@@ -390,9 +396,12 @@ template std::tuple<  std::vector<std::unique_ptr<dairlib::systems::trajectory_o
           >     
     createSpiritModeSequence( 
           drake::multibody::MultibodyPlant<double>& plant, // multibodyPlant
-          Eigen::Matrix<bool,-1,4> modeSeqMat, // bool matrix describing toe contacts as true or false e.g. {{1,1,1,1},{0,0,0,0}} would be a full support mode and flight mode
-          Eigen::VectorXi knotpointMat, // Matrix of knot points for each mode  
-          double mu); // NOLINT
+          std::vector<Eigen::Matrix<bool,1,4>> modeSeqVect, // bool matrix describing toe contacts as true or false e.g. {{1,1,1,1},{0,0,0,0}} would be a full support mode and flight mode
+          std::vector<int> knotpointVect, // Matrix of knot points for each mode  
+          std::vector<Eigen::Vector3d> normals,
+          std::vector<Eigen::Vector3d> offsets, 
+          std::vector<double> mus ); // NOLINT
+          
   
 template void setSpiritJointLimits(
           drake::multibody::MultibodyPlant<double> & plant, 
