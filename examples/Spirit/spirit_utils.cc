@@ -87,6 +87,30 @@ void nominalSpiritStand( MultibodyPlant<T>& plant, Eigen::VectorXd& xState, doub
 }
 
 template <typename T>
+void nominalSpiritStandConstraint(
+    drake::multibody::MultibodyPlant<T>& plant,
+    dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,
+    double height,
+    std::vector<int> knotPoints,
+    double eps){
+  int nx = plant.num_positions() + plant.num_velocities();
+  VectorXd x_state(nx);
+  dairlib::nominalSpiritStand( plant, x_state,  height); //get desired x_state
+
+  auto positions_map = dairlib::multibody::makeNameToPositionsMap(plant);
+
+  for(int knot_index : knotPoints){
+    auto xi = trajopt.state(knot_index);
+    for(int joint = 0; joint< 12; joint ++){
+      std::string joint_string = "joint_"+std::to_string(joint);
+      double joint_val = x_state[positions_map.at(joint_string)];
+      trajopt.AddBoundingBoxConstraint(joint_val-eps, joint_val+eps, xi(positions_map.at(joint_string)));
+    }
+  }
+
+}
+
+template <typename T>
 const drake::multibody::Frame<T>& getSpiritToeFrame( MultibodyPlant<T>& plant, u_int8_t toeIndex ){
   assert(toeIndex<4);
   return plant.GetFrameByName( "toe" + std::to_string(toeIndex) );
@@ -422,7 +446,14 @@ template void nominalSpiritStand(
     drake::multibody::MultibodyPlant<double>& plant, 
     Eigen::VectorXd& xState, 
     double height); // NOLINT 
-    
+
+template void nominalSpiritStandConstraint(
+    drake::multibody::MultibodyPlant<double>& plant,
+    dairlib::systems::trajectory_optimization::Dircon<double>& trajopt,
+    double height,
+    std::vector<int> knotPoints,
+    const double eps); // NOLINT
+
 template const drake::multibody::Frame<double>& getSpiritToeFrame( 
     drake::multibody::MultibodyPlant<double>& plant, 
     u_int8_t toeIndex ); // NOLINT 

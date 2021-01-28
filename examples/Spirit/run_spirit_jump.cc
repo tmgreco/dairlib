@@ -44,7 +44,7 @@ DEFINE_string(data_directory, "/home/shane/Drake_ws/dairlib/examples/Spirit/save
 DEFINE_string(distance_name, "10m","name to describe distance");
 
 DEFINE_bool(runAllOptimization, true, "rerun earlier optimizations?");
-DEFINE_bool(skipInitialOptimization, false, "skip first optimizations?");
+DEFINE_bool(skipInitialOptimization, true, "skip first optimizations?");
 
 using drake::AutoDiffXd;
 using drake::multibody::MultibodyPlant;
@@ -252,7 +252,7 @@ void badSpiritJump(MultibodyPlant<T>& plant,
 /// \param mu: coefficient of friction
 /// \param eps: the tolerance for position constraints
 /// \param tol: optimization solver constraint and optimality tolerence
-/// \param file_name: if empty, file is unsaved, if not empty saves the trajectory in the directory
+/// \param file_name_out: if empty, file is unsaved, if not empty saves the trajectory in the directory
 /// \return struct containing boolean describing optimization success and the cost
 template <typename T>
 void runSpiritJump(
@@ -269,6 +269,8 @@ void runSpiritJump(
     const double fore_aft_displacement,
     const bool lock_rotation,
     const bool lock_legs_apex,
+    const bool force_symmetry,
+    const bool use_nominal_stand,
     const double max_duration,
     const double cost_actuation,
     const double cost_velocity,
@@ -276,7 +278,8 @@ void runSpiritJump(
     const double mu,
     const double eps,
     const double tol,
-    const std::string& file_name
+    const std::string& file_name_out,
+    const std::string& file_name_in= ""
     ) {
   drake::systems::DiagramBuilder<double> builder;
 
@@ -345,7 +348,6 @@ void runSpiritJump(
         {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17}, 200);
     if (mode->evaluators().num_evaluators() > 0)
     {
-      std::cout<<"Seting scales"<<std::endl;
       mode->SetKinVelocityScale(
           {0, 1, 2, 3}, {0, 1, 2}, 1.0);
       mode->SetKinPositionScale(
@@ -372,16 +374,26 @@ void runSpiritJump(
     // Add duration constraint, currently constrained not bounded
   trajopt.AddDurationBounds(0, max_duration);
   // Initialize the trajectory control state and forces
-  
-  for (int j = 0; j < sequence.num_modes(); j++) {
-    trajopt.drake::systems::trajectory_optimization::MultipleShooting::
-        SetInitialTrajectory(u_traj, x_traj);
-    trajopt.SetInitialForceTrajectory(j, l_traj[j], lc_traj[j],
-                                      vc_traj[j]);
+
+  if (file_name_in.empty()){
+    for (int j = 0; j < sequence.num_modes(); j++) {
+      trajopt.drake::systems::trajectory_optimization::MultipleShooting::
+          SetInitialTrajectory(u_traj, x_traj);
+      trajopt.SetInitialForceTrajectory(j, l_traj[j], lc_traj[j],
+                                        vc_traj[j]);
+    }
+  }else{
+    std::cout<<"Loading decision var from file, will fail if num dec vars changed" <<std::endl;
+    dairlib::DirconTrajectory loaded_traj(file_name_in);
+    trajopt.SetInitialGuessForAllVariables(loaded_traj.GetDecisionVariables());
   }
 
-  
+  setSpiritJointLimits(plant, trajopt);
+  setSpiritActuationLimits(plant, trajopt);
 
+  if (force_symmetry) {
+    setSpiritSymmetry(plant, trajopt);
+  }
   /// Setup all the optimization constraints 
   int n_q = plant.num_positions();
   int n_v = plant.num_velocities();
@@ -395,11 +407,11 @@ void runSpiritJump(
   auto   xtd = trajopt.state_vars(3, 0);
   auto   xf  = trajopt.final_state();
   
-  
+
+
   // Initial body positions
   trajopt.AddBoundingBoxConstraint(0, 0, x0(positions_map.at("base_x"))); // Give the initial condition room to choose the x_init position
   trajopt.AddBoundingBoxConstraint(-eps, eps, x0(positions_map.at("base_y")));
-  trajopt.AddBoundingBoxConstraint(initial_height - eps, initial_height + eps, x0(positions_map.at("base_z")));
   // Lift off body positions conditions
   trajopt.AddBoundingBoxConstraint(-eps, eps, xlo(positions_map.at("base_y")));
   // Apex body positions conditions
@@ -409,17 +421,13 @@ void runSpiritJump(
   // Final body positions conditions
   trajopt.AddBoundingBoxConstraint(fore_aft_displacement - eps, fore_aft_displacement + eps, xf(positions_map.at("base_x"))); // Give the initial condition room to choose the x_init position (helps with positive knee constraint)
   trajopt.AddBoundingBoxConstraint(-eps, eps, xf(positions_map.at("base_y")));
-  trajopt.AddBoundingBoxConstraint(initial_height - eps, initial_height + eps, xf(positions_map.at("base_z")));
 
-  // Initial and final velocity
-  trajopt.AddBoundingBoxConstraint(VectorXd::Zero(n_v), VectorXd::Zero(n_v), x0.tail(n_v));
-  trajopt.AddBoundingBoxConstraint(VectorXd::Zero(n_v), VectorXd::Zero(n_v), xf.tail(n_v));
+  if(use_nominal_stand){
+    nominalSpiritStandConstraint(plant,trajopt,initial_height, {0,trajopt.N()}, eps);
+  }else{
+    trajopt.AddBoundingBoxConstraint(initial_height - eps, initial_height + eps, x0(positions_map.at("base_z")));
+    trajopt.AddBoundingBoxConstraint(initial_height - eps, initial_height + eps, xf(positions_map.at("base_z")));
 
-  // Apex height
-  trajopt.AddBoundingBoxConstraint(apex_height-eps, apex_height+eps, xapex(positions_map.at("base_z")) );
-
-  if (!lock_rotation)
-  {
     // Body pose constraints (keep the body flat) at initial state
     trajopt.AddBoundingBoxConstraint(1 - eps, 1 + eps, x0(positions_map.at("base_qw")));
     trajopt.AddBoundingBoxConstraint(0 - eps, 0 + eps, x0(positions_map.at("base_qx")));
@@ -432,8 +440,15 @@ void runSpiritJump(
     trajopt.AddBoundingBoxConstraint(0 - eps, 0 + eps, xf(positions_map.at("base_qx")));
     trajopt.AddBoundingBoxConstraint(0 - eps, 0 + eps, xf(positions_map.at("base_qy")));
     trajopt.AddBoundingBoxConstraint(0 - eps, 0 + eps, xf(positions_map.at("base_qz")));
+
   }
 
+  // Initial and final velocity
+  trajopt.AddBoundingBoxConstraint(VectorXd::Zero(n_v), VectorXd::Zero(n_v), x0.tail(n_v));
+  trajopt.AddBoundingBoxConstraint(VectorXd::Zero(n_v), VectorXd::Zero(n_v), xf.tail(n_v));
+
+  // Apex height
+  trajopt.AddBoundingBoxConstraint(apex_height-eps, apex_height+eps, xapex(positions_map.at("base_z")) );
 
   double upperSet = 1;
   double kneeSet = 2;
@@ -485,7 +500,7 @@ void runSpiritJump(
     trajopt.AddBoundingBoxConstraint(-0.1, 0.5, xi( positions_map.at("joint_11")));
 
     //Orientation
-    if (lock_rotation)
+    if (lock_rotation and i != 0 and i != (trajopt.N()-1))
     {
       trajopt.AddBoundingBoxConstraint(1 - eps, 1 + eps, xi(positions_map.at("base_qw")));
       trajopt.AddBoundingBoxConstraint(0 - eps, 0 + eps, xi(positions_map.at("base_qx")));
@@ -528,16 +543,16 @@ void runSpiritJump(
   std::cout << "Outputting trajectories" << std::endl;
 
 
-  if(!file_name.empty()){
+  if(!file_name_out.empty()){
     dairlib::DirconTrajectory saved_traj(
         plant, trajopt, result, "Jumping trajectory",
         "Decision variables and state/input trajectories "
         "for jumping");
 
     std::cout << "writing to file" << std::endl;
-    saved_traj.WriteToFile(file_name);
+    saved_traj.WriteToFile(file_name_out);
 
-    dairlib::DirconTrajectory old_traj(file_name);
+    dairlib::DirconTrajectory old_traj(file_name_out);
     x_traj = old_traj.ReconstructStateTrajectory();
     u_traj = old_traj.ReconstructInputTrajectory();
     l_traj = old_traj.ReconstructLambdaTrajectory();
@@ -611,6 +626,8 @@ int main(int argc, char* argv[]) {
           0,
           true,
           true,
+          false,
+          true,
           2,
           3,
           10,
@@ -642,6 +659,8 @@ int main(int argc, char* argv[]) {
         FLAGS_foreAftDisplacement,
         true,
         true,
+        false,
+        true,
         2,
         3,
         10,
@@ -650,6 +669,7 @@ int main(int argc, char* argv[]) {
         FLAGS_eps,
         1e-4,
         FLAGS_data_directory+"jump_"+FLAGS_distance_name);
+
 
     std::cout<<"Running 3rd optimization"<<std::endl;
     // Fewer constraints, and higher tolerences
@@ -664,6 +684,8 @@ int main(int argc, char* argv[]) {
         FLAGS_foreAftDisplacement,
         false,
         true,
+        false,
+        true,
         2,
         3,
         10,
@@ -671,7 +693,9 @@ int main(int argc, char* argv[]) {
         1,
         FLAGS_eps,
         FLAGS_tol,
-        FLAGS_data_directory+"jump_"+FLAGS_distance_name+"_hq");
+        FLAGS_data_directory+"jump_"+FLAGS_distance_name+"_hq",
+        FLAGS_data_directory+"jump_"+FLAGS_distance_name);
+
   } else{
     dairlib::DirconTrajectory old_traj(FLAGS_data_directory+"jump_"+FLAGS_distance_name+"_hq");
     x_traj = old_traj.ReconstructStateTrajectory();
@@ -691,6 +715,8 @@ int main(int argc, char* argv[]) {
       FLAGS_apexGoal,
       FLAGS_standHeight,
       FLAGS_foreAftDisplacement,
+      false,
+      true,
       false,
       true,
       2*FLAGS_duration,
