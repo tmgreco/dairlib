@@ -314,21 +314,21 @@ void runSpiritJump(
   );
   msh.addMode( // Flight
       (Eigen::Matrix<bool,1,4>() << false, false, false, false).finished(), // contact bools
-      num_knot_points[0],  // number of knot points in the collocation
+      num_knot_points[1],  // number of knot points in the collocation
       Eigen::Vector3d::UnitZ(), // normal
       Eigen::Vector3d::Zero(),  // world offset
       mu //friction
   );
   msh.addMode( // Flight
       (Eigen::Matrix<bool,1,4>() << false, false, false, false).finished(), // contact bools
-      num_knot_points[0],  // number of knot points in the collocation
+      num_knot_points[2],  // number of knot points in the collocation
       Eigen::Vector3d::UnitZ(), // normal
       Eigen::Vector3d::Zero(),  // world offset
       mu //friction
   );
   msh.addMode( // Stance
       (Eigen::Matrix<bool,1,4>() << true,  true,  true,  true).finished(), // contact bools
-      num_knot_points[0],  // number of knot points in the collocation
+      num_knot_points[3],  // number of knot points in the collocation
       Eigen::Vector3d::UnitZ(), // normal
       Eigen::Vector3d::Zero(),  // world offset
       mu //friction
@@ -345,6 +345,7 @@ void runSpiritJump(
         {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17}, 200);
     if (mode->evaluators().num_evaluators() > 0)
     {
+      std::cout<<"Seting scales"<<std::endl;
       mode->SetKinVelocityScale(
           {0, 1, 2, 3}, {0, 1, 2}, 1.0);
       mode->SetKinPositionScale(
