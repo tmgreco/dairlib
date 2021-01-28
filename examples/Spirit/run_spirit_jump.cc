@@ -303,7 +303,38 @@ void runSpiritJump(
                 false, false, false, false,
                 true,  true,  true,  true;
 
-  auto [modeVector, toeEvals, toeEvalSets] = createSpiritModeSequence(plant, modeSeqMat , num_knot_points, mu);
+  dairlib::ModeSequenceHelper msh;
+
+  msh.addMode( // Stance
+      (Eigen::Matrix<bool,1,4>() << true,  true,  true,  true).finished(), // contact bools
+      num_knot_points[0],  // number of knot points in the collocation
+      Eigen::Vector3d::UnitZ(), // normal
+      Eigen::Vector3d::Zero(),  // world offset
+      mu //friction
+  );
+  msh.addMode( // Flight
+      (Eigen::Matrix<bool,1,4>() << false, false, false, false).finished(), // contact bools
+      num_knot_points[0],  // number of knot points in the collocation
+      Eigen::Vector3d::UnitZ(), // normal
+      Eigen::Vector3d::Zero(),  // world offset
+      mu //friction
+  );
+  msh.addMode( // Flight
+      (Eigen::Matrix<bool,1,4>() << false, false, false, false).finished(), // contact bools
+      num_knot_points[0],  // number of knot points in the collocation
+      Eigen::Vector3d::UnitZ(), // normal
+      Eigen::Vector3d::Zero(),  // world offset
+      mu //friction
+  );
+  msh.addMode( // Stance
+      (Eigen::Matrix<bool,1,4>() << true,  true,  true,  true).finished(), // contact bools
+      num_knot_points[0],  // number of knot points in the collocation
+      Eigen::Vector3d::UnitZ(), // normal
+      Eigen::Vector3d::Zero(),  // world offset
+      mu //friction
+  );
+
+  auto [modeVector, toeEvals, toeEvalSets] = createSpiritModeSequence(plant, msh.modes , msh.knots , msh.normals , msh.offsets, msh.mus);
 
   for (auto& mode : modeVector){
     for (int i = 0; i < mode->evaluators().num_evaluators(); i++ ){

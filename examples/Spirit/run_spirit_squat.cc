@@ -4,6 +4,8 @@
 #include <unistd.h>
 #include <gflags/gflags.h>
 #include <string.h>
+#include <assert.h>
+#include <Eigen/StdVector>
 
 #include "drake/solvers/snopt_solver.h"
 #include "drake/systems/analysis/simulator.h"
@@ -91,7 +93,6 @@ void addConstraints(const MultibodyPlant<T>& plant, Dircon<T>& trajopt){
   return;
 }
 
-
   /// See runSpiritSquat()
     // std::unique_ptr<MultibodyPlant<T>> plant_ptr,
     // MultibodyPlant<double>* plant_double_ptr,
@@ -131,18 +132,25 @@ void runSpiritSquat(
   int num_legs = 4;
   double toeRadius = 0.02; // Radius of toe ball
   Vector3d toeOffset(toeRadius,0,0); // vector to "contact point"
-  double mu = 1; //friction
+  double mu = 1; // Coeff of friction
   
 
+  int num_knotpoints_per_mode = 10; 
   
-  int num_knotpoints = 10; // number of knot points in the collocation
 
   auto sequence = DirconModeSequence<T>(plant);
-  Eigen::Matrix<bool,1,4> modeSeqMat;
-  modeSeqMat << 1, 1, 1, 1;
-  std::vector<int> knotpointMat = {10};
 
-  auto [modeVector, toeEvals, toeEvalSets] = createSpiritModeSequence(plant, modeSeqMat , knotpointMat, mu);
+  dairlib::ModeSequenceHelper msh;
+  
+  msh.addMode( // FIRST MODE 1
+    (Eigen::Matrix<bool,1,4>() << 1,1,1,1 ).finished(), // contact bools 
+    num_knotpoints_per_mode,  // number of knot points in the collocation
+    Eigen::Vector3d::UnitZ(), // normal
+    Eigen::Vector3d::Zero(),  // world offset
+    mu //friction
+    );
+
+  auto [modeVector, toeEvals, toeEvalSets] = createSpiritModeSequence(plant, msh.modes , msh.knots , msh.normals , msh.offsets, msh.mus);
   
   for (auto& mode : modeVector){
     for (int i = 0; i < num_legs; i++ ){
@@ -157,7 +165,7 @@ void runSpiritSquat(
   }          
 
 
-  
+ 
   
 
   ///Setup trajectory optimization
@@ -187,6 +195,7 @@ void runSpiritSquat(
   }
 
   /// Setup all the optimization constraints 
+  int num_knotpoints = trajopt.N(); // number of knot points total in the collocation
   int n_v = plant.num_velocities();
   // int n_q = plant.num_positions();
   auto u = trajopt.input();
@@ -195,6 +204,7 @@ void runSpiritSquat(
   auto xmid = trajopt.state_vars(0, (num_knotpoints - 1) / 2);
   auto xf = trajopt.final_state();
   addConstraints(plant,trajopt);
+
   // // Initial body positions
   // trajopt.AddBoundingBoxConstraint(-FLAGS_eps, FLAGS_eps, x0(positions_map.at("base_x"))); // Give the initial condition room to choose the x_init position (helps with positive knee constraint)
   // trajopt.AddBoundingBoxConstraint(-FLAGS_eps, FLAGS_eps, x0(positions_map.at("base_y")));
@@ -259,66 +269,17 @@ void runSpiritSquat(
   trajopt.AddBoundingBoxConstraint(VectorXd::Zero(n_v), VectorXd::Zero(n_v),
                                    xf.tail(n_v));
 
-///////////////TODO/DEBUG
-  //   Might need this, but not sure. currently I personally parse this as constraining the first force_vars element
-  //     in the 0th mode to zero at all the knotpoints not sure why? 
-  // // Not sure what this is doing
-  // for (int i = 0; i < num_knotpoints; i++) {
-  //   trajopt.AddBoundingBoxConstraint(0, 0, trajopt.force_vars(0, i)(1));
-  // }
-//////////////TODO/DEBUG
-
-//   /// Find and constrain distances between toes
-//   // Distance evaluators for constraints (note one front back, one side to side, then symmetry)
-//   auto toe_dist_eval_front_back =  multibody::DistanceEvaluator<T>(plant, toeOffset, toe0_frontLeft, toeOffset, toe1_backLeft, FLAGS_front2BackToeDistance);
-//   auto toe_dist_eval_side_side  =  multibody::DistanceEvaluator<T>(plant, toeOffset, toe0_frontLeft, toeOffset, toe2_frontRight, FLAGS_side2SideToeDistance);
   
-//   auto toe_distance_evaluators = multibody::KinematicEvaluatorSet<T>(plant);
-//   toe_distance_evaluators.add_evaluator(&toe_dist_eval_front_back);
-//   toe_distance_evaluators.add_evaluator(&toe_dist_eval_side_side);
-//   // Allow a range of toe distances around the nominal
-//   auto toe_distance_lb = Eigen::VectorXd(2);
-//   auto toe_distance_ub = Eigen::VectorXd(2);
 
-//   toe_distance_lb(0) = -0.1;
-//   toe_distance_lb(1) = -0.1;
-//   toe_distance_ub(0) =  0.1;
-//   toe_distance_ub(1) =  0.1;
-//   // For toe distance constraints
-//   auto toe_constraints = std::make_shared<multibody::KinematicPositionConstraint<T>>(plant,
-//               toe_distance_evaluators, toe_distance_lb, toe_distance_ub);
-  
-//   // Implement toe distance constraints (if commented dist constraints not active)
-//   // for (int i = 0; i < num_knotpoints; i++){
-//   //   auto xi = trajopt.state(i);
-//   //   trajopt.AddConstraint(toe_constraints,xi.head(n_q));
-//   // }
-
-/// Symmetry constraints
   for (int i = 0; i < num_knotpoints; i++){
-    auto xi = trajopt.state(i);
-    //legs lined up (front and back hips equal)
-    trajopt.AddLinearConstraint( xi( positions_map.at("joint_8") ) ==  xi( positions_map.at("joint_9") ) );
-    trajopt.AddLinearConstraint( xi( positions_map.at("joint_10") ) ==  xi( positions_map.at("joint_11") ) );
-  
-    // Symmetry constraints (mirrored hips all else equal across)
-    trajopt.AddLinearConstraint( xi( positions_map.at("joint_8") ) == -xi( positions_map.at("joint_10") ) );
-    trajopt.AddLinearConstraint( xi( positions_map.at("joint_9") ) == -xi( positions_map.at("joint_11") ) );
-    // // Front legs equal and back legs equal constraints 
-    // trajopt.AddLinearConstraint( xi( positions_map.at("joint_0") ) == xi( positions_map.at("joint_4") ) );
-    // trajopt.AddLinearConstraint( xi( positions_map.at("joint_1") ) == xi( positions_map.at("joint_5") ) );
-    // trajopt.AddLinearConstraint( xi( positions_map.at("joint_2") ) == xi( positions_map.at("joint_6") ) );
-    // trajopt.AddLinearConstraint( xi( positions_map.at("joint_3") ) == xi( positions_map.at("joint_7") ) );
+    auto xi = trajopt.state(i);  
+    // legs lined up (front and back hips equal)
+    trajopt.AddLinearConstraint( xi( positions_map.at("joint_8") ) == xi( positions_map.at("joint_9") ) );
+    trajopt.AddLinearConstraint( xi( positions_map.at("joint_10") ) == xi( positions_map.at("joint_11") )  );
   }
-  for (int i = 0; i < trajopt.N(); i++){
-    auto xi = trajopt.state(i);
-    //legs lined up (front and back hips equal)
-    trajopt.AddBoundingBoxConstraint(-1.5, 1.5, xi( positions_map.at("joint_8")));
-    trajopt.AddBoundingBoxConstraint(-1.5, 1.5, xi( positions_map.at("joint_9")));
-    trajopt.AddBoundingBoxConstraint(-1.5, 1.5, xi( positions_map.at("joint_10")));
-    trajopt.AddBoundingBoxConstraint(-1.5, 1.5, xi( positions_map.at("joint_11")));
-
-  }
+  setSpiritSymmetry(plant, trajopt, "sagittal");
+  setSpiritJointLimits(plant, trajopt);
+  setSpiritActuationLimits(plant,trajopt);
 
  double upperLegLength = 0.206; // length of the upper leg link
 
@@ -334,52 +295,6 @@ void runSpiritSquat(
   }catch(char const* exc){
       std::cerr<< exc <<std::endl;
   }
-
-/// Constraints for keeping "knees" above the floor 
-// Create the knee evaluators for non-linear constraint if necessary
-//   Vector3d kneeOffset(upperLegLength/2,0,0); // vector to "knee" point in upper leg frame
-//   std::vector<int> z_active({2});
-
-//   // Get frames (written out with to_string as reminder to functionalize)
-//   const auto& upper0_frontLeft  = plant.GetFrameByName( "upper" + std::to_string(0) );
-//   const auto& upper1_backLeft   = plant.GetFrameByName( "upper" + std::to_string(1) );
-//   const auto& upper2_frontRight = plant.GetFrameByName( "upper" + std::to_string(2) );
-//   const auto& upper3_backRight  = plant.GetFrameByName( "upper" + std::to_string(3) );
-//   // Make world point evaluators
-//   auto knee0z_eval = multibody::WorldPointEvaluator<T>(plant, kneeOffset, upper0_frontLeft , Matrix3d::Identity(), Vector3d::Zero(), z_active); //Shift to tip;
-//   auto knee1z_eval = multibody::WorldPointEvaluator<T>(plant, kneeOffset, upper1_backLeft  , Matrix3d::Identity(), Vector3d::Zero(), z_active); //Shift to tip;
-//   auto knee2z_eval = multibody::WorldPointEvaluator<T>(plant, kneeOffset, upper2_frontRight, Matrix3d::Identity(), Vector3d::Zero(), z_active); //Shift to tip;
-//   auto knee3z_eval = multibody::WorldPointEvaluator<T>(plant, kneeOffset, upper3_backRight , Matrix3d::Identity(), Vector3d::Zero(), z_active); //Shift to tip;
-//   // Consolidate evaluators
-//   auto knee_z_evaluators = multibody::KinematicEvaluatorSet<T>(plant); //Initialize kinematic evaluator set
-//   knee_z_evaluators.add_evaluator(&(knee0z_eval));
-//   knee_z_evaluators.add_evaluator(&(knee1z_eval));
-//   knee_z_evaluators.add_evaluator(&(knee2z_eval));
-//   knee_z_evaluators.add_evaluator(&(knee3z_eval));
-//   // Add lower bound on constraint
-//   auto knee_lb = Eigen::Vector4d(0, 0, 0, 0);
-//   auto knee_ub = 
-//           Eigen::Vector4d(std::numeric_limits<double>::infinity(), 
-//                           std::numeric_limits<double>::infinity(), 
-//                           std::numeric_limits<double>::infinity(), 
-//                           std::numeric_limits<double>::infinity());
-//   auto positive_knee_constraints =
-//       std::make_shared<multibody::KinematicPositionConstraint<T>>(
-//           plant, knee_z_evaluators, knee_lb, knee_ub);
-
-//   // Allow scaling of knee constraint (Not 100% on what this does)
-//   if (FLAGS_scale_constraint) {
-//     double scale = 1;
-//     std::unordered_map<int, double> odbp_constraint_scale;
-//     odbp_constraint_scale.insert(std::pair<int, double>(0, scale));
-//     odbp_constraint_scale.insert(std::pair<int, double>(1, scale));
-//     positive_knee_constraints->SetConstraintScaling(odbp_constraint_scale);
-//   }
-//   // Add positive knee constraint to all knot_points
-//   for (int i = 0; i < num_knotpoints; i++) {
-//     auto xi = trajopt.state(i);
-//     trajopt.AddConstraint(positive_knee_constraints, xi.head(n_q));
-//   }
 
   ///Setup the traditional cost function
   const double R = FLAGS_inputCost;  // Cost on input effort
@@ -478,6 +393,7 @@ int main(int argc, char* argv[]) {
 
   auto positions_map = dairlib::multibody::makeNameToPositionsMap(*plant);
   auto velocities_map = dairlib::multibody::makeNameToVelocitiesMap(*plant);
+  auto actuators_map = dairlib::multibody::makeNameToActuatorsMap(*plant);
   int num_joints = 12;
 
   // Print joint dictionary
@@ -485,6 +401,8 @@ int main(int argc, char* argv[]) {
   for (auto const& element : positions_map)
     std::cout << element.first << " = " << element.second << std::endl;
   for (auto const& element : velocities_map)
+    std::cout << element.first << " = " << element.second << std::endl;
+  for (auto const& element : actuators_map)
     std::cout << element.first << " = " << element.second << std::endl;
   std::cout<<"***************************************************"<<std::endl;
     
