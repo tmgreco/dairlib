@@ -44,7 +44,7 @@ DEFINE_string(data_directory, "/home/shane/Drake_ws/dairlib/examples/Spirit/save
 DEFINE_string(distance_name, "10m","name to describe distance");
 
 DEFINE_bool(runAllOptimization, true, "rerun earlier optimizations?");
-DEFINE_bool(skipInitialOptimization, true, "skip first optimizations?");
+DEFINE_bool(skipInitialOptimization, false, "skip first optimizations?");
 
 using drake::AutoDiffXd;
 using drake::multibody::MultibodyPlant;
