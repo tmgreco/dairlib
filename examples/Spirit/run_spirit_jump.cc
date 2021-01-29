@@ -305,14 +305,8 @@ void runSpiritJump(
 
   // Setup mode sequence
   auto sequence = DirconModeSequence<T>(plant);
-  Eigen::Matrix<bool,4,4> modeSeqMat;
-  modeSeqMat << true,  true,  true,  true,
-                false, false, false, false,
-                false, false, false, false,
-                true,  true,  true,  true;
 
   dairlib::ModeSequenceHelper msh;
-
   msh.addMode( // Stance
       (Eigen::Matrix<bool,1,4>() << true,  true,  true,  true).finished(), // contact bools
       num_knot_points[0],  // number of knot points in the collocation
@@ -454,7 +448,7 @@ void runSpiritJump(
 
   // Apex height
   if(apex_height > 0)
-    trajopt.AddBoundingBoxConstraint(apex_height-eps, apex_height+eps, xapex(positions_map.at("base_z")) );
+    trajopt.AddBoundingBoxConstraint(apex_height - eps, apex_height + eps, xapex(positions_map.at("base_z")) );
 
   double upperSet = 1;
   double kneeSet = 2;
@@ -489,22 +483,6 @@ void runSpiritJump(
 
   for (int i = 0; i < trajopt.N(); i++){
     auto xi = trajopt.state(i);
-    // Joint limits
-    trajopt.AddBoundingBoxConstraint(eps, M_PI - eps, xi(positions_map.at("joint_1")));
-    trajopt.AddBoundingBoxConstraint(eps, M_PI - eps, xi(positions_map.at("joint_3")));
-    trajopt.AddBoundingBoxConstraint(eps, M_PI - eps, xi(positions_map.at("joint_5")));
-    trajopt.AddBoundingBoxConstraint(eps, M_PI - eps, xi(positions_map.at("joint_7")));
-
-    trajopt.AddBoundingBoxConstraint(eps, M_PI - eps, xi(positions_map.at("joint_0")));
-    trajopt.AddBoundingBoxConstraint(eps, M_PI - eps, xi(positions_map.at("joint_2")));
-    trajopt.AddBoundingBoxConstraint(eps, M_PI - eps, xi(positions_map.at("joint_4")));
-    trajopt.AddBoundingBoxConstraint(eps, M_PI - eps, xi(positions_map.at("joint_6")));
-
-    trajopt.AddBoundingBoxConstraint(-0.5, 0.1, xi( positions_map.at("joint_8")));
-    trajopt.AddBoundingBoxConstraint(-0.5, 0.1, xi( positions_map.at("joint_9")));
-    trajopt.AddBoundingBoxConstraint(-0.1, 0.5, xi( positions_map.at("joint_10")));
-    trajopt.AddBoundingBoxConstraint(-0.1, 0.5, xi( positions_map.at("joint_11")));
-
     //Orientation
     if (lock_rotation and i != 0 and i != (trajopt.N()-1))
     {
@@ -615,7 +593,6 @@ int main(int argc, char* argv[]) {
   std::vector<PiecewisePolynomial<double>> l_traj;
   std::vector<PiecewisePolynomial<double>> lc_traj;
   std::vector<PiecewisePolynomial<double>> vc_traj;
-  Eigen::Vector4d(7, 7, 7, 7);
 
   if (FLAGS_runAllOptimization){
     if(! FLAGS_skipInitialOptimization){
