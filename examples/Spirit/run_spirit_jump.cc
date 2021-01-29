@@ -39,14 +39,14 @@ DEFINE_double(inputCost, 3, "The standing height.");
 DEFINE_double(velocityCost, 10, "The standing height.");
 DEFINE_double(eps, 1e-2, "The wiggle room.");
 DEFINE_double(tol, 1e-6, "Optimization Tolerance");
-DEFINE_double(mu, 1, "coefficient of friction");
+DEFINE_double(mu, 4, "coefficient of friction");
 
 DEFINE_string(data_directory, "/home/shane/Drake_ws/dairlib/examples/Spirit/saved_trajectories/",
               "directory to save/read data");
 DEFINE_string(distance_name, "10m","name to describe distance");
 
 DEFINE_bool(runAllOptimization, true, "rerun earlier optimizations?");
-DEFINE_bool(skipInitialOptimization, false, "skip first optimizations?");
+DEFINE_bool(skipInitialOptimization, true, "skip first optimizations?");
 
 using drake::AutoDiffXd;
 using drake::multibody::MultibodyPlant;
