@@ -39,13 +39,13 @@ DEFINE_double(inputCost, 3, "The standing height.");
 DEFINE_double(velocityCost, 10, "The standing height.");
 DEFINE_double(eps, 1e-2, "The wiggle room.");
 DEFINE_double(tol, 1e-6, "Optimization Tolerance");
-DEFINE_double(mu, 1, "coefficient of friction");
+DEFINE_double(mu, 4, "coefficient of friction");
 
 DEFINE_string(data_directory, "/home/shane/Drake_ws/dairlib/examples/Spirit/saved_trajectories/",
               "directory to save/read data");
 DEFINE_string(distance_name, "10m","name to describe distance");
 
-DEFINE_bool(runAllOptimization, false, "rerun earlier optimizations?");
+DEFINE_bool(runAllOptimization, true, "rerun earlier optimizations?");
 DEFINE_bool(skipInitialOptimization, true, "skip first optimizations?");
 
 using drake::AutoDiffXd;
@@ -70,6 +70,14 @@ using systems::trajectory_optimization::KinematicConstraintType;
 using std::vector;
 using std::cout;
 using std::endl;
+
+/// badSpiritJump, generates a bad initial guess for the spirit jump traj opt
+/// \param plant: robot model
+/// \param x_traj[out]: initial and solution state trajectory
+/// \param u_traj[out]: initial and solution control trajectory
+/// \param l_traj[out]: initial and solution contact force trajectory
+/// \param lc_traj[out]: initial and solution contact force slack variable trajectory
+/// \param vc_traj[out]: initial and solution contact velocity slack variable trajectory
 
 template <typename T>
 void badSpiritJump(MultibodyPlant<T>& plant,
@@ -615,7 +623,7 @@ int main(int argc, char* argv[]) {
           3,
           10,
           0,
-          4,
+          10,
           FLAGS_eps,
           1e-1,
           FLAGS_data_directory+"simple_jump");
@@ -648,7 +656,7 @@ int main(int argc, char* argv[]) {
         3,
         10,
         0,
-        4,
+        10,
         FLAGS_eps,
         1e-4,
         FLAGS_data_directory+"jump_"+FLAGS_distance_name);
