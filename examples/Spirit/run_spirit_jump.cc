@@ -39,11 +39,13 @@ DEFINE_double(inputCost, 3, "The standing height.");
 DEFINE_double(velocityCost, 10, "The standing height.");
 DEFINE_double(eps, 1e-2, "The wiggle room.");
 DEFINE_double(tol, 1e-6, "Optimization Tolerance");
+DEFINE_double(mu, 1, "coefficient of friction");
+
 DEFINE_string(data_directory, "/home/shane/Drake_ws/dairlib/examples/Spirit/saved_trajectories/",
               "directory to save/read data");
 DEFINE_string(distance_name, "10m","name to describe distance");
 
-DEFINE_bool(runAllOptimization, true, "rerun earlier optimizations?");
+DEFINE_bool(runAllOptimization, false, "rerun earlier optimizations?");
 DEFINE_bool(skipInitialOptimization, true, "skip first optimizations?");
 
 using drake::AutoDiffXd;
@@ -240,11 +242,14 @@ void badSpiritJump(MultibodyPlant<T>& plant,
 /// \param lc_traj[in, out]: initial and solution contact force slack variable trajectory
 /// \param vc_traj[in, out]: initial and solution contact velocity slack variable trajectory
 /// \param animate: true if solution should be animated, false otherwise
-/// \param num_knot_points: number of knot points used for each mode (vector) {todo}
-/// \param apex_height: apex height of the jump
+/// \param num_knot_points: number of knot points used for each mode (vector)
+/// \param apex_height: apex height of the jump, if 0, do not enforce and apex height
 /// \param initial_height: initial and final height of the jump
 /// \param fore_aft_displacement: fore-aft displacemnt after jump
 /// \param lock_rotation: true if rotation is constrained at all knot points, false if just initial and final state
+/// \param lock_legs_apex if true, legs have fixed pose at apex
+/// \param force_symmetry forces saggital plane symmetry {todo} make it so it does not overdefine initial and final state
+/// \param use_nominal_stand if true sets initial and final state to be a nominal stand
 /// \param max_duration: maximum time allowed for jump
 /// \param cost_actuation: Cost on actuation
 /// \param cost_velocity: Cost on state velocity
@@ -408,7 +413,7 @@ void runSpiritJump(
   auto   xf  = trajopt.final_state();
   
 
-
+  /// Constraining xy position
   // Initial body positions
   trajopt.AddBoundingBoxConstraint(0, 0, x0(positions_map.at("base_x"))); // Give the initial condition room to choose the x_init position
   trajopt.AddBoundingBoxConstraint(-eps, eps, x0(positions_map.at("base_y")));
@@ -422,8 +427,9 @@ void runSpiritJump(
   trajopt.AddBoundingBoxConstraint(fore_aft_displacement - eps, fore_aft_displacement + eps, xf(positions_map.at("base_x"))); // Give the initial condition room to choose the x_init position (helps with positive knee constraint)
   trajopt.AddBoundingBoxConstraint(-eps, eps, xf(positions_map.at("base_y")));
 
+  // Nominal stand or z and attitude
   if(use_nominal_stand){
-    nominalSpiritStandConstraint(plant,trajopt,initial_height, {0,trajopt.N()}, eps);
+    nominalSpiritStandConstraint(plant,trajopt,initial_height, {0,trajopt.N()-1}, eps);
   }else{
     trajopt.AddBoundingBoxConstraint(initial_height - eps, initial_height + eps, x0(positions_map.at("base_z")));
     trajopt.AddBoundingBoxConstraint(initial_height - eps, initial_height + eps, xf(positions_map.at("base_z")));
@@ -440,7 +446,6 @@ void runSpiritJump(
     trajopt.AddBoundingBoxConstraint(0 - eps, 0 + eps, xf(positions_map.at("base_qx")));
     trajopt.AddBoundingBoxConstraint(0 - eps, 0 + eps, xf(positions_map.at("base_qy")));
     trajopt.AddBoundingBoxConstraint(0 - eps, 0 + eps, xf(positions_map.at("base_qz")));
-
   }
 
   // Initial and final velocity
@@ -448,7 +453,8 @@ void runSpiritJump(
   trajopt.AddBoundingBoxConstraint(VectorXd::Zero(n_v), VectorXd::Zero(n_v), xf.tail(n_v));
 
   // Apex height
-  trajopt.AddBoundingBoxConstraint(apex_height-eps, apex_height+eps, xapex(positions_map.at("base_z")) );
+  if(apex_height > 0)
+    trajopt.AddBoundingBoxConstraint(apex_height-eps, apex_height+eps, xapex(positions_map.at("base_z")) );
 
   double upperSet = 1;
   double kneeSet = 2;
@@ -679,7 +685,7 @@ int main(int argc, char* argv[]) {
         lc_traj, vc_traj,
         false,
         {7, 7, 7, 7} ,
-        FLAGS_apexGoal,
+        0,
         FLAGS_standHeight,
         FLAGS_foreAftDisplacement,
         false,
@@ -690,12 +696,11 @@ int main(int argc, char* argv[]) {
         3,
         10,
         0,
-        1,
+        FLAGS_mu,
         FLAGS_eps,
         FLAGS_tol,
         FLAGS_data_directory+"jump_"+FLAGS_distance_name+"_hq",
         FLAGS_data_directory+"jump_"+FLAGS_distance_name);
-
   } else{
     dairlib::DirconTrajectory old_traj(FLAGS_data_directory+"jump_"+FLAGS_distance_name+"_hq");
     x_traj = old_traj.ReconstructStateTrajectory();
@@ -712,7 +717,7 @@ int main(int argc, char* argv[]) {
       lc_traj, vc_traj,
       true,
       {7, 10, 10, 7} ,
-      FLAGS_apexGoal,
+      0,
       FLAGS_standHeight,
       FLAGS_foreAftDisplacement,
       false,
@@ -723,7 +728,7 @@ int main(int argc, char* argv[]) {
       FLAGS_inputCost,
       FLAGS_velocityCost,
       0,
-      1,
+      FLAGS_mu,
       FLAGS_eps,
       FLAGS_tol,
       FLAGS_data_directory+"jump_"+FLAGS_distance_name+"_hq_med_knot");
