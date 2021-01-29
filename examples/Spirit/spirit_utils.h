@@ -35,6 +35,21 @@ void nominalSpiritStand(
     Eigen::VectorXd& xState, 
     double height);
 
+/// Constrians j0-j1 so nominal stand is at specified height
+///   @param[in]  MultibodyPlant
+///   @param[in]  trajectory optimization object
+///   @param height the nominal height for calculating approx inv kinematics
+///   @param knotPoints vector of the knot points to constrain
+///   @param eps tolerance on constraint
+template <typename T>
+void nominalSpiritStandConstraint(
+    drake::multibody::MultibodyPlant<T>& plant,
+    dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,
+    double height,
+    std::vector<int> knotPoints,
+    const double eps = 0);
+
+
 /// Returns a pointer to the toe frame by index. On Spirit the toes are as follows
 /// Front Left (0), Back Left (1), Front Right (2), Back Right(3)
 /// @param plant a point to the MultibodyPlant 
