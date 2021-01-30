@@ -385,6 +385,68 @@ void addConstraints(MultibodyPlant<T>& plant,
   }
 }
 
+template <typename T>
+std::tuple<  std::vector<std::unique_ptr<dairlib::systems::trajectory_optimization::DirconMode<T>>>,
+             std::vector<std::unique_ptr<multibody::WorldPointEvaluator<T>>> ,
+             std::vector<std::unique_ptr<multibody::KinematicEvaluatorSet<T>>>>
+getModeSequence(
+    drake::multibody::MultibodyPlant<T>& plant, // multibodyPlant
+    const double mu,
+    std::vector<int> num_knot_points,
+    DirconModeSequence<T>& sequence){
+
+  dairlib::ModeSequenceHelper msh;
+  msh.addMode( // Stance
+      (Eigen::Matrix<bool,1,4>() << true,  true,  true,  true).finished(), // contact bools
+      num_knot_points[0],  // number of knot points in the collocation
+      Eigen::Vector3d::UnitZ(), // normal
+      Eigen::Vector3d::Zero(),  // world offset
+      mu //friction
+  );
+  msh.addMode( // Flight
+      (Eigen::Matrix<bool,1,4>() << false, false, false, false).finished(), // contact bools
+      num_knot_points[1],  // number of knot points in the collocation
+      Eigen::Vector3d::UnitZ(), // normal
+      Eigen::Vector3d::Zero(),  // world offset
+      mu //friction
+  );
+  msh.addMode( // Flight
+      (Eigen::Matrix<bool,1,4>() << false, false, false, false).finished(), // contact bools
+      num_knot_points[2],  // number of knot points in the collocation
+      Eigen::Vector3d::UnitZ(), // normal
+      Eigen::Vector3d::Zero(),  // world offset
+      mu //friction
+  );
+  msh.addMode( // Stance
+      (Eigen::Matrix<bool,1,4>() << true,  true,  true,  true).finished(), // contact bools
+      num_knot_points[3],  // number of knot points in the collocation
+      Eigen::Vector3d::UnitZ(), // normal
+      Eigen::Vector3d::Zero(),  // world offset
+      mu //friction
+  );
+
+  auto [modeVector, toeEvals, toeEvalSets] = createSpiritModeSequence(plant, msh.modes , msh.knots , msh.normals , msh.offsets, msh.mus);
+
+  for (auto& mode : modeVector){
+    for (int i = 0; i < mode->evaluators().num_evaluators(); i++ ){
+      mode->MakeConstraintRelative(i,0);
+      mode->MakeConstraintRelative(i,1);
+    }
+    mode->SetDynamicsScale(
+        {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17}, 200);
+    if (mode->evaluators().num_evaluators() > 0)
+    {
+      mode->SetKinVelocityScale(
+          {0, 1, 2, 3}, {0, 1, 2}, 1.0);
+      mode->SetKinPositionScale(
+          {0, 1, 2, 3}, {0, 1, 2}, 200);
+    }
+    sequence.AddMode(mode.get());
+  }
+
+  return {std::move(modeVector), std::move(toeEvals), std::move(toeEvalSets)};
+}
+
 /// runSpiritJump, runs a trajectory optimization problem for spirit jumping on flat ground
 /// \param plant_ptr: robot model
 /// \param plant_double_ptr: model used for animation
@@ -455,55 +517,7 @@ void runSpiritJump(
 
   // Setup mode sequence
   auto sequence = DirconModeSequence<T>(plant);
-
-  dairlib::ModeSequenceHelper msh;
-  msh.addMode( // Stance
-      (Eigen::Matrix<bool,1,4>() << true,  true,  true,  true).finished(), // contact bools
-      num_knot_points[0],  // number of knot points in the collocation
-      Eigen::Vector3d::UnitZ(), // normal
-      Eigen::Vector3d::Zero(),  // world offset
-      mu //friction
-  );
-  msh.addMode( // Flight
-      (Eigen::Matrix<bool,1,4>() << false, false, false, false).finished(), // contact bools
-      num_knot_points[1],  // number of knot points in the collocation
-      Eigen::Vector3d::UnitZ(), // normal
-      Eigen::Vector3d::Zero(),  // world offset
-      mu //friction
-  );
-  msh.addMode( // Flight
-      (Eigen::Matrix<bool,1,4>() << false, false, false, false).finished(), // contact bools
-      num_knot_points[2],  // number of knot points in the collocation
-      Eigen::Vector3d::UnitZ(), // normal
-      Eigen::Vector3d::Zero(),  // world offset
-      mu //friction
-  );
-  msh.addMode( // Stance
-      (Eigen::Matrix<bool,1,4>() << true,  true,  true,  true).finished(), // contact bools
-      num_knot_points[3],  // number of knot points in the collocation
-      Eigen::Vector3d::UnitZ(), // normal
-      Eigen::Vector3d::Zero(),  // world offset
-      mu //friction
-  );
-
-  auto [modeVector, toeEvals, toeEvalSets] = createSpiritModeSequence(plant, msh.modes , msh.knots , msh.normals , msh.offsets, msh.mus);
-
-  for (auto& mode : modeVector){
-    for (int i = 0; i < mode->evaluators().num_evaluators(); i++ ){
-      mode->MakeConstraintRelative(i,0);
-      mode->MakeConstraintRelative(i,1);
-    }
-    mode->SetDynamicsScale(
-        {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17}, 200);
-    if (mode->evaluators().num_evaluators() > 0)
-    {
-      mode->SetKinVelocityScale(
-          {0, 1, 2, 3}, {0, 1, 2}, 1.0);
-      mode->SetKinPositionScale(
-          {0, 1, 2, 3}, {0, 1, 2}, 200);
-    }
-    sequence.AddMode(mode.get());
-  }
+  auto [modeVector, toeEvals, toeEvalSets] = getModeSequence(plant, mu, num_knot_points, sequence);
 
   ///Setup trajectory optimization
   auto trajopt = Dircon<T>(sequence);
