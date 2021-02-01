@@ -9,17 +9,23 @@ class ModeSequenceHelper {
     std::vector<Eigen::Vector3d> normals;
     std::vector<Eigen::Vector3d> offsets;
     std::vector<double> mus;
+    std::vector<double> minTs;
+    std::vector<double> maxTs;
     void addMode(
       Eigen::Matrix<bool,1,4> activeContactVector, 
       int num_knots, 
       Eigen::Vector3d normal, 
       Eigen::Vector3d offset,
-      double mu){
+      double mu,
+      double minT = 0,
+      double maxT = std::numeric_limits<double>::infinity() ){
         modes.push_back(activeContactVector);
         knots.push_back(num_knots);
         normals.push_back(normal);
         offsets.push_back(offset);
         mus.push_back(mu);
+        minTs.push_back(minT);
+        maxTs.push_back(maxT);
     }
 };
 
@@ -57,7 +63,7 @@ const drake::multibody::Frame<T>& getSpiritToeFrame(
 ///              )
 ///
 template <typename T>
-std::unique_ptr<multibody::WorldPointEvaluator<T>> getSpiritToeEvaluator( 
+std::unique_ptr<dairlib::multibody::WorldPointEvaluator<T>> getSpiritToeEvaluator( 
                       drake::multibody::MultibodyPlant<T>& plant, 
                       const Eigen::Vector3d toePoint,
                       u_int8_t toeIndex,
@@ -91,9 +97,27 @@ std::tuple<  std::vector<std::unique_ptr<dairlib::systems::trajectory_optimizati
           std::vector<int> knotpointVect, // Matrix of knot points for each mode  
           std::vector<Eigen::Vector3d> normals,
           std::vector<Eigen::Vector3d> offsets, 
-          std::vector<double> mus );
+          std::vector<double> mus, 
+          std::vector<double> minTs, 
+          std::vector<double> maxTs );
 
+/// Overload allows the use of the ModeSequenceHelper Class so we dont need to feed in all the arguments
+template <typename T>
+std::tuple<  std::vector<std::unique_ptr<dairlib::systems::trajectory_optimization::DirconMode<T>>>,
+             std::vector<std::unique_ptr<multibody::WorldPointEvaluator<T>>> ,
+             std::vector<std::unique_ptr<multibody::KinematicEvaluatorSet<T>>>   
+          >     
+    createSpiritModeSequence( 
+          drake::multibody::MultibodyPlant<T>& plant, // multibodyPlant
+          dairlib::ModeSequenceHelper* msh );
 
+/// This overload sets all the joints to their nominal limit's
+///    @param plant a pointer to a multibodyPlant
+///    @param trajopt a ponter to a Dircon<T> object  
+template <typename T>
+void setSpiritJointLimits(
+                    drake::multibody::MultibodyPlant<T> & plant, 
+                    dairlib::systems::trajectory_optimization::Dircon<T>& trajopt );
 
 /// This overload sets an individual joint's position limit
 ///    @param plant a pointer to a multibodyPlant
@@ -137,13 +161,6 @@ void setSpiritJointLimits(
                     double minVal, 
                     double maxVal  );
 
-/// This overload sets all the joints to their nominal limit's
-///    @param plant a pointer to a multibodyPlant
-///    @param trajopt a ponter to a Dircon<T> object  
-template <typename T>
-void setSpiritJointLimits(
-                    drake::multibody::MultibodyPlant<T> & plant, 
-                    dairlib::systems::trajectory_optimization::Dircon<T>& trajopt );
 
 
 /// Sets all the joints' actuator limits to the same thing
