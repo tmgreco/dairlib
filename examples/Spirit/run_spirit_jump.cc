@@ -34,7 +34,7 @@
 
 DEFINE_double(duration, 1, "The stand duration");
 DEFINE_double(standHeight, 0.25, "The standing height.");
-DEFINE_double(foreAftDisplacement, 0.9, "The fore-aft displacement.");
+DEFINE_double(foreAftDisplacement, 1.2, "The fore-aft displacement.");
 DEFINE_double(apexGoal, 0.5, "Apex state goal");
 DEFINE_double(inputCost, 3, "The standing height.");
 DEFINE_double(velocityCost, 10, "The standing height.");
@@ -44,11 +44,11 @@ DEFINE_double(mu, 1, "coefficient of friction");
 
 DEFINE_string(data_directory, "/home/shane/Drake_ws/dairlib/examples/Spirit/saved_trajectories/",
               "directory to save/read data");
-DEFINE_string(distance_name, "09m","name to describe distance");
+DEFINE_string(distance_name, "12m","name to describe distance");
 
 DEFINE_bool(runAllOptimization, true, "rerun earlier optimizations?");
 DEFINE_bool(skipInitialOptimization, false, "skip first optimizations?");
-DEFINE_bool(minWork, true, "skip try to minimize work?");
+DEFINE_bool(minWork, false, "skip try to minimize work?");
 
 using drake::AutoDiffXd;
 using drake::multibody::MultibodyPlant;
@@ -241,6 +241,7 @@ void badSpiritJump(MultibodyPlant<T>& plant,
   vc_traj.push_back(init_vc_traj_j);
 }
 
+/// addCost, adds the cost to the trajopt jump problem. See runSpiritJump for a description of the inputs
 template <typename T>
 void addCost(MultibodyPlant<T>& plant,
              dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,
@@ -267,10 +268,10 @@ void addCost(MultibodyPlant<T>& plant,
   trajopt.AddRunningCost( u.transpose()*R*u);
 
   for (int joint = 0; joint < 12; joint++){
-    auto work_plus = trajopt.NewSequentialVariable(1, "joint_" + std::to_string(joint)+"_work_plus");
-    auto work_minus = trajopt.NewSequentialVariable(1, "joint_" + std::to_string(joint)+"_work_minus");
+    auto power_plus = trajopt.NewSequentialVariable(1, "joint_" + std::to_string(joint)+"_power_plus");
+    auto power_minus = trajopt.NewSequentialVariable(1, "joint_" + std::to_string(joint)+"_power_minus");
 
-    trajopt.AddRunningCost(cost_work * (work_plus + work_minus));
+    trajopt.AddRunningCost(cost_work * (power_plus + power_minus));
 
     for(int time_index = 0; time_index < trajopt.N(); time_index++){
       auto u_i   = trajopt.input(time_index);
@@ -278,21 +279,22 @@ void addCost(MultibodyPlant<T>& plant,
 
       drake::symbolic::Variable actuation = u_i(actuator_map.at("motor_" + std::to_string(joint)));
       drake::symbolic::Variable velocity = x_i(n_q + velocities_map.at("joint_" + std::to_string(joint) +"dot"));
-      drake::symbolic::Variable work_plus_i = trajopt.GetSequentialVariableAtIndex("joint_" + std::to_string(joint)+"_work_plus", time_index)[0];
-      drake::symbolic::Variable work_minus_i = trajopt.GetSequentialVariableAtIndex("joint_" + std::to_string(joint)+"_work_minus", time_index)[0];
+      drake::symbolic::Variable power_plus_i = trajopt.GetSequentialVariableAtIndex("joint_" + std::to_string(joint)+"_power_plus", time_index)[0];
+      drake::symbolic::Variable power_minus_i = trajopt.GetSequentialVariableAtIndex("joint_" + std::to_string(joint)+"_power_minus", time_index)[0];
 
 
       if (cost_work > 0){
-        trajopt.AddConstraint(actuation * velocity * work_constraint_scale == (work_plus_i - work_minus_i) * work_constraint_scale) ;
-        trajopt.AddLinearConstraint(work_plus_i * work_constraint_scale >= 0);
-        trajopt.AddLinearConstraint( work_minus_i * work_constraint_scale >= 0);
+        trajopt.AddConstraint(actuation * velocity * work_constraint_scale == (power_plus_i - power_minus_i) * work_constraint_scale) ;
+        trajopt.AddLinearConstraint(power_plus_i * work_constraint_scale >= 0);
+        trajopt.AddLinearConstraint(power_minus_i * work_constraint_scale >= 0);
       }
-      trajopt.SetInitialGuess(work_plus_i, 0);
-      trajopt.SetInitialGuess(work_minus_i, 0);
+      trajopt.SetInitialGuess(power_plus_i, 0);
+      trajopt.SetInitialGuess(power_minus_i, 0);
     }
   }
 }
 
+// addConstraints, adds constraints to the trajopt jump problem. See runSpiritJump for a description of the inputs
 template <typename T>
 void addConstraints(MultibodyPlant<T>& plant,
              dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,
@@ -420,6 +422,7 @@ void addConstraints(MultibodyPlant<T>& plant,
   }
 }
 
+/// getModeSequence, initializes the trajopt mode seqence for jump, see runSpiritJump for a def of inputs
 template <typename T>
 std::tuple<  std::vector<std::unique_ptr<dairlib::systems::trajectory_optimization::DirconMode<T>>>,
              std::vector<std::unique_ptr<multibody::WorldPointEvaluator<T>>> ,
@@ -507,8 +510,8 @@ getModeSequence(
 /// \param mu: coefficient of friction
 /// \param eps: the tolerance for position constraints
 /// \param tol: optimization solver constraint and optimality tolerence
+/// \param work_constraint_scale: scale for the constraints for the power calculation
 /// \param file_name_out: if empty, file is unsaved, if not empty saves the trajectory in the directory
-/// \return struct containing boolean describing optimization success and the cost
 template <typename T>
 void runSpiritJump(
     MultibodyPlant<T>& plant,
@@ -736,11 +739,10 @@ int main(int argc, char* argv[]) {
         10,
         0,
         100,
-        FLAGS_eps,
-        1e-3,
+        0,
+        1e-2,
         0,
         FLAGS_data_directory+"jump_"+FLAGS_distance_name);
-
   }
   std::cout<<"Running 3rd optimization"<<std::endl;
   // Fewer constraints, and higher tolerences
@@ -771,6 +773,7 @@ int main(int argc, char* argv[]) {
   if (FLAGS_minWork){
     std::cout<<"Running 4th optimization"<<std::endl;
     // Adding in work cost and constraints
+
     dairlib::runSpiritJump<double>(
         *plant,
         x_traj, u_traj, l_traj,
@@ -787,11 +790,11 @@ int main(int argc, char* argv[]) {
         2,
         3,
         10,
-        0.5,
+        0.01,
         FLAGS_mu,
         FLAGS_eps,
-        1e-4,
-        1.0/20,
+        1e-3,
+        1.0,
         FLAGS_data_directory+"jump_"+FLAGS_distance_name+"_hq_work",
         FLAGS_data_directory+"jump_"+FLAGS_distance_name+"_hq");
 
@@ -813,7 +816,7 @@ int main(int argc, char* argv[]) {
         2,
         FLAGS_inputCost,
         FLAGS_velocityCost,
-        10,
+        5,
         FLAGS_mu,
         FLAGS_eps,
         FLAGS_tol,
@@ -837,11 +840,11 @@ int main(int argc, char* argv[]) {
         2,
         FLAGS_inputCost,
         FLAGS_velocityCost,
-        20,
+        10,
         FLAGS_mu,
         FLAGS_eps,
         FLAGS_tol,
-        1.0/20,
+        1.0,
         FLAGS_data_directory+"jump_"+FLAGS_distance_name+"_hq_work3",
         FLAGS_data_directory+"jump_"+FLAGS_distance_name+"_hq_work2");
   }
