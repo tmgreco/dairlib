@@ -111,6 +111,24 @@ cc_binary(
 )
 
 cc_binary(
+    name = "run_spirit_box_jump",
+    srcs = ["run_spirit_box_jump.cc"],
+    data = ["spirit_drake.urdf"],
+    deps = [
+        ":animate_spirit",
+        ":spirit_utils",
+        "//systems/trajectory_optimization/dircon",
+        "//lcm:dircon_trajectory_saver",
+        "//multibody/kinematic",
+        "//common",
+        "//systems/primitives",
+        "@drake//:drake_shared_library",
+        "@gflags",
+    ],
+)
+
+
+cc_binary(
     name = "run_spirit_best_stand",
     srcs = ["run_spirit_best_stand.cc"],
     data = ["spirit_drake.urdf"],
