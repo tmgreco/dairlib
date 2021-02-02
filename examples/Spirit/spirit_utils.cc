@@ -151,7 +151,9 @@ std::tuple<
           std::vector<int> knotpointVect, // Matrix of knot points for each mode  
           std::vector<Eigen::Vector3d> normals,
           std::vector<Eigen::Vector3d> offsets, 
-          std::vector<double> mus ){
+          std::vector<double> mus, 
+          std::vector<double> minTs, 
+          std::vector<double> maxTs ){
 
   // std::cout<<modeSeqMat<<std::endl;
   // std::cout<<knotpointVect<<std::endl;  
@@ -173,13 +175,13 @@ std::tuple<
     toeEvalSets.push_back( std::move( std::make_unique<dairlib::multibody::KinematicEvaluatorSet<T>>(plant) ));
     for ( int iLeg = 0; iLeg < 4; iLeg++ ){
       if (modeSeqVect.at(iMode)(iLeg)){
-        toeEvals.push_back( std::move( getSpiritToeEvaluator(plant, toeOffset, iLeg, normals.at(iMode), offsets.at(iMode), mus.at(iMode) )) );//Default Normal (z), offset, and xy_active=true
+        toeEvals.push_back( std::move( getSpiritToeEvaluator(plant, toeOffset, iLeg, normals.at(iMode), offsets.at(iMode), true, mus.at(iMode) )) );
         (toeEvalSets.back())->add_evaluator(  (toeEvals.back()).get()  ); //add evaluator to the set if active //Works ish
       }
     }
     auto dumbToeEvalPtr = (toeEvalSets.back()).get() ;
     int num_knotpoints = knotpointVect.at(iMode);
-    modeVector.push_back(std::move( std::make_unique<DirconMode<T>>( *dumbToeEvalPtr , num_knotpoints )));
+    modeVector.push_back(std::move( std::make_unique<DirconMode<T>>( *dumbToeEvalPtr , num_knotpoints, minTs.at(iMode), maxTs.at(iMode) )));
     // DirconMode<T> modeDum = DirconMode<T>( *dumbToeEvalPtr , num_knotpoints );
     // sequence.AddMode(  &modeDum  ); // Add the evaluator set to the mode sequence
     
@@ -188,28 +190,19 @@ std::tuple<
   return {std::move(modeVector), std::move(toeEvals), std::move(toeEvalSets)};
   // return {std::move(toeEvals), std::move(toeEvalSets)};
 }
-// //Overload function to allow the use of a equal number of knotpoints for every mode.
-// template <typename T>
-// std::tuple<
-//                 DirconModeSequence<T>,
-//                 std::vector<std::unique_ptr<multibody::WorldPointEvaluator<T>>> ,
-//                 std::vector<std::unique_ptr<multibody::KinematicEvaluatorSet<T>>>
-//           > createSpiritModeSequence( 
-//   MultibodyPlant<T>& plant, // multibodyPlant
-//   Eigen::Matrix<bool,-1,4> modeSeqMat, // bool matrix describing toe contacts as true or false e.g. {{1,1,1,1},{0,0,0,0}} would be a full support mode and flight mode
-//   uint16_t knotpoints, // Number of knot points per mode
-//   double mu = 1){
-//   int numModes = modeSeqMat.rows(); 
-//   std::vector<int> knotpointVect = Eigen::MatrixXi::Constant(numModes,1,knotpoints);
-//   return createSpiritModeSequence(plant, modeSeqMat,knotpointVect, mu);
-// }
 
 
+template <typename T>
+std::tuple<
+                std::vector<std::unique_ptr<DirconMode<T>>>,
+                std::vector<std::unique_ptr<dairlib::multibody::WorldPointEvaluator<T>>> ,
+                std::vector<std::unique_ptr<dairlib::multibody::KinematicEvaluatorSet<T>>>
+          > createSpiritModeSequence( 
+          MultibodyPlant<T>& plant, // multibodyPlant
+          const dairlib::ModeSequenceHelper& msh ){
 
-
-
-
-
+return createSpiritModeSequence(plant, msh.modes , msh.knots , msh.normals , msh.offsets, msh.mus, msh.minTs, msh.maxTs);
+}
 
 
 
@@ -478,7 +471,18 @@ template std::tuple<  std::vector<std::unique_ptr<dairlib::systems::trajectory_o
           std::vector<int> knotpointVect, // Matrix of knot points for each mode  
           std::vector<Eigen::Vector3d> normals,
           std::vector<Eigen::Vector3d> offsets, 
-          std::vector<double> mus ); // NOLINT
+          std::vector<double> mus , 
+          std::vector<double> minTs, 
+          std::vector<double> maxTs); // NOLINT
+          
+
+template std::tuple<
+                std::vector<std::unique_ptr<DirconMode<double>>>,
+                std::vector<std::unique_ptr<dairlib::multibody::WorldPointEvaluator<double>>> ,
+                std::vector<std::unique_ptr<dairlib::multibody::KinematicEvaluatorSet<double>>>
+          > createSpiritModeSequence( 
+          MultibodyPlant<double>& plant, // multibodyPlant
+          const dairlib::ModeSequenceHelper& msh );//NOLINT
           
   
 template void setSpiritJointLimits(
