@@ -33,15 +33,16 @@
 
 DEFINE_double(duration, 1, "The stand duration");
 DEFINE_double(standHeight, 0.25, "The standing height.");
-DEFINE_double(foreAftDisplacement, 1.0, "The fore-aft displacement.");
+DEFINE_double(foreAftDisplacement, .5, "The fore-aft displacement.");
 DEFINE_double(apexGoal, 0.5, "Apex state goal");
 DEFINE_double(inputCost, 3, "The standing height.");
 DEFINE_double(velocityCost, 10, "The standing height.");
 DEFINE_double(eps, 1e-2, "The wiggle room.");
 DEFINE_double(tol, 1e-6, "Optimization Tolerance");
 DEFINE_double(mu, 1, "coefficient of friction");
+DEFINE_double(boxHeight, 0.3, "The height of the landing");
 
-DEFINE_string(data_directory, "/home/shane/Drake_ws/dairlib/examples/Spirit/saved_trajectories/",
+DEFINE_string(data_directory, "/home/jdcap/dairlib/examples/Spirit/saved_trajectories/",
               "directory to save/read data");
 DEFINE_string(distance_name, "10m","name to describe distance");
 
@@ -332,11 +333,11 @@ void runSpiritJump(
       (Eigen::Matrix<bool,1,4>() << true,  true,  true,  true).finished(), // contact bools
       num_knot_points[3],  // number of knot points in the collocation
       Eigen::Vector3d::UnitZ(), // normal
-      Eigen::Vector3d::Zero(),  // world offset
+      Eigen::Vector3d::UnitZ()*FLAGS_boxHeight,  // world offset
       mu //friction
   );
 
-  auto [modeVector, toeEvals, toeEvalSets] = createSpiritModeSequence(plant, msh.modes , msh.knots , msh.normals , msh.offsets, msh.mus);
+  auto [modeVector, toeEvals, toeEvalSets] = createSpiritModeSequence(plant, msh);
 
   for (auto& mode : modeVector){
     for (int i = 0; i < mode->evaluators().num_evaluators(); i++ ){
@@ -555,6 +556,9 @@ void runSpiritJump(
   multibody::connectTrajectoryVisualizer(plant_vis.get(),
       &builder, &scene_graph, pp_xtraj);
   auto diagram = builder.Build();
+  if(animate){
+      std::cout << "animating, kill to end." << std::endl;
+  }
   while (animate) {
     drake::systems::Simulator<double> simulator(*diagram);
     simulator.set_target_realtime_rate(0.25);
