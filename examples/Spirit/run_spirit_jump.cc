@@ -34,20 +34,21 @@
 
 DEFINE_double(duration, 1, "The stand duration");
 DEFINE_double(standHeight, 0.25, "The standing height.");
-DEFINE_double(foreAftDisplacement, 0.5, "The fore-aft displacement.");
+DEFINE_double(foreAftDisplacement, 0.9, "The fore-aft displacement.");
 DEFINE_double(apexGoal, 0.5, "Apex state goal");
 DEFINE_double(inputCost, 3, "The standing height.");
 DEFINE_double(velocityCost, 10, "The standing height.");
 DEFINE_double(eps, 1e-2, "The wiggle room.");
 DEFINE_double(tol, 1e-6, "Optimization Tolerance");
-DEFINE_double(mu, 4, "coefficient of friction");
+DEFINE_double(mu, 1, "coefficient of friction");
 
 DEFINE_string(data_directory, "/home/shane/Drake_ws/dairlib/examples/Spirit/saved_trajectories/",
               "directory to save/read data");
-DEFINE_string(distance_name, "05m","name to describe distance");
+DEFINE_string(distance_name, "09m","name to describe distance");
 
-DEFINE_bool(runAllOptimization, false, "rerun earlier optimizations?");
-DEFINE_bool(skipInitialOptimization, true, "skip first optimizations?");
+DEFINE_bool(runAllOptimization, true, "rerun earlier optimizations?");
+DEFINE_bool(skipInitialOptimization, false, "skip first optimizations?");
+DEFINE_bool(minWork, true, "skip try to minimize work?");
 
 using drake::AutoDiffXd;
 using drake::multibody::MultibodyPlant;
@@ -502,7 +503,7 @@ getModeSequence(
 /// \param max_duration: maximum time allowed for jump
 /// \param cost_actuation: Cost on actuation
 /// \param cost_velocity: Cost on state velocity
-/// \param cost_work: Cost on work {TODO}
+/// \param cost_work: Cost on work
 /// \param mu: coefficient of friction
 /// \param eps: the tolerance for position constraints
 /// \param tol: optimization solver constraint and optimality tolerence
@@ -735,14 +736,41 @@ int main(int argc, char* argv[]) {
         10,
         0,
         100,
-        0,
         FLAGS_eps,
         1e-3,
+        0,
         FLAGS_data_directory+"jump_"+FLAGS_distance_name);
 
+  }
+  std::cout<<"Running 3rd optimization"<<std::endl;
+  // Fewer constraints, and higher tolerences
+  dairlib::runSpiritJump<double>(
+      *plant,
+      x_traj, u_traj, l_traj,
+      lc_traj, vc_traj,
+      !FLAGS_minWork,
+      {7, 7, 7, 7} ,
+      FLAGS_apexGoal,
+      FLAGS_standHeight,
+      FLAGS_foreAftDisplacement,
+      false,
+      false,
+      false,
+      true,
+      2,
+      3,
+      10,
+      0,
+      FLAGS_mu,
+      FLAGS_eps,
+      FLAGS_tol,
+      0,
+      FLAGS_data_directory+"jump_"+FLAGS_distance_name+"_hq",
+      FLAGS_data_directory+"jump_"+FLAGS_distance_name);
 
-    std::cout<<"Running 3rd optimization"<<std::endl;
-    // Fewer constraints, and higher tolerences
+  if (FLAGS_minWork){
+    std::cout<<"Running 4th optimization"<<std::endl;
+    // Adding in work cost and constraints
     dairlib::runSpiritJump<double>(
         *plant,
         x_traj, u_traj, l_traj,
@@ -753,80 +781,69 @@ int main(int argc, char* argv[]) {
         FLAGS_standHeight,
         FLAGS_foreAftDisplacement,
         false,
-        true,
+        false,
         false,
         true,
         2,
         3,
         10,
-        0,
+        0.5,
         FLAGS_mu,
         FLAGS_eps,
-        FLAGS_tol,
-        0,
-        FLAGS_data_directory+"jump_"+FLAGS_distance_name+"_hq",
-        FLAGS_data_directory+"jump_"+FLAGS_distance_name);
+        1e-4,
+        1.0/20,
+        FLAGS_data_directory+"jump_"+FLAGS_distance_name+"_hq_work",
+        FLAGS_data_directory+"jump_"+FLAGS_distance_name+"_hq");
 
-    std::cout<<"Running 4th optimization"<<std::endl;
-    // Adding in work cost and constraints
+    // Adding more min work
+    std::cout<<"Running 5th optimization"<<std::endl;
     dairlib::runSpiritJump<double>(
         *plant,
         x_traj, u_traj, l_traj,
         lc_traj, vc_traj,
         false,
         {7, 7, 7, 7} ,
-        0,
+        FLAGS_apexGoal,
         FLAGS_standHeight,
         FLAGS_foreAftDisplacement,
         false,
-        true,
+        false,
         false,
         true,
         2,
-        3,
-        10,
+        FLAGS_inputCost,
+        FLAGS_velocityCost,
         10,
         FLAGS_mu,
         FLAGS_eps,
         FLAGS_tol,
-        1.0,
-        FLAGS_data_directory+"jump_"+FLAGS_distance_name+"_hq_work",
-        FLAGS_data_directory+"jump_"+FLAGS_distance_name+"_hq");
-
-  } else{
-    dairlib::DirconTrajectory old_traj(FLAGS_data_directory+"jump_"+FLAGS_distance_name+"_hq_work");
-    x_traj = old_traj.ReconstructStateTrajectory();
-    u_traj = old_traj.ReconstructInputTrajectory();
-    l_traj = old_traj.ReconstructLambdaTrajectory();
-    lc_traj = old_traj.ReconstructLambdaCTrajectory();
-    vc_traj = old_traj.ReconstructGammaCTrajectory();
+        1.0/20,
+        FLAGS_data_directory+"jump_"+FLAGS_distance_name+"_hq_work2",
+        FLAGS_data_directory+"jump_"+FLAGS_distance_name+"_hq_work");
+    std::cout<<"Running 6th optimization"<<std::endl;
+    dairlib::runSpiritJump<double>(
+        *plant,
+        x_traj, u_traj, l_traj,
+        lc_traj, vc_traj,
+        true,
+        {7, 7, 7, 7} ,
+        FLAGS_apexGoal,
+        FLAGS_standHeight,
+        FLAGS_foreAftDisplacement,
+        false,
+        false,
+        false,
+        true,
+        2,
+        FLAGS_inputCost,
+        FLAGS_velocityCost,
+        20,
+        FLAGS_mu,
+        FLAGS_eps,
+        FLAGS_tol,
+        1.0/20,
+        FLAGS_data_directory+"jump_"+FLAGS_distance_name+"_hq_work3",
+        FLAGS_data_directory+"jump_"+FLAGS_distance_name+"_hq_work2");
   }
-  // Adding knot points
-  std::cout<<"Running final optimization"<<std::endl;
-  dairlib::runSpiritJump<double>(
-      *plant,
-      x_traj, u_traj, l_traj,
-      lc_traj, vc_traj,
-      true,
-      {7, 7, 7, 7} ,
-      FLAGS_apexGoal,
-      FLAGS_standHeight,
-      FLAGS_foreAftDisplacement,
-      false,
-      false,
-      false,
-      true,
-      2*FLAGS_duration,
-      FLAGS_inputCost,
-      FLAGS_velocityCost,
-      200,
-      FLAGS_mu,
-      FLAGS_eps,
-      FLAGS_tol,
-      1.0/200,
-      FLAGS_data_directory+"jump_"+FLAGS_distance_name+"_hq_work_2",
-      FLAGS_data_directory+"jump_"+FLAGS_distance_name+"_hq_work");
-
-
 }
 
