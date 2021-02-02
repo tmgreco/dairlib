@@ -109,7 +109,7 @@ std::tuple<  std::vector<std::unique_ptr<dairlib::systems::trajectory_optimizati
           >     
     createSpiritModeSequence( 
           drake::multibody::MultibodyPlant<T>& plant, // multibodyPlant
-          dairlib::ModeSequenceHelper* msh );
+          const dairlib::ModeSequenceHelper& msh );
 
 /// This overload sets all the joints to their nominal limit's
 ///    @param plant a pointer to a multibodyPlant

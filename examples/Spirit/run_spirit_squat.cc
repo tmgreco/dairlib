@@ -151,7 +151,7 @@ void runSpiritSquat(
     );
 
   // auto [modeVector, toeEvals, toeEvalSets] = createSpiritModeSequence(plant, msh.modes , msh.knots , msh.normals , msh.offsets, msh.mus, msh.minTs, msh.maxTs);
-  auto [modeVector, toeEvals, toeEvalSets] = createSpiritModeSequence(plant, &msh);
+  auto [modeVector, toeEvals, toeEvalSets] = createSpiritModeSequence(plant, msh);
   
   for (auto& mode : modeVector){
     for (int i = 0; i < num_legs; i++ ){

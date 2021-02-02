@@ -175,9 +175,9 @@ std::tuple<
                 std::vector<std::unique_ptr<dairlib::multibody::KinematicEvaluatorSet<T>>>
           > createSpiritModeSequence( 
           MultibodyPlant<T>& plant, // multibodyPlant
-          dairlib::ModeSequenceHelper* msh ){
+          const dairlib::ModeSequenceHelper& msh ){
 
-return createSpiritModeSequence(plant, msh->modes , msh->knots , msh->normals , msh->offsets, msh->mus, msh->minTs, msh->maxTs);
+return createSpiritModeSequence(plant, msh.modes , msh.knots , msh.normals , msh.offsets, msh.mus, msh.minTs, msh.maxTs);
 }
 
 
@@ -451,7 +451,7 @@ template std::tuple<
                 std::vector<std::unique_ptr<dairlib::multibody::KinematicEvaluatorSet<double>>>
           > createSpiritModeSequence( 
           MultibodyPlant<double>& plant, // multibodyPlant
-          dairlib::ModeSequenceHelper* msh );//NOLINT
+          const dairlib::ModeSequenceHelper& msh );//NOLINT
           
   
 template void setSpiritJointLimits(
