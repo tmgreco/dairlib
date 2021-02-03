@@ -134,7 +134,7 @@ std::unique_ptr<dairlib::multibody::WorldPointEvaluator<T>> getSpiritToeEvaluato
         normal, 
         offset, 
         xy_active );
-  if(mu){
+  if(!std::isinf(mu)){
     toe_eval->set_frictional(); toe_eval->set_mu(mu);
   }
   return toe_eval;
