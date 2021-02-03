@@ -34,17 +34,17 @@
 DEFINE_double(duration, 1, "The stand duration");
 DEFINE_double(standHeight, 0.25, "The standing height.");
 DEFINE_double(foreAftDisplacement, .5, "The fore-aft displacement.");
-DEFINE_double(apexGoal, 0.5, "Apex state goal");
+DEFINE_double(apexGoal, 0.6, "Apex state goal");
 DEFINE_double(inputCost, 3, "The standing height.");
 DEFINE_double(velocityCost, 10, "The standing height.");
 DEFINE_double(eps, 1e-2, "The wiggle room.");
 DEFINE_double(tol, 1e-6, "Optimization Tolerance");
 DEFINE_double(mu, 1, "coefficient of friction");
-DEFINE_double(boxHeight, 0.3, "The height of the landing");
+DEFINE_double(boxHeight, 0.2, "The height of the landing");
 
 DEFINE_string(data_directory, "/home/jdcap/dairlib/examples/Spirit/saved_trajectories/",
               "directory to save/read data");
-DEFINE_string(distance_name, "10m","name to describe distance");
+DEFINE_string(distance_name, "angledBox","name to describe distance");
 
 DEFINE_bool(runAllOptimization, false, "rerun earlier optimizations?");
 DEFINE_bool(skipInitialOptimization, true, "skip first optimizations?");
@@ -329,11 +329,13 @@ void runSpiritJump(
       Eigen::Vector3d::Zero(),  // world offset
       mu //friction
   );
+
+  Eigen::Vector3d gndNormal = Eigen::AngleAxisd(-M_PI/9,Eigen::Vector3d::UnitX()) * Eigen::Vector3d::UnitZ();
   msh.addMode( // Stance
       (Eigen::Matrix<bool,1,4>() << true,  true,  true,  true).finished(), // contact bools
       num_knot_points[3],  // number of knot points in the collocation
-      Eigen::Vector3d::UnitZ(), // normal
-      Eigen::Vector3d::UnitZ()*FLAGS_boxHeight,  // world offset
+      gndNormal, // normal
+      Eigen::Vector3d::UnitZ()*FLAGS_boxHeight + Eigen::Vector3d::UnitX()*fore_aft_displacement,  // world offset
       mu //friction
   );
 
@@ -424,7 +426,8 @@ void runSpiritJump(
 
   // Nominal stand or z and attitude
   if(use_nominal_stand){
-    nominalSpiritStandConstraint(plant,trajopt,initial_height, {0,trajopt.N()-1}, eps);
+    // nominalSpiritStandConstraint(plant,trajopt,initial_height, {0,trajopt.N()-1}, eps);
+    nominalSpiritStandConstraint(plant,trajopt,initial_height, {0}, eps);
   }else{
     trajopt.AddBoundingBoxConstraint(initial_height - eps, initial_height + eps, x0(positions_map.at("base_z")));
     trajopt.AddBoundingBoxConstraint(initial_height - eps, initial_height + eps, xf(positions_map.at("base_z")));
