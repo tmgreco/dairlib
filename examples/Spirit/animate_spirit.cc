@@ -56,7 +56,8 @@ void runAnimate(
     std::unique_ptr<MultibodyPlant<T>> plant_ptr,
     MultibodyPlant<double> *plant_double_ptr,
     std::unique_ptr<SceneGraph<double>> scene_graph_ptr,
-    PiecewisePolynomial<double> pp_xtraj
+    PiecewisePolynomial<double> pp_xtraj,
+    const double real_time_factor
 ) {
 
   drake::systems::DiagramBuilder<double> builder;
@@ -73,10 +74,10 @@ void runAnimate(
   while (true) {
 
     drake::systems::Simulator<double> simulator(*diagram);
-    simulator.set_target_realtime_rate(1);
+    simulator.set_target_realtime_rate(real_time_factor);
     simulator.Initialize();
     simulator.AdvanceTo(pp_xtraj.end_time());
-    sleep(1);
+    sleep(2);
   }
 }
 
@@ -84,6 +85,7 @@ template void runAnimate(
     std::unique_ptr<drake::multibody::MultibodyPlant<double>> plant_ptr,
     drake::multibody::MultibodyPlant<double> *plant_double_ptr,
     std::unique_ptr<drake::geometry::SceneGraph<double>> scene_graph_ptr,
-    drake::trajectories::PiecewisePolynomial<double> pp_xtraj
+    drake::trajectories::PiecewisePolynomial<double> pp_xtraj,
+    double real_time_factor
 ); //NOLINT
 }// namespace dairlib
