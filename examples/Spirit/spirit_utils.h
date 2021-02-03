@@ -85,7 +85,7 @@ std::unique_ptr<dairlib::multibody::WorldPointEvaluator<T>> getSpiritToeEvaluato
                       const Eigen::Vector3d normal = Eigen::Vector3d::UnitZ(),
                       const Eigen::Vector3d offset = Eigen::Vector3d::Zero(),
                       bool xy_active = true, 
-                      double mu = 0.0
+                      double mu = std::numeric_limits<double>::infinity()
                       );
 
 
