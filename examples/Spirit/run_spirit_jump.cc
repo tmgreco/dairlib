@@ -336,7 +336,7 @@ void runSpiritJump(
       mu //friction
   );
 
-  auto [modeVector, toeEvals, toeEvalSets] = createSpiritModeSequence(plant, msh.modes , msh.knots , msh.normals , msh.offsets, msh.mus);
+  auto [modeVector, toeEvals, toeEvalSets] = createSpiritModeSequence(plant, msh);
 
   for (auto& mode : modeVector){
     for (int i = 0; i < mode->evaluators().num_evaluators(); i++ ){
@@ -685,6 +685,7 @@ int main(int argc, char* argv[]) {
     l_traj = old_traj.ReconstructLambdaTrajectory();
     lc_traj = old_traj.ReconstructLambdaCTrajectory();
     vc_traj = old_traj.ReconstructGammaCTrajectory();
+    std::cout << dairlib::calcWork(*plant, x_traj, u_traj) <<std::endl;
   }
   // Adding knot points
   std::cout<<"Running final optimization"<<std::endl;

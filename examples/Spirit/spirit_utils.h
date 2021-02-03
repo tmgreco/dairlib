@@ -211,4 +211,9 @@ void setSpiritSymmetry(
         dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,
         std::vector<std::string> symmetries);
 
+template <typename T>
+double calcWork(
+    drake::multibody::MultibodyPlant<T> & plant,
+    drake::trajectories::PiecewisePolynomial<double>& x_traj,
+    drake::trajectories::PiecewisePolynomial<double>& u_traj);
 } //namespace dairlib

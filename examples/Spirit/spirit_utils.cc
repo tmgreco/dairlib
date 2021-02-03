@@ -434,6 +434,48 @@ void setSpiritSymmetry(drake::multibody::MultibodyPlant<T> & plant,
 //   \SETSPIRITSYMMETRY
 
 
+template <typename T>
+double calcWork(
+    drake::multibody::MultibodyPlant<T> & plant,
+    drake::trajectories::PiecewisePolynomial<double>& x_traj,
+    drake::trajectories::PiecewisePolynomial<double>& u_traj){
+
+  auto velocities_map = multibody::makeNameToVelocitiesMap(plant);
+  auto actuator_map = multibody::makeNameToActuatorsMap(plant);
+  int n_q = plant.num_positions();
+
+  double work = 0;
+  std::vector<double> knot_points = x_traj.get_segment_times();
+
+  for(int knot_index = 0; knot_index < knot_points.size()-1; knot_index++){
+      auto u_low = u_traj.value(knot_points[knot_index]);
+      auto u_mid = u_traj.value(knot_points[knot_index]/2.0 + knot_points[knot_index+1]/2.0);
+      auto u_up  = u_traj.value(knot_points[knot_index + 1]);
+      auto x_low = x_traj.value(knot_points[knot_index]);
+      auto x_mid = x_traj.value(knot_points[knot_index]/2.0 + knot_points[knot_index+1]/2.0);
+      auto x_up  = x_traj.value(knot_points[knot_index + 1]);
+
+    for (int joint = 0; joint < 12; joint++){
+
+      double actuation_low = u_low(actuator_map.at("motor_" + std::to_string(joint)));
+      double actuation_mid = u_mid(actuator_map.at("motor_" + std::to_string(joint)));
+      double actuation_up  =  u_up(actuator_map.at("motor_" + std::to_string(joint)));
+
+      double velocity_low = x_low(n_q + velocities_map.at("joint_" + std::to_string(joint) +"dot"));
+      double velocity_mid = x_mid(n_q + velocities_map.at("joint_" + std::to_string(joint) +"dot"));
+      double velocity_up  =  x_up(n_q + velocities_map.at("joint_" + std::to_string(joint) +"dot"));
+
+      double pow_low = abs(actuation_low*velocity_low);
+      double pow_mid = abs(actuation_mid*velocity_mid);
+      double pow_up  = abs(actuation_up*velocity_up);
+
+      // Hermite simpson integration
+      work += (knot_points[knot_index + 1] - knot_points[knot_index])/6.0 * (pow_low + 4.0 * pow_mid + pow_up);
+    }
+  }
+  return work;
+}
+
 
 template void nominalSpiritStand(
     drake::multibody::MultibodyPlant<double>& plant, 
@@ -525,5 +567,10 @@ template void setSpiritSymmetry(
         drake::multibody::MultibodyPlant<double> & plant, 
         dairlib::systems::trajectory_optimization::Dircon<double>& trajopt,
         std::vector<std::string> symmetries);
+
+template double calcWork(
+    drake::multibody::MultibodyPlant<double> & plant,
+    drake::trajectories::PiecewisePolynomial<double>& x_traj,
+    drake::trajectories::PiecewisePolynomial<double>& u_traj);
 
 }//namespace dairlib
