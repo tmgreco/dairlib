@@ -36,6 +36,7 @@ cc_binary(
     data = ["spirit_drake.urdf"],
     deps = [
         ":animate_spirit",
+        ":spirit_utils",
         "//common",
         "//systems/primitives",
         "//systems/trajectory_optimization/dircon",
