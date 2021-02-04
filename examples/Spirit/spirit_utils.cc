@@ -433,6 +433,44 @@ void setSpiritSymmetry(drake::multibody::MultibodyPlant<T> & plant,
 }
 //   \SETSPIRITSYMMETRY
 
+drake::math::RotationMatrix<double> normal2Rotation(Eigen::Vector3d nHat){
+  const double eps  = 1e-6;
+  drake::math::RotationMatrix<double> rotMat;
+  assert(std::abs(nHat.squaredNorm() - 1) < eps );
+  if       ( std::abs(nHat.dot(Eigen::Vector3d::UnitZ()) - 1) < eps){ //If close to +unitZ dont rotate
+    std::cout<<"A"<<std::endl;
+    rotMat = drake::math::RotationMatrix<double>();
+  }else if ( std::abs(nHat.dot(Eigen::Vector3d::UnitZ()) + 1) < eps){ //If close to -unitZ dont rotate
+    std::cout<<"B"<<std::endl;
+    Eigen::Matrix3d R;
+    R <<  1,  0,  0,
+          0, -1,  0,
+          0,  0, -1;
+    rotMat = drake::math::RotationMatrix<double>(R);
+  }else if ( std::abs(nHat.dot(Eigen::Vector3d::UnitX())) <= std::abs(nHat.dot(Eigen::Vector3d::UnitY())) ){
+    std::cout<<"C"<<std::endl;
+    Eigen::Vector3d nyHat =  nHat.cross(Eigen::Vector3d::UnitX());
+    Eigen::Vector3d nxHat =  nyHat.cross(nHat);
+    Eigen::Matrix3d R;
+    R.col(0) << nxHat; 
+    R.col(1) << nyHat; 
+    R.col(2) << nHat; 
+    rotMat = drake::math::RotationMatrix<double>(R);
+  }else if ( std::abs(nHat.dot(Eigen::Vector3d::UnitX())) > std::abs(nHat.dot(Eigen::Vector3d::UnitY())) ){
+    std::cout<<"D"<<std::endl;
+    Eigen::Vector3d nxHat = -nHat.cross(Eigen::Vector3d::UnitY());
+    Eigen::Vector3d nyHat =  nHat.cross(nxHat);
+    Eigen::Matrix3d R;
+    R.col(0) << nxHat; 
+    R.col(1) << nyHat; 
+    R.col(2) << nHat; 
+    rotMat = drake::math::RotationMatrix<double>(R);
+  }else{
+    std::cout<<"Something went wrong check here"<<std::endl;
+    rotMat = drake::math::RotationMatrix<double>();
+  }
+  return rotMat;
+}
 
 template <typename T>
 double calcWork(
@@ -592,6 +630,48 @@ double calcTorqueInt(
   }
   return act_int;
 }
+void visualizeSurface(drake::multibody::MultibodyPlant<double>* plant_vis, 
+  Eigen::Vector3d surface_normal,
+  Eigen::Vector3d surface_offset,
+  double length_surf, 
+  double width_surf,
+  double thickness_surf,
+  const drake::Vector4<double> color
+  ){
+
+  Eigen::Vector3d bodyOffset(0,0,-thickness_surf/2);
+  drake::math::RotationMatrix<double> rot = normal2Rotation(surface_normal);
+  drake::math::RigidTransformd bodyToSurfaceTransform(bodyOffset);
+  drake::math::RigidTransformd worldToBodyTransform(rot,surface_offset);
+  
+  double lx = length_surf;
+  double ly = width_surf;
+  double lz = thickness_surf;
+
+  std::cout << rot.matrix() << std::endl;
+  plant_vis->RegisterVisualGeometry( 
+    plant_vis->world_body(),
+    worldToBodyTransform*bodyToSurfaceTransform,     /* Pose X_BG of the geometry frame G in the cylinder body frame B. */
+    drake::geometry::Box(lx, ly, lz), 
+    "box", color);
+}
+void visualizeSurface(drake::multibody::MultibodyPlant<double>* plant_vis, 
+  Eigen::Vector3d surface_normal,
+  Eigen::Vector3d surface_offset,
+  double length_surf, 
+  double width_surf,
+  double thickness_surf){
+  const drake::Vector4<double> orange(1.0, 0.55, 0.0, 1.0);
+  visualizeSurface(
+    plant_vis,
+    surface_normal, 
+    surface_offset, 
+    length_surf, 
+    width_surf,
+    thickness_surf,
+    orange
+  );
+  }
 
 template void nominalSpiritStand(
     drake::multibody::MultibodyPlant<double>& plant, 
