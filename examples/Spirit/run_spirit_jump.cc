@@ -34,7 +34,7 @@
 
 DEFINE_double(duration, 1, "The stand duration");
 DEFINE_double(standHeight, 0.25, "The standing height.");
-DEFINE_double(foreAftDisplacement, 1.2, "The fore-aft displacement.");
+DEFINE_double(foreAftDisplacement, 1.0, "The fore-aft displacement.");
 DEFINE_double(apexGoal, 0.5, "Apex state goal");
 DEFINE_double(inputCost, 3, "The standing height.");
 DEFINE_double(velocityCost, 10, "The standing height.");
@@ -44,11 +44,11 @@ DEFINE_double(mu, 1, "coefficient of friction");
 
 DEFINE_string(data_directory, "/home/shane/Drake_ws/dairlib/examples/Spirit/saved_trajectories/",
               "directory to save/read data");
-DEFINE_string(distance_name, "12m","name to describe distance");
+DEFINE_string(distance_name, "10m","name to describe distance");
 
 DEFINE_bool(runAllOptimization, true, "rerun earlier optimizations?");
 DEFINE_bool(skipInitialOptimization, false, "skip first optimizations?");
-DEFINE_bool(minWork, false, "skip try to minimize work?");
+DEFINE_bool(minWork, true, "skip try to minimize work?");
 
 using drake::AutoDiffXd;
 using drake::multibody::MultibodyPlant;
@@ -613,8 +613,6 @@ void runSpiritJump(
   std::cout << (result.is_success() ? "Optimization Success" : "Optimization Fail") << std::endl;
 
   /// Save trajectory
-  std::cout << "Outputting trajectories" << std::endl;
-
 
   if(!file_name_out.empty()){
     dairlib::DirconTrajectory saved_traj(
@@ -622,7 +620,6 @@ void runSpiritJump(
         "Decision variables and state/input trajectories "
         "for jumping");
 
-    std::cout << "writing to file" << std::endl;
     saved_traj.WriteToFile(file_name_out);
 
     dairlib::DirconTrajectory old_traj(file_name_out);
@@ -638,9 +635,14 @@ void runSpiritJump(
     l_traj  = trajopt.ReconstructLambdaTrajectory(result);
   }
 
+  std::cout<<"Work = " << dairlib::calcWork(plant, x_traj, u_traj) << std::endl;
+  std::cout<<"Integral of Actuation = " << dairlib::calcTorqueInt(plant, u_traj) << std::endl;
+  std::cout<<"Integral of Velocity = " << dairlib::calcVelocityInt(plant, x_traj) << std::endl;
+
   /// Run animation of the final trajectory
   const drake::trajectories::PiecewisePolynomial<double> pp_xtraj =
       trajopt.ReconstructStateTrajectory(result);
+
   multibody::connectTrajectoryVisualizer(plant_vis.get(),
       &builder, &scene_graph, pp_xtraj);
   auto diagram = builder.Build();
@@ -771,14 +773,13 @@ int main(int argc, char* argv[]) {
       FLAGS_data_directory+"jump_"+FLAGS_distance_name);
 
   if (FLAGS_minWork){
-    std::cout<<"Running 4th optimization"<<std::endl;
     // Adding in work cost and constraints
-
+    std::cout<<"Running 7th optimization"<<std::endl;
     dairlib::runSpiritJump<double>(
         *plant,
         x_traj, u_traj, l_traj,
         lc_traj, vc_traj,
-        false,
+        true,
         {7, 7, 7, 7} ,
         FLAGS_apexGoal,
         FLAGS_standHeight,
@@ -787,66 +788,16 @@ int main(int argc, char* argv[]) {
         false,
         false,
         true,
-        2,
-        3,
-        10,
-        0.01,
+        1.5,
+        FLAGS_inputCost/10,
+        FLAGS_velocityCost/10,
+        500,
         FLAGS_mu,
         FLAGS_eps,
-        1e-3,
+        FLAGS_tol,
         1.0,
-        FLAGS_data_directory+"jump_"+FLAGS_distance_name+"_hq_work",
+        FLAGS_data_directory+"jump_"+FLAGS_distance_name+"_hq_work4",
         FLAGS_data_directory+"jump_"+FLAGS_distance_name+"_hq");
-
-    // Adding more min work
-    std::cout<<"Running 5th optimization"<<std::endl;
-    dairlib::runSpiritJump<double>(
-        *plant,
-        x_traj, u_traj, l_traj,
-        lc_traj, vc_traj,
-        false,
-        {7, 7, 7, 7} ,
-        FLAGS_apexGoal,
-        FLAGS_standHeight,
-        FLAGS_foreAftDisplacement,
-        false,
-        false,
-        false,
-        true,
-        2,
-        FLAGS_inputCost,
-        FLAGS_velocityCost,
-        5,
-        FLAGS_mu,
-        FLAGS_eps,
-        FLAGS_tol,
-        1.0/20,
-        FLAGS_data_directory+"jump_"+FLAGS_distance_name+"_hq_work2",
-        FLAGS_data_directory+"jump_"+FLAGS_distance_name+"_hq_work");
-    std::cout<<"Running 6th optimization"<<std::endl;
-    dairlib::runSpiritJump<double>(
-        *plant,
-        x_traj, u_traj, l_traj,
-        lc_traj, vc_traj,
-        true,
-        {7, 7, 7, 7} ,
-        FLAGS_apexGoal,
-        FLAGS_standHeight,
-        FLAGS_foreAftDisplacement,
-        false,
-        false,
-        false,
-        true,
-        2,
-        FLAGS_inputCost,
-        FLAGS_velocityCost,
-        10,
-        FLAGS_mu,
-        FLAGS_eps,
-        FLAGS_tol,
-        1.0,
-        FLAGS_data_directory+"jump_"+FLAGS_distance_name+"_hq_work3",
-        FLAGS_data_directory+"jump_"+FLAGS_distance_name+"_hq_work2");
   }
 }
 

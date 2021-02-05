@@ -272,7 +272,7 @@ void setSpiritJointLimits(drake::multibody::MultibodyPlant<T> & plant,
   // the few degrees that come with the body collision and to remove a few to stay
   // away from singularity
   double minValLower =  0;
-  double maxValLower =  M_PI;
+  double maxValLower =  M_PI-0.2;
   
   // The URDF defines symmetric limits if asymmetric constraints we need to
   // add a mirror since the hips are positive in the same direction
@@ -449,33 +449,79 @@ double calcWork(
 
   for(int knot_index = 0; knot_index < knot_points.size()-1; knot_index++){
       auto u_low = u_traj.value(knot_points[knot_index]);
-      auto u_mid = u_traj.value(knot_points[knot_index]/2.0 + knot_points[knot_index+1]/2.0);
       auto u_up  = u_traj.value(knot_points[knot_index + 1]);
       auto x_low = x_traj.value(knot_points[knot_index]);
-      auto x_mid = x_traj.value(knot_points[knot_index]/2.0 + knot_points[knot_index+1]/2.0);
       auto x_up  = x_traj.value(knot_points[knot_index + 1]);
 
     for (int joint = 0; joint < 12; joint++){
 
       double actuation_low = u_low(actuator_map.at("motor_" + std::to_string(joint)));
-      double actuation_mid = u_mid(actuator_map.at("motor_" + std::to_string(joint)));
       double actuation_up  =  u_up(actuator_map.at("motor_" + std::to_string(joint)));
 
       double velocity_low = x_low(n_q + velocities_map.at("joint_" + std::to_string(joint) +"dot"));
-      double velocity_mid = x_mid(n_q + velocities_map.at("joint_" + std::to_string(joint) +"dot"));
       double velocity_up  =  x_up(n_q + velocities_map.at("joint_" + std::to_string(joint) +"dot"));
 
       double pow_low = abs(actuation_low*velocity_low);
-      double pow_mid = abs(actuation_mid*velocity_mid);
       double pow_up  = abs(actuation_up*velocity_up);
 
-      // Hermite simpson integration
-      work += (knot_points[knot_index + 1] - knot_points[knot_index])/6.0 * (pow_low + 4.0 * pow_mid + pow_up);
+      // trapazoidal integration
+      work += (knot_points[knot_index + 1] - knot_points[knot_index])/2.0 * (pow_low + pow_up);
     }
   }
   return work;
 }
 
+template <typename T>
+double calcVelocityInt(
+    drake::multibody::MultibodyPlant<T> & plant,
+    drake::trajectories::PiecewisePolynomial<double>& x_traj){
+
+  auto velocities_map = multibody::makeNameToVelocitiesMap(plant);
+  int n_v = plant.num_velocities();
+
+  double work = 0;
+  std::vector<double> knot_points = x_traj.get_segment_times();
+
+  for(int knot_index = 0; knot_index < knot_points.size()-1; knot_index++){
+    Eigen::VectorXd x_low = x_traj.value(knot_points[knot_index]);
+    Eigen::VectorXd x_up  = x_traj.value(knot_points[knot_index + 1]);
+
+    Eigen::VectorXd velocity_low = x_low.tail(n_v);
+    Eigen::VectorXd velocity_up  =  x_up.tail(n_v);
+
+    double vel_sq_low = velocity_low.transpose() * velocity_low;
+    double vel_sq_up  = velocity_up.transpose()  * velocity_up;
+
+    // trapazoidal integration
+    work += (knot_points[knot_index + 1] - knot_points[knot_index])/2.0 * (vel_sq_low  + vel_sq_up);
+  }
+
+  return work;
+}
+
+
+template <typename T>
+double calcTorqueInt(
+    drake::multibody::MultibodyPlant<T> & plant,
+    drake::trajectories::PiecewisePolynomial<double>& u_traj){
+
+  auto actuator_map = multibody::makeNameToActuatorsMap(plant);
+
+  double work = 0;
+  std::vector<double> knot_points = u_traj.get_segment_times();
+
+  for(int knot_index = 0; knot_index < knot_points.size()-1; knot_index++){
+    Eigen::VectorXd u_low = u_traj.value(knot_points[knot_index]);
+    Eigen::VectorXd u_up  = u_traj.value(knot_points[knot_index + 1]);
+
+    double act_sq_low = u_low.transpose() * u_low;
+    double act_sq_up  = u_up.transpose() * u_up;
+
+    // trapazoidal integration
+    work += (knot_points[knot_index + 1] - knot_points[knot_index])/2.0 * (act_sq_low + act_sq_up);
+  }
+  return work;
+}
 
 template void nominalSpiritStand(
     drake::multibody::MultibodyPlant<double>& plant, 
@@ -571,6 +617,14 @@ template void setSpiritSymmetry(
 template double calcWork(
     drake::multibody::MultibodyPlant<double> & plant,
     drake::trajectories::PiecewisePolynomial<double>& x_traj,
+    drake::trajectories::PiecewisePolynomial<double>& u_traj);
+
+template double calcVelocityInt(
+    drake::multibody::MultibodyPlant<double> & plant,
+    drake::trajectories::PiecewisePolynomial<double>& x_traj);
+
+template double calcTorqueInt(
+    drake::multibody::MultibodyPlant<double> & plant,
     drake::trajectories::PiecewisePolynomial<double>& u_traj);
 
 }//namespace dairlib
