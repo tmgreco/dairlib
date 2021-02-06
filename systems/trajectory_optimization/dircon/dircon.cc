@@ -659,6 +659,27 @@ PiecewisePolynomial<double> Dircon<T>::ReconstructStateTrajectory(
 }
 
 template <typename T>
+std::vector<PiecewisePolynomial<double>> Dircon<T>::ReconstructDiscontinuousStateTrajectory(
+    const MathematicalProgramResult& result) const {
+  std::vector<MatrixXd> states;
+  std::vector<MatrixXd> derivatives;
+  std::vector<VectorXd> times;
+  GetStateAndDerivativeSamples(result, &states, &derivatives, &times);
+  std::vector<PiecewisePolynomial<double>> state_trajs;
+  state_trajs.push_back(PiecewisePolynomial<double>::CubicHermite(times[0], states[0],
+                                                                  derivatives[0]));
+  for (int mode = 1; mode < num_modes(); ++mode) {
+    // Cannot form trajectory with only a single break
+    if (mode_length(mode) < 2) {
+      continue;
+    }
+    state_trajs.push_back(PiecewisePolynomial<double>::CubicHermite(
+        times[mode], states[mode], derivatives[mode]));
+  }
+  return state_trajs;
+}
+
+template <typename T>
 void Dircon<T>::SetInitialForceTrajectory(
     int mode_index, const PiecewisePolynomial<double>& traj_init_l,
     const PiecewisePolynomial<double>& traj_init_lc,

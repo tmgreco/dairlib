@@ -223,6 +223,11 @@ double calcVelocityInt(
     drake::trajectories::PiecewisePolynomial<double>& x_traj);
 
 template <typename T>
+double calcVelocityInt(
+    drake::multibody::MultibodyPlant<T> & plant,
+    std::vector<drake::trajectories::PiecewisePolynomial<double>>& x_trajs);
+
+template <typename T>
 double calcTorqueInt(
     drake::multibody::MultibodyPlant<T> & plant,
     drake::trajectories::PiecewisePolynomial<double>& u_traj);

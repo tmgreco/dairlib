@@ -37,7 +37,7 @@ using Eigen::MatrixXd;
 DEFINE_string(data_directory, "/home/shane/Drake_ws/dairlib/examples/Spirit/saved_trajectories/",
               "directory to save/read data");
 
-DEFINE_string(file_name, "jump_15m_hq","file to read data");
+DEFINE_string(file_name, "jump_15m_hq_work4","file to read data");
 
 
 int main(int argc, char* argv[]) {
@@ -58,7 +58,7 @@ int main(int argc, char* argv[]) {
   plant_vis->Finalize();
 
   dairlib::DirconTrajectory old_traj(FLAGS_data_directory+FLAGS_file_name);
-  auto x_traj = old_traj.ReconstructStateTrajectory();
+  auto x_trajs = old_traj.ReconstructStateDiscontinuousTrajectory();
   auto u_traj = old_traj.ReconstructInputTrajectory();
 
   std::cout<<"Work = " << dairlib::calcWork(*plant, x_traj, u_traj) << std::endl;

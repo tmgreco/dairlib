@@ -47,8 +47,8 @@ DEFINE_string(data_directory, "/home/shane/Drake_ws/dairlib/examples/Spirit/save
 DEFINE_string(distance_name, "10m","name to describe distance");
 
 DEFINE_bool(runAllOptimization, true, "rerun earlier optimizations?");
-DEFINE_bool(skipInitialOptimization, false, "skip first optimizations?");
-DEFINE_bool(minWork, true, "skip try to minimize work?");
+DEFINE_bool(skipInitialOptimization, true, "skip first optimizations?");
+DEFINE_bool(minWork, false, "skip try to minimize work?");
 
 using drake::AutoDiffXd;
 using drake::multibody::MultibodyPlant;
@@ -262,10 +262,28 @@ void addCost(MultibodyPlant<T>& plant,
 
   // Setup the traditional cost function
   const double R = cost_actuation;  // Cost on input effort
-  const MatrixXd Q = cost_velocity  * MatrixXd::Identity(n_v, n_v); // Cost on velocity
+  const double Q = cost_velocity ; // Cost on velocity
 
-  trajopt.AddRunningCost( x.tail(n_v).transpose() * Q * x.tail(n_v) );
+  //trajopt.AddRunningCost( x.tail(n_v).transpose() * Q * x.tail(n_v) );
   trajopt.AddRunningCost( u.transpose()*R*u);
+
+  for(int mode_index = 0; mode_index < trajopt.num_modes(); mode_index++){
+    for(int knot_index = 0; knot_index < trajopt.mode_length(mode_index)-1; knot_index++){
+      drake::solvers::VectorXDecisionVariable xi  = trajopt.state_vars(mode_index, knot_index).tail(n_v);
+
+      drake::solvers::VectorXDecisionVariable xip = trajopt.state_vars(mode_index, knot_index+1).tail(n_v);
+
+      drake::symbolic::Expression hi = trajopt.timestep(trajopt.get_mode_start(mode_index) + knot_index)[0];
+      drake::symbolic::Expression gi = 0;
+      drake::symbolic::Expression gip = 0;
+      for(int i = 0; i< n_v; i++){
+        gi += Q * xi[i] * xi[i];
+        gip += Q * xip[i] * xip[i];
+      }
+
+      trajopt.AddCost(hi/2.0 * (gi + gip));
+    }
+  }
 
   for (int joint = 0; joint < 12; joint++){
     auto power_plus = trajopt.NewSequentialVariable(1, "joint_" + std::to_string(joint)+"_power_plus");
@@ -562,7 +580,7 @@ void runSpiritJump(
   trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(),
                            "Print file", "../snopt.out");
   trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(),
-                           "Major iterations limit", 200000);
+                           "Major iterations limit", 10000);
   trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(), "Iterations limit", 1000000);
   trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(),
                            "Major optimality tolerance",
@@ -608,8 +626,8 @@ void runSpiritJump(
   const auto result = Solve(trajopt, trajopt.initial_guess());
   auto finish = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> elapsed = finish - start;
-  std::cout << "Solve time:" << elapsed.count() <<std::endl;
-  std::cout << "Cost:" << result.get_optimal_cost() <<std::endl;
+  std::cout << "Solve time: " << elapsed.count() <<std::endl;
+  std::cout << "Cost: " << result.get_optimal_cost() <<std::endl;
   std::cout << (result.is_success() ? "Optimization Success" : "Optimization Fail") << std::endl;
 
   /// Save trajectory
@@ -634,10 +652,11 @@ void runSpiritJump(
     u_traj  = trajopt.ReconstructInputTrajectory(result);
     l_traj  = trajopt.ReconstructLambdaTrajectory(result);
   }
-
+  auto x_trajs = trajopt.ReconstructDiscontinuousStateTrajectory(result);
   std::cout<<"Work = " << dairlib::calcWork(plant, x_traj, u_traj) << std::endl;
   std::cout<<"Integral of Actuation = " << dairlib::calcTorqueInt(plant, u_traj) << std::endl;
   std::cout<<"Integral of Velocity = " << dairlib::calcVelocityInt(plant, x_traj) << std::endl;
+  std::cout<<"Integral of Velocity Alt = " << dairlib::calcVelocityInt(plant, x_trajs) << std::endl;
 
   /// Run animation of the final trajectory
   const drake::trajectories::PiecewisePolynomial<double> pp_xtraj =
