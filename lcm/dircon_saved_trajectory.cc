@@ -243,6 +243,22 @@ PiecewisePolynomial<double> DirconTrajectory::ReconstructStateTrajectory()
   return state_traj;
 }
 
+std::vector<PiecewisePolynomial<double>> DirconTrajectory::ReconstructStateDiscontinuousTrajectory()
+const {
+  std::vector<PiecewisePolynomial<double>> state_trajs;
+  state_trajs.push_back(PiecewisePolynomial<double>::CubicHermite(
+          x_[0]->time_vector, x_[0]->datapoints, xdot_[0]->datapoints));
+  for (int mode = 1; mode < num_modes_; ++mode) {
+    // Cannot form trajectory with only a single break
+    if (x_[mode]->time_vector.size() < 2) {
+      continue;
+    }
+    state_trajs.push_back(PiecewisePolynomial<double>::CubicHermite(
+        x_[mode]->time_vector, x_[mode]->datapoints, xdot_[mode]->datapoints));
+  }
+  return state_trajs;
+}
+
 PiecewisePolynomial<double> DirconTrajectory::ReconstructInputTrajectory()
     const {
   PiecewisePolynomial<double> input_traj =

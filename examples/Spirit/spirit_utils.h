@@ -211,4 +211,48 @@ void setSpiritSymmetry(
         dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,
         std::vector<std::string> symmetries);
 
+/// Calculates the mechanical work done during trajectory
+///     @param plont, a pointer to the robot's model
+///     @param x_traj the state trajectory
+///     @param u_traj the control trajectory
+template <typename T>
+double calcWork(
+    drake::multibody::MultibodyPlant<T> & plant,
+    drake::trajectories::PiecewisePolynomial<double>& x_traj,
+    drake::trajectories::PiecewisePolynomial<double>& u_traj);
+
+/// Calculates the mechanical work done during trajectory, handles discontinuities
+///     @param plont, a pointer to the robot's model
+///     @param x_trajs a vector of the state trajectory for each mode
+///     @param u_traj the control trajectory
+template <typename T>
+double calcWork(
+    drake::multibody::MultibodyPlant<T> & plant,
+    std::vector<drake::trajectories::PiecewisePolynomial<double>>& x_trajs,
+    drake::trajectories::PiecewisePolynomial<double>& u_traj);
+
+/// Calculates the integral of velocities squared
+///     @param plont, a pointer to the robot's model
+///     @param x_traj the state trajectory
+template <typename T>
+double calcVelocityInt(
+    drake::multibody::MultibodyPlant<T> & plant,
+    drake::trajectories::PiecewisePolynomial<double>& x_traj);
+
+/// Calculates the integral of velocities squared
+///     @param plont, a pointer to the robot's model
+///     @param x_trajs a vector of the state trajectory for each mode
+template <typename T>
+double calcVelocityInt(
+    drake::multibody::MultibodyPlant<T> & plant,
+    std::vector<drake::trajectories::PiecewisePolynomial<double>>& x_trajs);
+
+/// Calculates the integral of torques squared
+///     @param plont, a pointer to the robot's model
+///     @param u_traj the control trajectory
+template <typename T>
+double calcTorqueInt(
+    drake::multibody::MultibodyPlant<T> & plant,
+    drake::trajectories::PiecewisePolynomial<double>& u_traj);
+
 } //namespace dairlib

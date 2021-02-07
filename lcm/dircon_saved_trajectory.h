@@ -48,6 +48,8 @@ class DirconTrajectory : public LcmTrajectory {
       const;
   drake::trajectories::PiecewisePolynomial<double> ReconstructStateTrajectory()
       const;
+  std::vector<drake::trajectories::PiecewisePolynomial<double>> ReconstructStateDiscontinuousTrajectory()
+  const;
   std::vector<drake::trajectories::PiecewisePolynomial<double>> ReconstructLambdaTrajectory()
   const;
   std::vector<drake::trajectories::PiecewisePolynomial<double>> ReconstructLambdaCTrajectory()

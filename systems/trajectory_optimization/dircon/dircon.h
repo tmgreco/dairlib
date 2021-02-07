@@ -62,7 +62,12 @@ class Dircon
   /// %drake::trajectories::PiecewisePolynomialTrajectory%.
   drake::trajectories::PiecewisePolynomial<double> ReconstructStateTrajectory(
       const drake::solvers::MathematicalProgramResult& result) const override;
- 
+
+  /// Get the state trajectory at the solution as a
+  /// %drake::trajectories::PiecewisePolynomialTrajectory%.
+  std::vector<drake::trajectories::PiecewisePolynomial<double>> ReconstructDiscontinuousStateTrajectory(
+      const drake::solvers::MathematicalProgramResult& result) const;
+
   /// Get the state samples by mode, as a matrix. Each column corresponds to
   /// a knotpoint.
   Eigen::MatrixXd GetStateSamplesByMode(
@@ -202,6 +207,10 @@ class Dircon
 
   const drake::systems::Context<T>& get_context(int mode, int knotpoint_index) {
     return *contexts_.at(mode).at(knotpoint_index);
+  }
+
+  const int get_mode_start(int index){
+    return mode_start_[index];
   }
 
   /// Setters for variable scaling
