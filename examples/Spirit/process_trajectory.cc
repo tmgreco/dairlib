@@ -37,7 +37,7 @@ using Eigen::MatrixXd;
 DEFINE_string(data_directory, "/home/shane/Drake_ws/dairlib/examples/Spirit/saved_trajectories/",
               "directory to save/read data");
 
-DEFINE_string(file_name, "jump_15m_hq_work4","file to read data");
+DEFINE_string(file_name, "jump_10m_hq_work4","file to read data");
 
 
 int main(int argc, char* argv[]) {
@@ -59,13 +59,14 @@ int main(int argc, char* argv[]) {
 
   dairlib::DirconTrajectory old_traj(FLAGS_data_directory+FLAGS_file_name);
   auto x_trajs = old_traj.ReconstructStateDiscontinuousTrajectory();
+  auto x_traj = old_traj.ReconstructStateTrajectory();
   auto u_traj = old_traj.ReconstructInputTrajectory();
 
-  std::cout<<"Work = " << dairlib::calcWork(*plant, x_traj, u_traj) << std::endl;
+  std::cout<<"Work = " << dairlib::calcWork(*plant, x_trajs, u_traj) << std::endl;
 
   std::cout<<"Integral of Actuation = " << dairlib::calcTorqueInt(*plant, u_traj) << std::endl;
 
-  std::cout<<"Integral of Velocity = " << dairlib::calcVelocityInt(*plant, x_traj) << std::endl;
+  std::cout<<"Integral of Velocity = " << dairlib::calcVelocityInt(*plant, x_trajs) << std::endl;
 
   dairlib::runAnimate( std::move(plant), plant_vis.get(), std::move(scene_graph), x_traj,0.25);
 }

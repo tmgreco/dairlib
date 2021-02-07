@@ -471,6 +471,45 @@ double calcWork(
   return work;
 }
 
+
+template <typename T>
+double calcWork(
+    drake::multibody::MultibodyPlant<T> & plant,
+    std::vector<drake::trajectories::PiecewisePolynomial<double>>& x_trajs,
+    drake::trajectories::PiecewisePolynomial<double>& u_traj){
+
+  auto velocities_map = multibody::makeNameToVelocitiesMap(plant);
+  auto actuator_map = multibody::makeNameToActuatorsMap(plant);
+  int n_q = plant.num_positions();
+
+  double work = 0;
+  for(const auto& x_traj : x_trajs) {
+    std::vector<double> knot_points = x_traj.get_segment_times();
+    for (int knot_index = 0; knot_index < knot_points.size() - 1; knot_index++) {
+      auto u_low = u_traj.value(knot_points[knot_index]);
+      auto u_up = u_traj.value(knot_points[knot_index + 1]);
+      auto x_low = x_traj.value(knot_points[knot_index]);
+      auto x_up = x_traj.value(knot_points[knot_index + 1]);
+
+      for (int joint = 0; joint < 12; joint++) {
+
+        double actuation_low = u_low(actuator_map.at("motor_" + std::to_string(joint)));
+        double actuation_up = u_up(actuator_map.at("motor_" + std::to_string(joint)));
+
+        double velocity_low = x_low(n_q + velocities_map.at("joint_" + std::to_string(joint) + "dot"));
+        double velocity_up = x_up(n_q + velocities_map.at("joint_" + std::to_string(joint) + "dot"));
+
+        double pow_low = abs(actuation_low * velocity_low);
+        double pow_up = abs(actuation_up * velocity_up);
+
+        // trapazoidal integration
+        work += (knot_points[knot_index + 1] - knot_points[knot_index]) / 2.0 * (pow_low + pow_up);
+      }
+    }
+  }
+  return work;
+}
+
 template <typename T>
 double calcVelocityInt(
     drake::multibody::MultibodyPlant<T> & plant,
@@ -479,7 +518,7 @@ double calcVelocityInt(
   auto velocities_map = multibody::makeNameToVelocitiesMap(plant);
   int n_v = plant.num_velocities();
 
-  double work = 0;
+  double vel_int = 0;
   std::vector<double> knot_points = x_traj.get_segment_times();
 
   for(int knot_index = 0; knot_index < knot_points.size()-1; knot_index++){
@@ -493,10 +532,10 @@ double calcVelocityInt(
     double vel_sq_up  = velocity_up.transpose()  * velocity_up;
 
     // trapazoidal integration
-    work += (knot_points[knot_index + 1] - knot_points[knot_index])/2.0 * (vel_sq_low  + vel_sq_up);
+    vel_int += (knot_points[knot_index + 1] - knot_points[knot_index])/2.0 * (vel_sq_low  + vel_sq_up);
   }
 
-  return work;
+  return vel_int;
 }
 
 
@@ -508,7 +547,7 @@ double calcVelocityInt(
   auto velocities_map = multibody::makeNameToVelocitiesMap(plant);
   int n_v = plant.num_velocities();
 
-  double work = 0;
+  double vel_int = 0;
 
   for(const auto& x_traj : x_trajs){
     std::vector<double> knot_points = x_traj.get_segment_times();
@@ -524,11 +563,11 @@ double calcVelocityInt(
       double vel_sq_up  = velocity_up.transpose()  * velocity_up;
 
       // trapazoidal integration
-      work += (knot_points[knot_index + 1] - knot_points[knot_index])/2.0 * (vel_sq_low  + vel_sq_up);
+      vel_int += (knot_points[knot_index + 1] - knot_points[knot_index])/2.0 * (vel_sq_low  + vel_sq_up);
     }
 
   }
-  return work;
+  return vel_int;
 }
 
 template <typename T>
@@ -538,7 +577,7 @@ double calcTorqueInt(
 
   auto actuator_map = multibody::makeNameToActuatorsMap(plant);
 
-  double work = 0;
+  double act_int = 0;
   std::vector<double> knot_points = u_traj.get_segment_times();
 
   for(int knot_index = 0; knot_index < knot_points.size()-1; knot_index++){
@@ -549,9 +588,9 @@ double calcTorqueInt(
     double act_sq_up  = u_up.transpose() * u_up;
 
     // trapazoidal integration
-    work += (knot_points[knot_index + 1] - knot_points[knot_index])/2.0 * (act_sq_low + act_sq_up);
+    act_int += (knot_points[knot_index + 1] - knot_points[knot_index])/2.0 * (act_sq_low + act_sq_up);
   }
-  return work;
+  return act_int;
 }
 
 template void nominalSpiritStand(
@@ -648,6 +687,11 @@ template void setSpiritSymmetry(
 template double calcWork(
     drake::multibody::MultibodyPlant<double> & plant,
     drake::trajectories::PiecewisePolynomial<double>& x_traj,
+    drake::trajectories::PiecewisePolynomial<double>& u_traj);
+
+template double calcWork(
+    drake::multibody::MultibodyPlant<double> & plant,
+    std::vector<drake::trajectories::PiecewisePolynomial<double>>& x_traj,
     drake::trajectories::PiecewisePolynomial<double>& u_traj);
 
 template double calcVelocityInt(
