@@ -48,7 +48,7 @@ DEFINE_string(distance_name, "13m","name to describe distance");
 
 DEFINE_bool(runAllOptimization, true, "rerun earlier optimizations?");
 DEFINE_bool(skipInitialOptimization, false, "skip first optimizations?");
-DEFINE_bool(minWork, true, "skip try to minimize work?");
+DEFINE_bool(minWork, false, "try to minimize work?");
 
 using drake::AutoDiffXd;
 using drake::multibody::MultibodyPlant;
@@ -837,7 +837,7 @@ int main(int argc, char* argv[]) {
 
   if (FLAGS_minWork){
     // Adding in work cost and constraints
-    std::cout<<"Running 7th optimization"<<std::endl;
+    std::cout<<"Running 4th optimization"<<std::endl;
     dairlib::runSpiritJump<double>(
         *plant,
         x_traj, u_traj, l_traj,
