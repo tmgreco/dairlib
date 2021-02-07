@@ -46,9 +46,9 @@ DEFINE_string(data_directory, "/home/shane/Drake_ws/dairlib/examples/Spirit/save
               "directory to save/read data");
 DEFINE_string(distance_name, "13m","name to describe distance");
 
-DEFINE_bool(runAllOptimization, true, "rerun earlier optimizations?");
+DEFINE_bool(runAllOptimization, false, "rerun earlier optimizations?");
 DEFINE_bool(skipInitialOptimization, false, "skip first optimizations?");
-DEFINE_bool(minWork, false, "try to minimize work?");
+DEFINE_bool(minWork, true, "try to minimize work?");
 
 using drake::AutoDiffXd;
 using drake::multibody::MultibodyPlant;
@@ -263,13 +263,18 @@ void addCost(MultibodyPlant<T>& plant,
   // Setup the traditional cost function
   trajopt.AddRunningCost( u.transpose()*cost_actuation*u);
 
+  // Add velocity cost handleing discontinuities
+  // Loop through each mode and each knot point and use trapezoidal integration
   for(int mode_index = 0; mode_index < trajopt.num_modes(); mode_index++){
     for(int knot_index = 0; knot_index < trajopt.mode_length(mode_index)-1; knot_index++){
-      drake::solvers::VectorXDecisionVariable xi  = trajopt.state_vars(mode_index, knot_index).tail(n_v);
 
+      // Get lower and upper knot velocities
+      drake::solvers::VectorXDecisionVariable xi  = trajopt.state_vars(mode_index, knot_index).tail(n_v);
       drake::solvers::VectorXDecisionVariable xip = trajopt.state_vars(mode_index, knot_index+1).tail(n_v);
 
       drake::symbolic::Expression hi = trajopt.timestep(trajopt.get_mode_start(mode_index) + knot_index)[0];
+
+      // Loop through and calcuate sum of velocities squared
       drake::symbolic::Expression gi = 0;
       drake::symbolic::Expression gip = 0;
       for(int i = 0; i< n_v; i++){
@@ -277,6 +282,7 @@ void addCost(MultibodyPlant<T>& plant,
         gip += cost_velocity * xip[i] * xip[i];
       }
 
+      // Add cost
       trajopt.AddCost(hi/2.0 * (gi + gip));
     }
   }
@@ -289,34 +295,16 @@ void addCost(MultibodyPlant<T>& plant,
   for (int joint = 0; joint < 12; joint++) {
     // Loop through each mode
     for (int mode_index = 0; mode_index < trajopt.num_modes(); mode_index++) {
-      // Create 0th set of power variables
-      power_pluses.push_back(trajopt.NewContinuousVariables(1, "joint_" + std::to_string(joint)+
-          "_mode_"+ std::to_string(mode_index)+"_index_"+std::to_string(0)+"_power_plus")[0]);
-      power_minuses.push_back( trajopt.NewContinuousVariables(1, "joint_" + std::to_string(joint)+
-          "_mode_"+ std::to_string(mode_index)+"_index_"+std::to_string(0)+"_power_minus")[0]);
-
-      for (int knot_index = 0; knot_index < trajopt.mode_length(mode_index) - 1; knot_index++) {
-        // Create ith+1 set of power variables
+      for (int knot_index = 0; knot_index < trajopt.mode_length(mode_index); knot_index++) {
+        // Create ith set of power variables
         power_pluses.push_back(trajopt.NewContinuousVariables(1, "joint_" + std::to_string(joint)+
-            "_mode_"+ std::to_string(mode_index)+"_index_"+std::to_string(knot_index+1)+"_power_plus")[0]);
+            "_mode_"+ std::to_string(mode_index)+"_index_"+std::to_string(knot_index)+"_power_plus")[0]);
         power_minuses.push_back( trajopt.NewContinuousVariables(1, "joint_" + std::to_string(joint)+
-            "_mode_"+ std::to_string(mode_index)+"_index_"+std::to_string(knot_index+1)+"_power_minus")[0]);
+            "_mode_"+ std::to_string(mode_index)+"_index_"+std::to_string(knot_index)+"_power_minus")[0]);
 
-        // Get time step
-        drake::symbolic::Expression hi = trajopt.timestep(trajopt.get_mode_start(mode_index) + knot_index)[0];
-
-        // ith power variables, and ith+1 power variables
-        drake::symbolic::Variable power_plus_i = power_pluses[power_pluses.size()-2];
-        drake::symbolic::Variable power_minus_i = power_minuses[power_minuses.size()-2];
-        drake::symbolic::Variable power_plus_ip = power_pluses[power_pluses.size()-1];
-        drake::symbolic::Variable power_minus_ip = power_minuses[power_minuses.size()-1];
-
-        // abs of power at ith and ith+1
-        drake::symbolic::Expression gi  = power_plus_i + power_minus_i;
-        drake::symbolic::Expression gip = power_plus_ip + power_minus_ip;
-
-        // add cost
-        trajopt.AddCost(cost_work * hi/2.0 * (gi + gip));
+        // ith power variables
+        drake::symbolic::Variable power_plus_i = power_pluses[power_pluses.size()-1];
+        drake::symbolic::Variable power_minus_i = power_minuses[power_minuses.size()-1];
 
         // Get current actuation and state
         auto u_i = trajopt.input(trajopt.get_mode_start(mode_index) + knot_index);
@@ -324,7 +312,7 @@ void addCost(MultibodyPlant<T>& plant,
         drake::symbolic::Variable actuation = u_i(actuator_map.at("motor_" + std::to_string(joint)));
         drake::symbolic::Variable velocity = x_i(n_q + velocities_map.at("joint_" + std::to_string(joint) +"dot"));
 
-        // Constrain power variables
+        // Constrain newly power variables
         if (cost_work > 0){
           trajopt.AddConstraint(actuation * velocity * work_constraint_scale == (power_plus_i - power_minus_i) * work_constraint_scale) ;
           trajopt.AddLinearConstraint(power_plus_i * work_constraint_scale >= 0);
@@ -332,26 +320,24 @@ void addCost(MultibodyPlant<T>& plant,
         }
         trajopt.SetInitialGuess(power_plus_i, 0);
         trajopt.SetInitialGuess(power_minus_i, 0);
+
+        // For 0th iteration, dont bother adding cost
+        if(knot_index > 0){
+          // ith-1 power variables
+          drake::symbolic::Variable power_plus_im = power_pluses[power_pluses.size()-2];
+          drake::symbolic::Variable power_minus_im = power_minuses[power_minuses.size()-2];
+
+          // Get ith - 1 time step
+          drake::symbolic::Expression him = trajopt.timestep(trajopt.get_mode_start(mode_index) + knot_index-1)[0];
+
+          // abs of power at ith and ith+1
+          drake::symbolic::Expression gi  = power_plus_i + power_minus_i;
+          drake::symbolic::Expression gim = power_plus_im + power_minus_im;
+
+          // add cost
+          trajopt.AddCost(cost_work * him/2.0 * (gi + gim));
+        }
       } // knot point loop
-
-      // Since loop constrains ith decision variable, but uses 1th+1, need to constrain 1th+1 after final loop
-      int knot_index = trajopt.mode_length(mode_index) - 1;
-      auto u_i = trajopt.input(trajopt.get_mode_start(mode_index) + knot_index);
-      auto x_i   = trajopt.state_vars(mode_index, knot_index);
-
-      drake::symbolic::Variable actuation = u_i(actuator_map.at("motor_" + std::to_string(joint)));
-      drake::symbolic::Variable velocity = x_i(n_q + velocities_map.at("joint_" + std::to_string(joint) +"dot"));
-
-      drake::symbolic::Variable power_plus_i = power_pluses[power_pluses.size()-1];
-      drake::symbolic::Variable power_minus_i = power_minuses[power_minuses.size()-1];
-
-      if (cost_work > 0){
-        trajopt.AddConstraint(actuation * velocity * work_constraint_scale == (power_plus_i - power_minus_i) * work_constraint_scale) ;
-        trajopt.AddLinearConstraint(power_plus_i * work_constraint_scale >= 0);
-        trajopt.AddLinearConstraint(power_minus_i * work_constraint_scale >= 0);
-      }
-      trajopt.SetInitialGuess(power_plus_i, 0);
-      trajopt.SetInitialGuess(power_minus_i, 0);
     } // Mode loop
   } // Joint loop
 } // Function
