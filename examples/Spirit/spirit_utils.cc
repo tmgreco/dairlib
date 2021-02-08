@@ -727,11 +727,9 @@ double calcTorqueInt(
 }
 
 double positivePart(double x){
-  if (x < 0)
-    return 0;
-  else
-    return x;
+  return(std::max(x,0.0));
 }
+
 template void nominalSpiritStand(
     drake::multibody::MultibodyPlant<double>& plant, 
     Eigen::VectorXd& xState, 

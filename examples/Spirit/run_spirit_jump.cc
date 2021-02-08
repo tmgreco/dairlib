@@ -336,8 +336,8 @@ void addCost(MultibodyPlant<T>& plant,
           drake::symbolic::Expression him = trajopt.timestep(trajopt.get_mode_start(mode_index) + knot_index-1)[0];
 
           // abs of power at ith and ith+1
-          drake::symbolic::Expression gi  = power_plus_i + power_minus_i;
-          drake::symbolic::Expression gim = power_plus_im + power_minus_im;
+          drake::symbolic::Expression gi  = power_plus_i;
+          drake::symbolic::Expression gim = power_plus_im;
 
           // add cost
           trajopt.AddCost(cost_work * him/2.0 * (gi + gim));
@@ -850,7 +850,7 @@ int main(int argc, char* argv[]) {
         FLAGS_eps,
         FLAGS_tol,
         1.0,
-        FLAGS_data_directory+"jump_"+FLAGS_distance_name+"_hq_work_option2",
+        FLAGS_data_directory+"jump_"+FLAGS_distance_name+"_hq_work_option3",
         FLAGS_data_directory+"jump_"+FLAGS_distance_name+"_hq");
   }
 }
