@@ -231,6 +231,36 @@ double calcWork(
     std::vector<drake::trajectories::PiecewisePolynomial<double>>& x_trajs,
     drake::trajectories::PiecewisePolynomial<double>& u_traj);
 
+/// Calculates the electrical work done during trajectory, handles discontinuities
+///     @param plont, a pointer to the robot's model
+///     @param x_trajs a vector of the state trajectory for each mode
+///     @param u_traj the control trajectory
+template <typename T>
+double calcElectricalWork1(
+    drake::multibody::MultibodyPlant<T> & plant,
+    std::vector<drake::trajectories::PiecewisePolynomial<double>>& x_trajs,
+    drake::trajectories::PiecewisePolynomial<double>& u_traj);
+
+/// Calculates the electrical work done during trajectory, handles discontinuities
+///     @param plont, a pointer to the robot's model
+///     @param x_trajs a vector of the state trajectory for each mode
+///     @param u_traj the control trajectory
+template <typename T>
+double calcElectricalWork2(
+    drake::multibody::MultibodyPlant<T> & plant,
+    std::vector<drake::trajectories::PiecewisePolynomial<double>>& x_trajs,
+    drake::trajectories::PiecewisePolynomial<double>& u_traj);
+
+/// Calculates the electrical work done during trajectory, handles discontinuities
+///     @param plont, a pointer to the robot's model
+///     @param x_trajs a vector of the state trajectory for each mode
+///     @param u_traj the control trajectory
+template <typename T>
+double calcElectricalWork3(
+    drake::multibody::MultibodyPlant<T> & plant,
+    std::vector<drake::trajectories::PiecewisePolynomial<double>>& x_trajs,
+    drake::trajectories::PiecewisePolynomial<double>& u_traj);
+
 /// Calculates the integral of velocities squared
 ///     @param plont, a pointer to the robot's model
 ///     @param x_traj the state trajectory
@@ -255,4 +285,5 @@ double calcTorqueInt(
     drake::multibody::MultibodyPlant<T> & plant,
     drake::trajectories::PiecewisePolynomial<double>& u_traj);
 
+double positivePart(double x);
 } //namespace dairlib
