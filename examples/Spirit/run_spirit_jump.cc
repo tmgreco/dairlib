@@ -320,7 +320,7 @@ void addCost(MultibodyPlant<T>& plant,
 
         // Constrain newly power variables
         if (cost_work > 0){
-          trajopt.AddConstraint(actuation * velocity * work_constraint_scale == (power_plus_i - power_minus_i) * work_constraint_scale) ;
+          trajopt.AddConstraint((actuation * velocity + Q * actuation * actuation) * work_constraint_scale == (power_plus_i - power_minus_i) * work_constraint_scale) ;
           trajopt.AddLinearConstraint(power_plus_i * work_constraint_scale >= 0);
           trajopt.AddLinearConstraint(power_minus_i * work_constraint_scale >= 0);
         }
@@ -341,8 +341,8 @@ void addCost(MultibodyPlant<T>& plant,
           drake::symbolic::Expression him = trajopt.timestep(trajopt.get_mode_start(mode_index) + knot_index-1)[0];
 
           // abs of power at ith and ith+1
-          drake::symbolic::Expression gi  = power_plus_i + power_minus_i + Q * actuation * actuation;
-          drake::symbolic::Expression gim = power_plus_im + power_minus_im + Q * actuation_m * actuation_m;
+          drake::symbolic::Expression gi  = power_plus_i;
+          drake::symbolic::Expression gim = power_plus_im;
 
           // add cost
           trajopt.AddCost(cost_work * him/2.0 * (gi + gim));
@@ -807,7 +807,7 @@ int main(int argc, char* argv[]) {
   }
   std::cout<<"Running 3rd optimization"<<std::endl;
   // Fewer constraints, and higher tolerences
-/*  dairlib::runSpiritJump<double>(
+  dairlib::runSpiritJump<double>(
       *plant,
       x_traj, u_traj, l_traj,
       lc_traj, vc_traj,
@@ -829,7 +829,7 @@ int main(int argc, char* argv[]) {
       FLAGS_tol,
       0,
       FLAGS_data_directory+"jump_"+FLAGS_distance_name+"_hq",
-      FLAGS_data_directory+"jump_"+FLAGS_distance_name);*/
+      FLAGS_data_directory+"jump_"+FLAGS_distance_name);
 
   if (FLAGS_minWork){
     // Adding in work cost and constraints
@@ -855,7 +855,7 @@ int main(int argc, char* argv[]) {
         FLAGS_eps,
         FLAGS_tol,
         1.0,
-        FLAGS_data_directory+"jump_"+FLAGS_distance_name+"_hq_work_option1",
+        FLAGS_data_directory+"jump_"+FLAGS_distance_name+"_hq_work_option3",
         FLAGS_data_directory+"jump_"+FLAGS_distance_name+"_hq");
   }
 }
