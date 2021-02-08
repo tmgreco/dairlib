@@ -257,11 +257,19 @@ void addCost(MultibodyPlant<T>& plant,
 
   int n_q = plant.num_positions();
   int n_v = plant.num_velocities();
+  int n_u = plant.num_actuators();
   auto u   = trajopt.input();
   auto x   = trajopt.state();
 
   // Setup the traditional cost function
   trajopt.AddRunningCost( u.transpose()*cost_actuation*u);
+
+  // Add scaled action cost to account for part of eletrical work
+  Eigen::MatrixXd scaling = MatrixXd::Identity(n_u, n_u) * cost_work * 0.561;
+  for (int joint_index :{1,3,5,7}){
+    scaling(joint_index, joint_index) = scaling(joint_index, joint_index)/1.5/1.5;
+  }
+  trajopt.AddRunningCost( u.transpose()*scaling*u);
 
   // Add velocity cost handleing discontinuities
   // Loop through each mode and each knot point and use trapezoidal integration
@@ -319,7 +327,7 @@ void addCost(MultibodyPlant<T>& plant,
 
         // Constrain newly power variables
         if (cost_work > 0){
-          trajopt.AddConstraint((actuation * velocity + Q * actuation * actuation) * work_constraint_scale == (power_plus_i - power_minus_i) * work_constraint_scale) ;
+          trajopt.AddConstraint(actuation * velocity * work_constraint_scale == (power_plus_i - power_minus_i) * work_constraint_scale) ;
           trajopt.AddLinearConstraint(power_plus_i * work_constraint_scale >= 0);
           trajopt.AddLinearConstraint(power_minus_i * work_constraint_scale >= 0);
         }
@@ -336,8 +344,8 @@ void addCost(MultibodyPlant<T>& plant,
           drake::symbolic::Expression him = trajopt.timestep(trajopt.get_mode_start(mode_index) + knot_index-1)[0];
 
           // abs of power at ith and ith+1
-          drake::symbolic::Expression gi  = power_plus_i;
-          drake::symbolic::Expression gim = power_plus_im;
+          drake::symbolic::Expression gi  = power_plus_i + power_minus_i;
+          drake::symbolic::Expression gim = power_plus_im + power_minus_im;
 
           // add cost
           trajopt.AddCost(cost_work * him/2.0 * (gi + gim));
@@ -845,12 +853,12 @@ int main(int argc, char* argv[]) {
         1.5,
         FLAGS_inputCost/10,
         FLAGS_velocityCost/10,
-        500,
+        400,
         FLAGS_mu,
         FLAGS_eps,
         FLAGS_tol,
         1.0,
-        FLAGS_data_directory+"jump_"+FLAGS_distance_name+"_hq_work_option3",
+        FLAGS_data_directory+"jump_"+FLAGS_distance_name+"_hq_work_option1",
         FLAGS_data_directory+"jump_"+FLAGS_distance_name+"_hq");
   }
 }
