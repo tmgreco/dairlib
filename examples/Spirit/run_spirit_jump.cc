@@ -263,13 +263,7 @@ void addCost(MultibodyPlant<T>& plant,
 
   // Setup the traditional cost function
   trajopt.AddRunningCost( u.transpose()*cost_actuation*u);
-
-  // Add scaled action cost to account for part of eletrical work
-  Eigen::MatrixXd scaling = MatrixXd::Identity(n_u, n_u) * cost_work * 0.561;
-  for (int joint_index :{1,3,5,7}){
-    scaling(joint_index, joint_index) = scaling(joint_index, joint_index)/1.5/1.5;
-  }
-  trajopt.AddRunningCost( u.transpose()*scaling*u);
+  double Q = 0;
 
   // Add velocity cost handleing discontinuities
   // Loop through each mode and each knot point and use trapezoidal integration
@@ -299,7 +293,6 @@ void addCost(MultibodyPlant<T>& plant,
   std::vector<drake::symbolic::Variable> power_pluses;
   std::vector<drake::symbolic::Variable> power_minuses;
 
-  double Q = 0;
   // Loop through each joint
   for (int joint = 0; joint < 12; joint++) {
     if(joint == 1 or joint == 3 or joint == 5 or joint == 7)
@@ -336,6 +329,10 @@ void addCost(MultibodyPlant<T>& plant,
 
         // For 0th iteration, dont bother adding cost
         if(knot_index > 0){
+
+          auto u_im = trajopt.input(trajopt.get_mode_start(mode_index) + knot_index-1);
+          drake::symbolic::Variable actuation_m = u_im(actuator_map.at("motor_" + std::to_string(joint)));
+
           // ith-1 power variables
           drake::symbolic::Variable power_plus_im = power_pluses[power_pluses.size()-2];
           drake::symbolic::Variable power_minus_im = power_minuses[power_minuses.size()-2];
@@ -344,8 +341,8 @@ void addCost(MultibodyPlant<T>& plant,
           drake::symbolic::Expression him = trajopt.timestep(trajopt.get_mode_start(mode_index) + knot_index-1)[0];
 
           // abs of power at ith and ith+1
-          drake::symbolic::Expression gi  = power_plus_i + power_minus_i;
-          drake::symbolic::Expression gim = power_plus_im + power_minus_im;
+          drake::symbolic::Expression gi  = power_plus_i + power_minus_i + Q * actuation * actuation;
+          drake::symbolic::Expression gim = power_plus_im + power_minus_im + Q * actuation_m * actuation_m;
 
           // add cost
           trajopt.AddCost(cost_work * him/2.0 * (gi + gim));
@@ -810,7 +807,7 @@ int main(int argc, char* argv[]) {
   }
   std::cout<<"Running 3rd optimization"<<std::endl;
   // Fewer constraints, and higher tolerences
-  dairlib::runSpiritJump<double>(
+/*  dairlib::runSpiritJump<double>(
       *plant,
       x_traj, u_traj, l_traj,
       lc_traj, vc_traj,
@@ -832,7 +829,7 @@ int main(int argc, char* argv[]) {
       FLAGS_tol,
       0,
       FLAGS_data_directory+"jump_"+FLAGS_distance_name+"_hq",
-      FLAGS_data_directory+"jump_"+FLAGS_distance_name);
+      FLAGS_data_directory+"jump_"+FLAGS_distance_name);*/
 
   if (FLAGS_minWork){
     // Adding in work cost and constraints
@@ -853,7 +850,7 @@ int main(int argc, char* argv[]) {
         1.5,
         FLAGS_inputCost/10,
         FLAGS_velocityCost/10,
-        400,
+        500,
         FLAGS_mu,
         FLAGS_eps,
         FLAGS_tol,

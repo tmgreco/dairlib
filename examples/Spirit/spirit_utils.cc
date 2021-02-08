@@ -831,6 +831,21 @@ template double calcWork(
     std::vector<drake::trajectories::PiecewisePolynomial<double>>& x_traj,
     drake::trajectories::PiecewisePolynomial<double>& u_traj);
 
+template double calcElectricalWork1(
+    drake::multibody::MultibodyPlant<double> & plant,
+    std::vector<drake::trajectories::PiecewisePolynomial<double>>& x_traj,
+    drake::trajectories::PiecewisePolynomial<double>& u_traj);
+
+template double calcElectricalWork2(
+    drake::multibody::MultibodyPlant<double> & plant,
+    std::vector<drake::trajectories::PiecewisePolynomial<double>>& x_traj,
+    drake::trajectories::PiecewisePolynomial<double>& u_traj);
+
+template double calcElectricalWork3(
+    drake::multibody::MultibodyPlant<double> & plant,
+    std::vector<drake::trajectories::PiecewisePolynomial<double>>& x_traj,
+    drake::trajectories::PiecewisePolynomial<double>& u_traj);
+
 template double calcVelocityInt(
     drake::multibody::MultibodyPlant<double> & plant,
     drake::trajectories::PiecewisePolynomial<double>& x_traj);
