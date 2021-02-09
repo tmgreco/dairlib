@@ -472,7 +472,7 @@ double calcWork(
 }
 
 template <typename T>
-double calcWork(
+double calcMechanicalWork(
     drake::multibody::MultibodyPlant<T> & plant,
     std::vector<drake::trajectories::PiecewisePolynomial<double>>& x_trajs,
     drake::trajectories::PiecewisePolynomial<double>& u_traj){
@@ -511,10 +511,11 @@ double calcWork(
 
 
 template <typename T>
-double calcElectricalWork1(
+double calcElectricalWork(
     drake::multibody::MultibodyPlant<T> & plant,
     std::vector<drake::trajectories::PiecewisePolynomial<double>>& x_trajs,
-    drake::trajectories::PiecewisePolynomial<double>& u_traj){
+    drake::trajectories::PiecewisePolynomial<double>& u_traj,
+    double efficiency){
 
   auto velocities_map = multibody::makeNameToVelocitiesMap(plant);
   auto actuator_map = multibody::makeNameToActuatorsMap(plant);
@@ -543,100 +544,14 @@ double calcElectricalWork1(
         double velocity_low = x_low(n_q + velocities_map.at("joint_" + std::to_string(joint) + "dot"));
         double velocity_up = x_up(n_q + velocities_map.at("joint_" + std::to_string(joint) + "dot"));
 
-        double pow_low = abs(actuation_low * velocity_low) + Q * actuation_low * actuation_low;
-        double pow_up = abs(actuation_up * velocity_up) + Q * actuation_up * actuation_up;
+        double pow_low = actuation_low * velocity_low + Q * actuation_low * actuation_low;
+        double pow_up = actuation_up * velocity_up+ Q * actuation_up * actuation_up;
+
+        double battery_pow_low = positivePart(pow_low) + efficiency * negativePart(pow_low);
+        double battery_pow_up = positivePart(pow_up) + efficiency * negativePart(pow_up);
 
         // trapazoidal integration
-        work += (knot_points[knot_index + 1] - knot_points[knot_index]) / 2.0 * (pow_low + pow_up);
-      }
-    }
-  }
-  return work;
-}
-
-
-template <typename T>
-double calcElectricalWork2(
-    drake::multibody::MultibodyPlant<T> & plant,
-    std::vector<drake::trajectories::PiecewisePolynomial<double>>& x_trajs,
-    drake::trajectories::PiecewisePolynomial<double>& u_traj){
-
-  auto velocities_map = multibody::makeNameToVelocitiesMap(plant);
-  auto actuator_map = multibody::makeNameToActuatorsMap(plant);
-  int n_q = plant.num_positions();
-
-  double work = 0;
-  double Q = 0;
-  for(const auto& x_traj : x_trajs) {
-    std::vector<double> knot_points = x_traj.get_segment_times();
-    for (int knot_index = 0; knot_index < knot_points.size() - 1; knot_index++) {
-      auto u_low = u_traj.value(knot_points[knot_index]);
-      auto u_up = u_traj.value(knot_points[knot_index + 1]);
-      auto x_low = x_traj.value(knot_points[knot_index]);
-      auto x_up = x_traj.value(knot_points[knot_index + 1]);
-
-      for (int joint = 0; joint < 12; joint++) {
-
-        if(joint == 1 or joint == 3 or joint == 5 or joint == 7)
-          Q = 0.249;
-        else
-          Q = 0.561;
-
-        double actuation_low = u_low(actuator_map.at("motor_" + std::to_string(joint)));
-        double actuation_up = u_up(actuator_map.at("motor_" + std::to_string(joint)));
-
-        double velocity_low = x_low(n_q + velocities_map.at("joint_" + std::to_string(joint) + "dot"));
-        double velocity_up = x_up(n_q + velocities_map.at("joint_" + std::to_string(joint) + "dot"));
-
-        double pow_low = abs(actuation_low * velocity_low + Q * actuation_low * actuation_low);
-        double pow_up = abs(actuation_up * velocity_up+ Q * actuation_up * actuation_up);
-
-        // trapazoidal integration
-        work += (knot_points[knot_index + 1] - knot_points[knot_index]) / 2.0 * (pow_low + pow_up);
-      }
-    }
-  }
-  return work;
-}
-
-template <typename T>
-double calcElectricalWork3(
-    drake::multibody::MultibodyPlant<T> & plant,
-    std::vector<drake::trajectories::PiecewisePolynomial<double>>& x_trajs,
-    drake::trajectories::PiecewisePolynomial<double>& u_traj){
-
-  auto velocities_map = multibody::makeNameToVelocitiesMap(plant);
-  auto actuator_map = multibody::makeNameToActuatorsMap(plant);
-  int n_q = plant.num_positions();
-
-  double work = 0;
-  double Q = 0;
-  for(const auto& x_traj : x_trajs) {
-    std::vector<double> knot_points = x_traj.get_segment_times();
-    for (int knot_index = 0; knot_index < knot_points.size() - 1; knot_index++) {
-      auto u_low = u_traj.value(knot_points[knot_index]);
-      auto u_up = u_traj.value(knot_points[knot_index + 1]);
-      auto x_low = x_traj.value(knot_points[knot_index]);
-      auto x_up = x_traj.value(knot_points[knot_index + 1]);
-
-      for (int joint = 0; joint < 12; joint++) {
-
-        if(joint == 1 or joint == 3 or joint == 5 or joint == 7)
-          Q = 0.249;
-        else
-          Q = 0.561;
-
-        double actuation_low = u_low(actuator_map.at("motor_" + std::to_string(joint)));
-        double actuation_up = u_up(actuator_map.at("motor_" + std::to_string(joint)));
-
-        double velocity_low = x_low(n_q + velocities_map.at("joint_" + std::to_string(joint) + "dot"));
-        double velocity_up = x_up(n_q + velocities_map.at("joint_" + std::to_string(joint) + "dot"));
-
-        double pow_low = positivePart(actuation_low * velocity_low + Q * actuation_low * actuation_low);
-        double pow_up = positivePart(actuation_up * velocity_up+ Q * actuation_up * actuation_up);
-
-        // trapazoidal integration
-        work += (knot_points[knot_index + 1] - knot_points[knot_index]) / 2.0 * (pow_low + pow_up);
+        work += (knot_points[knot_index + 1] - knot_points[knot_index]) / 2.0 * (battery_pow_low + battery_pow_up);
       }
     }
   }
@@ -726,8 +641,87 @@ double calcTorqueInt(
   return act_int;
 }
 
+template <typename T>
+void AddWorkCost(drake::multibody::MultibodyPlant<T> & plant,
+                 dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,
+                 double cost_work_gain,
+                 double work_constraint_scale,
+                 double efficiency){
+  auto velocities_map = multibody::makeNameToVelocitiesMap(plant);
+  auto actuator_map = multibody::makeNameToActuatorsMap(plant);
+  int n_q = plant.num_positions();
+
+
+  // Vector of new decision variables
+  std::vector<drake::symbolic::Variable> power_pluses;
+  std::vector<drake::symbolic::Variable> power_minuses;
+  double Q = 0;
+  // Loop through each joint
+  for (int joint = 0; joint < 12; joint++) {
+    if(joint == 1 or joint == 3 or joint == 5 or joint == 7)
+      Q = 0.249;
+    else
+      Q = 0.561;
+    // Loop through each mode
+    for (int mode_index = 0; mode_index < trajopt.num_modes(); mode_index++) {
+      for (int knot_index = 0; knot_index < trajopt.mode_length(mode_index); knot_index++) {
+        // Create ith set of power variables
+        power_pluses.push_back(trajopt.NewContinuousVariables(1, "joint_" + std::to_string(joint)+
+            "_mode_"+ std::to_string(mode_index)+"_index_"+std::to_string(knot_index)+"_power_plus")[0]);
+        power_minuses.push_back( trajopt.NewContinuousVariables(1, "joint_" + std::to_string(joint)+
+            "_mode_"+ std::to_string(mode_index)+"_index_"+std::to_string(knot_index)+"_power_minus")[0]);
+
+        // ith power variables
+        drake::symbolic::Variable power_plus_i = power_pluses[power_pluses.size()-1];
+        drake::symbolic::Variable power_minus_i = power_minuses[power_minuses.size()-1];
+
+        // Get current actuation and state
+        auto u_i = trajopt.input(trajopt.get_mode_start(mode_index) + knot_index);
+        auto x_i   = trajopt.state_vars(mode_index, knot_index);
+        drake::symbolic::Variable actuation = u_i(actuator_map.at("motor_" + std::to_string(joint)));
+        drake::symbolic::Variable velocity = x_i(n_q + velocities_map.at("joint_" + std::to_string(joint) +"dot"));
+
+        // Constrain newly power variables
+        if (cost_work_gain > 0){
+          trajopt.AddConstraint((actuation * velocity + Q * actuation * actuation) * work_constraint_scale == (power_plus_i - power_minus_i) * work_constraint_scale) ;
+          trajopt.AddLinearConstraint(power_plus_i * work_constraint_scale >= 0);
+          trajopt.AddLinearConstraint(power_minus_i * work_constraint_scale >= 0);
+        }
+        trajopt.SetInitialGuess(power_plus_i, 0);
+        trajopt.SetInitialGuess(power_minus_i, 0);
+
+        // For 0th iteration, dont bother adding cost
+        if(knot_index > 0){
+
+          auto u_im = trajopt.input(trajopt.get_mode_start(mode_index) + knot_index-1);
+          drake::symbolic::Variable actuation_m = u_im(actuator_map.at("motor_" + std::to_string(joint)));
+
+          // ith-1 power variables
+          drake::symbolic::Variable power_plus_im = power_pluses[power_pluses.size()-2];
+          drake::symbolic::Variable power_minus_im = power_minuses[power_minuses.size()-2];
+
+          // Get ith - 1 time step
+          drake::symbolic::Expression him = trajopt.timestep(trajopt.get_mode_start(mode_index) + knot_index-1)[0];
+
+          // abs of power at ith and ith+1
+          drake::symbolic::Expression gi  = power_plus_i - efficiency * power_minus_i;
+          drake::symbolic::Expression gim = power_plus_im - efficiency * power_minus_i;
+
+          // add cost
+          trajopt.AddCost(cost_work_gain * him/2.0 * (gi + gim));
+        }
+      } // knot point loop
+    } // Mode loop
+  } // Joint loop
+
+}
+
 double positivePart(double x){
   return(std::max(x,0.0));
+}
+
+double negativePart(double x){
+  return(std::min(x,0.0));
 }
 
 template void nominalSpiritStand(
@@ -826,25 +820,16 @@ template double calcWork(
     drake::trajectories::PiecewisePolynomial<double>& x_traj,
     drake::trajectories::PiecewisePolynomial<double>& u_traj);
 
-template double calcWork(
+template double calcMechanicalWork(
     drake::multibody::MultibodyPlant<double> & plant,
     std::vector<drake::trajectories::PiecewisePolynomial<double>>& x_traj,
     drake::trajectories::PiecewisePolynomial<double>& u_traj);
 
-template double calcElectricalWork1(
+template double calcElectricalWork(
     drake::multibody::MultibodyPlant<double> & plant,
     std::vector<drake::trajectories::PiecewisePolynomial<double>>& x_traj,
-    drake::trajectories::PiecewisePolynomial<double>& u_traj);
-
-template double calcElectricalWork2(
-    drake::multibody::MultibodyPlant<double> & plant,
-    std::vector<drake::trajectories::PiecewisePolynomial<double>>& x_traj,
-    drake::trajectories::PiecewisePolynomial<double>& u_traj);
-
-template double calcElectricalWork3(
-    drake::multibody::MultibodyPlant<double> & plant,
-    std::vector<drake::trajectories::PiecewisePolynomial<double>>& x_traj,
-    drake::trajectories::PiecewisePolynomial<double>& u_traj);
+    drake::trajectories::PiecewisePolynomial<double>& u_traj,
+    double efficiency);
 
 template double calcVelocityInt(
     drake::multibody::MultibodyPlant<double> & plant,
@@ -857,5 +842,11 @@ template double calcVelocityInt(
 template double calcTorqueInt(
     drake::multibody::MultibodyPlant<double> & plant,
     drake::trajectories::PiecewisePolynomial<double>& u_traj);
+
+template void AddWorkCost(drake::multibody::MultibodyPlant<double> & plant,
+                 dairlib::systems::trajectory_optimization::Dircon<double>& trajopt,
+                 double cost_work_gain,
+                 double work_constraint_scale,
+                 double efficiency);
 
 }//namespace dairlib

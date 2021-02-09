@@ -62,13 +62,9 @@ int main(int argc, char* argv[]) {
   auto x_traj = old_traj.ReconstructStateTrajectory();
   auto u_traj = old_traj.ReconstructInputTrajectory();
 
-  std::cout<<"Mechanical Work = " << dairlib::calcWork(*plant, x_trajs, u_traj) << std::endl;
+  std::cout<<"Mechanical Work = " << dairlib::calcMechanicalWork(*plant, x_trajs, u_traj) << std::endl;
 
-  std::cout<<"Electrical Work 1 = " << dairlib::calcElectricalWork1(*plant, x_trajs, u_traj) << std::endl;
-
-  std::cout<<"Electrical Work 2 = " << dairlib::calcElectricalWork2(*plant, x_trajs, u_traj) << std::endl;
-
-  std::cout<<"Electrical Work 3 = " << dairlib::calcElectricalWork3(*plant, x_trajs, u_traj) << std::endl;
+  std::cout<<"Electrical Work = " << dairlib::calcElectricalWork(*plant, x_trajs, u_traj) << std::endl;
 
   std::cout<<"Integral of Actuation = " << dairlib::calcTorqueInt(*plant, u_traj) << std::endl;
 

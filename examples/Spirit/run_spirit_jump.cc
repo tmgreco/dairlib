@@ -34,7 +34,7 @@
 
 DEFINE_double(duration, 1, "The stand duration");
 DEFINE_double(standHeight, 0.25, "The standing height.");
-DEFINE_double(foreAftDisplacement, 1.3, "The fore-aft displacement.");
+DEFINE_double(foreAftDisplacement, 1.0, "The fore-aft displacement.");
 DEFINE_double(apexGoal, 0.5, "Apex state goal");
 DEFINE_double(inputCost, 3, "The standing height.");
 DEFINE_double(velocityCost, 10, "The standing height.");
@@ -44,9 +44,9 @@ DEFINE_double(mu, 1, "coefficient of friction");
 
 DEFINE_string(data_directory, "/home/shane/Drake_ws/dairlib/examples/Spirit/saved_trajectories/",
               "directory to save/read data");
-DEFINE_string(distance_name, "13m","name to describe distance");
+DEFINE_string(distance_name, "100cm","name to describe distance");
 
-DEFINE_bool(runAllOptimization, false, "rerun earlier optimizations?");
+DEFINE_bool(runAllOptimization, true, "rerun earlier optimizations?");
 DEFINE_bool(skipInitialOptimization, false, "skip first optimizations?");
 DEFINE_bool(minWork, true, "try to minimize work?");
 
@@ -249,107 +249,11 @@ void addCost(MultibodyPlant<T>& plant,
              const double cost_velocity,
              const double cost_work,
              const double work_constraint_scale = 1.0){
-
-
-  auto velocities_map = multibody::makeNameToVelocitiesMap(plant);
-  auto actuator_map = multibody::makeNameToActuatorsMap(plant);
-
-
-  int n_q = plant.num_positions();
-  int n_v = plant.num_velocities();
-  int n_u = plant.num_actuators();
   auto u   = trajopt.input();
-  auto x   = trajopt.state();
-
   // Setup the traditional cost function
   trajopt.AddRunningCost( u.transpose()*cost_actuation*u);
-  double Q = 0;
-
-  // Add velocity cost handleing discontinuities
-  // Loop through each mode and each knot point and use trapezoidal integration
-  for(int mode_index = 0; mode_index < trajopt.num_modes(); mode_index++){
-    for(int knot_index = 0; knot_index < trajopt.mode_length(mode_index)-1; knot_index++){
-
-      // Get lower and upper knot velocities
-      drake::solvers::VectorXDecisionVariable xi  = trajopt.state_vars(mode_index, knot_index).tail(n_v);
-      drake::solvers::VectorXDecisionVariable xip = trajopt.state_vars(mode_index, knot_index+1).tail(n_v);
-
-      drake::symbolic::Expression hi = trajopt.timestep(trajopt.get_mode_start(mode_index) + knot_index)[0];
-
-      // Loop through and calcuate sum of velocities squared
-      drake::symbolic::Expression gi = 0;
-      drake::symbolic::Expression gip = 0;
-      for(int i = 0; i< n_v; i++){
-        gi += cost_velocity * xi[i] * xi[i];
-        gip += cost_velocity * xip[i] * xip[i];
-      }
-
-      // Add cost
-      trajopt.AddCost(hi/2.0 * (gi + gip));
-    }
-  }
-
-  // Vector of new decision variables
-  std::vector<drake::symbolic::Variable> power_pluses;
-  std::vector<drake::symbolic::Variable> power_minuses;
-
-  // Loop through each joint
-  for (int joint = 0; joint < 12; joint++) {
-    if(joint == 1 or joint == 3 or joint == 5 or joint == 7)
-      Q = 0.249;
-    else
-      Q = 0.561;
-    // Loop through each mode
-    for (int mode_index = 0; mode_index < trajopt.num_modes(); mode_index++) {
-      for (int knot_index = 0; knot_index < trajopt.mode_length(mode_index); knot_index++) {
-        // Create ith set of power variables
-        power_pluses.push_back(trajopt.NewContinuousVariables(1, "joint_" + std::to_string(joint)+
-            "_mode_"+ std::to_string(mode_index)+"_index_"+std::to_string(knot_index)+"_power_plus")[0]);
-        power_minuses.push_back( trajopt.NewContinuousVariables(1, "joint_" + std::to_string(joint)+
-            "_mode_"+ std::to_string(mode_index)+"_index_"+std::to_string(knot_index)+"_power_minus")[0]);
-
-        // ith power variables
-        drake::symbolic::Variable power_plus_i = power_pluses[power_pluses.size()-1];
-        drake::symbolic::Variable power_minus_i = power_minuses[power_minuses.size()-1];
-
-        // Get current actuation and state
-        auto u_i = trajopt.input(trajopt.get_mode_start(mode_index) + knot_index);
-        auto x_i   = trajopt.state_vars(mode_index, knot_index);
-        drake::symbolic::Variable actuation = u_i(actuator_map.at("motor_" + std::to_string(joint)));
-        drake::symbolic::Variable velocity = x_i(n_q + velocities_map.at("joint_" + std::to_string(joint) +"dot"));
-
-        // Constrain newly power variables
-        if (cost_work > 0){
-          trajopt.AddConstraint((actuation * velocity + Q * actuation * actuation) * work_constraint_scale == (power_plus_i - power_minus_i) * work_constraint_scale) ;
-          trajopt.AddLinearConstraint(power_plus_i * work_constraint_scale >= 0);
-          trajopt.AddLinearConstraint(power_minus_i * work_constraint_scale >= 0);
-        }
-        trajopt.SetInitialGuess(power_plus_i, 0);
-        trajopt.SetInitialGuess(power_minus_i, 0);
-
-        // For 0th iteration, dont bother adding cost
-        if(knot_index > 0){
-
-          auto u_im = trajopt.input(trajopt.get_mode_start(mode_index) + knot_index-1);
-          drake::symbolic::Variable actuation_m = u_im(actuator_map.at("motor_" + std::to_string(joint)));
-
-          // ith-1 power variables
-          drake::symbolic::Variable power_plus_im = power_pluses[power_pluses.size()-2];
-          drake::symbolic::Variable power_minus_im = power_minuses[power_minuses.size()-2];
-
-          // Get ith - 1 time step
-          drake::symbolic::Expression him = trajopt.timestep(trajopt.get_mode_start(mode_index) + knot_index-1)[0];
-
-          // abs of power at ith and ith+1
-          drake::symbolic::Expression gi  = power_plus_i;
-          drake::symbolic::Expression gim = power_plus_im;
-
-          // add cost
-          trajopt.AddCost(cost_work * him/2.0 * (gi + gim));
-        }
-      } // knot point loop
-    } // Mode loop
-  } // Joint loop
+  trajopt.AddVelocityCost(cost_velocity);
+  AddWorkCost(plant, trajopt, cost_work, work_constraint_scale, 0.0);
 } // Function
 
 
@@ -694,9 +598,7 @@ void runSpiritJump(
     l_traj  = trajopt.ReconstructLambdaTrajectory(result);
   }
   auto x_trajs = trajopt.ReconstructDiscontinuousStateTrajectory(result);
-  std::cout<<"Work = " << dairlib::calcWork(plant, x_trajs, u_traj) << std::endl;
-  std::cout<<"Integral of Actuation = " << dairlib::calcTorqueInt(plant, u_traj) << std::endl;
-  std::cout<<"Integral of Velocity = " << dairlib::calcVelocityInt(plant, x_trajs) << std::endl;
+  std::cout<<"Work = " << dairlib::calcElectricalWork(plant, x_trajs, u_traj) << std::endl;
 
   /// Run animation of the final trajectory
   const drake::trajectories::PiecewisePolynomial<double> pp_xtraj =

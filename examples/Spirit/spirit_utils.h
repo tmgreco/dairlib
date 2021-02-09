@@ -226,7 +226,7 @@ double calcWork(
 ///     @param x_trajs a vector of the state trajectory for each mode
 ///     @param u_traj the control trajectory
 template <typename T>
-double calcWork(
+double calcMechanicalWork(
     drake::multibody::MultibodyPlant<T> & plant,
     std::vector<drake::trajectories::PiecewisePolynomial<double>>& x_trajs,
     drake::trajectories::PiecewisePolynomial<double>& u_traj);
@@ -235,31 +235,13 @@ double calcWork(
 ///     @param plont, a pointer to the robot's model
 ///     @param x_trajs a vector of the state trajectory for each mode
 ///     @param u_traj the control trajectory
+///     @param efficiency, gain on what percent of negative power is useable by the battery
 template <typename T>
-double calcElectricalWork1(
+double calcElectricalWork(
     drake::multibody::MultibodyPlant<T> & plant,
     std::vector<drake::trajectories::PiecewisePolynomial<double>>& x_trajs,
-    drake::trajectories::PiecewisePolynomial<double>& u_traj);
-
-/// Calculates the electrical work done during trajectory, handles discontinuities
-///     @param plont, a pointer to the robot's model
-///     @param x_trajs a vector of the state trajectory for each mode
-///     @param u_traj the control trajectory
-template <typename T>
-double calcElectricalWork2(
-    drake::multibody::MultibodyPlant<T> & plant,
-    std::vector<drake::trajectories::PiecewisePolynomial<double>>& x_trajs,
-    drake::trajectories::PiecewisePolynomial<double>& u_traj);
-
-/// Calculates the electrical work done during trajectory, handles discontinuities
-///     @param plont, a pointer to the robot's model
-///     @param x_trajs a vector of the state trajectory for each mode
-///     @param u_traj the control trajectory
-template <typename T>
-double calcElectricalWork3(
-    drake::multibody::MultibodyPlant<T> & plant,
-    std::vector<drake::trajectories::PiecewisePolynomial<double>>& x_trajs,
-    drake::trajectories::PiecewisePolynomial<double>& u_traj);
+    drake::trajectories::PiecewisePolynomial<double>& u_traj,
+    double efficiency = 0);
 
 /// Calculates the integral of velocities squared
 ///     @param plont, a pointer to the robot's model
@@ -285,5 +267,21 @@ double calcTorqueInt(
     drake::multibody::MultibodyPlant<T> & plant,
     drake::trajectories::PiecewisePolynomial<double>& u_traj);
 
+/// Adds a cost on the integral of electrical power
+///     @param plant, the robot model
+///     @param trajopt the dircon object
+///     @param cost_work_gain, the gain on the electrical work
+///     @param work_constraint_scale, scale on the absolute value constraint
+///     @param efficiency, gain on what percent of negative power is useable by the battery
+template <typename T>
+void AddWorkCost(drake::multibody::MultibodyPlant<T> & plant,
+                 dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,
+                 double cost_work_gain,
+                 double work_constraint_scale = 1.0,
+                 double efficiency = 0);
+
+
 double positivePart(double x);
+double negativePart(double x);
+
 } //namespace dairlib
