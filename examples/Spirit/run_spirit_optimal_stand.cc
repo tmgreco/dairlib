@@ -40,6 +40,8 @@ DEFINE_double(inputCost, 20, "input cost scale.");
 DEFINE_double(eps, 1e-2, "The wiggle room.");
 DEFINE_double(tol, 1e-6, "Optimization Tolerance");
 DEFINE_double(mu, 1, "coefficient of friction");
+DEFINE_bool(rerun, false, "Rerun even if saved trajectory is available");
+
 
 using drake::AutoDiffXd;
 using drake::multibody::MultibodyPlant;
@@ -72,23 +74,23 @@ int main(int argc, char* argv[]) {
   std::srand(time(0));  // Initialize random number generator.
 
   auto plant = std::make_unique<MultibodyPlant<double>>(0.0);
-  auto plant_vis = std::make_unique<MultibodyPlant<double>>(0.0);
-  auto scene_graph = std::make_unique<SceneGraph<double>>();
   Parser parser(plant.get());
-  Parser parser_vis(plant_vis.get(), scene_graph.get());
   std::string full_name =
       dairlib::FindResourceOrThrow("examples/Spirit/spirit_drake.urdf");
 
   parser.AddModelFromFile(full_name);
-  parser_vis.AddModelFromFile(full_name);
-
   plant->mutable_gravity_field().set_gravity_vector(-9.81 *
       Eigen::Vector3d::UnitZ());
 
   plant->Finalize();
-  plant_vis->Finalize();
   
-  dairlib::OptimalSpiritStand testStand(plant.get(),0.22,Eigen::Vector3d::UnitZ() );
+  dairlib::OptimalSpiritStand testStand(
+      plant.get(), 
+      0.22, 
+      Eigen::Vector3d::UnitZ()+Eigen::Vector3d::UnitY() , 
+      FLAGS_rerun,
+      1e-4,
+      true);
 
   return 0;
 }
