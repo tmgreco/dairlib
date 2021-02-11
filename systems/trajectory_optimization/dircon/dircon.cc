@@ -144,7 +144,7 @@ Dircon<T>::Dircon(std::unique_ptr<DirconModeSequence<T>> my_sequence,
     // declared every decision variable yet (see impulse variables below), the
     // impulse variables do not enter into any dynamics evaluations, so we are
     // safe. Add a small factor (10%) just for safety margin.
-    int cache_size = 1.1 * num_vars();
+    int cache_size = 1.5 * num_vars();
     cache_.push_back(
         std::make_unique<DynamicsCache<T>>(mode.evaluators(), cache_size));
     for (int j = 0; j < mode.num_knotpoints() - 1; j++) {
