@@ -522,7 +522,7 @@ double calcElectricalWork(
   int n_q = plant.num_positions();
 
   double work = 0;
-  double Q = 0;
+  double Q;
   for(const auto& x_traj : x_trajs) {
     std::vector<double> knot_points = x_traj.get_segment_times();
     for (int knot_index = 0; knot_index < knot_points.size() - 1; knot_index++) {
@@ -532,11 +532,12 @@ double calcElectricalWork(
       auto x_up = x_traj.value(knot_points[knot_index + 1]);
 
       for (int joint = 0; joint < 12; joint++) {
-
-        if(joint == 1 or joint == 3 or joint == 5 or joint == 7)
-          Q = 0.249;
-        else
-          Q = 0.561;
+        if(joint == 1 or joint == 3 or joint == 5 or joint == 7){
+          Q = Q_knee;
+        }
+        else{
+          Q = Q_not_knee;
+        }
 
         double actuation_low = u_low(actuator_map.at("motor_" + std::to_string(joint)));
         double actuation_up = u_up(actuator_map.at("motor_" + std::to_string(joint)));
@@ -646,7 +647,7 @@ void AddWorkCost(drake::multibody::MultibodyPlant<T> & plant,
                  dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,
                  double cost_work_gain,
                  double work_constraint_scale,
-                 double efficiency){
+                 double regenEfficiency){
   auto velocities_map = multibody::makeNameToVelocitiesMap(plant);
   auto actuator_map = multibody::makeNameToActuatorsMap(plant);
   int n_q = plant.num_positions();
@@ -704,8 +705,8 @@ void AddWorkCost(drake::multibody::MultibodyPlant<T> & plant,
           drake::symbolic::Expression him = trajopt.timestep(trajopt.get_mode_start(mode_index) + knot_index-1)[0];
 
           // abs of power at ith and ith+1
-          drake::symbolic::Expression gi  = power_plus_i - efficiency * power_minus_i;
-          drake::symbolic::Expression gim = power_plus_im - efficiency * power_minus_i;
+          drake::symbolic::Expression gi  = power_plus_i - regenEfficiency * power_minus_i;
+          drake::symbolic::Expression gim = power_plus_im - regenEfficiency * power_minus_i;
 
           // add cost
           trajopt.AddCost(cost_work_gain * him/2.0 * (gi + gim));
@@ -847,6 +848,6 @@ template void AddWorkCost(drake::multibody::MultibodyPlant<double> & plant,
                  dairlib::systems::trajectory_optimization::Dircon<double>& trajopt,
                  double cost_work_gain,
                  double work_constraint_scale,
-                 double efficiency);
+                 double regenEfficiency);
 
 }//namespace dairlib

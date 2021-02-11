@@ -278,10 +278,14 @@ void AddWorkCost(drake::multibody::MultibodyPlant<T> & plant,
                  dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,
                  double cost_work_gain,
                  double work_constraint_scale = 1.0,
-                 double efficiency = 0);
+                 double regenEfficiency = 0);
 
 
 double positivePart(double x);
 double negativePart(double x);
+
+// Gains on resistive losses for knees and for other motors based on resistance, torque constant, and gear ratio
+const double Q_knee = .249;
+const double Q_not_knee = .561;
 
 } //namespace dairlib
