@@ -87,7 +87,7 @@ int main(int argc, char* argv[]) {
   dairlib::OptimalSpiritStand testStand(
       plant.get(), 
       0.22, 
-      Eigen::Vector3d::UnitZ()+Eigen::Vector3d::UnitY() , 
+      Eigen::Vector3d::UnitZ() , 
       FLAGS_rerun,
       1e-4,
       true);

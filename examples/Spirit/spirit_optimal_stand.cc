@@ -64,11 +64,25 @@ namespace dairlib {
             bool rerun,
             double tol,
             bool animate) {     // Constructor
-        height_ = height;
+        height_ = (static_cast<int>(height*100))/100.0;
         normal_ = normal/normal.norm();
         plantPtr_ = plantPtr;
-        filename_ = "optimalStand_"+ std::to_string( static_cast<int>(height*100) ) +"cm";
-        animate_ = animate;
+        drake::math::RollPitchYaw<double> rpy(dairlib::normal2Rotation(normal_)) ;
+        std::cout << rpy.vector() << std::endl;;
+        double roll = rpy.roll_angle();
+        double pitch = rpy.pitch_angle();
+        int rollDegAbs =  static_cast<int>(abs(roll)*360/(2*M_PI)) ;
+        int pitchDegAbs = static_cast<int>(abs(pitch)*360/(2*M_PI)) ;
+        std::string  rollSign =  roll<0 ? "n" : "";
+        std::string pitchSign = pitch<0 ? "n" : "";
+        double yaw = rpy.yaw_angle();
+        if (abs(yaw)>1e-5){
+            std::cout<<"Unexpected yaw in the normal's frame"<<std::endl;
+        }
+
+        filename_ = "optimalStand_h_"+ std::to_string( static_cast<int>(height*100) ) + "cm" +
+            "_r_" + rollSign + std::to_string( rollDegAbs ) + "deg" 
+            "_p_" + pitchSign + std::to_string( pitchDegAbs )+"deg" ;
         std::ifstream ifile;
         ifile.open(folder_+filename_);
         if(ifile && !rerun){
@@ -78,17 +92,11 @@ namespace dairlib {
             dairlib::DirconTrajectory loaded_traj(folder_+filename_);
             fullstate_ = (loaded_traj.GetStateSamples(0) ).col(0);
         }else{
-            fullstate_ = getSpiritOptimalStand();
+            fullstate_ = getSpiritOptimalStand(tol, animate);
         }
     }
-    // static void OptimalSpiritStand::interrupt_handler(int signum)
-    // {
-    //     if(!animate_){
-    //       exit(0);
-    //     }
-    //     animate_ = false;
-    // }
-    Eigen::VectorXd OptimalSpiritStand::getSpiritOptimalStand( double tol){
+
+    Eigen::VectorXd OptimalSpiritStand::getSpiritOptimalStand( double tol,bool animate){
 
         dairlib::ModeSequenceHelper msh;
         // Setup mode sequence
@@ -246,7 +254,7 @@ namespace dairlib {
         saved_traj.WriteToFile(folder_ + filename_);
 
 
-        if(animate_){
+        if(animate){
 
             drake::systems::DiagramBuilder<double> builder;
             auto plant_vis = std::make_unique<MultibodyPlant<double>>(0.0);
@@ -257,17 +265,7 @@ namespace dairlib {
             parser_vis.AddModelFromFile(full_name);
             SceneGraph<double>& scene_graph =
                 *builder.AddSystem(std::move(scene_graph_ptr));
-            // std::string full_name =
-            //     dairlib::FindResourceOrThrow("examples/Spirit/spirit_drake.urdf");
-            // auto plant_vis = std::make_unique<MultibodyPlant<double>>(0.0);
-            // auto scene_graph_ptr = std::make_unique<SceneGraph<double>>();
-            // drake::systems::DiagramBuilder<double> builder;
-            // SceneGraph<double>& scene_graph =
-            //     *builder.AddSystem(std::move(scene_graph_ptr));
-
-            // Parser parser_vis(plant_vis.get(), scene_graph_ptr.get());
-
-            // parser_vis.AddModelFromFile(full_name);
+                
             dairlib::visualizeSurface(  
                 plant_vis.get(),
                 normal_,
@@ -277,21 +275,21 @@ namespace dairlib {
                 .1);
             plant_vis->Finalize();
 
-
-
-            // signal(SIGINT, interrupt_handler);
             /// Run animation of the final trajectory
             const drake::trajectories::PiecewisePolynomial<double> pp_xtraj =
                 trajopt.ReconstructStateTrajectory(result);  
             multibody::connectTrajectoryVisualizer(plant_vis.get(),
                 &builder, &scene_graph, pp_xtraj);
             auto diagram = builder.Build();
-            while (animate_) {
+            int count = 0;
+            int repetitions = 5;
+            while (count < repetitions) {
                 drake::systems::Simulator<double> simulator(*diagram);
                 simulator.set_target_realtime_rate(0.25);
                 simulator.Initialize();
                 simulator.AdvanceTo(pp_xtraj.end_time());
                 sleep(2);
+                count ++;
             }
         }
         

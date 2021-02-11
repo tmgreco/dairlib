@@ -9,7 +9,6 @@ class OptimalSpiritStand {
     Eigen::VectorXd fullstate_;
     std::string filename_;
     std::string folder_= "/home/jdcap/dairlib/examples/Spirit/saved_trajectories/stand_trajectories/";
-    bool animate_ = false;
 
   public:
     OptimalSpiritStand(
@@ -21,9 +20,9 @@ class OptimalSpiritStand {
           bool animate = false);  // Constructor
 
     Eigen::VectorXd getJoints(){ return fullstate_.tail(fullstate_.rows()-7); }
+    Eigen::VectorXd getState(){ return fullstate_; }
     void loadOptimalStand(std::string filename);
-    Eigen::VectorXd getSpiritOptimalStand( double tol = 1e-4);
+    Eigen::VectorXd getSpiritOptimalStand( double tol = 1e-4, bool animate = false);
    
-    // static void interrupt_handler(int signum);
 };
 }
