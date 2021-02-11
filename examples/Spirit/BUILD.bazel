@@ -8,7 +8,24 @@ cc_library(
     srcs = ["animate_spirit.cc"],
     hdrs = ["animate_spirit.h"],
     deps = [
+        ":spirit_utils",
         "//common",
+        "//systems/primitives",
+        "//systems/trajectory_optimization/dircon",
+        "@drake//:drake_shared_library",
+        "@gflags",
+    ],
+)
+
+cc_library(
+    name = "spirit_optimal_stand",
+    srcs = ["spirit_optimal_stand.cc"],
+    hdrs = ["spirit_optimal_stand.h"],
+    deps = [
+        ":spirit_utils",
+        "//common",
+        "//lcm:dircon_trajectory_saver",
+        "//multibody/kinematic",
         "//systems/primitives",
         "//systems/trajectory_optimization/dircon",
         "@drake//:drake_shared_library",
@@ -116,6 +133,24 @@ cc_binary(
     srcs = ["run_spirit_box_jump.cc"],
     data = ["spirit_drake.urdf"],
     deps = [
+        ":animate_spirit",
+        ":spirit_utils",
+        "//systems/trajectory_optimization/dircon",
+        "//lcm:dircon_trajectory_saver",
+        "//multibody/kinematic",
+        "//common",
+        "//systems/primitives",
+        "@drake//:drake_shared_library",
+        "@gflags",
+    ],
+)
+
+cc_binary(
+    name = "run_spirit_optimal_stand",
+    srcs = ["run_spirit_optimal_stand.cc"],
+    data = ["spirit_drake.urdf"],
+    deps = [
+        ":spirit_optimal_stand",
         ":animate_spirit",
         ":spirit_utils",
         "//systems/trajectory_optimization/dircon",

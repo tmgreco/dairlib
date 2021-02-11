@@ -34,10 +34,10 @@ using Eigen::VectorXd;
 using Eigen::Matrix3d;
 using Eigen::MatrixXd;
 
-DEFINE_string(data_directory, "/home/shane/Drake_ws/dairlib/examples/Spirit/saved_trajectories/",
+DEFINE_string(data_directory, "/home/jdcap/dairlib/examples/Spirit/saved_trajectories/",
               "directory to save/read data");
 
-DEFINE_string(file_name, "jump_10m_hq_work4","file to read data");
+DEFINE_string(file_name, "/stand_trajectories/optimalStand_22cm","file to read data");
 
 
 int main(int argc, char* argv[]) {
@@ -55,6 +55,9 @@ int main(int argc, char* argv[]) {
   parser_vis.AddModelFromFile(full_name);
  
   plant->Finalize();
+  dairlib::visualizeSurface(plant_vis.get(),
+  (Eigen::Vector3d::UnitZ()+Eigen::Vector3d::UnitY()*.2),
+  Eigen::Vector3d::Zero(),1,1,.1);
   plant_vis->Finalize();
 
   dairlib::DirconTrajectory old_traj(FLAGS_data_directory+FLAGS_file_name);
@@ -67,7 +70,7 @@ int main(int argc, char* argv[]) {
   std::cout<<"Integral of Actuation = " << dairlib::calcTorqueInt(*plant, u_traj) << std::endl;
 
   std::cout<<"Integral of Velocity = " << dairlib::calcVelocityInt(*plant, x_trajs) << std::endl;
-
+  std::cout<<"state"<<old_traj.GetStateSamples(0).col(0)<<std::endl;
   dairlib::runAnimate( std::move(plant), plant_vis.get(), std::move(scene_graph), x_traj,0.25);
 }
 

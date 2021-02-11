@@ -638,9 +638,9 @@ void visualizeSurface(drake::multibody::MultibodyPlant<double>* plant_vis,
   double thickness_surf,
   const drake::Vector4<double> color
   ){
-
+  Eigen::Vector3d unit_normal = surface_normal/surface_normal.norm();
   Eigen::Vector3d bodyOffset(0,0,-thickness_surf/2);
-  drake::math::RotationMatrix<double> rot = normal2Rotation(surface_normal);
+  drake::math::RotationMatrix<double> rot = normal2Rotation(unit_normal);
   drake::math::RigidTransformd bodyToSurfaceTransform(bodyOffset);
   drake::math::RigidTransformd worldToBodyTransform(rot,surface_offset);
   
