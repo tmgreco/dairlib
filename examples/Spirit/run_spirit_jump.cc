@@ -39,6 +39,7 @@ DEFINE_double(duration, 1, "The stand duration");
 DEFINE_double(standHeight, 0.25, "The standing height.");
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 DEFINE_double(foreAftDisplacement, 0.75  , "The fore-aft displacement.");
 DEFINE_double(apexGoal, 0.5, "Apex state goal");
 =======
@@ -47,6 +48,9 @@ DEFINE_double(apexGoal, 0.25, "Apex state goal");
 >>>>>>> Not really making progress
 =======
 DEFINE_double(foreAftDisplacement, 0.2, "The fore-aft displacement.");
+=======
+DEFINE_double(foreAftDisplacement, 0.4, "The fore-aft displacement.");
+>>>>>>> Seemed to be doing alright
 DEFINE_double(apexGoal, 0.45, "Apex state goal");
 >>>>>>> Sort of working first half jump
 DEFINE_double(inputCost, 3, "The standing height.");
@@ -438,6 +442,7 @@ void addConstraints(MultibodyPlant<T>& plant,
 
   auto   x0  = trajopt.initial_state();
   auto xapex = trajopt.final_state();
+  auto xlo = trajopt.state_vars(2,0);
   //auto   xf  = trajopt.final_state();
 
   // Add duration constraint, currently constrained not bounded
@@ -457,11 +462,19 @@ void addConstraints(MultibodyPlant<T>& plant,
     //trajopt.AddBoundingBoxConstraint(initial_height - eps, initial_height + eps, xf(positions_map.at("base_z")));
   }
 
+  trajopt.AddBoundingBoxConstraint(0 , 1, xlo(positions_map.at("base_qy")));
+
   // Body pose constraints (keep the body flat) at initial state
   trajopt.AddBoundingBoxConstraint(1 - eps, 1 + eps, x0(positions_map.at("base_qw")));
   trajopt.AddBoundingBoxConstraint(0 - eps, 0 + eps, x0(positions_map.at("base_qx")));
   trajopt.AddBoundingBoxConstraint(0 - eps, 0 + eps, x0(positions_map.at("base_qy")));
   trajopt.AddBoundingBoxConstraint(0 - eps, 0 + eps, x0(positions_map.at("base_qz")));
+
+  // Body pose constraints (keep the body flat) at initial state
+  trajopt.AddBoundingBoxConstraint(1 - eps, 1 + eps, xapex(positions_map.at("base_qw")));
+  trajopt.AddBoundingBoxConstraint(0 - eps, 0 + eps, xapex(positions_map.at("base_qx")));
+  trajopt.AddBoundingBoxConstraint(0 - eps, 0 + eps, xapex(positions_map.at("base_qy")));
+  trajopt.AddBoundingBoxConstraint(0 - eps, 0 + eps, xapex(positions_map.at("base_qz")));
 
   // Body pose constraints (keep the body flat) at final state
   //trajopt.AddBoundingBoxConstraint(0, 0, xapex(positions_map.at("base_qx")));
@@ -517,6 +530,12 @@ void addConstraints(MultibodyPlant<T>& plant,
       trajopt.AddBoundingBoxConstraint(0 - eps, 0 + eps, xi(positions_map.at("base_qy")));
       trajopt.AddBoundingBoxConstraint(0 - eps, 0 + eps, xi(positions_map.at("base_qz")));
     }
+    else{
+      trajopt.AddBoundingBoxConstraint(0.5, 1, xi(positions_map.at("base_qw")));
+      trajopt.AddBoundingBoxConstraint(0, 0, xi(positions_map.at("base_qx")));
+      trajopt.AddBoundingBoxConstraint(0, 0, xi(positions_map.at("base_qz")));
+    }
+
 
     // Height
     trajopt.AddBoundingBoxConstraint( 0.15, 5, xi( positions_map.at("base_z")));
@@ -552,7 +571,7 @@ getModeSequence(
       Eigen::Vector3d::UnitZ(), // normal
       Eigen::Vector3d::Zero(),  // world offset
       mu, //friction
-      0.00
+      0.05
   );
   msh.addMode( // Flight
       (Eigen::Matrix<bool,1,4>() << false, false, false, false).finished(), // contact bools
@@ -742,7 +761,7 @@ void runSpiritJump(
                     lock_legs_apex, force_symmetry, use_nominal_stand, max_duration, eps);
 
   /// Setup the visualization during the optimization
-  int num_ghosts = 2;// Number of ghosts in visualization. NOTE: there are limitations on number of ghosts based on modes and knotpoints
+  int num_ghosts = 1;// Number of ghosts in visualization. NOTE: there are limitations on number of ghosts based on modes and knotpoints
   std::vector<unsigned int> visualizer_poses; // Ghosts for visualizing during optimization
   for(int i = 0; i < sequence.num_modes(); i++){
       visualizer_poses.push_back(num_ghosts); 
@@ -894,13 +913,13 @@ int main(int argc, char* argv[]) {
 >>>>>>> Sort of working first half jump
 
     std::cout<<"Running 2nd optimization"<<std::endl;
-    // Hopping correct distance, but heavily constrained
+    //Hopping correct distance, but heavily constrained
     dairlib::runSpiritJump<double>(
         *plant,
         x_traj, u_traj, l_traj,
         lc_traj, vc_traj,
         true,
-        {5, 5, 5, 5, 5, 5} ,
+        {5, 3, 5, 5, 5, 5} ,
         FLAGS_apexGoal,
         FLAGS_standHeight,
         FLAGS_foreAftDisplacement,
@@ -916,6 +935,7 @@ int main(int argc, char* argv[]) {
         1e-2,
         1e-4,
         1.0,
+        FLAGS_data_directory+"simple_leap_2",
         FLAGS_data_directory+"simple_leap");
 
     dairlib::runSpiritJump<double>(
@@ -923,27 +943,33 @@ int main(int argc, char* argv[]) {
         x_traj, u_traj, l_traj,
         lc_traj, vc_traj,
         true,
-        {4, 4, 4, 4, 4, 4} ,
+        {5, 3, 5, 5, 5, 5} ,
         FLAGS_apexGoal,
         FLAGS_standHeight,
         FLAGS_foreAftDisplacement,
         false,
-        true,
+        false,
         false,
         true,
-        2,
+        1,
         3,
-        10,
+        50,
         0,
-        100,
-        0,
+        100000,
         1e-2,
+<<<<<<< HEAD
 <<<<<<< HEAD
         FLAGS_data_directory+"jump_"+FLAGS_distance_name);
 =======
         0,
         FLAGS_data_directory+"leap_"+FLAGS_distance_name+"_3",
         FLAGS_data_directory+"simple_leap");
+=======
+        1e-6,
+        1.0,
+        FLAGS_data_directory+"simple_leap_3",
+        FLAGS_data_directory+"simple_leap_2");
+>>>>>>> Seemed to be doing alright
 
 >>>>>>> Not really making progress
   }
