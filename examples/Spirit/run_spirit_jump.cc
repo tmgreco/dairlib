@@ -462,7 +462,7 @@ void addConstraints(MultibodyPlant<T>& plant,
     //trajopt.AddBoundingBoxConstraint(initial_height - eps, initial_height + eps, xf(positions_map.at("base_z")));
   }
 
-  trajopt.AddBoundingBoxConstraint(0 , 1, xlo(positions_map.at("base_qy")));
+  trajopt.AddBoundingBoxConstraint(-1 , 0, xlo(positions_map.at("base_qy")));
 
   // Body pose constraints (keep the body flat) at initial state
   trajopt.AddBoundingBoxConstraint(1 - eps, 1 + eps, x0(positions_map.at("base_qw")));
@@ -471,10 +471,10 @@ void addConstraints(MultibodyPlant<T>& plant,
   trajopt.AddBoundingBoxConstraint(0 - eps, 0 + eps, x0(positions_map.at("base_qz")));
 
   // Body pose constraints (keep the body flat) at initial state
-  trajopt.AddBoundingBoxConstraint(1 - eps, 1 + eps, xapex(positions_map.at("base_qw")));
-  trajopt.AddBoundingBoxConstraint(0 - eps, 0 + eps, xapex(positions_map.at("base_qx")));
-  trajopt.AddBoundingBoxConstraint(0 - eps, 0 + eps, xapex(positions_map.at("base_qy")));
-  trajopt.AddBoundingBoxConstraint(0 - eps, 0 + eps, xapex(positions_map.at("base_qz")));
+  trajopt.AddBoundingBoxConstraint(0.5, 1, xapex(positions_map.at("base_qw")));
+  trajopt.AddBoundingBoxConstraint(0, 0, xapex(positions_map.at("base_qx")));
+  trajopt.AddBoundingBoxConstraint(-0.4 , .4, xapex(positions_map.at("base_qy")));
+  trajopt.AddBoundingBoxConstraint(0, 0, xapex(positions_map.at("base_qz")));
 
   // Body pose constraints (keep the body flat) at final state
   //trajopt.AddBoundingBoxConstraint(0, 0, xapex(positions_map.at("base_qx")));
@@ -531,7 +531,7 @@ void addConstraints(MultibodyPlant<T>& plant,
       trajopt.AddBoundingBoxConstraint(0 - eps, 0 + eps, xi(positions_map.at("base_qz")));
     }
     else{
-      trajopt.AddBoundingBoxConstraint(0.5, 1, xi(positions_map.at("base_qw")));
+      trajopt.AddBoundingBoxConstraint(0.80, 1, xi(positions_map.at("base_qw")));
       trajopt.AddBoundingBoxConstraint(0, 0, xi(positions_map.at("base_qx")));
       trajopt.AddBoundingBoxConstraint(0, 0, xi(positions_map.at("base_qz")));
     }
