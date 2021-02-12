@@ -462,7 +462,7 @@ void addConstraints(MultibodyPlant<T>& plant,
     //trajopt.AddBoundingBoxConstraint(initial_height - eps, initial_height + eps, xf(positions_map.at("base_z")));
   }
 
-  trajopt.AddBoundingBoxConstraint(-1 , 0, xlo(positions_map.at("base_qy")));
+  trajopt.AddBoundingBoxConstraint(-0.35 , 0, xlo(positions_map.at("base_qy")));
 
   // Body pose constraints (keep the body flat) at initial state
   trajopt.AddBoundingBoxConstraint(1 - eps, 1 + eps, x0(positions_map.at("base_qw")));
@@ -480,7 +480,7 @@ void addConstraints(MultibodyPlant<T>& plant,
   //trajopt.AddBoundingBoxConstraint(0, 0, xapex(positions_map.at("base_qx")));
   //trajopt.AddBoundingBoxConstraint(0, 0, xapex(positions_map.at("base_qz")));
 
-  //trajopt.AddCost(-100 * xapex(positions_map.at("base_qw")));
+  trajopt.AddCost(10 * xapex(positions_map.at("base_qy")));
   // Initial and final velocity
   trajopt.AddBoundingBoxConstraint(VectorXd::Zero(n_v), VectorXd::Zero(n_v), x0.tail(n_v));
   trajopt.AddBoundingBoxConstraint(-eps, +eps, xapex(n_q+velocities_map.at("base_vz")));
@@ -918,7 +918,7 @@ int main(int argc, char* argv[]) {
         *plant,
         x_traj, u_traj, l_traj,
         lc_traj, vc_traj,
-        true,
+        false,
         {5, 3, 5, 5, 5, 5} ,
         FLAGS_apexGoal,
         FLAGS_standHeight,
@@ -928,8 +928,8 @@ int main(int argc, char* argv[]) {
         false,
         true,
         0.5,
-        3,
-        10,
+        3/100.0,
+        10/100.0,
         0,
         100000,
         1e-2,
@@ -952,8 +952,8 @@ int main(int argc, char* argv[]) {
         false,
         true,
         1,
-        3,
-        50,
+        3/100.0,
+        50/100.0,
         0,
         100000,
         1e-2,
