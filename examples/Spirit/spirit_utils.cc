@@ -86,6 +86,110 @@ void nominalSpiritStand( MultibodyPlant<T>& plant, Eigen::VectorXd& xState, doub
   }
 }
 
+void ikSpiritStand(drake::multibody::MultibodyPlant<double>& plant,
+                   Eigen::VectorXd& xState,
+                   Eigen::Matrix<bool,1,4> contactSequence,
+                   double com_height,
+                   double leg_height,
+                   double roll,
+                   double pitch,
+                   double eps){
+  drake::multibody::InverseKinematics ik(plant);
+  const auto& world_frame = plant.world_frame();
+  const auto& body_frame  = plant.GetFrameByName("body");
+
+  // Position of the com
+  Vector3d pos = {0, 0, com_height};
+  // Orientation of body
+  drake::math::RotationMatrix<double> orientation;
+  orientation = drake::math::RotationMatrix<double>::MakeXRotation(-roll) *
+                drake::math::RotationMatrix<double>::MakeYRotation(-pitch) ;
+
+  const double n_x = plant.num_positions() + plant.num_velocities();
+  const double n_q = plant.num_positions();
+
+
+  // Constrain body location and pose
+  ik.AddPositionConstraint(body_frame, Vector3d(0, 0, 0), world_frame,
+                           pos,
+                           pos);
+  ik.AddOrientationConstraint(body_frame, orientation,
+                              world_frame, drake::math::RotationMatrix<double>(), 0);
+
+  // Constrain toes
+  for(int toe = 0; toe < 4; toe ++){
+    constrainToe(plant, ik, toe, contactSequence[toe], orientation, com_height, leg_height, eps);
+  }
+
+  // Add initial guess and solve
+  Eigen::VectorXd initial_guess;
+  dairlib::nominalSpiritStand(plant, initial_guess, com_height);
+  ik.get_mutable_prog()->SetInitialGuess(ik.q(), initial_guess.head(n_q));
+  const auto result = Solve(ik.prog());
+  const auto q_sol = result.GetSolution(ik.q());
+  std::cout << (result.is_success() ? "IK Success" : "IK Fail") << std::endl;
+
+  // Return
+  VectorXd x_const = VectorXd::Zero(n_x);
+  x_const.head(n_q) = q_sol;
+  xState = x_const;
+}
+
+void constrainToe(drake::multibody::MultibodyPlant<double> & plant,
+                  drake::multibody::InverseKinematics &ik,
+                  int toe, bool inContact, drake::math::RotationMatrix<double> orientation,
+                  double com_height, double leg_height, double eps){
+  // Get frames
+  const auto& toe_frame = dairlib::getSpiritToeFrame(plant, toe);
+  const auto& world_frame = plant.world_frame();
+  const auto& body_frame  = plant.GetFrameByName("body");
+  Vector3d eps_vec = {eps, eps, eps};
+
+  // Chose distance between toe and com
+  const double hip_width = 0.07;
+  const double body_length = 0.2263;
+  Vector3d toe_offset;
+  switch (toe) {
+    case 0:
+      toe_offset = {body_length, hip_width, -abs(leg_height)};
+      break;
+    case 1:
+      toe_offset = {-body_length, hip_width, -abs(leg_height)};
+      break;
+    case 2:
+      toe_offset = {body_length, -hip_width, -abs(leg_height)};
+      break;
+    case 3:
+      toe_offset = {-body_length, -hip_width, -abs(leg_height)};
+      break;
+    default:
+      break;
+  }
+
+  if(inContact){
+    // Toe is in contact with ground
+    ik.AddPositionConstraint(toe_frame, Vector3d(0, 0, 0), world_frame,
+                             Vector3d(-std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), 0),
+                             Vector3d(std::numeric_limits<double>::infinity(), std::numeric_limits<double>::infinity(), 0));
+
+    // Constrain toe to be under hip with distance constraint
+    toe_offset(2) = 0; // vector between body and hip in body frame
+    // Location hip in world frame
+    Vector3d hip_in_world = orientation.transpose() * toe_offset + Vector3d({0, 0, abs(com_height)});
+    // Vector between hip and toe in world frame
+    Vector3d  hip_to_toe_world = {0, 0, -hip_in_world(2)};
+    // Vector between body and toe in body frame
+    Vector3d body_to_toe_body = toe_offset + orientation * hip_to_toe_world;
+    ik.AddPositionConstraint(body_frame, body_to_toe_body, toe_frame, -eps_vec, eps_vec);
+  }
+  else{
+    // Toe is under hip in body frame
+    ik.AddPositionConstraint(body_frame, toe_offset, toe_frame,
+                             Vector3d(0, 0, 0),
+                             Vector3d(0, 0, 0));
+  }
+}
+
 template <typename T>
 void nominalSpiritStandConstraint(
     drake::multibody::MultibodyPlant<T>& plant,
@@ -229,8 +333,8 @@ void setSpiritJointLimits(drake::multibody::MultibodyPlant<T> & plant,
 }
 
 template <typename T> 
-void setSpiritJointLimits(drake::multibody::MultibodyPlant<T> & plant, 
-                          dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,  
+void setSpiritJointLimits(drake::multibody::MultibodyPlant<T> & plant,
+                          dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,
                           std::vector<int> iJoints, 
                           std::vector<double> minVals, 
                           std::vector<double> maxVals  ){
@@ -246,8 +350,8 @@ void setSpiritJointLimits(drake::multibody::MultibodyPlant<T> & plant,
   }
 }
 template <typename T> 
-void setSpiritJointLimits(drake::multibody::MultibodyPlant<T> & plant, 
-                          dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,  
+void setSpiritJointLimits(drake::multibody::MultibodyPlant<T> & plant,
+                          dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,
                           std::vector<int> iJoints, 
                           double minVal, 
                           double maxVal  ){
@@ -783,21 +887,21 @@ template void setSpiritJointLimits(
           double maxVal  );
 
 template void setSpiritJointLimits(
-          drake::multibody::MultibodyPlant<double> & plant, 
-          dairlib::systems::trajectory_optimization::Dircon<double>& trajopt,  
+          drake::multibody::MultibodyPlant<double> & plant,
+          dairlib::systems::trajectory_optimization::Dircon<double>& trajopt,
           std::vector<int> iJoints, 
           std::vector<double> minVals, 
           std::vector<double> maxVals  );
 
 template void setSpiritJointLimits(
-          drake::multibody::MultibodyPlant<double> & plant, 
-          dairlib::systems::trajectory_optimization::Dircon<double>& trajopt,  
+          drake::multibody::MultibodyPlant<double> & plant,
+          dairlib::systems::trajectory_optimization::Dircon<double>& trajopt,
           std::vector<int> iJoints, 
           double minVal, 
           double maxVal  );
 
 template void setSpiritJointLimits(
-          drake::multibody::MultibodyPlant<double> & plant, 
+          drake::multibody::MultibodyPlant<double> & plant,
           dairlib::systems::trajectory_optimization::Dircon<double>& trajopt );
 
 template void setSpiritActuationLimits(
