@@ -135,6 +135,7 @@ cc_binary(
     deps = [
         ":animate_spirit",
         ":spirit_utils",
+        ":spirit_optimal_stand",
         "//systems/trajectory_optimization/dircon",
         "//lcm:dircon_trajectory_saver",
         "//multibody/kinematic",

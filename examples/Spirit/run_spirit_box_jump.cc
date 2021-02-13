@@ -31,6 +31,7 @@
 #include "solvers/optimization_utils.h"
 
 #include "examples/Spirit/spirit_utils.h"
+#include "examples/Spirit/spirit_optimal_stand.h"
 
 DEFINE_double(duration, 1, "The stand duration");
 DEFINE_double(standHeight, 0.23, "The standing height.");
@@ -48,7 +49,7 @@ DEFINE_string(data_directory, "/home/jdcap/dairlib/examples/Spirit/saved_traject
 DEFINE_string(distance_name, "forwardBoxFurther","name to describe distance");
 
 DEFINE_bool(runAllOptimization, false, "rerun earlier optimizations?");
-DEFINE_bool(skipInitialOptimization, false, "skip first optimizations?");
+DEFINE_bool(skipInitialOptimization, true, "skip first optimizations?");
 DEFINE_bool(minWork, false, "skip try to minimize work?");
 
 using drake::AutoDiffXd;
@@ -88,14 +89,14 @@ void badSpiritJump(MultibodyPlant<T>& plant,
                     vector<PiecewisePolynomial<double>>& l_traj,
                     vector<PiecewisePolynomial<double>>& lc_traj,
                     vector<PiecewisePolynomial<double>>& vc_traj){
-  Eigen::VectorXd x0 = Eigen::VectorXd::Zero(plant.num_positions() +
-      plant.num_velocities());
 
   int nu = plant.num_actuators();
   int nx = plant.num_positions() + plant.num_velocities();
   int nq = plant.num_positions();
   int nv = plant.num_velocities();
   int N = 20; // number of timesteps
+
+  Eigen::VectorXd x0 = Eigen::VectorXd::Zero(nx);
 
   std::vector<MatrixXd> init_x;
   std::vector<MatrixXd> init_u;
@@ -109,9 +110,9 @@ void badSpiritJump(MultibodyPlant<T>& plant,
   VectorXd xInit(nx);
   VectorXd xMid(nx);
   VectorXd xState(nx);
-  xInit = Eigen::VectorXd::Zero(plant.num_positions() + plant.num_velocities());
-  xMid = Eigen::VectorXd::Zero(plant.num_positions() + plant.num_velocities());
-  xState = Eigen::VectorXd::Zero(plant.num_positions() + plant.num_velocities());
+  xInit = Eigen::VectorXd::Zero(nx);
+  xMid = Eigen::VectorXd::Zero(nx);
+  xState = Eigen::VectorXd::Zero(nx);
 
   auto positions_map = dairlib::multibody::makeNameToPositionsMap(plant);
   auto velocities_map = dairlib::multibody::makeNameToVelocitiesMap(plant);
@@ -298,7 +299,9 @@ void addCost(MultibodyPlant<T>& plant,
 // addConstraints, adds constraints to the trajopt jump problem. See runSpiritBoxJump for a description of the inputs
 template <typename T>
 void addConstraints(MultibodyPlant<T>& plant,
-             dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,
+                    dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,
+                    dairlib::OptimalSpiritStand& initialStand,
+                    dairlib::OptimalSpiritStand& finalStand,
                     const double apex_height,
                     const double initial_height,
                     const double fore_aft_displacement,
@@ -346,34 +349,34 @@ void addConstraints(MultibodyPlant<T>& plant,
   trajopt.AddBoundingBoxConstraint(fore_aft_displacement - eps, fore_aft_displacement + eps, xf(positions_map.at("base_x"))); // Give the initial condition room to choose the x_init position (helps with positive knee constraint)
   trajopt.AddBoundingBoxConstraint(-eps, eps, xf(positions_map.at("base_y")));
 
-  dairlib::OptimalSpiritStand initialStand(&plant, .2, Eigen::Vector3d::UnitZ() );
-  // dairlib::OptimalSpiritStand finalStand(plant, .2, Eigen::Vector3d::UnitZ() );
-
   // Nominal stand or z and attitude
   if(use_nominal_stand){
     // nominalSpiritStandConstraint(plant,trajopt,initial_height, {0,trajopt.N()-1}, eps);
-    VectorXd standJoints = initialStand.getJoints();
-    std::cout<<standJoints<<std::endl;
-    trajopt.AddBoundingBoxConstraint(standJoints,standJoints,x0.tail(n_q-7));
-    trajopt.AddBoundingBoxConstraint(standJoints,standJoints,xf.tail(n_q-7));
+    VectorXd standJointsInit = initialStand.getJoints();
+    VectorXd standJointsFinal = finalStand.getJoints();
+    VectorXd standQuatInit = initialStand.getQuat();
+    VectorXd standQuatFinal = finalStand.getQuat();
+
+    std::cout<<"\nInit:\n"<<standJointsInit<<"\nFinal:\n"<< standJointsFinal<<std::endl;
+
+    trajopt.AddBoundingBoxConstraint(standJointsInit,standJointsInit,(x0.head(n_q)).tail(n_q-7));
+    trajopt.AddBoundingBoxConstraint(standJointsFinal,standJointsFinal,(xf.head(n_q)).tail(n_q-7));
+
+     // Body pose constraints (keep the body flat) at initial state
+    trajopt.AddBoundingBoxConstraint(
+          standQuatInit - Eigen::Vector4d::Constant(eps), 
+          standQuatInit + Eigen::Vector4d::Constant(eps), 
+          x0.head(4));
+    // Body pose constraints (keep the body flat) at final state
+    trajopt.AddBoundingBoxConstraint(
+          standQuatFinal - Eigen::Vector4d::Constant(eps), 
+          standQuatFinal + Eigen::Vector4d::Constant(eps), 
+          xf.head(4));
+
   }else{
     trajopt.AddBoundingBoxConstraint(initial_height - eps, initial_height + eps, x0(positions_map.at("base_z")));
-    trajopt.AddBoundingBoxConstraint(initial_height - eps, initial_height + eps, xf(positions_map.at("base_z")));
+    trajopt.AddBoundingBoxConstraint(initial_height - eps, initial_height  + eps, xf(positions_map.at("base_z")));
   }
-
-
-  // Body pose constraints (keep the body flat) at initial state
-  trajopt.AddBoundingBoxConstraint(1 - eps, 1 + eps, x0(positions_map.at("base_qw")));
-  trajopt.AddBoundingBoxConstraint(0 - eps, 0 + eps, x0(positions_map.at("base_qx")));
-  trajopt.AddBoundingBoxConstraint(0 - eps, 0 + eps, x0(positions_map.at("base_qy")));
-  trajopt.AddBoundingBoxConstraint(0 - eps, 0 + eps, x0(positions_map.at("base_qz")));
-
-
-  // Body pose constraints (keep the body flat) at final state
-  trajopt.AddBoundingBoxConstraint(1 - eps, 1 + eps, xf(positions_map.at("base_qw")));
-  trajopt.AddBoundingBoxConstraint(0 - eps, 0 + eps, xf(positions_map.at("base_qx")));
-  trajopt.AddBoundingBoxConstraint(0 - eps, 0 + eps, xf(positions_map.at("base_qy")));
-  trajopt.AddBoundingBoxConstraint(0 - eps, 0 + eps, xf(positions_map.at("base_qz")));
 
   // Initial and final velocity
   trajopt.AddBoundingBoxConstraint(VectorXd::Zero(n_v), VectorXd::Zero(n_v), x0.tail(n_v));
@@ -416,181 +419,33 @@ void addConstraints(MultibodyPlant<T>& plant,
 
   for (int i = 0; i < trajopt.N(); i++){
     auto xi = trajopt.state(i);
-    //Orientation
-    if (lock_rotation and i != 0 and i != (trajopt.N()-1))
-    {
-      trajopt.AddBoundingBoxConstraint(1 - eps, 1 + eps, xi(positions_map.at("base_qw")));
-      trajopt.AddBoundingBoxConstraint(0 - eps, 0 + eps, xi(positions_map.at("base_qx")));
-      trajopt.AddBoundingBoxConstraint(0 - eps, 0 + eps, xi(positions_map.at("base_qy")));
-      trajopt.AddBoundingBoxConstraint(0 - eps, 0 + eps, xi(positions_map.at("base_qz")));
-    }
 
+    // //Orientation
+    // if (lock_rotation and i != 0 and i != (trajopt.N()-1))
+    // {
+    //   trajopt.AddBoundingBoxConstraint(1 - eps, 1 + eps, xi(positions_map.at("base_qw")));
+    //   trajopt.AddBoundingBoxConstraint(0 - eps, 0 + eps, xi(positions_map.at("base_qx")));
+    //   trajopt.AddBoundingBoxConstraint(0 - eps, 0 + eps, xi(positions_map.at("base_qy")));
+    //   trajopt.AddBoundingBoxConstraint(0 - eps, 0 + eps, xi(positions_map.at("base_qz")));
+    // }
     // Height
     trajopt.AddBoundingBoxConstraint( 0.15, 5, xi( positions_map.at("base_z")));
   }
-}
-
-
-
-template <typename T>
-
-void optimalSpiritStandConstraint(
-    drake::multibody::MultibodyPlant<T>& plant,
-    dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,
-    double height,
-    std::vector<int> knotPoints,
-    double eps){
-  int nx = plant.num_positions() + plant.num_velocities();
-  VectorXd x_state(nx);
-  dairlib::nominalSpiritStand( plant, x_state,  height); //get desired x_state
-
-  auto positions_map = dairlib::multibody::makeNameToPositionsMap(plant);
-
-  for(int knot_index : knotPoints){
-    auto xi = trajopt.state(knot_index);
-    for(int joint = 0; joint< 12; joint ++){
-      std::string joint_string = "joint_"+std::to_string(joint);
-      double joint_val = x_state[positions_map.at(joint_string)];
-      trajopt.AddBoundingBoxConstraint(joint_val-eps, joint_val+eps, xi(positions_map.at(joint_string)));
+  //Orientation lock rotation in flight
+  for (int iMode = 1; iMode<=2; iMode++){
+    for(int iKnot = 0; iKnot< trajopt.mode_length(iMode);iKnot++){
+      auto xi = trajopt.state_vars(iMode,iKnot);
+      if (lock_rotation)
+      {
+        trajopt.AddBoundingBoxConstraint(1 - eps, 1 + eps, xi(positions_map.at("base_qw")));
+        trajopt.AddBoundingBoxConstraint(0 - eps, 0 + eps, xi(positions_map.at("base_qx")));
+        trajopt.AddBoundingBoxConstraint(0 - eps, 0 + eps, xi(positions_map.at("base_qy")));
+        trajopt.AddBoundingBoxConstraint(0 - eps, 0 + eps, xi(positions_map.at("base_qz")));
+      }
     }
   }
 }
-      // template <typename T>
-      // Eigen::VectorXd getSpiritOptimalStand(
-      //       drake::multibody::MultibodyPlant<T>& plant,
-      //       double height,
-      //       Eigen::Vector3d normal,
-      //       double tol = 1e-6){
 
-      //   normal = normal/normal.norm();
-      //   dairlib::ModeSequenceHelper msh;
-      //   // Setup mode sequence
-      //   auto sequence = DirconModeSequence<T>(plant);
-
-      //   msh.addMode(
-      //     (Eigen::Matrix<bool,1,4>() << true,  true,  true,  true).finished(),
-      //     3,
-      //     normal,
-      //     Eigen::Vector3d::Zero(),
-      //     std::numeric_limits<double>::infinity(),
-      //     1,
-      //     1
-      //     );
-
-      //   auto [modeVector, toeEvals, toeEvalSets] = createSpiritModeSequence(plant, msh);
-
-      //   for (auto& mode : modeVector){
-      //     for (int i = 0; i < mode->evaluators().num_evaluators(); i++ ){
-      //       mode->MakeConstraintRelative(i,0);
-      //       mode->MakeConstraintRelative(i,1);
-      //     }
-      //     mode->SetDynamicsScale(
-      //         {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17}, 200);
-      //     if (mode->evaluators().num_evaluators() > 0)
-      //     {
-      //       mode->SetKinVelocityScale(
-      //           {0, 1, 2, 3}, {0, 1, 2}, 1.0);
-      //       mode->SetKinPositionScale(
-      //           {0, 1, 2, 3}, {0, 1, 2}, 200);
-      //     }
-      //     sequence.AddMode(mode.get());
-      //   }
-      //   ///Setup trajectory optimization
-      //   auto trajopt = Dircon<T>(sequence);
-      //   // Set up Trajectory Optimization options
-      //   trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(),
-      //                           "Print file", "../snopt.out");
-      //   trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(),
-      //                           "Major iterations limit", 200000);
-      //   trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(), "Iterations limit", 1000000);
-      //   trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(),
-      //                           "Major optimality tolerance",
-      //                           tol);  // target optimality
-      //   trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(), "Major feasibility tolerance", tol);
-      //   trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(), "Verify level",
-      //                           0);  // 0
-        
-      //   // Get position and velocity dictionaries
-      //   auto positions_map =  dairlib::multibody::makeNameToPositionsMap(plant);
-      //   auto velocities_map = dairlib::multibody::makeNameToVelocitiesMap(plant);
-
-      //   dairlib::setSpiritJointLimits(plant, trajopt);
-      //   dairlib::setSpiritActuationLimits(plant, trajopt);
-        
-      //   /// Setup all the optimization constraints
-      //   int n_q = plant.num_positions();
-      //   int n_v = plant.num_velocities();
-      //   int n_u = plant.num_actuators();
-      //   int n_x = n_q + n_v;
-
-      //   int num_knotpoints = trajopt.N();
-      //   for (int iKnot=0;iKnot<num_knotpoints;iKnot++){
-      //     for (int iVel = 0; iVel < n_v; iVel ++){
-      //       auto xi = trajopt.state(iKnot);
-      //       trajopt.AddBoundingBoxConstraint(-0, 0, xi( n_q + iVel));
-      //     }
-      //   }
-
-      //   // Four contacts so forces are 12 dimensional
-      //   Eigen::VectorXd init_l_vec(12);
-      //   // Initial guess
-      //   init_l_vec << 0, 0, 3*9.81, 0, 0, 3*9.81, 0, 0, 3*9.81, 0, 0, 3*9.81; //gravity and mass distributed
-        
-      //   //Initialize force trajectories
-      //   std::vector<MatrixXd> init_x;
-      //   std::vector<MatrixXd> init_u;
-      //   std::vector<MatrixXd> init_l;
-      //   std::vector<MatrixXd> init_lc;
-      //   std::vector<MatrixXd> init_vc;
-      //   std::vector<double> init_time;
-      //   VectorXd x_state(n_x);
-      //   dairlib::nominalSpiritStand( plant, x_state,  height);
-
-      //   for (int iKnot = 0; iKnot < num_knotpoints; iKnot++) {
-      //     init_time.push_back(iKnot*FLAGS_duration/(num_knotpoints-1));
-      //     init_l.push_back(init_l_vec);
-      //     init_lc.push_back(init_l_vec);
-      //     init_vc.push_back(VectorXd::Zero(12));
-      //     init_x.push_back(x_state);
-      //     init_u.push_back(Eigen::VectorXd::Zero(n_u));
-      //   }
-
-      //   auto init_x_traj = PiecewisePolynomial<double>::ZeroOrderHold(init_time, init_x);
-      //   auto init_u_traj = PiecewisePolynomial<double>::ZeroOrderHold(init_time, init_u);
-      //   auto init_l_traj = PiecewisePolynomial<double>::ZeroOrderHold(init_time,init_l);
-      //   auto init_lc_traj = PiecewisePolynomial<double>::ZeroOrderHold(init_time,init_lc);
-      //   auto init_vc_traj = PiecewisePolynomial<double>::ZeroOrderHold(init_time,init_vc);
-
-        
-      //   ///Setup the cost function
-      //   const double R = 20;  // Cost on input effort
-      //   auto u = trajopt.input();
-      //   trajopt.AddRunningCost(u.transpose()*R*u);
-      //   trajopt.SetInitialTrajectory(init_u_traj, init_x_traj);
-      //   trajopt.SetInitialForceTrajectory(0, init_l_traj, init_lc_traj, init_vc_traj);
-        
-        
-      //   /// Setup the visualization during the optimization
-      //   int num_ghosts = 0;// Number of ghosts in visualization. NOTE: there are limitations on number of ghosts based on modes and knotpoints
-      //   std::vector<unsigned int> visualizer_poses; // Ghosts for visualizing during optimization
-      //   visualizer_poses.push_back(num_ghosts); 
-
-      //   trajopt.CreateVisualizationCallback(
-      //       dairlib::FindResourceOrThrow("examples/Spirit/spirit_drake.urdf"),
-      //       visualizer_poses, 0.2); // setup which URDF, how many poses, and alpha transparency 
-
-      //   /// Run the optimization using your initial guess
-      //   auto start = std::chrono::high_resolution_clock::now();
-      //   const auto result = Solve(trajopt, trajopt.initial_guess());
-      //   auto finish = std::chrono::high_resolution_clock::now();
-      //   std::chrono::duration<double> elapsed = finish - start;
-      //   std::cout << "Solve time:" << elapsed.count() <<std::endl;
-      //   std::cout << "Cost:" << result.get_optimal_cost() <<std::endl;
-      //   std::cout << (result.is_success() ? "Stand Optimization Success" : "Optimization Fail") << std::endl;
-      //   Eigen::MatrixXd stateOut = Dircon<T>::GetStateSamplesByMode(result,0);
-      //   return stateOut.col(0);
-        
-      // }
 
 /// runSpiritBoxJump, runs a trajectory optimization problem for spirit jumping on flat ground
 /// \param plant_ptr: robot model
@@ -621,49 +476,34 @@ void optimalSpiritStandConstraint(
 /// \param file_name_out: if empty, file is unsaved, if not empty saves the trajectory in the directory
 template <typename T>
 void runSpiritBoxJump(
-    MultibodyPlant<T>& plant,
-    PiecewisePolynomial<double>& x_traj,
-    PiecewisePolynomial<double>& u_traj,
-    vector<PiecewisePolynomial<double>>& l_traj,
-    vector<PiecewisePolynomial<double>>& lc_traj,
-    vector<PiecewisePolynomial<double>>& vc_traj,
-    const bool animate,
-    std::vector<int> num_knot_points,
-    const double apex_height,
-    const double initial_height,
-    const double fore_aft_displacement,
-    const bool lock_rotation,
-    const bool lock_legs_apex,
-    const bool force_symmetry,
-    const bool use_nominal_stand,
-    const double max_duration,
-    const double cost_actuation,
-    const double cost_velocity,
-    const double cost_work,
-    const double mu,
-    const double eps,
-    const double tol,
-    const double work_constraint_scale,
-    const std::string& file_name_out,
-    const std::string& file_name_in= ""
+      MultibodyPlant<T>& plant,
+      PiecewisePolynomial<double>& x_traj,
+      PiecewisePolynomial<double>& u_traj,
+      vector<PiecewisePolynomial<double>>& l_traj,
+      vector<PiecewisePolynomial<double>>& lc_traj,
+      vector<PiecewisePolynomial<double>>& vc_traj,
+      dairlib::OptimalSpiritStand& initialStand,
+      dairlib::OptimalSpiritStand& finalStand,
+      const bool animate,
+      std::vector<int> num_knot_points,
+      const double apex_height,
+      const double initial_height,
+      const double fore_aft_displacement,
+      const bool lock_rotation,
+      const bool lock_legs_apex,
+      const bool force_symmetry,
+      const bool use_nominal_stand,
+      const double max_duration,
+      const double cost_actuation,
+      const double cost_velocity,
+      const double cost_work,
+      const double mu,
+      const double eps,
+      const double tol,
+      const double work_constraint_scale,
+      const std::string& file_name_out,
+      const std::string& file_name_in= ""
     ) {
-  drake::systems::DiagramBuilder<double> builder;
-
-  auto plant_vis = std::make_unique<MultibodyPlant<double>>(0.0);
-  auto scene_graph_ptr = std::make_unique<SceneGraph<double>>();
-  Parser parser_vis(plant_vis.get(), scene_graph_ptr.get());
-  std::string full_name =
-      dairlib::FindResourceOrThrow("examples/Spirit/spirit_drake.urdf");
-  parser_vis.AddModelFromFile(full_name);
-  dairlib::visualizeSurface(plant_vis.get(),
-  Eigen::Vector3d::UnitZ(),
-  Eigen::Vector3d(fore_aft_displacement,0,FLAGS_boxHeight),.5,.5,.1);
-
-  plant_vis->Finalize();
-  SceneGraph<double>& scene_graph =
-      *builder.AddSystem(std::move(scene_graph_ptr));
-  
-  
 
   // Setup mode sequence
   auto sequence = DirconModeSequence<T>(plant);
@@ -671,8 +511,8 @@ void runSpiritBoxJump(
   msh.addMode( // Stance
       (Eigen::Matrix<bool,1,4>() << true,  true,  true,  true).finished(), // contact bools
       num_knot_points[0],  // number of knot points in the collocation
-      Eigen::Vector3d::UnitZ(), // normal
-      Eigen::Vector3d::Zero(),  // world offset
+      initialStand.normal(), // normal
+      initialStand.offset(),  // world offset
       mu //friction
   );
   msh.addMode( // Flight
@@ -692,8 +532,8 @@ void runSpiritBoxJump(
   msh.addMode( // Stance
       (Eigen::Matrix<bool,1,4>() << true,  true,  true,  true).finished(), // contact bools
       num_knot_points[3],  // number of knot points in the collocation
-      Eigen::Vector3d::UnitZ(), // normal
-      Eigen::Vector3d::UnitZ()*FLAGS_boxHeight,  // world offset
+      finalStand.normal(), // normal
+      finalStand.offset(),  // world offset
       mu //friction
   );
 
@@ -722,8 +562,8 @@ void runSpiritBoxJump(
   trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(),
                            "Print file", "../snopt.out");
   trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(),
-                           "Major iterations limit", 200000);
-  trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(), "Iterations limit", 1000000);
+                           "Major iterations limit", 100000);
+  trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(), "Iterations limit", 100000);
   trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(),
                            "Major optimality tolerance",
                            tol);  // target optimality
@@ -733,15 +573,16 @@ void runSpiritBoxJump(
 
   // Setting up cost
   addCost(plant, trajopt, cost_actuation, cost_velocity, cost_work, work_constraint_scale);
-
+  // Setting up constraints
+  addConstraints(plant, trajopt, initialStand, finalStand,  apex_height, initial_height, fore_aft_displacement, lock_rotation,
+                    lock_legs_apex, force_symmetry, use_nominal_stand, max_duration, eps);
 
   // Initialize the trajectory control state and forces
   if (file_name_in.empty()){
     trajopt.drake::systems::trajectory_optimization::MultipleShooting::
         SetInitialTrajectory(u_traj, x_traj);
     for (int j = 0; j < sequence.num_modes(); j++) {
-      trajopt.SetInitialForceTrajectory(j, l_traj[j], lc_traj[j],
-                                        vc_traj[j]);
+      trajopt.SetInitialForceTrajectory(j, l_traj[j], lc_traj[j], vc_traj[j]);
     }
   }else{
     std::cout<<"Loading decision var from file, will fail if num dec vars changed" <<std::endl;
@@ -749,8 +590,6 @@ void runSpiritBoxJump(
     trajopt.SetInitialGuessForAllVariables(loaded_traj.GetDecisionVariables());
   }
 
-  addConstraints(plant, trajopt, apex_height, initial_height, fore_aft_displacement, lock_rotation,
-                    lock_legs_apex, force_symmetry, use_nominal_stand, max_duration, eps);
 
   /// Setup the visualization during the optimization
   int num_ghosts = 3;// Number of ghosts in visualization. NOTE: there are limitations on number of ghosts based on modes and knotpoints
@@ -798,21 +637,39 @@ void runSpiritBoxJump(
     l_traj  = trajopt.ReconstructLambdaTrajectory(result);
   }
 
-  /// Run animation of the final trajectory
-  const drake::trajectories::PiecewisePolynomial<double> pp_xtraj =
-      trajopt.ReconstructStateTrajectory(result);
-  multibody::connectTrajectoryVisualizer(plant_vis.get(),
-      &builder, &scene_graph, pp_xtraj);
-  auto diagram = builder.Build();
   if(animate){
-      std::cout << "animating, kill to end." << std::endl;
-  }
-  while (animate) {
-    drake::systems::Simulator<double> simulator(*diagram);
-    simulator.set_target_realtime_rate(0.25);
-    simulator.Initialize();
-    simulator.AdvanceTo(pp_xtraj.end_time());
-    sleep(2);
+    /// Run animation of the final trajectory
+    std::string full_name = dairlib::FindResourceOrThrow("examples/Spirit/spirit_drake.urdf");
+    drake::systems::DiagramBuilder<double> builder;
+    auto plant_vis = std::make_unique<MultibodyPlant<double>>(0.0);
+    auto scene_graph_ptr = std::make_unique<SceneGraph<double>>();
+    Parser parser_vis(plant_vis.get(), scene_graph_ptr.get());
+    parser_vis.AddModelFromFile(full_name);
+
+    dairlib::visualizeSurface(
+        plant_vis.get(),
+        finalStand.normal(),
+        finalStand.offset(),
+        0.5,
+        0.5,
+        0.1);
+
+    plant_vis->Finalize();
+    SceneGraph<double>& scene_graph = *builder.AddSystem(std::move(scene_graph_ptr));
+
+    const drake::trajectories::PiecewisePolynomial<double> pp_xtraj =
+        trajopt.ReconstructStateTrajectory(result);
+    multibody::connectTrajectoryVisualizer(plant_vis.get(),
+        &builder, &scene_graph, pp_xtraj);
+    auto diagram = builder.Build();
+    std::cout << "animating, kill to end." << std::endl;
+    while (animate) {
+      drake::systems::Simulator<double> simulator(*diagram);
+      simulator.set_target_realtime_rate(0.25);
+      simulator.Initialize();
+      simulator.AdvanceTo(pp_xtraj.end_time());
+      sleep(2);
+    }
   }
 }
 }  // namespace
@@ -824,21 +681,12 @@ int main(int argc, char* argv[]) {
   std::srand(time(0));  // Initialize random number generator.
 
   auto plant = std::make_unique<MultibodyPlant<double>>(0.0);
-  auto plant_vis = std::make_unique<MultibodyPlant<double>>(0.0);
-  auto scene_graph = std::make_unique<SceneGraph<double>>();
   Parser parser(plant.get());
-  Parser parser_vis(plant_vis.get(), scene_graph.get());
-  std::string full_name =
-      dairlib::FindResourceOrThrow("examples/Spirit/spirit_drake.urdf");
-
+  std::string full_name = dairlib::FindResourceOrThrow("examples/Spirit/spirit_drake.urdf");
   parser.AddModelFromFile(full_name);
-  parser_vis.AddModelFromFile(full_name);
 
-  plant->mutable_gravity_field().set_gravity_vector(-9.81 *
-      Eigen::Vector3d::UnitZ());
-
+  plant->mutable_gravity_field().set_gravity_vector(-9.81 * Eigen::Vector3d::UnitZ());
   plant->Finalize();
-  plant_vis->Finalize();
 
   PiecewisePolynomial<double> x_traj;
   PiecewisePolynomial<double> u_traj;
@@ -846,7 +694,10 @@ int main(int argc, char* argv[]) {
   std::vector<PiecewisePolynomial<double>> lc_traj;
   std::vector<PiecewisePolynomial<double>> vc_traj;
 
-
+  Eigen::Vector3d normal = Eigen::Vector3d::UnitZ() + 0.1 * Eigen::Vector3d::UnitY();
+  Eigen::Vector3d offset = Eigen::Vector3d::UnitX()*FLAGS_foreAftDisplacement + Eigen::Vector3d::UnitZ()*FLAGS_boxHeight;
+  dairlib::OptimalSpiritStand initialStand(plant.get(), FLAGS_standHeight, Eigen::Vector3d::UnitZ(),Eigen::Vector3d::Zero(),true);
+  dairlib::OptimalSpiritStand   finalStand(plant.get(), FLAGS_standHeight, normal, offset, true);
 
   if (FLAGS_runAllOptimization){
     if(! FLAGS_skipInitialOptimization){
@@ -854,8 +705,13 @@ int main(int argc, char* argv[]) {
       dairlib::badSpiritJump(*plant, x_traj, u_traj, l_traj, lc_traj, vc_traj);
       dairlib::runSpiritBoxJump<double>(
           *plant,
-          x_traj, u_traj, l_traj,
-          lc_traj, vc_traj,
+          x_traj, 
+          u_traj, 
+          l_traj,
+          lc_traj, 
+          vc_traj,
+          initialStand,
+          finalStand,
           false,
           {7, 7, 7, 7},
           FLAGS_apexGoal,
@@ -873,10 +729,10 @@ int main(int argc, char* argv[]) {
           FLAGS_eps,
           1e-1,
           0,
-          FLAGS_data_directory+"simple_jump");
+          FLAGS_data_directory+"simple_boxjump");
     }
     else{
-      dairlib::DirconTrajectory old_traj(FLAGS_data_directory+"simple_jump");
+      dairlib::DirconTrajectory old_traj(FLAGS_data_directory+"simple_boxjump");
       x_traj = old_traj.ReconstructStateTrajectory();
       u_traj = old_traj.ReconstructInputTrajectory();
       l_traj = old_traj.ReconstructLambdaTrajectory();
@@ -890,6 +746,8 @@ int main(int argc, char* argv[]) {
         *plant,
         x_traj, u_traj, l_traj,
         lc_traj, vc_traj,
+        initialStand,
+        finalStand,
         false,
         {7, 7, 7, 7} ,
         FLAGS_apexGoal,
@@ -907,7 +765,7 @@ int main(int argc, char* argv[]) {
         0,
         1e-2,
         0,
-        FLAGS_data_directory+"jump_"+FLAGS_distance_name);
+        FLAGS_data_directory+"boxjump_"+FLAGS_distance_name);
   }
   std::cout<<"Running 3rd optimization"<<std::endl;
   // Fewer constraints, and higher tolerences
@@ -915,6 +773,8 @@ int main(int argc, char* argv[]) {
       *plant,
       x_traj, u_traj, l_traj,
       lc_traj, vc_traj,
+      initialStand,
+      finalStand,
       !FLAGS_minWork,
       {7, 7, 7, 7} ,
       FLAGS_apexGoal,
@@ -932,8 +792,8 @@ int main(int argc, char* argv[]) {
       FLAGS_eps,
       FLAGS_tol,
       0,
-      FLAGS_data_directory+"jump_"+FLAGS_distance_name+"_hq",
-      FLAGS_data_directory+"jump_"+FLAGS_distance_name);
+      FLAGS_data_directory+"boxjump_"+FLAGS_distance_name+"_hq",
+      FLAGS_data_directory+"boxjump_"+FLAGS_distance_name);
 
   if (FLAGS_minWork){
     std::cout<<"Running 4th optimization"<<std::endl;
@@ -943,6 +803,8 @@ int main(int argc, char* argv[]) {
         *plant,
         x_traj, u_traj, l_traj,
         lc_traj, vc_traj,
+        initialStand,
+        finalStand,
         false,
         {7, 7, 7, 7} ,
         FLAGS_apexGoal,
@@ -960,8 +822,8 @@ int main(int argc, char* argv[]) {
         FLAGS_eps,
         1e-3,
         1.0,
-        FLAGS_data_directory+"jump_"+FLAGS_distance_name+"_hq_work",
-        FLAGS_data_directory+"jump_"+FLAGS_distance_name+"_hq");
+        FLAGS_data_directory+"boxjump_"+FLAGS_distance_name+"_hq_work",
+        FLAGS_data_directory+"boxjump_"+FLAGS_distance_name+"_hq");
 
     // Adding more min work
     std::cout<<"Running 5th optimization"<<std::endl;
@@ -969,6 +831,8 @@ int main(int argc, char* argv[]) {
         *plant,
         x_traj, u_traj, l_traj,
         lc_traj, vc_traj,
+        initialStand,
+        finalStand,
         false,
         {7, 7, 7, 7} ,
         FLAGS_apexGoal,
@@ -986,13 +850,15 @@ int main(int argc, char* argv[]) {
         FLAGS_eps,
         FLAGS_tol,
         1.0/20,
-        FLAGS_data_directory+"jump_"+FLAGS_distance_name+"_hq_work2",
-        FLAGS_data_directory+"jump_"+FLAGS_distance_name+"_hq_work");
+        FLAGS_data_directory+"boxjump_"+FLAGS_distance_name+"_hq_work2",
+        FLAGS_data_directory+"boxjump_"+FLAGS_distance_name+"_hq_work");
     std::cout<<"Running 6th optimization"<<std::endl;
     dairlib::runSpiritBoxJump<double>(
         *plant,
         x_traj, u_traj, l_traj,
         lc_traj, vc_traj,
+        initialStand,
+        finalStand,
         true,
         {7, 7, 7, 7} ,
         FLAGS_apexGoal,
@@ -1010,8 +876,8 @@ int main(int argc, char* argv[]) {
         FLAGS_eps,
         FLAGS_tol,
         1.0,
-        FLAGS_data_directory+"jump_"+FLAGS_distance_name+"_hq_work3",
-        FLAGS_data_directory+"jump_"+FLAGS_distance_name+"_hq_work2");
+        FLAGS_data_directory+"boxjump_"+FLAGS_distance_name+"_hq_work3",
+        FLAGS_data_directory+"boxjump_"+FLAGS_distance_name+"_hq_work2");
   }
 }
 

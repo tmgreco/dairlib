@@ -33,7 +33,6 @@
 #include "examples/Spirit/spirit_utils.h"
 #include "examples/Spirit/spirit_optimal_stand.h"
 
-
 using drake::AutoDiffXd;
 using drake::multibody::MultibodyPlant;
 using drake::geometry::SceneGraph;
@@ -57,15 +56,18 @@ namespace dairlib {
     using std::cout;
     using std::endl;
 
+
     OptimalSpiritStand::OptimalSpiritStand(
             drake::multibody::MultibodyPlant<double>* plantPtr, 
             double height, 
             Eigen::Vector3d normal,
+            Eigen::Vector3d offset,
             bool rerun,
             double tol,
             bool animate) {     // Constructor
         height_ = (static_cast<int>(height*100))/100.0;
         normal_ = normal/normal.norm();
+        offset_ = offset;
         plantPtr_ = plantPtr;
         drake::math::RollPitchYaw<double> rpy(dairlib::normal2Rotation(normal_)) ;
         std::cout << rpy.vector() << std::endl;;
@@ -88,7 +90,7 @@ namespace dairlib {
         if(ifile && !rerun){
             
             ifile.close();
-            std::cout<<"Loading decision var from file, will fail if num dec vars changed" <<std::endl;
+            std::cout<<"Loading optimal stand from file" <<std::endl;
             dairlib::DirconTrajectory loaded_traj(folder_+filename_);
             fullstate_ = (loaded_traj.GetStateSamples(0) ).col(0);
         }else{
