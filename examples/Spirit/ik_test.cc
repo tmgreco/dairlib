@@ -52,11 +52,20 @@ int main(int argc, char* argv[]) {
   plant->Finalize();
   plant_vis->Finalize();
 
+  std::vector<MatrixXd> x_points;
+  std::vector<double> time_vec = {0,1,2,3};
   VectorXd x_const;
-  dairlib::ikSpiritStand(*plant, x_const, {true, true, true, false}, 0.25, 0.15, 0, .2);
+  dairlib::ikSpiritStand(*plant, x_const, {true, true, true, true}, 0.25, 0.15, 0, 0);
+  x_points.push_back(x_const);
+  dairlib::ikSpiritStand(*plant, x_const, {true, true, true, true}, 0.25, 0.2, 0, -0.35);
+  x_points.push_back(x_const);
+  dairlib::ikSpiritStand(*plant, x_const, {false, true, false, true}, 0.3, 0.25, 0, -0.35/2);
+  x_points.push_back(x_const);
+  dairlib::ikSpiritStand(*plant, x_const, {false, false, false, false}, 0.4, 0.25, 0, 0);
+  x_points.push_back(x_const);
 
-  PiecewisePolynomial<double> pp_xtraj(x_const);
+  PiecewisePolynomial<double> pp_xtraj = PiecewisePolynomial<double>::FirstOrderHold(time_vec,x_points);
 
-  dairlib::runAnimate( std::move(plant), plant_vis.get(), std::move(scene_graph), pp_xtraj,0.25);
+  dairlib::runAnimate( std::move(plant), plant_vis.get(), std::move(scene_graph), pp_xtraj,1.0);
 }
 

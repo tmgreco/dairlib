@@ -168,9 +168,6 @@ void constrainToe(drake::multibody::MultibodyPlant<double> & plant,
 
   if(inContact){
     // Toe is in contact with ground
-    ik.AddPositionConstraint(toe_frame, Vector3d(0, 0, 0), world_frame,
-                             Vector3d(-std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), 0),
-                             Vector3d(std::numeric_limits<double>::infinity(), std::numeric_limits<double>::infinity(), 0));
 
     // Constrain toe to be under hip with distance constraint
     toe_offset(2) = 0; // vector between body and hip in body frame
@@ -180,7 +177,13 @@ void constrainToe(drake::multibody::MultibodyPlant<double> & plant,
     Vector3d  hip_to_toe_world = {0, 0, -hip_in_world(2)};
     // Vector between body and toe in body frame
     Vector3d body_to_toe_body = toe_offset + orientation * hip_to_toe_world;
-    ik.AddPositionConstraint(body_frame, body_to_toe_body, toe_frame, -eps_vec, eps_vec);
+    //ik.AddPositionConstraint(body_frame, body_to_toe_body, toe_frame, -eps_vec, eps_vec);
+
+    // Toe is in contact with ground
+    ik.AddPositionConstraint(toe_frame, Vector3d(0, 0, 0), world_frame,
+                             toe_offset,
+                             toe_offset);
+
   }
   else{
     // Toe is under hip in body frame
