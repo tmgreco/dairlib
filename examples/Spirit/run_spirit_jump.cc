@@ -55,8 +55,12 @@ DEFINE_double(apexGoal, 0.45, "Apex state goal");
 >>>>>>> Sort of working first half jump
 =======
 DEFINE_double(foreAftDisplacement, 0.0, "The fore-aft displacement.");
+<<<<<<< HEAD
 DEFINE_double(apexGoal, 0.4, "Apex state goal");
 >>>>>>> Code failing, moving to initial guess work
+=======
+DEFINE_double(apexGoal, 0.35, "Apex state goal");
+>>>>>>> Works for stance
 DEFINE_double(inputCost, 3, "The standing height.");
 DEFINE_double(velocityCost, 10, "The standing height.");
 DEFINE_double(eps, 1e-2, "The wiggle room.");
@@ -123,10 +127,14 @@ void badSpiritJump(MultibodyPlant<T>& plant,
   const double duration = 0.3;
   std::vector<MatrixXd> x_points;
   std::vector<double> time_vec = {0,duration/3.0};
+
+  auto positions_map = multibody::makeNameToPositionsMap(plant);
+  auto velocities_map = multibody::makeNameToVelocitiesMap(plant);
+  int n_q = plant.num_positions();
   VectorXd x_const;
   dairlib::ikSpiritStand(plant, x_const, {true, true, true, true}, FLAGS_standHeight, 0.15, 0, 0);
   x_points.push_back(x_const);
-  dairlib::ikSpiritStand(plant, x_const, {true, true, true, true}, FLAGS_standHeight, 0.2, 0, -0.2);
+  dairlib::ikSpiritStand(plant, x_const, {true, true, true, true}, FLAGS_apexGoal, 0.2, 0, -0.3);
   x_points.push_back(x_const);
 //  dairlib::ikSpiritStand(plant, x_const, {false, true, false, true}, (FLAGS_standHeight + FLAGS_apexGoal)/2.0, 0.25, 0, -0.35/2);
 //  x_points.push_back(x_const);
@@ -134,6 +142,7 @@ void badSpiritJump(MultibodyPlant<T>& plant,
 //  x_points.push_back(x_const);
 
   x_traj = PiecewisePolynomial<double>::FirstOrderHold(time_vec,x_points);
+
 
   std::vector<MatrixXd> u_points;
   u_points.push_back(MatrixXd::Zero(1, plant.num_actuators()));
@@ -343,12 +352,12 @@ void addConstraints(MultibodyPlant<T>& plant,
   nominalSpiritStandConstraint(plant,trajopt,initial_height, {0}, eps);
 
   // Body pose constraints (keep the body flat) at initial state
-  trajopt.AddBoundingBoxConstraint(1 - eps, 1 + eps, x0(positions_map.at("base_qw")));
-  trajopt.AddBoundingBoxConstraint(0 - eps, 0 + eps, x0(positions_map.at("base_qx")));
-  trajopt.AddBoundingBoxConstraint(0 - eps, 0 + eps, x0(positions_map.at("base_qy")));
-  trajopt.AddBoundingBoxConstraint(0 - eps, 0 + eps, x0(positions_map.at("base_qz")));
+  trajopt.AddBoundingBoxConstraint(1, 1 , x0(positions_map.at("base_qw")));
+  trajopt.AddBoundingBoxConstraint(0 , 0, x0(positions_map.at("base_qx")));
+  trajopt.AddBoundingBoxConstraint(0, 0, x0(positions_map.at("base_qy")));
+  trajopt.AddBoundingBoxConstraint(0, 0, x0(positions_map.at("base_qz")));
 
-  double pitch = -0.2;
+  double pitch = -0.3;
   // Body pose constraints (keep the body flat) at apex state
   trajopt.AddBoundingBoxConstraint(cos(pitch/2.0), cos(pitch/2.0), xapex(positions_map.at("base_qw")));
   trajopt.AddBoundingBoxConstraint(0, 0, xapex(positions_map.at("base_qx")));
@@ -362,13 +371,17 @@ void addConstraints(MultibodyPlant<T>& plant,
   trajopt.AddBoundingBoxConstraint(VectorXd::Zero(n_v), VectorXd::Zero(n_v), xapex.tail(n_v));
 
   // Apex height
-  trajopt.AddBoundingBoxConstraint(initial_height-eps, initial_height+eps, xapex(positions_map.at("base_z")) );
+  trajopt.AddBoundingBoxConstraint(FLAGS_apexGoal, FLAGS_apexGoal, xapex(positions_map.at("base_z")) );
 
   for (int i = 0; i < trajopt.N(); i++){
     auto xi = trajopt.state(i);
     //Orientation
+    if(lock_rotation){
+      trajopt.AddBoundingBoxConstraint(0, 0, xi(positions_map.at("base_qx")));
+      trajopt.AddBoundingBoxConstraint(0, 0, xi(positions_map.at("base_qz")));
+    }
     // Height
-    trajopt.AddBoundingBoxConstraint( 0.0, 5, xi( positions_map.at("base_z")));
+    trajopt.AddBoundingBoxConstraint( 0.15, 5, xi( positions_map.at("base_z")));
   }
 }
 
@@ -572,7 +585,7 @@ void runSpiritJump(
 // Initialize the trajectory control state and forces
   if (file_name_in.empty()){
     trajopt.SetInitialGuessForAllVariables(
-        VectorXd::Random(trajopt.decision_variables().size()));
+        VectorXd::Zero(trajopt.decision_variables().size()));
     trajopt.drake::systems::trajectory_optimization::MultipleShooting::
         SetInitialTrajectory(u_traj, x_traj);
     for (int j = 0; j < sequence.num_modes(); j++) {
@@ -777,6 +790,31 @@ int main(int argc, char* argv[]) {
         *plant,
         x_traj, u_traj, l_traj,
         lc_traj, vc_traj,
+        false,
+        {10, 7, 5, 5, 5, 5} ,
+        FLAGS_apexGoal,
+        FLAGS_standHeight,
+        FLAGS_foreAftDisplacement,
+        true,
+        false,
+        false,
+        true,
+        0.8,
+        3,
+        20,
+        0,
+        100000,
+        1e-2,
+        1e-2,
+        1.0,
+        FLAGS_data_directory+"simple_yaw");
+
+    std::cout<<"Running 3rd optimization"<<std::endl;
+
+    dairlib::runSpiritJump<double>(
+        *plant,
+        x_traj, u_traj, l_traj,
+        lc_traj, vc_traj,
         true,
         {10, 7, 5, 5, 5, 5} ,
         FLAGS_apexGoal,
@@ -788,12 +826,13 @@ int main(int argc, char* argv[]) {
         true,
         0.8,
         3,
-        10,
+        20,
         0,
         100000,
         1e-2,
         1e-4,
         1.0,
+        FLAGS_data_directory+"simple_yaw2",
         FLAGS_data_directory+"simple_yaw");
 
 <<<<<<< HEAD
