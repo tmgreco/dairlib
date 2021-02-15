@@ -5,6 +5,7 @@
 #include <string.h>
 #include <cmath>
 #include <experimental/filesystem>
+#include <Eigen/Geometry>
 
 #include "drake/solvers/snopt_solver.h"
 #include "drake/solvers/ipopt_solver.h"
@@ -15,6 +16,7 @@
 #include <drake/multibody/inverse_kinematics/inverse_kinematics.h>
 #include "drake/geometry/geometry_visualization.h"
 #include "drake/solvers/solve.h"
+#include "drake/math/orthonormal_basis.h"
 
 #include "common/find_resource.h"
 #include "systems/trajectory_optimization/dircon/dircon.h"
@@ -37,20 +39,22 @@ DEFINE_double(duration, 1, "The stand duration");
 DEFINE_double(standHeight, 0.23, "The standing height.");
 DEFINE_double(foreAftDisplacement, 1, "The fore-aft displacement.");
 DEFINE_double(apexGoal, 0.7, "Apex state goal");
-DEFINE_double(inputCost, 3, "input cost scale.");
+DEFINE_double(inputCost, 5, "input cost scale.");
 DEFINE_double(velocityCost, 10, "velocity cost scale.");
 DEFINE_double(eps, 1e-2, "The wiggle room.");
 DEFINE_double(tol, 1e-6, "Optimization Tolerance");
-DEFINE_double(mu, 1, "coefficient of friction");
+DEFINE_double(mu, 1.5, "coefficient of friction");
 DEFINE_double(boxHeight, 0.3, "The height of the landing");
+DEFINE_double(iterationAngResDeg, 5, "Angular Resolution for iterative optimization");
 
 DEFINE_string(data_directory, "/home/jdcap/dairlib/examples/Spirit/saved_trajectories/",
               "directory to save/read data");
-DEFINE_string(distance_name, "forwardBoxFurther","name to describe distance");
+DEFINE_string(distance_name, "iterativeBox45","name to describe distance");
 
 DEFINE_bool(runAllOptimization, false, "rerun earlier optimizations?");
 DEFINE_bool(skipInitialOptimization, true, "skip first optimizations?");
 DEFINE_bool(minWork, false, "skip try to minimize work?");
+DEFINE_bool(runIterative, true, "for angled runs, run multiple optimizations to approach");
 
 using drake::AutoDiffXd;
 using drake::multibody::MultibodyPlant;
@@ -693,11 +697,40 @@ int main(int argc, char* argv[]) {
   std::vector<PiecewisePolynomial<double>> l_traj;
   std::vector<PiecewisePolynomial<double>> lc_traj;
   std::vector<PiecewisePolynomial<double>> vc_traj;
-
-  Eigen::Vector3d normal = Eigen::Vector3d::UnitZ() + 0.1 * Eigen::Vector3d::UnitY();
+  Eigen::Vector3d initialNormal = Eigen::Vector3d::UnitZ();
+  Eigen::Vector3d normal = 1 *Eigen::Vector3d::UnitZ() + 1 * Eigen::Vector3d::UnitY();
+  normal = normal/normal.norm();
   Eigen::Vector3d offset = Eigen::Vector3d::UnitX()*FLAGS_foreAftDisplacement + Eigen::Vector3d::UnitZ()*FLAGS_boxHeight;
-  dairlib::OptimalSpiritStand initialStand(plant.get(), FLAGS_standHeight, Eigen::Vector3d::UnitZ(),Eigen::Vector3d::Zero(),true);
-  dairlib::OptimalSpiritStand   finalStand(plant.get(), FLAGS_standHeight, normal, offset, true);
+  std::cout<<"Normal Set: "<<normal<<std::endl;
+  dairlib::OptimalSpiritStand initialStand(plant.get(), FLAGS_standHeight, initialNormal, Eigen::Vector3d::Zero(),false);
+  dairlib::OptimalSpiritStand   finalStand(plant.get(), FLAGS_standHeight, normal, offset, false);
+  std::vector<dairlib::OptimalSpiritStand> stands;
+  int numSteps = 1;
+  stands.push_back(initialStand);
+  if (FLAGS_runIterative){
+    //Get the stands for the necessary angles
+    std::cout<<"DotProd: "<<normal.dot(Eigen::Vector3d::UnitZ())<<std::endl;
+    double angle = acos( normal.dot(Eigen::Vector3d::UnitZ()))*(180/M_PI);
+    if (!(angle<1e-4)){
+      Eigen::Vector3d axis =  normal.cross(Eigen::Vector3d::UnitZ());
+      axis = axis/axis.norm();
+      numSteps = ceil(angle/FLAGS_iterationAngResDeg);
+      std::cout<<"Angle: "<<angle<<"    numsteps"<<numSteps<<std::endl;
+      Eigen::Matrix3d initialFrame = Eigen::Matrix3d::Identity();
+
+      for (int iStep = 1; iStep < numSteps-1; iStep++){
+        Eigen::AngleAxis iRotation(iStep*angle*(M_PI/180)/numSteps,axis);
+        std::cout<<"Rot Mat: "<< iRotation.toRotationMatrix()<< std::endl;
+        std::cout<<"initialFrame: "<< initialFrame<< std::endl;
+        std::cout<<"iNormal: "<< (initialFrame*(iRotation.toRotationMatrix()).transpose()).col(2)<< std::endl;
+        std::cout<<"iTranspose: "<< (initialFrame*(iRotation.toRotationMatrix())).col(2)<< std::endl;
+        Eigen::Vector3d iNormal = (initialFrame*(iRotation.toRotationMatrix()).transpose()).col(2);
+        dairlib::OptimalSpiritStand iStand(plant.get(), FLAGS_standHeight, iNormal, offset, false);
+        stands.push_back(iStand);
+      }
+    }
+  }
+  stands.push_back(finalStand);
 
   if (FLAGS_runAllOptimization){
     if(! FLAGS_skipInitialOptimization){
@@ -740,6 +773,7 @@ int main(int argc, char* argv[]) {
       vc_traj = old_traj.ReconstructGammaCTrajectory();
     }
 
+    dairlib::OptimalSpiritStand   finalFlatStand(plant.get(), FLAGS_standHeight, initialNormal, offset, true);
     std::cout<<"Running 2nd optimization"<<std::endl;
     // Hopping correct distance, but heavily constrained
     dairlib::runSpiritBoxJump<double>(
@@ -747,7 +781,7 @@ int main(int argc, char* argv[]) {
         x_traj, u_traj, l_traj,
         lc_traj, vc_traj,
         initialStand,
-        finalStand,
+        finalFlatStand,
         false,
         {7, 7, 7, 7} ,
         FLAGS_apexGoal,
@@ -765,47 +799,20 @@ int main(int argc, char* argv[]) {
         0,
         1e-2,
         0,
-        FLAGS_data_directory+"boxjump_"+FLAGS_distance_name);
+        FLAGS_data_directory+"boxjump_"+FLAGS_distance_name + "_" + std::to_string(1));
   }
-  std::cout<<"Running 3rd optimization"<<std::endl;
-  // Fewer constraints, and higher tolerences
-  dairlib::runSpiritBoxJump<double>(
-      *plant,
-      x_traj, u_traj, l_traj,
-      lc_traj, vc_traj,
-      initialStand,
-      finalStand,
-      !FLAGS_minWork,
-      {7, 7, 7, 7} ,
-      FLAGS_apexGoal,
-      FLAGS_standHeight,
-      FLAGS_foreAftDisplacement,
-      false,
-      false,
-      false,
-      true,
-      2,
-      3,
-      10,
-      0,
-      FLAGS_mu,
-      FLAGS_eps,
-      FLAGS_tol,
-      0,
-      FLAGS_data_directory+"boxjump_"+FLAGS_distance_name+"_hq",
-      FLAGS_data_directory+"boxjump_"+FLAGS_distance_name);
+  for (int iStep = 1; iStep<numSteps;iStep++){
 
-  if (FLAGS_minWork){
-    std::cout<<"Running 4th optimization"<<std::endl;
-    // Adding in work cost and constraints
-
+    std::cout<<" Running hq optimization step: " << iStep  <<"of "<<numSteps <<std::endl;
+    std::cout<<" Normal for the iSurface " << stands[iStep].normal() << std::endl;
+    // Fewer constraints, and higher tolerences
     dairlib::runSpiritBoxJump<double>(
         *plant,
         x_traj, u_traj, l_traj,
         lc_traj, vc_traj,
         initialStand,
-        finalStand,
-        false,
+        stands[iStep],
+        (iStep+1 ==numSteps),
         {7, 7, 7, 7} ,
         FLAGS_apexGoal,
         FLAGS_standHeight,
@@ -817,67 +824,98 @@ int main(int argc, char* argv[]) {
         2,
         3,
         10,
-        0.01,
-        FLAGS_mu,
-        FLAGS_eps,
-        1e-3,
-        1.0,
-        FLAGS_data_directory+"boxjump_"+FLAGS_distance_name+"_hq_work",
-        FLAGS_data_directory+"boxjump_"+FLAGS_distance_name+"_hq");
-
-    // Adding more min work
-    std::cout<<"Running 5th optimization"<<std::endl;
-    dairlib::runSpiritBoxJump<double>(
-        *plant,
-        x_traj, u_traj, l_traj,
-        lc_traj, vc_traj,
-        initialStand,
-        finalStand,
-        false,
-        {7, 7, 7, 7} ,
-        FLAGS_apexGoal,
-        FLAGS_standHeight,
-        FLAGS_foreAftDisplacement,
-        false,
-        false,
-        false,
-        true,
-        2,
-        FLAGS_inputCost,
-        FLAGS_velocityCost,
-        5,
+        0,
         FLAGS_mu,
         FLAGS_eps,
         FLAGS_tol,
-        1.0/20,
-        FLAGS_data_directory+"boxjump_"+FLAGS_distance_name+"_hq_work2",
-        FLAGS_data_directory+"boxjump_"+FLAGS_distance_name+"_hq_work");
-    std::cout<<"Running 6th optimization"<<std::endl;
-    dairlib::runSpiritBoxJump<double>(
-        *plant,
-        x_traj, u_traj, l_traj,
-        lc_traj, vc_traj,
-        initialStand,
-        finalStand,
-        true,
-        {7, 7, 7, 7} ,
-        FLAGS_apexGoal,
-        FLAGS_standHeight,
-        FLAGS_foreAftDisplacement,
-        false,
-        false,
-        false,
-        true,
-        2,
-        FLAGS_inputCost,
-        FLAGS_velocityCost,
-        10,
-        FLAGS_mu,
-        FLAGS_eps,
-        FLAGS_tol,
-        1.0,
-        FLAGS_data_directory+"boxjump_"+FLAGS_distance_name+"_hq_work3",
-        FLAGS_data_directory+"boxjump_"+FLAGS_distance_name+"_hq_work2");
+        0,
+        FLAGS_data_directory+"boxjump_"+FLAGS_distance_name + "_" + std::to_string(iStep+1),
+        FLAGS_data_directory+"boxjump_"+FLAGS_distance_name + "_" + std::to_string(iStep)
+        );
   }
+  // if (FLAGS_minWork){
+  //   std::cout<<"Running 4th optimization"<<std::endl;
+  //   // Adding in work cost and constraints
+
+  //   dairlib::runSpiritBoxJump<double>(
+  //       *plant,
+  //       x_traj, u_traj, l_traj,
+  //       lc_traj, vc_traj,
+  //       initialStand,
+  //       finalStand,
+  //       false,
+  //       {7, 7, 7, 7} ,
+  //       FLAGS_apexGoal,
+  //       FLAGS_standHeight,
+  //       FLAGS_foreAftDisplacement,
+  //       false,
+  //       false,
+  //       false,
+  //       true,
+  //       2,
+  //       3,
+  //       10,
+  //       0.01,
+  //       FLAGS_mu,
+  //       FLAGS_eps,
+  //       1e-3,
+  //       1.0,
+  //       FLAGS_data_directory+"boxjump_"+FLAGS_distance_name+"_hq_work",
+  //       FLAGS_data_directory+"boxjump_"+FLAGS_distance_name+"_hq");
+
+  //   // Adding more min work
+  //   std::cout<<"Running 5th optimization"<<std::endl;
+  //   dairlib::runSpiritBoxJump<double>(
+  //       *plant,
+  //       x_traj, u_traj, l_traj,
+  //       lc_traj, vc_traj,
+  //       initialStand,
+  //       finalStand,
+  //       false,
+  //       {7, 7, 7, 7} ,
+  //       FLAGS_apexGoal,
+  //       FLAGS_standHeight,
+  //       FLAGS_foreAftDisplacement,
+  //       false,
+  //       false,
+  //       false,
+  //       true,
+  //       2,
+  //       FLAGS_inputCost,
+  //       FLAGS_velocityCost,
+  //       5,
+  //       FLAGS_mu,
+  //       FLAGS_eps,
+  //       FLAGS_tol,
+  //       1.0/20,
+  //       FLAGS_data_directory+"boxjump_"+FLAGS_distance_name+"_hq_work2",
+  //       FLAGS_data_directory+"boxjump_"+FLAGS_distance_name+"_hq_work");
+  //   std::cout<<"Running 6th optimization"<<std::endl;
+  //   dairlib::runSpiritBoxJump<double>(
+  //       *plant,
+  //       x_traj, u_traj, l_traj,
+  //       lc_traj, vc_traj,
+  //       initialStand,
+  //       finalStand,
+  //       true,
+  //       {7, 7, 7, 7} ,
+  //       FLAGS_apexGoal,
+  //       FLAGS_standHeight,
+  //       FLAGS_foreAftDisplacement,
+  //       false,
+  //       false,
+  //       false,
+  //       true,
+  //       2,
+  //       FLAGS_inputCost,
+  //       FLAGS_velocityCost,
+  //       10,
+  //       FLAGS_mu,
+  //       FLAGS_eps,
+  //       FLAGS_tol,
+  //       1.0,
+  //       FLAGS_data_directory+"boxjump_"+FLAGS_distance_name+"_hq_work3",
+  //       FLAGS_data_directory+"boxjump_"+FLAGS_distance_name+"_hq_work2");
+  // }
 }
 

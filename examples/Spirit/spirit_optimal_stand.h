@@ -9,6 +9,7 @@ class OptimalSpiritStand {
     Eigen::Vector3d offset_;
     Eigen::VectorXd fullstate_;
     std::string filename_;
+    Eigen::Vector3d rpy_;
     int nq_ = 19; //TODO make dynamic
     std::string folder_= "/home/jdcap/dairlib/examples/Spirit/saved_trajectories/stand_trajectories/";
 
@@ -26,6 +27,7 @@ class OptimalSpiritStand {
     Eigen::VectorXd offset(){ return offset_; }
     Eigen::VectorXd getJoints(){ return (getPosition()).tail(12); }
     Eigen::VectorXd getState(){ return fullstate_; }
+    Eigen::Vector3d getRPY(){ return rpy_; }
     Eigen::VectorXd getPosition(){ return fullstate_.head(nq_); }
     Eigen::VectorXd getQuat(){ return fullstate_.head(4); }
     Eigen::VectorXd getCOM(){ return (fullstate_.head(7)).tail(3); }

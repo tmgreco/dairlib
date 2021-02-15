@@ -70,6 +70,7 @@ namespace dairlib {
         offset_ = offset;
         plantPtr_ = plantPtr;
         drake::math::RollPitchYaw<double> rpy(dairlib::normal2Rotation(normal_)) ;
+        rpy_ = rpy.vector();
         std::cout << rpy.vector() << std::endl;;
         double roll = rpy.roll_angle();
         double pitch = rpy.pitch_angle();
