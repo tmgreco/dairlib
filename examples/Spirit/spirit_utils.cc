@@ -379,7 +379,7 @@ void setSpiritJointLimits(drake::multibody::MultibodyPlant<T> & plant,
   // the few degrees that come with the body collision and to remove a few to stay
   // away from singularity
   double minValLower =  0;
-  double maxValLower =  M_PI-0.2;
+  double maxValLower =  M_PI-0.4;
   
   // The URDF defines symmetric limits if asymmetric constraints we need to
   // add a mirror since the hips are positive in the same direction
