@@ -41,6 +41,43 @@ void nominalSpiritStand(
     Eigen::VectorXd& xState, 
     double height);
 
+/// Solves an IK problem for the spirit stand. If the feet are in contact with the ground they are constrained to be
+/// under the hips in the world frame. If they are not in contact with the ground they are constrained to be under the
+/// hips in the body frame a distance of leg_height.
+///     @param plant, reference to the robot plant
+///     @param xState[out], the state vector from solving the IK problem
+///     @param contactSequence, vector of booleans describing which legs are in contact with the ground
+///     @param com_height, height of the com of spirit
+///     @param leg_height, distance between hip and toe for legs not on the ground
+///     @param roll, roll of body in radians
+///     @param pitch, pitch of body in radians
+///     @param eps, tolerance on legs in contact with ground
+void ikSpiritStand(
+    drake::multibody::MultibodyPlant<double>& plant,
+    Eigen::VectorXd& xState,
+    Eigen::Matrix<bool,1,4> contactSequence,
+    double com_height,
+    double leg_height,
+    double roll = 0,
+    double pitch = 0,
+    double eps = 0.01);
+
+/// Adds constraints to a toe for ik problem. If the toe are in contact with the ground they are constrained to be
+/// under the hips in the world frame. If they are not in contact with the ground they are constrained to be under the
+/// hips in the body frame a distance of leg_height.
+///     @param plant, reference to the robot plant
+///     @param ik, ik problem to add constraints to
+///     @param toe, the number of the toe for which to constraint
+///     @param inContact, true if the toe is in contact with the ground
+///     @param orientation, rotation matrix describing orientation of body in world frame
+///     @param com_height, height of the com of spirit
+///     @param leg_height, distance between hip and toe for legs not on the ground
+///     @param eps, tolerance on legs in contact with ground
+void constrainToe(drake::multibody::MultibodyPlant<double> & plant,
+                  drake::multibody::InverseKinematics &ik,
+                  int toe, bool inContact, drake::math::RotationMatrix<double> orientation,
+                  double com_height, double leg_height, double eps);
+
 /// Constrians j0-j1 so nominal stand is at specified height
 ///   @param[in]  MultibodyPlant
 ///   @param[in]  trajectory optimization object
@@ -131,7 +168,7 @@ std::tuple<  std::vector<std::unique_ptr<dairlib::systems::trajectory_optimizati
 ///    @param trajopt a ponter to a Dircon<T> object  
 template <typename T>
 void setSpiritJointLimits(
-                    drake::multibody::MultibodyPlant<T> & plant, 
+                    drake::multibody::MultibodyPlant<T> & plant,
                     dairlib::systems::trajectory_optimization::Dircon<T>& trajopt );
 
 /// This overload sets an individual joint's position limit
@@ -142,8 +179,8 @@ void setSpiritJointLimits(
 ///    @param minVal joint's maximum position
 template <typename T>
 void setSpiritJointLimits(
-                    drake::multibody::MultibodyPlant<T> & plant, 
-                    dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,  
+                    drake::multibody::MultibodyPlant<T> & plant,
+                    dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,
                     int iJoint, 
                     double minVal, 
                     double maxVal  );
@@ -156,8 +193,8 @@ void setSpiritJointLimits(
 ///    @param minVals vector of joints' maximum positions
 template <typename T>
 void setSpiritJointLimits(
-                    drake::multibody::MultibodyPlant<T> & plant, 
-                    dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,  
+                    drake::multibody::MultibodyPlant<T> & plant,
+                    dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,
                     std::vector<int> iJoints, 
                     std::vector<double> minVals, 
                     std::vector<double> maxVals  );
@@ -170,8 +207,8 @@ void setSpiritJointLimits(
 ///    @param minVal joints' maximum position
 template <typename T>
 void setSpiritJointLimits(
-                    drake::multibody::MultibodyPlant<T> & plant, 
-                    dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,  
+                    drake::multibody::MultibodyPlant<T> & plant,
+                    dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,
                     std::vector<int> iJoints, 
                     double minVal, 
                     double maxVal  );
