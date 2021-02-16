@@ -702,7 +702,7 @@ int main(int argc, char* argv[]) {
 
   //Set up the Initial and Final Stand
   Eigen::Vector3d initialNormal = Eigen::Vector3d::UnitZ();
-  Eigen::Vector3d normal = 1 *Eigen::Vector3d::UnitZ() + 1 * Eigen::Vector3d::UnitY();
+  Eigen::Vector3d normal = 1 *Eigen::Vector3d::UnitZ() + 0 * Eigen::Vector3d::UnitY();
   normal = normal/normal.norm();
   Eigen::Vector3d offset = Eigen::Vector3d::UnitX()*FLAGS_foreAftDisplacement + Eigen::Vector3d::UnitZ()*FLAGS_boxHeight;
   std::cout<<"Normal Set: "<<normal<<std::endl;
@@ -826,7 +826,7 @@ int main(int argc, char* argv[]) {
         x_traj, u_traj, l_traj,
         lc_traj, vc_traj,
         initialStand,
-        stands[iStep],
+        stands[iStep+1],
         (iStep+1 ==numSteps),
         {7, 7, 7, 7} ,
         FLAGS_apexGoal,
