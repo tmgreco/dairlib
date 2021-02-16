@@ -361,7 +361,7 @@ void addConstraints(MultibodyPlant<T>& plant,
     VectorXd standQuatInit = initialStand.getQuat();
     VectorXd standQuatFinal = finalStand.getQuat();
 
-    std::cout<<"\nInit:\n"<<standJointsInit<<"\nFinal:\n"<< standJointsFinal<<std::endl;
+    // std::cout<<"\nInit:\n"<<standJointsInit<<"\nFinal:\n"<< standJointsFinal<<std::endl;
 
     trajopt.AddBoundingBoxConstraint(standJointsInit,standJointsInit,(x0.head(n_q)).tail(n_q-7));
     trajopt.AddBoundingBoxConstraint(standJointsFinal,standJointsFinal,(xf.head(n_q)).tail(n_q-7));
@@ -460,6 +460,8 @@ void addConstraints(MultibodyPlant<T>& plant,
 /// \param l_traj[in, out]: initial and solution contact force trajectory
 /// \param lc_traj[in, out]: initial and solution contact force slack variable trajectory
 /// \param vc_traj[in, out]: initial and solution contact velocity slack variable trajectory
+/// \param initialStand: OptimalSpiritStand obj of the inital state
+/// \param finalStand: OptimalSpiritStand obj of the final state
 /// \param animate: true if solution should be animated, false otherwise
 /// \param num_knot_points: number of knot points used for each mode (vector)
 /// \param apex_height: apex height of the jump, if 0, do not enforce and apex height
@@ -589,7 +591,7 @@ void runSpiritBoxJump(
       trajopt.SetInitialForceTrajectory(j, l_traj[j], lc_traj[j], vc_traj[j]);
     }
   }else{
-    std::cout<<"Loading decision var from file, will fail if num dec vars changed" <<std::endl;
+    std::cout<<"Loading decision var from file." <<std::endl;
     dairlib::DirconTrajectory loaded_traj(file_name_in);
     trajopt.SetInitialGuessForAllVariables(loaded_traj.GetDecisionVariables());
   }
@@ -649,7 +651,7 @@ void runSpiritBoxJump(
     auto scene_graph_ptr = std::make_unique<SceneGraph<double>>();
     Parser parser_vis(plant_vis.get(), scene_graph_ptr.get());
     parser_vis.AddModelFromFile(full_name);
-
+    // Add the box surface to the final animation
     dairlib::visualizeSurface(
         plant_vis.get(),
         finalStand.normal(),
@@ -697,6 +699,8 @@ int main(int argc, char* argv[]) {
   std::vector<PiecewisePolynomial<double>> l_traj;
   std::vector<PiecewisePolynomial<double>> lc_traj;
   std::vector<PiecewisePolynomial<double>> vc_traj;
+
+  //Set up the Initial and Final Stand
   Eigen::Vector3d initialNormal = Eigen::Vector3d::UnitZ();
   Eigen::Vector3d normal = 1 *Eigen::Vector3d::UnitZ() + 1 * Eigen::Vector3d::UnitY();
   normal = normal/normal.norm();
@@ -705,11 +709,14 @@ int main(int argc, char* argv[]) {
   dairlib::OptimalSpiritStand initialStand(plant.get(), FLAGS_standHeight, initialNormal, Eigen::Vector3d::Zero(),false);
   dairlib::OptimalSpiritStand   finalStand(plant.get(), FLAGS_standHeight, normal, offset, false);
   std::vector<dairlib::OptimalSpiritStand> stands;
+
+  // Set up the iteration
   int numSteps = 1;
   stands.push_back(initialStand);
   if (FLAGS_runIterative){
-    //Get the stands for the necessary angles
-    std::cout<<"DotProd: "<<normal.dot(Eigen::Vector3d::UnitZ())<<std::endl;
+    /// Get the stands for the necessary angles
+    // Debug prints
+    // std::cout<<"DotProd: "<<normal.dot(Eigen::Vector3d::UnitZ())<<std::endl;
     double angle = acos( normal.dot(Eigen::Vector3d::UnitZ()))*(180/M_PI);
     if (!(angle<1e-4)){
       Eigen::Vector3d axis =  normal.cross(Eigen::Vector3d::UnitZ());
@@ -718,14 +725,17 @@ int main(int argc, char* argv[]) {
       std::cout<<"Angle: "<<angle<<"    numsteps"<<numSteps<<std::endl;
       Eigen::Matrix3d initialFrame = Eigen::Matrix3d::Identity();
 
-      for (int iStep = 1; iStep < numSteps-1; iStep++){
+      for (int iStep = 1; iStep < numSteps; iStep++){
         Eigen::AngleAxis iRotation(iStep*angle*(M_PI/180)/numSteps,axis);
-        std::cout<<"Rot Mat: "<< iRotation.toRotationMatrix()<< std::endl;
-        std::cout<<"initialFrame: "<< initialFrame<< std::endl;
-        std::cout<<"iNormal: "<< (initialFrame*(iRotation.toRotationMatrix()).transpose()).col(2)<< std::endl;
-        std::cout<<"iTranspose: "<< (initialFrame*(iRotation.toRotationMatrix())).col(2)<< std::endl;
         Eigen::Vector3d iNormal = (initialFrame*(iRotation.toRotationMatrix()).transpose()).col(2);
-        dairlib::OptimalSpiritStand iStand(plant.get(), FLAGS_standHeight, iNormal, offset, false);
+
+        //Debug prints
+        // std::cout<<"Rot Mat: "<< iRotation.toRotationMatrix()<< std::endl;
+        // std::cout<<"iNormal: "<< iNormal << std::endl;
+        
+        //Save the optimal stands, use the file if it exists. 
+        bool rerun = false;
+        dairlib::OptimalSpiritStand iStand(plant.get(), FLAGS_standHeight, iNormal, offset, rerun);
         stands.push_back(iStand);
       }
     }
@@ -773,6 +783,7 @@ int main(int argc, char* argv[]) {
       vc_traj = old_traj.ReconstructGammaCTrajectory();
     }
 
+    /// Get a finalFlatStand for getting a feasible leap and trajectory
     dairlib::OptimalSpiritStand   finalFlatStand(plant.get(), FLAGS_standHeight, initialNormal, offset, true);
     std::cout<<"Running 2nd optimization"<<std::endl;
     // Hopping correct distance, but heavily constrained
@@ -799,12 +810,16 @@ int main(int argc, char* argv[]) {
         0,
         1e-2,
         0,
-        FLAGS_data_directory+"boxjump_"+FLAGS_distance_name + "_" + std::to_string(1));
+        FLAGS_data_directory+"boxjump_"+FLAGS_distance_name + "_" + std::to_string(0));
   }
-  for (int iStep = 1; iStep<numSteps;iStep++){
+  /// Run all the the steps to feed a higher angle
+  for (int iStep = 0; iStep<numSteps;iStep++){
+    std::cout<<" Running hq optimization step: " << iStep +1 <<" of "<< numSteps <<std::endl;
+    
+    // Debug print
+    // std::cout<<" Normal for the iSurface " << stands[iStep].normal() << std::endl;
 
-    std::cout<<" Running hq optimization step: " << iStep  <<"of "<<numSteps <<std::endl;
-    std::cout<<" Normal for the iSurface " << stands[iStep].normal() << std::endl;
+
     // Fewer constraints, and higher tolerences
     dairlib::runSpiritBoxJump<double>(
         *plant,
