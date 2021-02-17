@@ -498,8 +498,13 @@ void addConstraints(MultibodyPlant<T>& plant,
   int n_q = plant.num_positions();
   int n_v = plant.num_velocities();
 
+<<<<<<< HEAD
   auto x0  = trajopt.initial_state();
   auto xlo = trajopt.num_modes()> 2 ? trajopt.state_vars(2,0):trajopt.final_state();
+=======
+  auto   x0  = trajopt.initial_state();
+  auto xlo = trajopt.final_state();
+>>>>>>> Seems to be working, messing with 3rd op
   auto x_pitch = trajopt.state_vars(1,0);
 
   // Add duration constraint, currently constrained not bounded
@@ -508,6 +513,10 @@ void addConstraints(MultibodyPlant<T>& plant,
   /// Constraining xy position
   // Initial body positions
   trajopt.AddBoundingBoxConstraint(0, 0, x0(positions_map.at("base_x"))); // Give the initial condition room to choose the x_init position
+<<<<<<< HEAD
+=======
+  trajopt.AddBoundingBoxConstraint(fore_aft_displacement-eps, fore_aft_displacement+eps, xlo(positions_map.at("base_x"))); // Give the initial condition room to choose the x_init position
+>>>>>>> Seems to be working, messing with 3rd op
 
   if(trajopt.num_modes() < 3){
     trajopt.AddBoundingBoxConstraint(fore_aft_displacement-eps, fore_aft_displacement+eps, xlo(positions_map.at("base_x"))); // Give the initial condition room to choose the x_init position
@@ -538,6 +547,14 @@ void addConstraints(MultibodyPlant<T>& plant,
 
   // Initial and final velocity
   trajopt.AddBoundingBoxConstraint(VectorXd::Zero(n_v), VectorXd::Zero(n_v), x0.tail(n_v));
+<<<<<<< HEAD
+=======
+  trajopt.AddBoundingBoxConstraint(liftoff_velocity, 100, xlo(n_q+velocities_map.at("base_vz")));
+  trajopt.AddBoundingBoxConstraint(liftoff_velocity/2, 100, x_pitch(n_q+velocities_map.at("base_vz")));
+
+  // Apex height
+  trajopt.AddBoundingBoxConstraint(.3, 100, xlo(positions_map.at("base_z")) );
+>>>>>>> Seems to be working, messing with 3rd op
 
   for (int i = 0; i < trajopt.N(); i++){
     auto xi = trajopt.state(i);
@@ -549,6 +566,10 @@ void addConstraints(MultibodyPlant<T>& plant,
     // Height
     trajopt.AddBoundingBoxConstraint( 0.15, 5, xi( positions_map.at("base_z")));
     trajopt.AddBoundingBoxConstraint( -eps, eps, xi( n_q+velocities_map.at("base_vy")));
+<<<<<<< HEAD
+=======
+
+>>>>>>> Seems to be working, messing with 3rd op
   }
   Eigen::VectorXd end_state_nominal;
   dairlib::nominalSpiritStand(plant, end_state_nominal, initial_height);
@@ -946,9 +967,13 @@ int main(int argc, char* argv[]) {
           0,
           0,
           true,
+<<<<<<< HEAD
           false,
           false,
           false,
+=======
+          true, //Does not do anything
+>>>>>>> Seems to be working, messing with 3rd op
           0.5,
           0.3,
           1,
@@ -984,6 +1009,10 @@ int main(int argc, char* argv[]) {
           false,
           false,
           false,
+<<<<<<< HEAD
+=======
+          true, //Does not do anything
+>>>>>>> Seems to be working, messing with 3rd op
           0.8,
           3,
           20,
@@ -1007,7 +1036,11 @@ int main(int argc, char* argv[]) {
         false,
         true,
         {10, 7, 5, 5, 5, 5} ,
+<<<<<<< HEAD
         0.35,
+=======
+        0.4,
+>>>>>>> Seems to be working, messing with 3rd op
         FLAGS_standHeight,
         0.15,
         0.5,
@@ -1020,12 +1053,20 @@ int main(int argc, char* argv[]) {
         false,
         false,
         false,
+<<<<<<< HEAD
+=======
+        false, //Does not do anything
+>>>>>>> Seems to be working, messing with 3rd op
         0.8,
         3,
         20,
         5,
         10,
+<<<<<<< HEAD
         4000,
+=======
+        2000,
+>>>>>>> Seems to be working, messing with 3rd op
         0,
         100000,
         1e-2,
