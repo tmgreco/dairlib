@@ -13,9 +13,9 @@
 #include "drake/systems/framework/diagram_builder.h"
 #include "drake/multibody/parsing/parser.h"
 #include <drake/multibody/inverse_kinematics/inverse_kinematics.h>
-#include <drake/solvers/choose_best_solver.h>
 #include "drake/geometry/geometry_visualization.h"
 #include "drake/solvers/solve.h"
+#include <drake/solvers/choose_best_solver.h>
 
 #include "common/find_resource.h"
 #include "systems/trajectory_optimization/dircon/dircon.h"
@@ -30,72 +30,25 @@
 #include "common/file_utils.h"
 #include "lcm/dircon_saved_trajectory.h"
 #include "solvers/optimization_utils.h"
-#include "solvers/nonlinear_cost.h"
-
 
 #include "examples/Spirit/spirit_utils.h"
 
-<<<<<<< HEAD
-DEFINE_double(standHeight, 0.25, "The standing height.");
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-DEFINE_double(foreAftDisplacement, 0.75  , "The fore-aft displacement.");
-DEFINE_double(apexGoal, 0.5, "Apex state goal");
-=======
-DEFINE_double(foreAftDisplacement, 0.7, "The fore-aft displacement.");
-DEFINE_double(apexGoal, 0.25, "Apex state goal");
->>>>>>> Not really making progress
-=======
-DEFINE_double(foreAftDisplacement, 0.2, "The fore-aft displacement.");
-=======
-DEFINE_double(foreAftDisplacement, 0.4, "The fore-aft displacement.");
->>>>>>> Seemed to be doing alright
-DEFINE_double(apexGoal, 0.45, "Apex state goal");
->>>>>>> Sort of working first half jump
-=======
-=======
 DEFINE_double(standHeight, 0.2, "The standing height.");
->>>>>>> It converged!
 DEFINE_double(foreAftDisplacement, 0.0, "The fore-aft displacement.");
-<<<<<<< HEAD
-<<<<<<< HEAD
-DEFINE_double(apexGoal, 0.4, "Apex state goal");
->>>>>>> Code failing, moving to initial guess work
-=======
-DEFINE_double(apexGoal, 0.35, "Apex state goal");
->>>>>>> Works for stance
-=======
 DEFINE_double(apexGoal, 0.3, "Apex state goal");
->>>>>>> Refactored code optimization 1 and 2 work
 DEFINE_double(inputCost, 3, "The standing height.");
 DEFINE_double(velocityCost, 10, "The standing height.");
 DEFINE_double(eps, 1e-2, "The wiggle room.");
-DEFINE_double(tol, 1e-3, "Optimization Tolerance");
+DEFINE_double(tol, 1e-6, "Optimization Tolerance");
 DEFINE_double(mu, 1, "coefficient of friction");
 
 DEFINE_string(data_directory, "/home/shane/Drake_ws/dairlib/examples/Spirit/saved_trajectories/",
               "directory to save/read data");
-<<<<<<< HEAD
-DEFINE_string(distance_name, "075cm","name to describe distance");
-=======
 DEFINE_string(distance_name, "90cm","name to describe distance");
->>>>>>> Not really making progress
 
 DEFINE_bool(runAllOptimization, true, "rerun earlier optimizations?");
-<<<<<<< HEAD
-<<<<<<< HEAD
-DEFINE_bool(skipInitialOptimization, true, "skip first optimizations?");
-DEFINE_bool(minWork, true, "try to minimize work?");
-DEFINE_bool(ipopt, true, "Use IPOPT as solver instead of SNOPT");
-=======
 DEFINE_bool(skipInitialOptimization, false, "skip first optimizations?");
-=======
-DEFINE_bool(skipInitialOptimization, true, "skip first optimizations?");
->>>>>>> Refactored code optimization 1 and 2 work
 DEFINE_bool(minWork, false, "try to minimize work?");
->>>>>>> Moving to simpler behaviors
 
 using drake::AutoDiffXd;
 using drake::multibody::MultibodyPlant;
@@ -120,8 +73,7 @@ using std::vector;
 using std::cout;
 using std::endl;
 
-
-/// badSpiritJump, generates a bad initial guess for the spirit jump traj opt
+/// badSpiritRear, generates a bad initial guess for the spirit jump traj opt
 /// \param plant: robot model
 /// \param x_traj[out]: initial and solution state trajectory
 /// \param u_traj[out]: initial and solution control trajectory
@@ -129,52 +81,47 @@ using std::endl;
 /// \param lc_traj[out]: initial and solution contact force slack variable trajectory
 /// \param vc_traj[out]: initial and solution contact velocity slack variable trajectory
 template <typename T>
-void badSpiritJump(MultibodyPlant<T>& plant,
-                    PiecewisePolynomial<double>& x_traj,
-                    PiecewisePolynomial<double>& u_traj,
-                    vector<PiecewisePolynomial<double>>& l_traj,
-                    vector<PiecewisePolynomial<double>>& lc_traj,
-                    vector<PiecewisePolynomial<double>>& vc_traj){
+void badSpiritRear(MultibodyPlant<T>& plant,
+                   vector<PiecewisePolynomial<double>>& x_traj,
+                   PiecewisePolynomial<double>& u_traj,
+                   vector<PiecewisePolynomial<double>>& l_traj,
+                   vector<PiecewisePolynomial<double>>& lc_traj,
+                   vector<PiecewisePolynomial<double>>& vc_traj){
 
   const double duration = 0.3;
   std::vector<MatrixXd> x_points;
   dairlib::DirconTrajectory old_traj(FLAGS_data_directory+"simple_yaw2");
-  //x_traj = old_traj.ReconstructStateTrajectory();
-  //u_traj = old_traj.ReconstructInputTrajectory();
 
-
-
-  std::vector<double> time_vec = {0, duration/3.0, duration/3.0 + duration/3.0 };
+  std::vector<double> time_vec = {0, duration/3.0};
 
   auto positions_map = multibody::makeNameToPositionsMap(plant);
   auto velocities_map = multibody::makeNameToVelocitiesMap(plant);
-  int n_q = plant.num_positions();
   VectorXd x_const;
   dairlib::ikSpiritStand(plant, x_const, {true, true, true, true}, FLAGS_standHeight, 0.15, 0, 0);
   x_points.push_back(x_const);
   dairlib::ikSpiritStand(plant, x_const, {true, true, true, true}, FLAGS_standHeight, 0.2, 0, -0.3);
   x_points.push_back(x_const);
+  x_traj.push_back(PiecewisePolynomial<double>::FirstOrderHold(time_vec,x_points));
+
+  x_points[0]=x_const;
   dairlib::ikSpiritStand(plant, x_const, {false, true, false, true},  (FLAGS_standHeight + FLAGS_apexGoal)/2.0, 0.15, 0, -0.35/2);
-  x_points.push_back(x_const);
-
-  x_traj = PiecewisePolynomial<double>::FirstOrderHold(time_vec,x_points);
-
-//  dairlib::DirconTrajectory old_flight(FLAGS_data_directory+"simple_jump");
-//  auto x_traj_flight = old_flight.ReconstructStateDiscontinuousTrajectory()[1];
-//  x_traj_flight.shiftRight(x_traj.end_time() - x_traj_flight.start_time());
-//  x_traj.ConcatenateInTime(x_traj_flight);
+  x_points[1]=x_const;
+  time_vec[0] = time_vec[1];
+  time_vec[1] = 2* time_vec[1];
+  x_traj.push_back(PiecewisePolynomial<double>::FirstOrderHold(time_vec,x_points));
 
   std::vector<MatrixXd> u_points;
   u_points.push_back(MatrixXd::Zero( plant.num_actuators(), 1));
   u_points.push_back(MatrixXd::Zero(plant.num_actuators(), 1));
   u_points.push_back(MatrixXd::Zero(plant.num_actuators(), 1));
+  time_vec = {0, duration/3.0, 2.0 * duration/3.0};
 //  time_vec.push_back(x_traj.end_time());
   u_traj = PiecewisePolynomial<double>::FirstOrderHold(time_vec,u_points);
 
   // Four contacts so forces are 12 dimensional
   Eigen::VectorXd init_l_vec(12);
   // Initial guess
-  init_l_vec << 0, 0, 30*9.81, 0, 0, 30*9.81, 0, 0, 30*9.81, 0, 0, 30*9.81; //gravity and mass distributed
+  init_l_vec << 0, 0, 60*9.81, 0, 0, 10*9.81, 0, 0, 60*9.81, 0, 0, 10*9.81; //gravity and mass distributed
 
   Eigen::VectorXd init_l_vec_front_stance(12);
   init_l_vec_front_stance << 0, 0, 0, 0, 0, 60*9.81, 0, 0, 0, 0, 0, 60*9.81; //gravity and mass distributed
@@ -192,10 +139,25 @@ void badSpiritJump(MultibodyPlant<T>& plant,
   std::vector<double> init_time_j;
 
 
+  // stance
+  init_l_j.clear();
+  init_lc_j.clear();
+  init_vc_j.clear();
+  init_time_j.clear();
+  for (int i = 0; i < N; i++) {
+    init_time_j.push_back(i * duration /6.0/ (N - 1));
+    init_l_j.push_back(init_l_vec);
+    init_lc_j.push_back(init_l_vec);
+    init_vc_j.push_back(VectorXd::Zero(12));
+  }
 
-  l_traj = old_traj.ReconstructLambdaTrajectory();
-  lc_traj = old_traj.ReconstructLambdaCTrajectory();
-  vc_traj = old_traj.ReconstructGammaCTrajectory();
+  auto init_l_traj_j = PiecewisePolynomial<double>::ZeroOrderHold(init_time_j,init_l_j);
+  auto init_lc_traj_j = PiecewisePolynomial<double>::ZeroOrderHold(init_time_j,init_lc_j);
+  auto init_vc_traj_j = PiecewisePolynomial<double>::ZeroOrderHold(init_time_j,init_vc_j);
+
+  l_traj.push_back(init_l_traj_j);
+  lc_traj.push_back(init_lc_traj_j);
+  vc_traj.push_back(init_vc_traj_j);
 
   // front stance
   init_l_j.clear();
@@ -209,9 +171,9 @@ void badSpiritJump(MultibodyPlant<T>& plant,
     init_vc_j.push_back(VectorXd::Zero(12));
   }
 
-auto init_l_traj_j = PiecewisePolynomial<double>::ZeroOrderHold(init_time_j,init_l_j);
-auto init_lc_traj_j = PiecewisePolynomial<double>::ZeroOrderHold(init_time_j,init_lc_j);
-auto init_vc_traj_j = PiecewisePolynomial<double>::ZeroOrderHold(init_time_j,init_vc_j);
+  init_l_traj_j = PiecewisePolynomial<double>::ZeroOrderHold(init_time_j,init_l_j);
+  init_lc_traj_j = PiecewisePolynomial<double>::ZeroOrderHold(init_time_j,init_lc_j);
+  init_vc_traj_j = PiecewisePolynomial<double>::ZeroOrderHold(init_time_j,init_vc_j);
 
   l_traj.push_back(init_l_traj_j);
   lc_traj.push_back(init_lc_traj_j);
@@ -238,8 +200,128 @@ auto init_vc_traj_j = PiecewisePolynomial<double>::ZeroOrderHold(init_time_j,ini
   vc_traj.push_back(init_vc_traj_j);
 }
 
+template <typename T>
+void appendFlight(MultibodyPlant<T>& plant,
+                  vector<PiecewisePolynomial<double>>& x_traj,
+                  PiecewisePolynomial<double>& u_traj,
+                  vector<PiecewisePolynomial<double>>& l_traj,
+                  vector<PiecewisePolynomial<double>>& lc_traj,
+                  vector<PiecewisePolynomial<double>>& vc_traj){
+  auto xlo = x_traj[1].value(x_traj[1].end_time());
+  auto positions_map = multibody::makeNameToPositionsMap(plant);
+  auto velocities_map = multibody::makeNameToVelocitiesMap(plant);
+  int n_q = plant.num_positions();
 
+  double apex_height = xlo(positions_map.at("base_z")) + xlo(n_q+velocities_map.at("base_vz"))/2.0/9.81;
+  double apex_time = x_traj[1].end_time() + xlo(n_q+velocities_map.at("base_vz"))/9.81;
+  double initial_pitch = 2 * asin(xlo(positions_map.at("base_qy")));
+  double apex_pitch = initial_pitch + xlo(n_q+velocities_map.at("base_vz"))/9.81 * xlo(n_q + velocities_map.at("base_wy"));
+  double apex_foreaft_pos = xlo(positions_map.at("base_x")) + xlo(n_q+velocities_map.at("base_vz"))/9.81 * xlo(n_q + velocities_map.at("base_vx"));
+  VectorXd x_const;
+  dairlib::ikSpiritStand(plant, x_const, {false, false, false, false}, apex_height, 0.15, 0, apex_pitch);
+  x_const(positions_map.at("base_x")) = apex_foreaft_pos;
+  std::vector<MatrixXd> x_points = {xlo, x_const};
+  std::vector<double> time_vec = {x_traj[1].end_time(), apex_time};
+  x_traj.push_back(PiecewisePolynomial<double>::FirstOrderHold(time_vec,x_points));
 
+  std::vector<MatrixXd> u_points = {u_traj.value(u_traj.end_time()), u_traj.value(u_traj.end_time())};
+  u_traj.ConcatenateInTime(PiecewisePolynomial<double>::FirstOrderHold(time_vec,u_points));
+
+  auto zero_vec = VectorXd::Zero(12);
+  std::vector<MatrixXd> zero_traj = {zero_vec, zero_vec};
+  auto zero_poly = PiecewisePolynomial<double>::ZeroOrderHold(time_vec, zero_traj);
+  l_traj.push_back(zero_poly);
+  lc_traj.push_back(zero_poly);
+  vc_traj.push_back(zero_poly);
+}
+
+template <typename T>
+void appendFrontTD(MultibodyPlant<T>& plant,
+                  vector<PiecewisePolynomial<double>>& x_traj,
+                  PiecewisePolynomial<double>& u_traj,
+                  vector<PiecewisePolynomial<double>>& l_traj,
+                  vector<PiecewisePolynomial<double>>& lc_traj,
+                  vector<PiecewisePolynomial<double>>& vc_traj,
+                  const double td_height){
+  auto xapex = x_traj[2].value(x_traj[2].end_time());
+  auto positions_map = multibody::makeNameToPositionsMap(plant);
+  auto velocities_map = multibody::makeNameToVelocitiesMap(plant);
+  int n_q = plant.num_positions();
+
+  double apex_height = xapex(positions_map.at("base_z"));
+  double apex_time = x_traj[2].end_time();
+  double td_time = apex_time + sqrt((apex_height-td_height)*2/9.81);
+  double initial_pitch = 2 * asin(xapex(positions_map.at("base_qy")));
+  double td_pitch = initial_pitch + (td_time - apex_time) * xapex(n_q + velocities_map.at("base_wy"));
+  double td_foreaft_pos = xapex(positions_map.at("base_x")) + (td_time - apex_time) * xapex(n_q + velocities_map.at("base_vx"));
+  VectorXd x_const;
+  dairlib::ikSpiritStand(plant, x_const, {true, false, true, false}, td_height, 0.15, 0, td_pitch);
+  x_const(positions_map.at("base_x")) = td_foreaft_pos;
+  std::vector<MatrixXd> x_points = {xapex, x_const};
+  std::vector<double> time_vec = {apex_time, td_time};
+  x_traj.push_back(PiecewisePolynomial<double>::FirstOrderHold(time_vec,x_points));
+  x_points[0] = x_const;
+  dairlib::ikSpiritStand(plant, x_const, {true, true, true, true}, td_height-0.02, 0.15, 0, td_pitch/2.0);
+  x_const(positions_map.at("base_x")) = td_foreaft_pos;
+  x_points[1] = x_const;
+
+  time_vec[0] = x_traj[2].end_time();
+  time_vec[1] = td_time+0.03;
+  x_traj.push_back(PiecewisePolynomial<double>::FirstOrderHold(time_vec,x_points));
+
+  std::vector<MatrixXd> u_points = {u_traj.value(u_traj.end_time()), u_traj.value(u_traj.end_time())};
+
+  u_traj.ConcatenateInTime(PiecewisePolynomial<double>::FirstOrderHold(time_vec,u_points));
+
+  auto zero_vec = VectorXd::Zero(12);
+  std::vector<MatrixXd> zero_traj = {zero_vec, zero_vec};
+  time_vec ={apex_time, td_time/2.0 + apex_time/2.0};
+  auto zero_poly = PiecewisePolynomial<double>::ZeroOrderHold(time_vec, zero_traj);
+  l_traj.push_back(zero_poly);
+  lc_traj.push_back(zero_poly);
+  vc_traj.push_back(zero_poly);
+
+  VectorXd front_stance_vec(12);
+  front_stance_vec << 0, 0, 10*9.81, 0, 0, 0, 0, 0, 10*9.81, 0, 0, 0;
+  std::vector<MatrixXd> front_traj = {front_stance_vec, front_stance_vec};
+  time_vec = {td_time/2.0 + apex_time/2.0, td_time};
+  auto front_poly = PiecewisePolynomial<double>::ZeroOrderHold(time_vec, front_traj);
+  l_traj.push_back(front_poly);
+  lc_traj.push_back(front_poly);
+  vc_traj.push_back(front_poly);
+}
+
+template <typename T>
+void appendStance(MultibodyPlant<T>& plant,
+                  vector<PiecewisePolynomial<double>>& x_traj,
+                  PiecewisePolynomial<double>& u_traj,
+                  vector<PiecewisePolynomial<double>>& l_traj,
+                  vector<PiecewisePolynomial<double>>& lc_traj,
+                  vector<PiecewisePolynomial<double>>& vc_traj,
+                  double final_height){
+  auto xtd = x_traj[4].value(x_traj[4].end_time());
+  auto positions_map = multibody::makeNameToPositionsMap(plant);
+  auto velocities_map = multibody::makeNameToVelocitiesMap(plant);
+  int n_q = plant.num_positions();
+
+  VectorXd x_const;
+  dairlib::ikSpiritStand(plant, x_const, {true, true, true, true}, final_height, 0.15, 0, 0);
+  x_const(positions_map.at("base_x")) = xtd(positions_map.at("base_x"));
+  std::vector<MatrixXd> x_points = {xtd, x_const};
+  std::vector<double> time_vec = {x_traj[4].end_time(), x_traj[4].end_time() + 0.02};
+  x_traj.push_back(PiecewisePolynomial<double>::FirstOrderHold(time_vec,x_points));
+
+  std::vector<MatrixXd> u_points = {u_traj.value(u_traj.end_time()), u_traj.value(u_traj.end_time())};
+  u_traj.ConcatenateInTime(PiecewisePolynomial<double>::FirstOrderHold(time_vec,u_points));
+
+  VectorXd full_stance_force(12);
+  full_stance_force << 0, 0, 10*9.81, 0, 0, 10*9.81, 0, 0, 10*9.81, 0, 0, 10*9.81;
+  std::vector<MatrixXd> full_stance_vec = {full_stance_force, full_stance_force};
+  auto full_stance_poly = PiecewisePolynomial<double>::ZeroOrderHold(time_vec, full_stance_vec);
+  l_traj.push_back(full_stance_poly);
+  lc_traj.push_back(full_stance_poly);
+  vc_traj.push_back(full_stance_poly);
+}
 template <typename T>
 void addCostLegs(MultibodyPlant<T>& plant,
                  dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,
@@ -283,104 +365,114 @@ void addCost(MultibodyPlant<T>& plant,
              dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,
              const double cost_actuation,
              const double cost_velocity,
-<<<<<<< HEAD
-<<<<<<< HEAD
-             const double cost_work){
-=======
-=======
              const double cost_velocity_legs_flight,
              const double cost_actuation_legs_flight,
              const double cost_time,
->>>>>>> Refactored code optimization 1 and 2 work
              const double cost_work,
              const double work_constraint_scale = 1.0){
-<<<<<<< HEAD
-
-
-  auto velocities_map = multibody::makeNameToVelocitiesMap(plant);
-  auto actuator_map = multibody::makeNameToActuatorsMap(plant);
-
-
-  int n_q = plant.num_positions();
-  int n_v = plant.num_velocities();
->>>>>>> Moving to simpler behaviors
-=======
->>>>>>> It converged!
   auto u   = trajopt.input();
   auto x   = trajopt.state();
 
   // Setup the traditional cost function
   trajopt.AddRunningCost( u.transpose()*cost_actuation*u);
-<<<<<<< HEAD
-<<<<<<< HEAD
-  trajopt.AddVelocityCost(cost_velocity);
-  AddWorkCost(plant, trajopt, cost_work);
-
-<<<<<<< HEAD
-=======
-  // Add velocity cost handleing discontinuities
-  // Loop through each mode and each knot point and use trapezoidal integration
-  for(int mode_index = 0; mode_index < trajopt.num_modes(); mode_index++){
-    for(int knot_index = 0; knot_index < trajopt.mode_length(mode_index)-1; knot_index++){
-
-      // Get lower and upper knot velocities
-      drake::solvers::VectorXDecisionVariable xi  = trajopt.state_vars(mode_index, knot_index).tail(n_v);
-      drake::solvers::VectorXDecisionVariable xip = trajopt.state_vars(mode_index, knot_index+1).tail(n_v);
-
-      drake::symbolic::Expression hi = trajopt.timestep(trajopt.get_mode_start(mode_index) + knot_index)[0];
-
-      // Loop through and calcuate sum of velocities squared
-      drake::symbolic::Expression gi = 0;
-      drake::symbolic::Expression gip = 0;
-      for(int i = 0; i< n_v; i++){
-        gi += cost_velocity * xi[i] * xi[i];
-        gip += cost_velocity * xip[i] * xip[i];
-      }
-
-      // Add cost
-      trajopt.AddCost(hi/2.0 * (gi + gip));
-    }
-  }
-=======
-  trajopt.AddRunningCost( x.tail(n_v).transpose()*cost_velocity*x.tail(n_v));
-
->>>>>>> Sort of working first half jump
-
-  // Vector of new decision variables
-  std::vector<drake::symbolic::Variable> power_pluses;
-  std::vector<drake::symbolic::Variable> power_minuses;
-
-  // Loop through each joint
-  for (int joint = 0; joint < 12; joint++) {
-    auto actuation = u(actuator_map.at("motor_" + std::to_string(joint)));
-    auto velocity = x(n_q + velocities_map.at("joint_" + std::to_string(joint) +"dot"));
-    trajopt.AddRunningCost(actuation * actuation * velocity * velocity * cost_work);
-    // Loop through each mode
-  } // Joint loop
-<<<<<<< HEAD
-  std::cout<<"foo"<<std::endl;
->>>>>>> Not really making progress
-=======
->>>>>>> Sort of working first half jump
-=======
   trajopt.AddVelocityCost(cost_velocity);
   AddWorkCost(plant, trajopt, cost_work, work_constraint_scale, 0.0);
-<<<<<<< HEAD
->>>>>>> Seems to be working for basic pitch
-=======
-
-  trajopt.AddRunningCost(1000);
-  double leg_velocity_cost = 5;
-  double leg_actuation_cost = 10;
 
   trajopt.AddRunningCost(cost_time);
 
   addCostLegs(plant, trajopt, cost_velocity_legs_flight, cost_actuation_legs_flight, {0, 1, 4, 5, 8, 10}, 1);
-  //addCostLegs(plant, trajopt, leg_velocity_cost, leg_actuation_cost, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}, 2);
->>>>>>> It converged!
+  if(trajopt.num_modes() > 2){
+    addCostLegs(plant, trajopt, cost_velocity_legs_flight, cost_actuation_legs_flight, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}, 2);
+  }
+  if(trajopt.num_modes() > 3){
+    addCostLegs(plant, trajopt, cost_velocity_legs_flight, cost_actuation_legs_flight, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}, 3);
+  }
+  if(trajopt.num_modes() > 4){
+    addCostLegs(plant, trajopt, cost_velocity_legs_flight, cost_actuation_legs_flight, {2, 3, 6, 7, 10, 11}, 4);
+  }
 } // Function
 
+template <typename T>
+void addConstraintsFlight(MultibodyPlant<T>& plant,
+                    dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,
+                    double apex_height,
+                    double fore_aft_displacement,
+                    double eps = 0){
+  auto positions_map = multibody::makeNameToPositionsMap(plant);
+  auto velocities_map = multibody::makeNameToVelocitiesMap(plant);
+  auto   xapex  = trajopt.num_modes() > 3 ? trajopt.state_vars(3,0) : trajopt.final_state();
+  trajopt.AddBoundingBoxConstraint(0, 0, xapex(plant.num_positions()+velocities_map.at("base_vz")));
 
+  if (trajopt.num_modes() <= 3){
+    nominalSpiritStandConstraint(plant, trajopt, FLAGS_standHeight, {trajopt.N()-1}, eps);
+  }
+  if (apex_height > 0.15)
+    trajopt.AddBoundingBoxConstraint(apex_height-1e-2, apex_height+1e-2, xapex(positions_map.at("base_z")));
+
+  if (fore_aft_displacement >= 0)
+    trajopt.AddBoundingBoxConstraint(fore_aft_displacement-eps, fore_aft_displacement, xapex(positions_map.at("base_x")));
+
+  double pitch = abs(0.2);
+  // Body pose constraints (keep the body flat) at apex state
+  trajopt.AddBoundingBoxConstraint(cos(pitch/2.0), 1, xapex(positions_map.at("base_qw")));
+  trajopt.AddBoundingBoxConstraint(0, 0, xapex(positions_map.at("base_qx")));
+  trajopt.AddBoundingBoxConstraint(-sin(pitch/2.0) , sin(pitch/2.0), xapex(positions_map.at("base_qy")));
+  trajopt.AddBoundingBoxConstraint(0, 0, xapex(positions_map.at("base_qz")));
+  std::cout<<"Adding flight constraints" << std::endl;
+
+}
+
+template <typename T>
+void addConstraintsTD(MultibodyPlant<T>& plant,
+                          dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,
+                          const double td_height,
+                          const double fore_aft_displacement,
+                          const double eps = 0){
+  auto positions_map = multibody::makeNameToPositionsMap(plant);
+  auto velocities_map = multibody::makeNameToVelocitiesMap(plant);
+  auto   xtd  =  trajopt.final_state();
+
+  std::cout<<"Adding td constraints" << std::endl;
+
+  if(td_height > 0)
+    trajopt.AddBoundingBoxConstraint(td_height-eps, td_height+eps, xtd(positions_map.at("base_z")));
+  double pitch = abs(0.6);
+  // Body pose constraints (keep the body flat) at apex state
+  trajopt.AddBoundingBoxConstraint(cos(pitch/2.0), 1, xtd(positions_map.at("base_qw")));
+  trajopt.AddBoundingBoxConstraint(0, 0, xtd(positions_map.at("base_qx")));
+  trajopt.AddBoundingBoxConstraint(-sin(pitch/2.0) , sin(pitch/2.0), xtd(positions_map.at("base_qy")));
+  trajopt.AddBoundingBoxConstraint(0, 0, xtd(positions_map.at("base_qz")));
+
+}
+
+template <typename T>
+void addConstraintsStance(MultibodyPlant<T>& plant,
+                      dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,
+                      const double initial_height,
+                      const double fore_aft_displacement,
+                      const double eps = 0){
+  auto positions_map = multibody::makeNameToPositionsMap(plant);
+  auto velocities_map = multibody::makeNameToVelocitiesMap(plant);
+  auto   xf  = trajopt.final_state();
+  std::cout<<"Adding stance constraints" << std::endl;
+  nominalSpiritStandConstraint(plant,trajopt,initial_height, {trajopt.N()-1}, eps);
+
+  std::cout<< fore_aft_displacement << std::endl;
+  if (fore_aft_displacement >= 0){
+    trajopt.AddBoundingBoxConstraint(fore_aft_displacement-eps, fore_aft_displacement, xf(positions_map.at("base_x")));
+  }
+
+  double n_v = plant.num_velocities();
+
+  trajopt.AddBoundingBoxConstraint(VectorXd::Zero(n_v), VectorXd::Zero(n_v), xf.tail(n_v));
+  trajopt.AddBoundingBoxConstraint(0-eps, 0+eps, xf(positions_map.at("base_y")));
+
+  // Body pose constraints (keep the body flat) at initial state
+  trajopt.AddBoundingBoxConstraint(1-eps, 1 + eps, xf(positions_map.at("base_qw")));
+  trajopt.AddBoundingBoxConstraint(0-eps , 0+ eps, xf(positions_map.at("base_qx")));
+  trajopt.AddBoundingBoxConstraint(0-eps, 0+ eps, xf(positions_map.at("base_qy")));
+  trajopt.AddBoundingBoxConstraint(0-eps, 0 + eps, xf(positions_map.at("base_qz")));
+}
 // addConstraints, adds constraints to the trajopt jump problem. See runSpiritJump for a description of the inputs
 template <typename T>
 void addConstraints(MultibodyPlant<T>& plant,
@@ -399,15 +491,15 @@ void addConstraints(MultibodyPlant<T>& plant,
   auto positions_map = multibody::makeNameToPositionsMap(plant);
   auto velocities_map = multibody::makeNameToVelocitiesMap(plant);
 
-  setSpiritJointLimits(plant, trajopt);
+  setSpiritJointLimits(plant, trajopt, true);
   setSpiritActuationLimits(plant, trajopt);
 
   /// Setup all the optimization constraints
   int n_q = plant.num_positions();
   int n_v = plant.num_velocities();
 
-  auto   x0  = trajopt.initial_state();
-  auto xapex = trajopt.final_state();
+  auto x0  = trajopt.initial_state();
+  auto xlo = trajopt.num_modes()> 2 ? trajopt.state_vars(2,0):trajopt.final_state();
   auto x_pitch = trajopt.state_vars(1,0);
 
   // Add duration constraint, currently constrained not bounded
@@ -416,11 +508,16 @@ void addConstraints(MultibodyPlant<T>& plant,
   /// Constraining xy position
   // Initial body positions
   trajopt.AddBoundingBoxConstraint(0, 0, x0(positions_map.at("base_x"))); // Give the initial condition room to choose the x_init position
-  trajopt.AddBoundingBoxConstraint(fore_aft_displacement-eps, fore_aft_displacement+eps, xapex(positions_map.at("base_x"))); // Give the initial condition room to choose the x_init position
 
-  // Final body positions conditions
+  if(trajopt.num_modes() < 3){
+    trajopt.AddBoundingBoxConstraint(fore_aft_displacement-eps, fore_aft_displacement+eps, xlo(positions_map.at("base_x"))); // Give the initial condition room to choose the x_init position
+    trajopt.AddBoundingBoxConstraint(liftoff_velocity, 100, xlo(n_q+velocities_map.at("base_vz")));
+    trajopt.AddBoundingBoxConstraint(liftoff_velocity/2, 100, x_pitch(n_q+velocities_map.at("base_vz")));
+    trajopt.AddBoundingBoxConstraint(min_final_height, 100, xlo(positions_map.at("base_z")) );
+  }
+
   trajopt.AddBoundingBoxConstraint( -eps, eps, x0( positions_map.at("base_y")));
-  trajopt.AddBoundingBoxConstraint( -eps, eps, xapex( positions_map.at("base_y")));
+  trajopt.AddBoundingBoxConstraint(-eps, eps, xlo(positions_map.at("base_y")));
 
   // Nominal stand or z and attitude
   nominalSpiritStandConstraint(plant,trajopt,initial_height, {0}, eps);
@@ -433,20 +530,14 @@ void addConstraints(MultibodyPlant<T>& plant,
 
   double pitch = abs(pitch_magnitude);
   // Body pose constraints (keep the body flat) at apex state
-  trajopt.AddBoundingBoxConstraint(cos(pitch/2.0), 1, xapex(positions_map.at("base_qw")));
-  trajopt.AddBoundingBoxConstraint(0, 0, xapex(positions_map.at("base_qx")));
-  trajopt.AddBoundingBoxConstraint(-sin(pitch/2.0) , sin(pitch/2.0), xapex(positions_map.at("base_qy")));
-  trajopt.AddBoundingBoxConstraint(0, 0, xapex(positions_map.at("base_qz")));
+  trajopt.AddBoundingBoxConstraint(cos(pitch/2.0), 1, xlo(positions_map.at("base_qw")));
+  trajopt.AddBoundingBoxConstraint(0, 0, xlo(positions_map.at("base_qx")));
+  trajopt.AddBoundingBoxConstraint(-sin(pitch/2.0) , sin(pitch/2.0), xlo(positions_map.at("base_qy")));
+  trajopt.AddBoundingBoxConstraint(0, 0, xlo(positions_map.at("base_qz")));
 
 
-  //trajopt.AddCost(-0.1 * xapex(positions_map.at("base_qw")));
   // Initial and final velocity
   trajopt.AddBoundingBoxConstraint(VectorXd::Zero(n_v), VectorXd::Zero(n_v), x0.tail(n_v));
-  trajopt.AddBoundingBoxConstraint(liftoff_velocity, 100, xapex(n_q+velocities_map.at("base_vz")));
-  trajopt.AddBoundingBoxConstraint(liftoff_velocity/2, 100, x_pitch(n_q+velocities_map.at("base_vz")));
-
-  // Apex height
-  trajopt.AddBoundingBoxConstraint(.3, 100, xapex(positions_map.at("base_z")) );
 
   for (int i = 0; i < trajopt.N(); i++){
     auto xi = trajopt.state(i);
@@ -458,35 +549,26 @@ void addConstraints(MultibodyPlant<T>& plant,
     // Height
     trajopt.AddBoundingBoxConstraint( 0.15, 5, xi( positions_map.at("base_z")));
     trajopt.AddBoundingBoxConstraint( -eps, eps, xi( n_q+velocities_map.at("base_vy")));
-
-  }
-  int mode_index = 1;
-  for(int knot_index = 0; knot_index < trajopt.mode_length(mode_index)-1; knot_index++){
-    auto xi = trajopt.state_vars(mode_index, knot_index);
-    // Lock back knees
-    //trajopt.AddBoundingBoxConstraint(0,0,xi(n_q+velocities_map.at("joint_3dot")));
-    //trajopt.AddBoundingBoxConstraint(0,0,xi(n_q+velocities_map.at("joint_7dot")));
   }
   Eigen::VectorXd end_state_nominal;
   dairlib::nominalSpiritStand(plant, end_state_nominal, initial_height);
-  for(int joint_index: {0, 1, 4, 5, 8, 10}){
+  vector<double> joint_vec;
+  if (trajopt.num_modes() > 2)
+    joint_vec =  {};
+  else
+    joint_vec =  {0, 1, 4, 5, 8, 10};
+  for(int joint_index: joint_vec){
     double joint_val = end_state_nominal[positions_map.at("joint_"+std::to_string(joint_index))];
-    trajopt.AddBoundingBoxConstraint(joint_val - eps, joint_val + eps,xapex(positions_map.at("joint_"+std::to_string(joint_index))));
+    trajopt.AddBoundingBoxConstraint(joint_val - eps, joint_val + eps, xlo(positions_map.at("joint_"+std::to_string(joint_index))));
   }
 }
 
-/// getModeSequence, initializes the trajopt mode seqence for jump, see runSpiritJump for a def of inputs
-template <typename T>
-std::tuple<  std::vector<std::unique_ptr<dairlib::systems::trajectory_optimization::DirconMode<T>>>,
-             std::vector<std::unique_ptr<multibody::WorldPointEvaluator<T>>> ,
-             std::vector<std::unique_ptr<multibody::KinematicEvaluatorSet<T>>>>
-getModeSequence(
-    drake::multibody::MultibodyPlant<T>& plant, // multibodyPlant
-    const double mu,
-    std::vector<int> num_knot_points,
-    DirconModeSequence<T>& sequence){
-
-  dairlib::ModeSequenceHelper msh;
+void getModeSequenceHelper(dairlib::ModeSequenceHelper& msh,
+                           const double mu,
+                           std::vector<int> num_knot_points,
+                          const bool optimize_flight,
+                           const bool optimize_td,
+                           const bool optimize_stance){
   msh.addMode( // Stance
       (Eigen::Matrix<bool,1,4>() << true,  true,  true,  true).finished(), // contact bools
       num_knot_points[0],  // number of knot points in the collocation
@@ -506,6 +588,67 @@ getModeSequence(
       1.0
   );
 
+  if(optimize_flight){
+    msh.addMode( // Stance
+        (Eigen::Matrix<bool,1,4>() << false,  false,  false,  false).finished(), // contact bools
+        num_knot_points[2],  // number of knot points in the collocation
+        Eigen::Vector3d::UnitZ(), // normal
+        Eigen::Vector3d::Zero(),  // world offset
+        mu, //friction
+        0.03,
+        1.0
+    );
+    if(optimize_td){
+      msh.addMode( // Stance
+          (Eigen::Matrix<bool,1,4>() << false,  false,  false,  false).finished(), // contact bools
+          num_knot_points[3],  // number of knot points in the collocation
+          Eigen::Vector3d::UnitZ(), // normal
+          Eigen::Vector3d::Zero(),  // world offset
+          mu, //friction
+          0.03,
+          1.0
+      );
+
+      msh.addMode( // Stance
+          (Eigen::Matrix<bool,1,4>() << true,  false,  true,  false).finished(), // contact bools
+          num_knot_points[4],  // number of knot points in the collocation
+          Eigen::Vector3d::UnitZ(), // normal
+          Eigen::Vector3d::Zero(),  // world offset
+          mu, //friction
+          0.03,
+          0.1
+      );
+      if(optimize_stance){
+        msh.addMode( // Stance
+            (Eigen::Matrix<bool,1,4>() << true,  true,  true,  true).finished(), // contact bools
+            num_knot_points[5],  // number of knot points in the collocation
+            Eigen::Vector3d::UnitZ(), // normal
+            Eigen::Vector3d::Zero(),  // world offset
+            mu, //friction
+            0.03,
+            0.1
+        );
+      }
+    }
+  }
+}
+/// getModeSequenceRear, initializes the trajopt mode seqence for jump, see runSpiritJump for a def of inputs
+template <typename T>
+std::tuple<  std::vector<std::unique_ptr<dairlib::systems::trajectory_optimization::DirconMode<T>>>,
+             std::vector<std::unique_ptr<multibody::WorldPointEvaluator<T>>> ,
+             std::vector<std::unique_ptr<multibody::KinematicEvaluatorSet<T>>>>
+getModeSequence(
+    drake::multibody::MultibodyPlant<T>& plant, // multibodyPlant
+    const double mu,
+    std::vector<int> num_knot_points,
+    DirconModeSequence<T>& sequence,
+    const bool optimize_flight,
+    const bool optimize_td,
+    const bool optimize_stance){
+  dairlib::ModeSequenceHelper msh;
+
+  getModeSequenceHelper(msh, mu, num_knot_points, optimize_flight, optimize_td, optimize_stance);
+
   auto [modeVector, toeEvals, toeEvalSets] = createSpiritModeSequence(plant, msh);
 
   for (auto& mode : modeVector){
@@ -514,7 +657,7 @@ getModeSequence(
       mode->MakeConstraintRelative(i,1);
     }
     mode->SetDynamicsScale(
-        {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19}, 150.0);
+        {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19}, 500.0);
     if (mode->evaluators().num_evaluators() == 4)
     {
       mode->SetKinVelocityScale(
@@ -530,7 +673,6 @@ getModeSequence(
     }
     sequence.AddMode(mode.get());
   }
-
   return {std::move(modeVector), std::move(toeEvals), std::move(toeEvalSets)};
 }
 
@@ -564,20 +706,27 @@ getModeSequence(
 template <typename T>
 void runSpiritJump(
     MultibodyPlant<T>& plant,
-    PiecewisePolynomial<double>& x_traj,
+    vector<PiecewisePolynomial<double>>& x_traj,
     PiecewisePolynomial<double>& u_traj,
     vector<PiecewisePolynomial<double>>& l_traj,
     vector<PiecewisePolynomial<double>>& lc_traj,
     vector<PiecewisePolynomial<double>>& vc_traj,
     const bool animate,
+    const bool ipopt,
     std::vector<int> num_knot_points,
     const double min_final_height,
     const double initial_height,
     const double fore_aft_displacement,
     const double liftoff_velocity,
     const double pitch_magnitude,
+    const double apex_height,
+    const double apex_displacement,
+    const double td_height,
+    const double td_displacement,
     const bool lock_rotation,
-    const bool lock_knees_stance,
+    const bool optimize_flight,
+    const bool optimize_td,
+    const bool optimize_stance,
     const double max_duration,
     const double cost_actuation,
     const double cost_velocity,
@@ -588,6 +737,7 @@ void runSpiritJump(
     const double mu,
     const double eps,
     const double tol,
+    const double work_constraint_scale,
     const std::string& file_name_out,
     const std::string& file_name_in= ""
     ) {
@@ -605,38 +755,12 @@ void runSpiritJump(
 
   // Setup mode sequence
   auto sequence = DirconModeSequence<T>(plant);
-  auto [modeVector, toeEvals, toeEvalSets] = getModeSequence(plant, mu, num_knot_points, sequence);
+  auto [modeVector, toeEvals, toeEvalSets] =  getModeSequence(plant, mu, num_knot_points, sequence, optimize_flight, optimize_td, optimize_stance);
 
   ///Setup trajectory optimization
   auto trajopt = Dircon<T>(sequence);
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-=======
 
->>>>>>> Code failing, moving to initial guess work
-  // Set up Trajectory Optimization options
-  trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(),
-                           "Print file", "../snopt.out");
-  trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(),
-                           "Major iterations limit", 10000);
-  trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(), "Iterations limit", 1000000);
-  trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(),
-                           "Major optimality tolerance",
-                           tol);  // target optimality
-  trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(), "Major feasibility tolerance", tol);
-  trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(), "Verify level",
-<<<<<<< HEAD
-<<<<<<< HEAD
-                           0);  // 0
-<<<<<<< HEAD
-  trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(), "Total int workspace",
-                          6322783);  // 0
-  trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(), "Total real workspace",
-                          6322783);  // 0
->>>>>>> Not really making progress
-
-  if (FLAGS_ipopt) {
+  if (ipopt) {
     // Ipopt settings adapted from CaSaDi and FROST
     auto id = drake::solvers::IpoptSolver::id();
     trajopt.SetSolverOption(id, "tol", tol);
@@ -670,35 +794,19 @@ void runSpiritJump(
     trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(), "Verify level",
                             0);  // 0
   }
-=======
-=======
-                           3);  // 0
-  trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(), "Derivative option",
-                          0);  // 1
->>>>>>> Code failing, moving to initial guess work
-=======
-                           0);  // 0
-  trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(), "Derivative option",
-                          1);  // 1
->>>>>>> Moving to simpler behaviors
 
->>>>>>> Sort of working first half jump
   // Setting up cost
-<<<<<<< HEAD
-  addCost(plant, trajopt, cost_actuation, cost_velocity, cost_work);
-=======
   addCost(plant, trajopt, cost_actuation, cost_velocity, cost_velocity_legs_flight, cost_actuation_legs_flight, cost_time, cost_work, work_constraint_scale);
->>>>>>> Refactored code optimization 1 and 2 work
 
-// Initialize the trajectory control state and forces
+
+  // Initialize the trajectory control state and forces
   if (file_name_in.empty()){
-    trajopt.SetInitialGuessForAllVariables(
-        VectorXd::Zero(trajopt.decision_variables().size()));
-    trajopt.drake::systems::trajectory_optimization::MultipleShooting::
-        SetInitialTrajectory(u_traj, x_traj);
+    //trajopt.SetInitialGuessForAllVariables(
+    //    VectorXd::Zero(trajopt.decision_variables().size()));
     for (int j = 0; j < sequence.num_modes(); j++) {
+      trajopt.SetInitialTrajectoryForMode(j, x_traj[j], u_traj, x_traj[j].start_time(), x_traj[j].end_time());
       trajopt.SetInitialForceTrajectory(j, l_traj[j], lc_traj[j],
-                                        vc_traj[j]);
+                                        vc_traj[j], l_traj[j].start_time());
     }
   }else{
     std::cout<<"Loading decision var from file, will fail if num dec vars changed" <<std::endl;
@@ -708,7 +816,13 @@ void runSpiritJump(
 
   addConstraints(plant, trajopt, min_final_height,
                  initial_height, fore_aft_displacement, liftoff_velocity, pitch_magnitude,
-                 lock_rotation, lock_knees_stance, max_duration, eps);
+                 lock_rotation, false, max_duration, eps);
+  if(optimize_flight)
+    addConstraintsFlight(plant, trajopt, apex_height, apex_displacement, eps);
+  if(optimize_td)
+    addConstraintsTD(plant, trajopt, td_height, td_displacement, eps);
+  if(optimize_stance)
+    addConstraintsStance(plant, trajopt, initial_height, td_displacement, eps);
 
   /// Setup the visualization during the optimization
   int num_ghosts = 1;// Number of ghosts in visualization. NOTE: there are limitations on number of ghosts based on modes and knotpoints
@@ -721,7 +835,7 @@ void runSpiritJump(
       visualizer_poses, 0.2); // setup which URDF, how many poses, and alpha transparency 
 
   drake::solvers::SolverId solver_id("");
-  if (FLAGS_ipopt) {
+  if (ipopt) {
     solver_id = drake::solvers::IpoptSolver().id();
     cout << "\nChose manually: " << solver_id.name() << endl;
   } else {
@@ -731,28 +845,10 @@ void runSpiritJump(
 
   /// Run the optimization using your initial guess
   auto start = std::chrono::high_resolution_clock::now();
-<<<<<<< HEAD
-<<<<<<< HEAD
   auto solver = drake::solvers::MakeSolver(solver_id);
   drake::solvers::MathematicalProgramResult result;
   solver->Solve(trajopt, trajopt.initial_guess(), trajopt.solver_options(),
-                &result);
-=======
-  std::cout << "num_vars: " << trajopt.num_vars() <<std::endl;
-  std::cout << "decision variable 736: " << trajopt.decision_variable(736).get_name() <<std::endl;
-  std::cout << "decision variable 737: " << trajopt.decision_variable(737).get_name() <<std::endl;
-  std::cout << "decision variable 738: " << trajopt.decision_variable(738).get_name() <<std::endl;
-  std::cout << "decision variable 739: " << trajopt.decision_variable(739).get_name() <<std::endl;
-  std::cout << trajopt.timestep(1) << std::endl;
-  std::cout << trajopt.timestep(2) << std::endl;
-  std::cout << trajopt.timestep(3) << std::endl;
-  std::cout << trajopt.timestep(4) << std::endl;
-
-=======
->>>>>>> Seems to be working for basic pitch
-  const auto result = Solve(trajopt, trajopt.initial_guess());
->>>>>>> Code failing, moving to initial guess work
-  auto finish = std::chrono::high_resolution_clock::now();
+                &result);  auto finish = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> elapsed = finish - start;
   std::cout << "Solve time: " << elapsed.count() <<std::endl;
   std::cout << "Cost: " << result.get_optimal_cost() <<std::endl;
@@ -769,26 +865,19 @@ void runSpiritJump(
     saved_traj.WriteToFile(file_name_out);
 
     dairlib::DirconTrajectory old_traj(file_name_out);
-    x_traj = old_traj.ReconstructStateTrajectory();
+    x_traj = old_traj.ReconstructStateDiscontinuousTrajectory();
     u_traj = old_traj.ReconstructInputTrajectory();
     l_traj = old_traj.ReconstructLambdaTrajectory();
     lc_traj = old_traj.ReconstructLambdaCTrajectory();
     vc_traj = old_traj.ReconstructGammaCTrajectory();
   } else{
     std::cout << "warning no file name provided, will not be able to return full solution" << std::endl;
-    x_traj  = trajopt.ReconstructStateTrajectory(result);
+    x_traj  = trajopt.ReconstructDiscontinuousStateTrajectory(result);
     u_traj  = trajopt.ReconstructInputTrajectory(result);
     l_traj  = trajopt.ReconstructLambdaTrajectory(result);
   }
   auto x_trajs = trajopt.ReconstructDiscontinuousStateTrajectory(result);
-<<<<<<< HEAD
-  std::cout<<"Work = " << dairlib::calcElectricalWork(plant, x_trajs, u_traj) << std::endl;
-//  double cost_work_acceleration = solvers::EvalCostGivenSolution(
-//      result, cost_joint_work_bindings);
-//  std::cout<<"Cost Work = " << cost_work_acceleration << std::endl;
-=======
 
->>>>>>> Moving to simpler behaviors
   /// Run animation of the final trajectory
   const drake::trajectories::PiecewisePolynomial<double> pp_xtraj =
       trajopt.ReconstructStateTrajectory(result);
@@ -829,117 +918,43 @@ int main(int argc, char* argv[]) {
   plant->Finalize();
   plant_vis->Finalize();
 
-  PiecewisePolynomial<double> x_traj;
+  std::vector<PiecewisePolynomial<double>> x_traj;
   PiecewisePolynomial<double> u_traj;
   std::vector<PiecewisePolynomial<double>> l_traj;
   std::vector<PiecewisePolynomial<double>> lc_traj;
   std::vector<PiecewisePolynomial<double>> vc_traj;
 
   if (FLAGS_runAllOptimization){
-<<<<<<< HEAD
-<<<<<<< HEAD
-    if(! FLAGS_skipInitialOptimization){
-      std::cout<<"Running initial optimization"<<std::endl;
-      dairlib::badSpiritJump(*plant, x_traj, u_traj, l_traj, lc_traj, vc_traj);
-=======
     if(!FLAGS_skipInitialOptimization){
       std::cout<<"Running 1st optimization"<<std::endl;
       //Hopping correct distance, but heavily constrained
-
->>>>>>> Refactored code optimization 1 and 2 work
+      dairlib::badSpiritRear(*plant, x_traj, u_traj, l_traj, lc_traj, vc_traj);
       dairlib::runSpiritJump<double>(
           *plant,
           x_traj, u_traj, l_traj,
           lc_traj, vc_traj,
           false,
-<<<<<<< HEAD
-          {7, 7, 7, 7},
-          FLAGS_apexGoal,
-          FLAGS_standHeight,
-          0,
           true,
-          true,
-          false,
-          true,
-          2,
-          3,
-          10,
-          0,
-          100,
-          FLAGS_eps,
-          1e-1,
-          FLAGS_data_directory+"simple_jump");
-    }
-    else{
-      dairlib::DirconTrajectory old_traj(FLAGS_data_directory+"simple_jump");
-      x_traj = old_traj.ReconstructStateTrajectory();
-      u_traj = old_traj.ReconstructInputTrajectory();
-      l_traj = old_traj.ReconstructLambdaTrajectory();
-      lc_traj = old_traj.ReconstructLambdaCTrajectory();
-      vc_traj = old_traj.ReconstructGammaCTrajectory();
-    }
-=======
-    dairlib::badSpiritJump(*plant,x_traj,u_traj,l_traj,lc_traj,vc_traj);
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
->>>>>>> Not really making progress
-=======
-    dairlib::DirconTrajectory old_traj(FLAGS_data_directory+"jump_05m_hq");
-    x_traj = old_traj.ReconstructStateTrajectory();
-    u_traj = old_traj.ReconstructInputTrajectory();
->>>>>>> Sort of working first half jump
-
-=======
-    dairlib::DirconTrajectory old_traj(FLAGS_data_directory+"simple_jump");
-    //x_traj = old_traj.ReconstructStateTrajectory();
-    //u_traj = old_traj.ReconstructInputTrajectory();
-//    l_traj = old_traj.ReconstructLambdaTrajectory();
-//    lc_traj = old_traj.ReconstructLambdaCTrajectory();
-//    vc_traj = old_traj.ReconstructGammaCTrajectory();
->>>>>>> Code failing, moving to initial guess work
-=======
->>>>>>> Seems to be working for basic pitch
-    std::cout<<"Running 2nd optimization"<<std::endl;
-    //Hopping correct distance, but heavily constrained
-
-    dairlib::runSpiritJump<double>(
-        *plant,
-        x_traj, u_traj, l_traj,
-        lc_traj, vc_traj,
-        false,
-        {10, 7, 5, 5, 5, 5} ,
-        FLAGS_apexGoal,
-        FLAGS_standHeight,
-        FLAGS_foreAftDisplacement,
-        true,
-        false,
-        false,
-        true,
-        0.5,
-        0.3,
-        1,
-        0,
-        100000,
-        0,
-        1e-4,
-        1.0,
-        FLAGS_data_directory+"simple_rear");
-=======
           {10, 7, 5, 5, 5, 5} ,
-          FLAGS_apexGoal,
-          FLAGS_standHeight,
-          FLAGS_foreAftDisplacement,
+          0.3,
+          0.2,
+          0,
           0,
           0.4,
+          0,
+          0,
+          0,
+          0,
           true,
-          true,
+          false,
+          false,
+          false,
           0.5,
           0.3,
           1,
           5,
           10,
-          1000,
+          2000,
           0,
           100000,
           0,
@@ -954,20 +969,27 @@ int main(int argc, char* argv[]) {
           x_traj, u_traj, l_traj,
           lc_traj, vc_traj,
           false,
+          true,
           {10, 7, 5, 5, 5, 5} ,
-          FLAGS_apexGoal,
-          FLAGS_standHeight,
-          FLAGS_foreAftDisplacement,
+          0.3,
+          0.2,
+          0,
           0,
           0.4,
+          0,
+          0,
+          0,
+          0,
           false,
-          true,
+          false,
+          false,
+          false,
           0.8,
           3,
           20,
           5,
           10,
-          1000,
+          2000,
           0,
           100000,
           1e-2,
@@ -975,7 +997,6 @@ int main(int argc, char* argv[]) {
           1.0,
           FLAGS_data_directory+"simple_rear2");
     }
->>>>>>> Refactored code optimization 1 and 2 work
 
     std::cout<<"Running 3rd optimization"<<std::endl;
 
@@ -983,145 +1004,193 @@ int main(int argc, char* argv[]) {
         *plant,
         x_traj, u_traj, l_traj,
         lc_traj, vc_traj,
-        true,
-        {10, 7, 5, 5, 5, 5} ,
-        FLAGS_apexGoal,
-        FLAGS_standHeight,
-        FLAGS_foreAftDisplacement,
-        0.2,
-        0.4,
         false,
         true,
+        {10, 7, 5, 5, 5, 5} ,
+        0.35,
+        FLAGS_standHeight,
+        0.15,
+        0.5,
+        0.4,
+        0,
+        0,
+        0,
+        0,
+        false,
+        false,
+        false,
+        false,
         0.8,
         3,
         20,
         5,
         10,
-        1000,
+        4000,
         0,
         100000,
         1e-2,
         1e-4,
         1.0,
-<<<<<<< HEAD
-        FLAGS_data_directory+"simple_yaw2",
-        FLAGS_data_directory+"simple_yaw");
-
-<<<<<<< HEAD
-    dairlib::runSpiritJump<double>(
-        *plant,
-        x_traj, u_traj, l_traj,
-        lc_traj, vc_traj,
-        true,
-        {5, 7, 5, 5, 5, 5} ,
-        FLAGS_apexGoal,
-        FLAGS_standHeight,
-        FLAGS_foreAftDisplacement,
-        false,
-        true,
-        false,
-        true,
-        0.6,
-        3/1000.0,
-        10/1000.0,
-        100/1000.0,
-        100000,
-        1e-2,
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-        FLAGS_data_directory+"jump_"+FLAGS_distance_name);
-=======
-        0,
-        FLAGS_data_directory+"leap_"+FLAGS_distance_name+"_3",
-        FLAGS_data_directory+"simple_leap");
-=======
-        1e-6,
-=======
-        1e-4,
->>>>>>> Code failing, moving to initial guess work
-        1.0,
-        FLAGS_data_directory+"simple_leap_3",
-        FLAGS_data_directory+"simple_leap_2");
->>>>>>> Seemed to be doing alright
-=======
->>>>>>> Seems to be working for basic pitch
-=======
         FLAGS_data_directory+"simple_rear3",
         FLAGS_data_directory+"simple_rear2");
->>>>>>> It converged!
 
->>>>>>> Not really making progress
-  }
-  std::cout<<"Running 3rd optimization"<<std::endl;
-<<<<<<< HEAD
-  // Fewer constraints, and higher tolerences
-  dairlib::runSpiritJump<double>(
-      *plant,
-      x_traj, u_traj, l_traj,
-      lc_traj, vc_traj,
-      !FLAGS_minWork,
-      {4, 4, 4, 4, 4} ,
-      0,
-      FLAGS_standHeight,
-      FLAGS_foreAftDisplacement,
-      false,
-      true,
-      false,
-      true,
-      2,
-      3,
-      10,
-      0,
-      1000,
-      FLAGS_eps,
-<<<<<<< HEAD
-      FLAGS_tol,
-      FLAGS_data_directory+"jump_"+FLAGS_distance_name+"_hq",
-      FLAGS_data_directory+"jump_"+FLAGS_distance_name);
-=======
-      1e-4,
-      0,
-      FLAGS_data_directory+"leap_"+FLAGS_distance_name+"_hq");
->>>>>>> Not really making progress
+    dairlib::DirconTrajectory old_traj(FLAGS_data_directory+"simple_rear3");
+    x_traj = old_traj.ReconstructStateDiscontinuousTrajectory();
+    u_traj = old_traj.ReconstructInputTrajectory();
+    l_traj = old_traj.ReconstructLambdaTrajectory();
+    lc_traj = old_traj.ReconstructLambdaCTrajectory();
+    vc_traj = old_traj.ReconstructGammaCTrajectory();
 
-  if (FLAGS_minWork){
-    // Adding in work cost and constraints
+    dairlib::appendFlight(*plant, x_traj, u_traj, l_traj, lc_traj, vc_traj);
+
     std::cout<<"Running 4th optimization"<<std::endl;
     dairlib::runSpiritJump<double>(
         *plant,
         x_traj, u_traj, l_traj,
         lc_traj, vc_traj,
+        false,
+        true,
+        {10, 7, 7, 7, 7, 7} ,
+        0.35,
+        FLAGS_standHeight,
+        0.06,
+        1.8,
+        0.6,
+        0.4,
+        0.5,
+        0,
+        0,
+        false,
+        true,
+        false,
+        false,
+        1.8,
+        3,
+        10,
+        5,
+        10,
+        4000,
+        0,
+        100000,
+        1e-2,
+        1e-3,
+        1.0,
+        FLAGS_data_directory+"half_leap");
+
+
+  dairlib::DirconTrajectory old_traj2(FLAGS_data_directory+"half_leap");
+  x_traj = old_traj2.ReconstructStateDiscontinuousTrajectory();
+  u_traj = old_traj2.ReconstructInputTrajectory();
+  l_traj = old_traj2.ReconstructLambdaTrajectory();
+  lc_traj = old_traj2.ReconstructLambdaCTrajectory();
+  vc_traj = old_traj2.ReconstructGammaCTrajectory();
+
+    dairlib::appendFrontTD(*plant, x_traj, u_traj, l_traj, lc_traj, vc_traj, 0.25);
+    dairlib::appendStance(*plant, x_traj, u_traj, l_traj, lc_traj, vc_traj, FLAGS_standHeight);
+
+    std::cout<<"Running 5th optimization"<<std::endl;
+    dairlib::runSpiritJump<double>(
+        *plant,
+        x_traj, u_traj, l_traj,
+        lc_traj, vc_traj,
+        false,
         true,
         {7, 7, 7, 7, 7, 7} ,
-        FLAGS_apexGoal,
+        0.35,     // Only active small number modes
         FLAGS_standHeight,
-        FLAGS_foreAftDisplacement,
-        false,
-        false,
+        0.06, // Only active small number modes
+        1.8,       // Only active small number modes
+        0.6,
+        0.43,
+        0.5,
+        -1.00,
+        1,
         false,
         true,
-        1.5,
-<<<<<<< HEAD
-        FLAGS_inputCost/10,
-=======
-        500 * .5,
->>>>>>> Not really making progress
-        FLAGS_velocityCost/10,
-        100,
-        FLAGS_mu,
-        FLAGS_eps,
-        FLAGS_tol,
-<<<<<<< HEAD
-        FLAGS_data_directory+"jump_"+FLAGS_distance_name+"_hq_work_option3",
-        FLAGS_data_directory+"jump_"+FLAGS_distance_name+"_hq");
-=======
+        true,
+        true,
+        1.8,
+        3,
+        10,
+        10/5.0,
+        5/5.0,
+        50000,
+        0,
+        100000,
+        1e-2,
+        1e-3,
         1.0,
-        FLAGS_data_directory+"leap_"+FLAGS_distance_name+"_hq_work",
-        FLAGS_data_directory+"leap_"+FLAGS_distance_name+"_hq");
->>>>>>> Not really making progress
+        FLAGS_data_directory+"three_quarter_leap");
+
+    std::cout<<"Running 6th optimization"<<std::endl;
+    dairlib::runSpiritJump<double>(
+        *plant,
+        x_traj, u_traj, l_traj,
+        lc_traj, vc_traj,
+        true,
+        true,
+        {7, 7, 7, 7, 7, 7} ,
+        0.35,     // Only active small number modes
+        FLAGS_standHeight,
+        0.06, // Only active small number modes
+        1.8,       // Only active small number modes
+        0.6,
+        0.43,       // Ignored if small
+        0.5,   // Ignored if negative
+        -1.00,       // Ignored if negative
+        1,
+        false,
+        true,
+        true,
+        true,
+        1.8,
+        3,
+        10,
+        10/5.0,
+        5/5.0,
+        50000,
+        10,
+        100000,
+        1e-2,
+        1e-3,
+        1.0,
+        FLAGS_data_directory+"full_leap",
+        FLAGS_data_directory+"three_quarter_leap");
+
+    std::cout<<"Running 6th optimization"<<std::endl;
+    dairlib::runSpiritJump<double>(
+        *plant,
+        x_traj, u_traj, l_traj,
+        lc_traj, vc_traj,
+        true,
+        true,
+        {7, 7, 7, 7, 7, 7} ,
+        0.35,     // Only active small number modes
+        FLAGS_standHeight,
+        0.06, // Only active small number modes
+        1.8,       // Only active small number modes
+        0.6,
+        0.43,       // Ignored if small
+        -0.5,   // Ignored if negative
+        -1.00,       // Ignored if negative
+        1,
+        false,
+        true,
+        true,
+        true,
+        1.8,
+        3,
+        10,
+        10/5.0,
+        5/5.0,
+        50000,
+        100,
+        100000,
+        1e-2,
+        1e-4,
+        1.0,
+        FLAGS_data_directory+"full_leap_min_work",
+        FLAGS_data_directory+"full_leap");
   }
-=======
->>>>>>> Seems to be working for basic pitch
 }
 
