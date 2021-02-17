@@ -553,8 +553,12 @@ void addConstraints(MultibodyPlant<T>& plant,
   trajopt.AddBoundingBoxConstraint(liftoff_velocity/2, 100, x_pitch(n_q+velocities_map.at("base_vz")));
 
   // Apex height
+<<<<<<< HEAD
   trajopt.AddBoundingBoxConstraint(.3, 100, xlo(positions_map.at("base_z")) );
 >>>>>>> Seems to be working, messing with 3rd op
+=======
+  trajopt.AddBoundingBoxConstraint(min_final_height, 100, xlo(positions_map.at("base_z")) );
+>>>>>>> Refactored joint limits
 
   for (int i = 0; i < trajopt.N(); i++){
     auto xi = trajopt.state(i);
@@ -949,7 +953,11 @@ int main(int argc, char* argv[]) {
     if(!FLAGS_skipInitialOptimization){
       std::cout<<"Running 1st optimization"<<std::endl;
       //Hopping correct distance, but heavily constrained
+<<<<<<< HEAD
       dairlib::badSpiritRear(*plant, x_traj, u_traj, l_traj, lc_traj, vc_traj);
+=======
+      dairlib::badSpiritJump(*plant,x_traj,u_traj,l_traj,lc_traj,vc_traj);
+>>>>>>> Refactored joint limits
       dairlib::runSpiritJump<double>(
           *plant,
           x_traj, u_traj, l_traj,
@@ -1037,6 +1045,7 @@ int main(int argc, char* argv[]) {
         true,
         {10, 7, 5, 5, 5, 5} ,
 <<<<<<< HEAD
+<<<<<<< HEAD
         0.35,
 =======
         0.4,
@@ -1044,6 +1053,12 @@ int main(int argc, char* argv[]) {
         FLAGS_standHeight,
         0.15,
         0.5,
+=======
+        0.35,
+        FLAGS_standHeight,
+        FLAGS_foreAftDisplacement,
+        2.0,
+>>>>>>> Refactored joint limits
         0.4,
         0,
         0,

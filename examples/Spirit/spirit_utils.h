@@ -166,11 +166,13 @@ std::tuple<  std::vector<std::unique_ptr<dairlib::systems::trajectory_optimizati
 
 /// This overload sets all the joints to their nominal limit's
 ///    @param plant a pointer to a multibodyPlant
-///    @param trajopt a ponter to a Dircon<T> object  
+///    @param trajopt a ponter to a Dircon<T> object
+///    @param true if constraints should avoid singularities
 template <typename T>
 void setSpiritJointLimits(
                     drake::multibody::MultibodyPlant<T> & plant,
-                    dairlib::systems::trajectory_optimization::Dircon<T>& trajopt );
+                    dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,
+                    const bool singularity_free = false);
 
 /// This overload sets an individual joint's position limit
 ///    @param plant a pointer to a multibodyPlant

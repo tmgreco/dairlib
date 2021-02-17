@@ -369,7 +369,8 @@ void setSpiritJointLimits(drake::multibody::MultibodyPlant<T> & plant,
 }
 template <typename T> 
 void setSpiritJointLimits(drake::multibody::MultibodyPlant<T> & plant, 
-                          dairlib::systems::trajectory_optimization::Dircon<T>& trajopt ){
+                          dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,
+                          const bool singularity_free){
   // Upper doesn't need a joint limit for now, but we may eventually want to
   // change this to help the optimizations
   double minValUpper = -2 * M_PI ;
@@ -379,7 +380,7 @@ void setSpiritJointLimits(drake::multibody::MultibodyPlant<T> & plant,
   // the few degrees that come with the body collision and to remove a few to stay
   // away from singularity
   double minValLower =  0;
-  double maxValLower =  M_PI-0.4;
+  double maxValLower =  singularity_free? M_PI-0.4: M_PI-0.2;
   
   // The URDF defines symmetric limits if asymmetric constraints we need to
   // add a mirror since the hips are positive in the same direction
@@ -913,7 +914,8 @@ template void setSpiritJointLimits(
 
 template void setSpiritJointLimits(
           drake::multibody::MultibodyPlant<double> & plant,
-          dairlib::systems::trajectory_optimization::Dircon<double>& trajopt );
+          dairlib::systems::trajectory_optimization::Dircon<double>& trajopt,
+          const bool singularity_free);
 
 template void setSpiritActuationLimits(
           drake::multibody::MultibodyPlant<double> & plant, 
