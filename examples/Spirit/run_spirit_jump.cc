@@ -47,7 +47,7 @@ DEFINE_string(data_directory, "/home/shane/Drake_ws/dairlib/examples/Spirit/save
 DEFINE_string(distance_name, "90cm","name to describe distance");
 
 DEFINE_bool(runAllOptimization, true, "rerun earlier optimizations?");
-DEFINE_bool(skipInitialOptimization, false, "skip first optimizations?");
+DEFINE_bool(skipInitialOptimization, true, "skip first optimizations?");
 DEFINE_bool(minWork, false, "try to minimize work?");
 
 using drake::AutoDiffXd;
@@ -1056,9 +1056,14 @@ int main(int argc, char* argv[]) {
 =======
         0.35,
         FLAGS_standHeight,
+<<<<<<< HEAD
         FLAGS_foreAftDisplacement,
         2.0,
 >>>>>>> Refactored joint limits
+=======
+        0.15,
+        0.5,
+>>>>>>> Leap start
         0.4,
         0,
         0,
