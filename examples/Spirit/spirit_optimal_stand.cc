@@ -64,32 +64,47 @@ namespace dairlib {
             Eigen::Vector3d offset,
             bool rerun,
             double tol,
-            bool animate) {     // Constructor
-        height_ = (static_cast<int>(height*100))/100.0;
-        normal_ = normal/normal.norm();
+            bool animate,
+            std::string filenameBase) {     // Constructor
+
+        
+        int height_cm = static_cast<int>(height*100); // Height to the next cm (floor())
+        height_ = height_cm/100.0; // Saved rounded height for reducing the number of saves
+        normal_ = normal/normal.norm(); // Normalize the surface normal
         offset_ = offset;
         plantPtr_ = plantPtr;
+        // Get the RPY represenation of the unit normal
         drake::math::RollPitchYaw<double> rpy(dairlib::normal2Rotation(normal_)) ;
         rpy_ = rpy.vector();
         std::cout << rpy.vector() << std::endl;;
         double roll = rpy.roll_angle();
         double pitch = rpy.pitch_angle();
+        double yaw = rpy.yaw_angle();
+        // The yaw should be zero, but I'm not sure how well behaved 
+        // the normal2Rotation function is so we check
+        if (abs(yaw)>1e-5){
+            std::cout<<"Warning: Unexpected yaw in the normal's frame"<<std::endl;
+        }
+
+        // Round the angle to the nearest deg for reducing 
+        // the number of saved stands
         int rollDegAbs =  static_cast<int>(abs(roll)*360/(2*M_PI)) ;
         int pitchDegAbs = static_cast<int>(abs(pitch)*360/(2*M_PI)) ;
         std::string  rollSign =  roll<0 ? "n" : "";
         std::string pitchSign = pitch<0 ? "n" : "";
-        double yaw = rpy.yaw_angle();
-        if (abs(yaw)>1e-5){
-            std::cout<<"Unexpected yaw in the normal's frame"<<std::endl;
-        }
 
-        filename_ = "optimalStand_h_"+ std::to_string( static_cast<int>(height*100) ) + "cm" +
+        // Build the file name for the optimal stand
+        filename_ = filenameBase + 
+            "_h_"+ std::to_string( height_cm ) + "cm" +
             "_r_" + rollSign + std::to_string( rollDegAbs ) + "deg" 
             "_p_" + pitchSign + std::to_string( pitchDegAbs )+"deg" ;
+        
+        // Check if the file already exists. 
+        // TRUE: Load file. FALSE: run optimization.
         std::ifstream ifile;
         ifile.open(folder_+filename_);
+
         if(ifile && !rerun){
-            
             ifile.close();
             std::cout<<"Loading optimal stand from file" <<std::endl;
             dairlib::DirconTrajectory loaded_traj(folder_+filename_);
@@ -104,7 +119,8 @@ namespace dairlib {
         dairlib::ModeSequenceHelper msh;
         // Setup mode sequence
         auto sequence = dairlib::systems::trajectory_optimization::DirconModeSequence<double>(*plantPtr_);
-        std::cout<<"Normal:\n"<<normal_<<std::endl;
+        //debug prints
+        // std::cout<<"Normal:\n"<<normal_<<std::endl;
         msh.addMode(
             (Eigen::Matrix<bool,1,4>() << true,  true,  true,  true).finished(),
             5,
@@ -161,7 +177,8 @@ namespace dairlib {
         int n_x = n_q + n_v;
 
         Eigen::Vector3d COMPos = normal_ * height_;
-        std::cout<<"COM Goal = \n"<<COMPos<<std::endl;
+        //debug prints
+        // std::cout<<"COM Goal = \n"<<COMPos<<std::endl;
         int num_knotpoints = trajopt.N();
         for (int iKnot=0;iKnot<num_knotpoints;iKnot++){
             auto xi = trajopt.state(iKnot);

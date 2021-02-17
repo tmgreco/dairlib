@@ -705,7 +705,7 @@ int main(int argc, char* argv[]) {
   Eigen::Vector3d normal = 1 *Eigen::Vector3d::UnitZ() + 0 * Eigen::Vector3d::UnitY();
   normal = normal/normal.norm();
   Eigen::Vector3d offset = Eigen::Vector3d::UnitX()*FLAGS_foreAftDisplacement + Eigen::Vector3d::UnitZ()*FLAGS_boxHeight;
-  std::cout<<"Normal Set: "<<normal<<std::endl;
+  std::cout<<"Normal Set:\n"<<normal<<std::endl;
   dairlib::OptimalSpiritStand initialStand(plant.get(), FLAGS_standHeight, initialNormal, Eigen::Vector3d::Zero(),false);
   dairlib::OptimalSpiritStand   finalStand(plant.get(), FLAGS_standHeight, normal, offset, false);
   std::vector<dairlib::OptimalSpiritStand> stands;

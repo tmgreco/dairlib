@@ -438,17 +438,17 @@ drake::math::RotationMatrix<double> normal2Rotation(Eigen::Vector3d nHat){
   drake::math::RotationMatrix<double> rotMat;
   assert(std::abs(nHat.squaredNorm() - 1) < eps );
   if       ( std::abs(nHat.dot(Eigen::Vector3d::UnitZ()) - 1) < eps){ //If close to +unitZ dont rotate
-    std::cout<<"A"<<std::endl;
+    // std::cout<<"A"<<std::endl;
     rotMat = drake::math::RotationMatrix<double>();
   }else if ( std::abs(nHat.dot(Eigen::Vector3d::UnitZ()) + 1) < eps){ //If close to -unitZ dont rotate
-    std::cout<<"B"<<std::endl;
+    // std::cout<<"B"<<std::endl;
     Eigen::Matrix3d R;
     R <<  1,  0,  0,
           0, -1,  0,
           0,  0, -1;
     rotMat = drake::math::RotationMatrix<double>(R);
   }else if ( std::abs(nHat.dot(Eigen::Vector3d::UnitX())) <= std::abs(nHat.dot(Eigen::Vector3d::UnitY())) ){
-    std::cout<<"C"<<std::endl;
+    // std::cout<<"C"<<std::endl;
     Eigen::Vector3d nyHat =  nHat.cross(Eigen::Vector3d::UnitX());
     Eigen::Vector3d nxHat =  nyHat.cross(nHat);
     Eigen::Matrix3d R;
@@ -457,7 +457,7 @@ drake::math::RotationMatrix<double> normal2Rotation(Eigen::Vector3d nHat){
     R.col(2) << nHat; 
     rotMat = drake::math::RotationMatrix<double>(R);
   }else if ( std::abs(nHat.dot(Eigen::Vector3d::UnitX())) > std::abs(nHat.dot(Eigen::Vector3d::UnitY())) ){
-    std::cout<<"D"<<std::endl;
+    // std::cout<<"D"<<std::endl;
     Eigen::Vector3d nxHat = -nHat.cross(Eigen::Vector3d::UnitY());
     Eigen::Vector3d nyHat =  nHat.cross(nxHat);
     Eigen::Matrix3d R;
@@ -648,7 +648,7 @@ void visualizeSurface(drake::multibody::MultibodyPlant<double>* plant_vis,
   double ly = width_surf;
   double lz = thickness_surf;
 
-  std::cout << rot.matrix() << std::endl;
+  // std::cout << rot.matrix() << std::endl;
   plant_vis->RegisterVisualGeometry( 
     plant_vis->world_body(),
     worldToBodyTransform*bodyToSurfaceTransform,     /* Pose X_BG of the geometry frame G in the cylinder body frame B. */
