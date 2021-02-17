@@ -60,11 +60,15 @@ DEFINE_double(standHeight, 0.2, "The standing height.");
 >>>>>>> It converged!
 DEFINE_double(foreAftDisplacement, 0.0, "The fore-aft displacement.");
 <<<<<<< HEAD
+<<<<<<< HEAD
 DEFINE_double(apexGoal, 0.4, "Apex state goal");
 >>>>>>> Code failing, moving to initial guess work
 =======
 DEFINE_double(apexGoal, 0.35, "Apex state goal");
 >>>>>>> Works for stance
+=======
+DEFINE_double(apexGoal, 0.3, "Apex state goal");
+>>>>>>> Refactored code optimization 1 and 2 work
 DEFINE_double(inputCost, 3, "The standing height.");
 DEFINE_double(velocityCost, 10, "The standing height.");
 DEFINE_double(eps, 1e-2, "The wiggle room.");
@@ -81,11 +85,15 @@ DEFINE_string(distance_name, "90cm","name to describe distance");
 
 DEFINE_bool(runAllOptimization, true, "rerun earlier optimizations?");
 <<<<<<< HEAD
+<<<<<<< HEAD
 DEFINE_bool(skipInitialOptimization, true, "skip first optimizations?");
 DEFINE_bool(minWork, true, "try to minimize work?");
 DEFINE_bool(ipopt, true, "Use IPOPT as solver instead of SNOPT");
 =======
 DEFINE_bool(skipInitialOptimization, false, "skip first optimizations?");
+=======
+DEFINE_bool(skipInitialOptimization, true, "skip first optimizations?");
+>>>>>>> Refactored code optimization 1 and 2 work
 DEFINE_bool(minWork, false, "try to minimize work?");
 >>>>>>> Moving to simpler behaviors
 
@@ -276,8 +284,14 @@ void addCost(MultibodyPlant<T>& plant,
              const double cost_actuation,
              const double cost_velocity,
 <<<<<<< HEAD
+<<<<<<< HEAD
              const double cost_work){
 =======
+=======
+             const double cost_velocity_legs_flight,
+             const double cost_actuation_legs_flight,
+             const double cost_time,
+>>>>>>> Refactored code optimization 1 and 2 work
              const double cost_work,
              const double work_constraint_scale = 1.0){
 <<<<<<< HEAD
@@ -358,7 +372,10 @@ void addCost(MultibodyPlant<T>& plant,
   trajopt.AddRunningCost(1000);
   double leg_velocity_cost = 5;
   double leg_actuation_cost = 10;
-  addCostLegs(plant, trajopt, leg_velocity_cost, leg_actuation_cost, {0, 1, 4, 5, 8, 10}, 1);
+
+  trajopt.AddRunningCost(cost_time);
+
+  addCostLegs(plant, trajopt, cost_velocity_legs_flight, cost_actuation_legs_flight, {0, 1, 4, 5, 8, 10}, 1);
   //addCostLegs(plant, trajopt, leg_velocity_cost, leg_actuation_cost, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}, 2);
 >>>>>>> It converged!
 } // Function
@@ -368,13 +385,13 @@ void addCost(MultibodyPlant<T>& plant,
 template <typename T>
 void addConstraints(MultibodyPlant<T>& plant,
              dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,
-                    const double apex_height,
+                    const double min_final_height,
                     const double initial_height,
                     const double fore_aft_displacement,
+                    const double liftoff_velocity,
+                    const double pitch_magnitude,
                     const bool lock_rotation,
-                    const bool lock_legs_apex,
-                    const bool force_symmetry,
-                    const bool use_nominal_stand,
+                    const bool lock_knees_stance,
                     const double max_duration,
                     const double eps){
 
@@ -399,7 +416,7 @@ void addConstraints(MultibodyPlant<T>& plant,
   /// Constraining xy position
   // Initial body positions
   trajopt.AddBoundingBoxConstraint(0, 0, x0(positions_map.at("base_x"))); // Give the initial condition room to choose the x_init position
-  trajopt.AddBoundingBoxConstraint(-0.15, 0.15, xapex(positions_map.at("base_x"))); // Give the initial condition room to choose the x_init position
+  trajopt.AddBoundingBoxConstraint(fore_aft_displacement-eps, fore_aft_displacement+eps, xapex(positions_map.at("base_x"))); // Give the initial condition room to choose the x_init position
 
   // Final body positions conditions
   trajopt.AddBoundingBoxConstraint( -eps, eps, x0( positions_map.at("base_y")));
@@ -414,7 +431,7 @@ void addConstraints(MultibodyPlant<T>& plant,
   trajopt.AddBoundingBoxConstraint(0, 0, x0(positions_map.at("base_qy")));
   trajopt.AddBoundingBoxConstraint(0, 0, x0(positions_map.at("base_qz")));
 
-  double pitch = 0.4;
+  double pitch = abs(pitch_magnitude);
   // Body pose constraints (keep the body flat) at apex state
   trajopt.AddBoundingBoxConstraint(cos(pitch/2.0), 1, xapex(positions_map.at("base_qw")));
   trajopt.AddBoundingBoxConstraint(0, 0, xapex(positions_map.at("base_qx")));
@@ -425,8 +442,8 @@ void addConstraints(MultibodyPlant<T>& plant,
   //trajopt.AddCost(-0.1 * xapex(positions_map.at("base_qw")));
   // Initial and final velocity
   trajopt.AddBoundingBoxConstraint(VectorXd::Zero(n_v), VectorXd::Zero(n_v), x0.tail(n_v));
-  trajopt.AddBoundingBoxConstraint(0, 100, xapex(n_q+velocities_map.at("base_vz")));
-  trajopt.AddBoundingBoxConstraint(0, 100, x_pitch(n_q+velocities_map.at("base_vz")));
+  trajopt.AddBoundingBoxConstraint(liftoff_velocity, 100, xapex(n_q+velocities_map.at("base_vz")));
+  trajopt.AddBoundingBoxConstraint(liftoff_velocity/2, 100, x_pitch(n_q+velocities_map.at("base_vz")));
 
   // Apex height
   trajopt.AddBoundingBoxConstraint(.3, 100, xapex(positions_map.at("base_z")) );
@@ -447,8 +464,8 @@ void addConstraints(MultibodyPlant<T>& plant,
   for(int knot_index = 0; knot_index < trajopt.mode_length(mode_index)-1; knot_index++){
     auto xi = trajopt.state_vars(mode_index, knot_index);
     // Lock back knees
-    trajopt.AddBoundingBoxConstraint(0,0,xi(n_q+velocities_map.at("joint_3dot")));
-    trajopt.AddBoundingBoxConstraint(0,0,xi(n_q+velocities_map.at("joint_7dot")));
+    //trajopt.AddBoundingBoxConstraint(0,0,xi(n_q+velocities_map.at("joint_3dot")));
+    //trajopt.AddBoundingBoxConstraint(0,0,xi(n_q+velocities_map.at("joint_7dot")));
   }
   Eigen::VectorXd end_state_nominal;
   dairlib::nominalSpiritStand(plant, end_state_nominal, initial_height);
@@ -528,7 +545,7 @@ getModeSequence(
 /// \param vc_traj[in, out]: initial and solution contact velocity slack variable trajectory
 /// \param animate: true if solution should be animated, false otherwise
 /// \param num_knot_points: number of knot points used for each mode (vector)
-/// \param apex_height: apex height of the jump, if 0, do not enforce and apex height
+/// \param min_final_height: apex height of the jump, if 0, do not enforce and apex height
 /// \param initial_height: initial and final height of the jump
 /// \param fore_aft_displacement: fore-aft displacemnt after jump
 /// \param lock_rotation: true if rotation is constrained at all knot points, false if just initial and final state
@@ -554,16 +571,19 @@ void runSpiritJump(
     vector<PiecewisePolynomial<double>>& vc_traj,
     const bool animate,
     std::vector<int> num_knot_points,
-    const double apex_height,
+    const double min_final_height,
     const double initial_height,
     const double fore_aft_displacement,
+    const double liftoff_velocity,
+    const double pitch_magnitude,
     const bool lock_rotation,
-    const bool lock_legs_apex,
-    const bool force_symmetry,
-    const bool use_nominal_stand,
+    const bool lock_knees_stance,
     const double max_duration,
     const double cost_actuation,
     const double cost_velocity,
+    const double cost_velocity_legs_flight,
+    const double cost_actuation_legs_flight,
+    const double cost_time,
     const double cost_work,
     const double mu,
     const double eps,
@@ -664,7 +684,11 @@ void runSpiritJump(
 
 >>>>>>> Sort of working first half jump
   // Setting up cost
+<<<<<<< HEAD
   addCost(plant, trajopt, cost_actuation, cost_velocity, cost_work);
+=======
+  addCost(plant, trajopt, cost_actuation, cost_velocity, cost_velocity_legs_flight, cost_actuation_legs_flight, cost_time, cost_work, work_constraint_scale);
+>>>>>>> Refactored code optimization 1 and 2 work
 
 // Initialize the trajectory control state and forces
   if (file_name_in.empty()){
@@ -682,8 +706,9 @@ void runSpiritJump(
     trajopt.SetInitialGuessForAllVariables(loaded_traj.GetDecisionVariables());
   }
 
-  addConstraints(plant, trajopt, apex_height, initial_height, fore_aft_displacement, lock_rotation,
-                    lock_legs_apex, force_symmetry, use_nominal_stand, max_duration, eps);
+  addConstraints(plant, trajopt, min_final_height,
+                 initial_height, fore_aft_displacement, liftoff_velocity, pitch_magnitude,
+                 lock_rotation, lock_knees_stance, max_duration, eps);
 
   /// Setup the visualization during the optimization
   int num_ghosts = 1;// Number of ghosts in visualization. NOTE: there are limitations on number of ghosts based on modes and knotpoints
@@ -812,14 +837,22 @@ int main(int argc, char* argv[]) {
 
   if (FLAGS_runAllOptimization){
 <<<<<<< HEAD
+<<<<<<< HEAD
     if(! FLAGS_skipInitialOptimization){
       std::cout<<"Running initial optimization"<<std::endl;
       dairlib::badSpiritJump(*plant, x_traj, u_traj, l_traj, lc_traj, vc_traj);
+=======
+    if(!FLAGS_skipInitialOptimization){
+      std::cout<<"Running 1st optimization"<<std::endl;
+      //Hopping correct distance, but heavily constrained
+
+>>>>>>> Refactored code optimization 1 and 2 work
       dairlib::runSpiritJump<double>(
           *plant,
           x_traj, u_traj, l_traj,
           lc_traj, vc_traj,
           false,
+<<<<<<< HEAD
           {7, 7, 7, 7},
           FLAGS_apexGoal,
           FLAGS_standHeight,
@@ -892,6 +925,57 @@ int main(int argc, char* argv[]) {
         1e-4,
         1.0,
         FLAGS_data_directory+"simple_rear");
+=======
+          {10, 7, 5, 5, 5, 5} ,
+          FLAGS_apexGoal,
+          FLAGS_standHeight,
+          FLAGS_foreAftDisplacement,
+          0,
+          0.4,
+          true,
+          true,
+          0.5,
+          0.3,
+          1,
+          5,
+          10,
+          1000,
+          0,
+          100000,
+          0,
+          1e-4,
+          1.0,
+          FLAGS_data_directory+"simple_rear");
+
+      std::cout<<"Running 2nd optimization"<<std::endl;
+
+      dairlib::runSpiritJump<double>(
+          *plant,
+          x_traj, u_traj, l_traj,
+          lc_traj, vc_traj,
+          false,
+          {10, 7, 5, 5, 5, 5} ,
+          FLAGS_apexGoal,
+          FLAGS_standHeight,
+          FLAGS_foreAftDisplacement,
+          0,
+          0.4,
+          false,
+          true,
+          0.8,
+          3,
+          20,
+          5,
+          10,
+          1000,
+          0,
+          100000,
+          1e-2,
+          1e-4,
+          1.0,
+          FLAGS_data_directory+"simple_rear2");
+    }
+>>>>>>> Refactored code optimization 1 and 2 work
 
     std::cout<<"Running 3rd optimization"<<std::endl;
 
@@ -904,37 +988,16 @@ int main(int argc, char* argv[]) {
         FLAGS_apexGoal,
         FLAGS_standHeight,
         FLAGS_foreAftDisplacement,
-        false,
-        false,
-        false,
-        true,
-        0.8,
-        3,
-        20,
-        0,
-        100000,
-        1e-2,
-        1e-4,
-        1.0,
-        FLAGS_data_directory+"simple_rear2",
-        FLAGS_data_directory+"simple_rear");
-
-    dairlib::runSpiritJump<double>(
-        *plant,
-        x_traj, u_traj, l_traj,
-        lc_traj, vc_traj,
-        true,
-        {10, 7, 5, 5, 5, 5} ,
-        FLAGS_apexGoal,
-        FLAGS_standHeight,
-        FLAGS_foreAftDisplacement,
-        false,
-        false,
+        0.2,
+        0.4,
         false,
         true,
         0.8,
         3,
         20,
+        5,
+        10,
+        1000,
         0,
         100000,
         1e-2,
