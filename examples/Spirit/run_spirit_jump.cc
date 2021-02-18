@@ -316,17 +316,65 @@ void appendFrontTD(MultibodyPlant<T>& plant,
 >>>>>>> Leap is working fairly well
 
 template <typename T>
+<<<<<<< HEAD
 void appendStance(MultibodyPlant<T>& plant,
                   vector<PiecewisePolynomial<double>>& x_traj,
+=======
+void appendFrontTD(MultibodyPlant<T>& plant,
+                  PiecewisePolynomial<double>& x_traj,
+>>>>>>> Jump seems to be working alright
                   PiecewisePolynomial<double>& u_traj,
                   vector<PiecewisePolynomial<double>>& l_traj,
                   vector<PiecewisePolynomial<double>>& lc_traj,
                   vector<PiecewisePolynomial<double>>& vc_traj,
+<<<<<<< HEAD
                   double final_height){
   auto xtd = x_traj[4].value(x_traj[4].end_time());
   auto positions_map = multibody::makeNameToPositionsMap(plant);
   auto velocities_map = multibody::makeNameToVelocitiesMap(plant);
   int n_q = plant.num_positions();
+=======
+                  const double td_height){
+  auto xapex = x_traj.value(x_traj.end_time());
+  auto positions_map = multibody::makeNameToPositionsMap(plant);
+  auto velocities_map = multibody::makeNameToVelocitiesMap(plant);
+  int n_q = plant.num_positions();
+
+  double apex_height = xapex(positions_map.at("base_z"));
+  double apex_time = x_traj.end_time();
+  double td_time = apex_time + sqrt((apex_height-td_height)*2/9.81);
+  double initial_pitch = 2 * asin(xapex(positions_map.at("base_qy")));
+  double td_pitch = initial_pitch + (td_time - apex_time) * xapex(n_q + velocities_map.at("base_wy"));
+  double td_foreaft_pos = xapex(positions_map.at("base_x")) + (td_time - apex_time) * xapex(n_q + velocities_map.at("base_vx"));
+  VectorXd x_const;
+  dairlib::ikSpiritStand(plant, x_const, {true, false, true, false}, td_height, 0.15, 0, td_pitch);
+  x_const(positions_map.at("base_x")) = td_foreaft_pos;
+  std::vector<MatrixXd> x_points = {xapex, x_const};
+  std::vector<double> time_vec = {x_traj.end_time(), td_time};
+  x_traj.ConcatenateInTime(PiecewisePolynomial<double>::FirstOrderHold(time_vec,x_points));
+
+  std::vector<MatrixXd> u_points = {u_traj.value(u_traj.end_time()), u_traj.value(u_traj.end_time())};
+  u_traj.ConcatenateInTime(PiecewisePolynomial<double>::FirstOrderHold(time_vec,u_points));
+
+  auto zero_vec = VectorXd::Zero(12);
+  std::vector<MatrixXd> zero_traj = {zero_vec, zero_vec};
+  time_vec[1] = time_vec[1]/2;
+  auto zero_poly = PiecewisePolynomial<double>::ZeroOrderHold(time_vec, zero_traj);
+  l_traj.push_back(zero_poly);
+  lc_traj.push_back(zero_poly);
+  vc_traj.push_back(zero_poly);
+
+  VectorXd front_stance_vec;
+  front_stance_vec << 0, 0, 10*9.81, 0, 0, 0, 0, 0, 10*9.81, 0, 0, 0;
+  std::vector<MatrixXd> front_traj = {front_stance_vec, front_stance_vec};
+  time_vec = {time_vec[1], td_time};
+  auto front_poly = PiecewisePolynomial<double>::ZeroOrderHold(time_vec, front_traj);
+  l_traj.push_back(front_poly);
+  lc_traj.push_back(front_poly);
+  vc_traj.push_back(front_poly);
+}
+
+>>>>>>> Jump seems to be working alright
 
   VectorXd x_const;
   dairlib::ikSpiritStand(plant, x_const, {true, true, true, true}, final_height, 0.15, 0, 0);
@@ -404,18 +452,24 @@ void addCost(MultibodyPlant<T>& plant,
 
   trajopt.AddRunningCost(cost_time);
 
-  addCostLegs(plant, trajopt, cost_velocity_legs_flight, cost_actuation_legs_flight, {0, 1, 4, 5, 8, 10}, 1);
+  addCostLegs(plant, trajopt, cost_velocity_legs_flight, cost_actuation_legs_flight, {0, 1, 4, 5, 8, 9}, 1);
   if(trajopt.num_modes() > 2){
     addCostLegs(plant, trajopt, cost_velocity_legs_flight, cost_actuation_legs_flight, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}, 2);
   }
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> Jump seems to be working alright
   if(trajopt.num_modes() > 3){
     addCostLegs(plant, trajopt, cost_velocity_legs_flight, cost_actuation_legs_flight, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}, 3);
   }
   if(trajopt.num_modes() > 4){
     addCostLegs(plant, trajopt, cost_velocity_legs_flight, cost_actuation_legs_flight, {2, 3, 6, 7, 10, 11}, 4);
   }
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> Jump seems to be working alright
 
 >>>>>>> Leap is working fairly well
 } // Function
@@ -426,7 +480,6 @@ void addConstraintsFlight(MultibodyPlant<T>& plant,
   auto velocities_map = multibody::makeNameToVelocitiesMap(plant);
   auto   xapex  = trajopt.final_state();
   trajopt.AddBoundingBoxConstraint(0, 0, xapex(plant.num_positions()+velocities_map.at("base_vz")));
-  std::cout << "foo" << std::endl;
   nominalSpiritStandConstraint(plant, trajopt, FLAGS_standHeight, {trajopt.N()-1}, 1e-2);
 }
 
@@ -878,10 +931,14 @@ void runSpiritJump(
     const bool lock_rotation,
     const bool optimize_flight,
 <<<<<<< HEAD
+<<<<<<< HEAD
     const bool optimize_td,
     const bool optimize_stance,
 =======
 >>>>>>> Leap is working fairly well
+=======
+    const bool optimize_td,
+>>>>>>> Jump seems to be working alright
     const double max_duration,
     const double cost_actuation,
     const double cost_velocity,
@@ -1129,6 +1186,7 @@ int main(int argc, char* argv[]) {
 <<<<<<< HEAD
           false,
           false,
+<<<<<<< HEAD
           false,
 =======
           true, //Does not do anything
@@ -1136,6 +1194,8 @@ int main(int argc, char* argv[]) {
 =======
           false,
 >>>>>>> Leap is working fairly well
+=======
+>>>>>>> Jump seems to be working alright
           0.5,
           0.3,
           1,
@@ -1171,6 +1231,7 @@ int main(int argc, char* argv[]) {
           false,
           false,
 <<<<<<< HEAD
+<<<<<<< HEAD
           false,
 <<<<<<< HEAD
 =======
@@ -1178,6 +1239,8 @@ int main(int argc, char* argv[]) {
 >>>>>>> Seems to be working, messing with 3rd op
 =======
 >>>>>>> Leap is working fairly well
+=======
+>>>>>>> Jump seems to be working alright
           0.8,
           3,
           20,
@@ -1200,18 +1263,19 @@ int main(int argc, char* argv[]) {
 //        lc_traj, vc_traj,
 //        false,
 //        {10, 7, 5, 5, 5, 5} ,
-//        0.4,
+//        0.35,
 //        FLAGS_standHeight,
 //        0.02,
-//        1.5,
+//        1,
 //        0.4,
+//        false,
 //        false,
 //        false,
 //        0.8,
 //        3,
-//        20,
-//        5,
 //        10,
+//        1,
+//        4,
 //        2000,
 //        0,
 //        100000,
@@ -1241,6 +1305,7 @@ int main(int argc, char* argv[]) {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         0.35,
 =======
         0.4,
@@ -1265,6 +1330,12 @@ int main(int argc, char* argv[]) {
         0.02,
         1.5,
 >>>>>>> Leap is working fairly well
+=======
+        0.35,
+        FLAGS_standHeight,
+        0.02,
+        1,
+>>>>>>> Jump seems to be working alright
         0.4,
         0,
         0,
@@ -1291,11 +1362,13 @@ int main(int argc, char* argv[]) {
 >>>>>>> Seems to be working, messing with 3rd op
 =======
         true,
+        false,
         1.8,
         3,
-        20,
+        5,
         50,
         100,
+<<<<<<< HEAD
         500,
 >>>>>>> Leap is working fairly well
         0,
@@ -1343,6 +1416,9 @@ int main(int argc, char* argv[]) {
         5,
         10,
         4000,
+=======
+        1000,
+>>>>>>> Jump seems to be working alright
         0,
         100000,
         1e-2,
@@ -1468,5 +1544,8 @@ int main(int argc, char* argv[]) {
         FLAGS_data_directory+"half_leap");
 >>>>>>> Leap is working fairly well
   }
+
+  dairlib::appendFrontTD(*plant, x_traj, u_traj, l_traj, lc_traj, vc_traj, 0.4);
+
 }
 
