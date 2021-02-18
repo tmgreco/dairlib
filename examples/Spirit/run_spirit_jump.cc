@@ -82,7 +82,11 @@ using std::endl;
 /// \param vc_traj[out]: initial and solution contact velocity slack variable trajectory
 template <typename T>
 void badSpiritRear(MultibodyPlant<T>& plant,
+<<<<<<< HEAD
                    vector<PiecewisePolynomial<double>>& x_traj,
+=======
+                   PiecewisePolynomial<double>& x_traj,
+>>>>>>> Leap is working fairly well
                    PiecewisePolynomial<double>& u_traj,
                    vector<PiecewisePolynomial<double>>& l_traj,
                    vector<PiecewisePolynomial<double>>& lc_traj,
@@ -202,18 +206,30 @@ void badSpiritRear(MultibodyPlant<T>& plant,
 
 template <typename T>
 void appendFlight(MultibodyPlant<T>& plant,
+<<<<<<< HEAD
                   vector<PiecewisePolynomial<double>>& x_traj,
+=======
+                  PiecewisePolynomial<double>& x_traj,
+>>>>>>> Leap is working fairly well
                   PiecewisePolynomial<double>& u_traj,
                   vector<PiecewisePolynomial<double>>& l_traj,
                   vector<PiecewisePolynomial<double>>& lc_traj,
                   vector<PiecewisePolynomial<double>>& vc_traj){
+<<<<<<< HEAD
   auto xlo = x_traj[1].value(x_traj[1].end_time());
+=======
+  auto xlo = x_traj.value(x_traj.end_time());
+>>>>>>> Leap is working fairly well
   auto positions_map = multibody::makeNameToPositionsMap(plant);
   auto velocities_map = multibody::makeNameToVelocitiesMap(plant);
   int n_q = plant.num_positions();
 
   double apex_height = xlo(positions_map.at("base_z")) + xlo(n_q+velocities_map.at("base_vz"))/2.0/9.81;
+<<<<<<< HEAD
   double apex_time = x_traj[1].end_time() + xlo(n_q+velocities_map.at("base_vz"))/9.81;
+=======
+  double apex_time = x_traj.end_time() + xlo(n_q+velocities_map.at("base_vz"))/9.81;
+>>>>>>> Leap is working fairly well
   double initial_pitch = 2 * asin(xlo(positions_map.at("base_qy")));
   double apex_pitch = initial_pitch + xlo(n_q+velocities_map.at("base_vz"))/9.81 * xlo(n_q + velocities_map.at("base_wy"));
   double apex_foreaft_pos = xlo(positions_map.at("base_x")) + xlo(n_q+velocities_map.at("base_vz"))/9.81 * xlo(n_q + velocities_map.at("base_vx"));
@@ -221,8 +237,13 @@ void appendFlight(MultibodyPlant<T>& plant,
   dairlib::ikSpiritStand(plant, x_const, {false, false, false, false}, apex_height, 0.15, 0, apex_pitch);
   x_const(positions_map.at("base_x")) = apex_foreaft_pos;
   std::vector<MatrixXd> x_points = {xlo, x_const};
+<<<<<<< HEAD
   std::vector<double> time_vec = {x_traj[1].end_time(), apex_time};
   x_traj.push_back(PiecewisePolynomial<double>::FirstOrderHold(time_vec,x_points));
+=======
+  std::vector<double> time_vec = {x_traj.end_time(), apex_time};
+  x_traj.ConcatenateInTime(PiecewisePolynomial<double>::FirstOrderHold(time_vec,x_points));
+>>>>>>> Leap is working fairly well
 
   std::vector<MatrixXd> u_points = {u_traj.value(u_traj.end_time()), u_traj.value(u_traj.end_time())};
   u_traj.ConcatenateInTime(PiecewisePolynomial<double>::FirstOrderHold(time_vec,u_points));
@@ -234,6 +255,7 @@ void appendFlight(MultibodyPlant<T>& plant,
   lc_traj.push_back(zero_poly);
   vc_traj.push_back(zero_poly);
 }
+<<<<<<< HEAD
 
 template <typename T>
 void appendFrontTD(MultibodyPlant<T>& plant,
@@ -290,6 +312,8 @@ void appendFrontTD(MultibodyPlant<T>& plant,
   lc_traj.push_back(front_poly);
   vc_traj.push_back(front_poly);
 }
+=======
+>>>>>>> Leap is working fairly well
 
 template <typename T>
 void appendStance(MultibodyPlant<T>& plant,
@@ -384,13 +408,27 @@ void addCost(MultibodyPlant<T>& plant,
   if(trajopt.num_modes() > 2){
     addCostLegs(plant, trajopt, cost_velocity_legs_flight, cost_actuation_legs_flight, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}, 2);
   }
+<<<<<<< HEAD
   if(trajopt.num_modes() > 3){
     addCostLegs(plant, trajopt, cost_velocity_legs_flight, cost_actuation_legs_flight, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}, 3);
   }
   if(trajopt.num_modes() > 4){
     addCostLegs(plant, trajopt, cost_velocity_legs_flight, cost_actuation_legs_flight, {2, 3, 6, 7, 10, 11}, 4);
   }
+=======
+
+>>>>>>> Leap is working fairly well
 } // Function
+template <typename T>
+void addConstraintsFlight(MultibodyPlant<T>& plant,
+                    dairlib::systems::trajectory_optimization::Dircon<T>& trajopt){
+  auto positions_map = multibody::makeNameToPositionsMap(plant);
+  auto velocities_map = multibody::makeNameToVelocitiesMap(plant);
+  auto   xapex  = trajopt.final_state();
+  trajopt.AddBoundingBoxConstraint(0, 0, xapex(plant.num_positions()+velocities_map.at("base_vz")));
+  std::cout << "foo" << std::endl;
+  nominalSpiritStandConstraint(plant, trajopt, FLAGS_standHeight, {trajopt.N()-1}, 1e-2);
+}
 
 template <typename T>
 void addConstraintsFlight(MultibodyPlant<T>& plant,
@@ -499,12 +537,17 @@ void addConstraints(MultibodyPlant<T>& plant,
   int n_v = plant.num_velocities();
 
 <<<<<<< HEAD
+<<<<<<< HEAD
   auto x0  = trajopt.initial_state();
   auto xlo = trajopt.num_modes()> 2 ? trajopt.state_vars(2,0):trajopt.final_state();
 =======
   auto   x0  = trajopt.initial_state();
   auto xlo = trajopt.final_state();
 >>>>>>> Seems to be working, messing with 3rd op
+=======
+  auto x0  = trajopt.initial_state();
+  auto xlo = trajopt.num_modes()> 2 ? trajopt.state_vars(2,0):trajopt.final_state();
+>>>>>>> Leap is working fairly well
   auto x_pitch = trajopt.state_vars(1,0);
 
   // Add duration constraint, currently constrained not bounded
@@ -588,12 +631,26 @@ void addConstraints(MultibodyPlant<T>& plant,
   }
 }
 
+<<<<<<< HEAD
 void getModeSequenceHelper(dairlib::ModeSequenceHelper& msh,
                            const double mu,
                            std::vector<int> num_knot_points,
                           const bool optimize_flight,
                            const bool optimize_td,
                            const bool optimize_stance){
+=======
+/// getModeSequenceRear, initializes the trajopt mode seqence for jump, see runSpiritJump for a def of inputs
+template <typename T>
+std::tuple<  std::vector<std::unique_ptr<dairlib::systems::trajectory_optimization::DirconMode<T>>>,
+             std::vector<std::unique_ptr<multibody::WorldPointEvaluator<T>>> ,
+             std::vector<std::unique_ptr<multibody::KinematicEvaluatorSet<T>>>>
+getModeSequenceRear(
+    drake::multibody::MultibodyPlant<T>& plant, // multibodyPlant
+    const double mu,
+    std::vector<int> num_knot_points,
+    DirconModeSequence<T>& sequence){
+  dairlib::ModeSequenceHelper msh;
+>>>>>>> Leap is working fairly well
   msh.addMode( // Stance
       (Eigen::Matrix<bool,1,4>() << true,  true,  true,  true).finished(), // contact bools
       num_knot_points[0],  // number of knot points in the collocation
@@ -698,6 +755,76 @@ getModeSequence(
     }
     sequence.AddMode(mode.get());
   }
+<<<<<<< HEAD
+=======
+  return {std::move(modeVector), std::move(toeEvals), std::move(toeEvalSets)};
+}
+
+/// getModeSequenceRear, initializes the trajopt mode seqence for jump, see runSpiritJump for a def of inputs
+template <typename T>
+std::tuple<  std::vector<std::unique_ptr<dairlib::systems::trajectory_optimization::DirconMode<T>>>,
+             std::vector<std::unique_ptr<multibody::WorldPointEvaluator<T>>> ,
+             std::vector<std::unique_ptr<multibody::KinematicEvaluatorSet<T>>>>
+getModeSequenceFlight(
+    drake::multibody::MultibodyPlant<T>& plant, // multibodyPlant
+    const double mu,
+    std::vector<int> num_knot_points,
+    DirconModeSequence<T>& sequence){
+
+  dairlib::ModeSequenceHelper msh;
+  msh.addMode( // Stance
+      (Eigen::Matrix<bool,1,4>() << true,  true,  true,  true).finished(), // contact bools
+      num_knot_points[0],  // number of knot points in the collocation
+      Eigen::Vector3d::UnitZ(), // normal
+      Eigen::Vector3d::Zero(),  // world offset
+      mu, //friction
+      0.03,
+      0.5
+  );
+  msh.addMode( // Stance
+      (Eigen::Matrix<bool,1,4>() << false,  true,  false,  true).finished(), // contact bools
+      num_knot_points[1],  // number of knot points in the collocation
+      Eigen::Vector3d::UnitZ(), // normal
+      Eigen::Vector3d::Zero(),  // world offset
+      mu, //friction
+      0.03,
+      1.0
+  );
+  msh.addMode( // Stance
+      (Eigen::Matrix<bool,1,4>() << false,  false,  false,  false).finished(), // contact bools
+      num_knot_points[2],  // number of knot points in the collocation
+      Eigen::Vector3d::UnitZ(), // normal
+      Eigen::Vector3d::Zero(),  // world offset
+      mu, //friction
+      0.03,
+      1.0
+  );
+  auto [modeVector, toeEvals, toeEvalSets] = createSpiritModeSequence(plant, msh);
+
+  for (auto& mode : modeVector){
+    for (int i = 0; i < mode->evaluators().num_evaluators(); i++ ){
+      mode->MakeConstraintRelative(i,0);
+      mode->MakeConstraintRelative(i,1);
+    }
+    mode->SetDynamicsScale(
+        {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19}, 150.0);
+    if (mode->evaluators().num_evaluators() == 4)
+    {
+      mode->SetKinVelocityScale(
+          {0, 1, 2, 3}, {0, 1, 2}, 1.0);
+      mode->SetKinPositionScale(
+          {0, 1, 2, 3}, {0, 1, 2}, 150.0);
+    }
+    else if (mode->evaluators().num_evaluators() == 2){
+      mode->SetKinVelocityScale(
+          {0, 1}, {0, 1, 2}, 1.0);
+      mode->SetKinPositionScale(
+          {0, 1}, {0, 1, 2}, 150.0);
+    }
+    sequence.AddMode(mode.get());
+  }
+
+>>>>>>> Leap is working fairly well
   return {std::move(modeVector), std::move(toeEvals), std::move(toeEvalSets)};
 }
 
@@ -750,8 +877,11 @@ void runSpiritJump(
     const double td_displacement,
     const bool lock_rotation,
     const bool optimize_flight,
+<<<<<<< HEAD
     const bool optimize_td,
     const bool optimize_stance,
+=======
+>>>>>>> Leap is working fairly well
     const double max_duration,
     const double cost_actuation,
     const double cost_velocity,
@@ -780,7 +910,12 @@ void runSpiritJump(
 
   // Setup mode sequence
   auto sequence = DirconModeSequence<T>(plant);
+<<<<<<< HEAD
   auto [modeVector, toeEvals, toeEvalSets] =  getModeSequence(plant, mu, num_knot_points, sequence, optimize_flight, optimize_td, optimize_stance);
+=======
+  auto [modeVector, toeEvals, toeEvalSets] =  optimize_flight ? getModeSequenceFlight(plant, mu, num_knot_points, sequence)
+                                                              : getModeSequenceRear(plant, mu, num_knot_points, sequence);
+>>>>>>> Leap is working fairly well
 
   ///Setup trajectory optimization
   auto trajopt = Dircon<T>(sequence);
@@ -828,6 +963,11 @@ void runSpiritJump(
   if (file_name_in.empty()){
     //trajopt.SetInitialGuessForAllVariables(
     //    VectorXd::Zero(trajopt.decision_variables().size()));
+<<<<<<< HEAD
+=======
+    trajopt.drake::systems::trajectory_optimization::MultipleShooting::
+        SetInitialTrajectory(u_traj, x_traj);
+>>>>>>> Leap is working fairly well
     for (int j = 0; j < sequence.num_modes(); j++) {
       trajopt.SetInitialTrajectoryForMode(j, x_traj[j], u_traj, x_traj[j].start_time(), x_traj[j].end_time());
       trajopt.SetInitialForceTrajectory(j, l_traj[j], lc_traj[j],
@@ -842,12 +982,18 @@ void runSpiritJump(
   addConstraints(plant, trajopt, min_final_height,
                  initial_height, fore_aft_displacement, liftoff_velocity, pitch_magnitude,
                  lock_rotation, false, max_duration, eps);
+<<<<<<< HEAD
   if(optimize_flight)
     addConstraintsFlight(plant, trajopt, apex_height, apex_displacement, eps);
   if(optimize_td)
     addConstraintsTD(plant, trajopt, td_height, td_displacement, eps);
   if(optimize_stance)
     addConstraintsStance(plant, trajopt, initial_height, td_displacement, eps);
+=======
+ if(optimize_flight)
+    addConstraintsFlight(plant, trajopt);
+
+>>>>>>> Leap is working fairly well
 
   /// Setup the visualization during the optimization
   int num_ghosts = 1;// Number of ghosts in visualization. NOTE: there are limitations on number of ghosts based on modes and knotpoints
@@ -954,10 +1100,14 @@ int main(int argc, char* argv[]) {
       std::cout<<"Running 1st optimization"<<std::endl;
       //Hopping correct distance, but heavily constrained
 <<<<<<< HEAD
+<<<<<<< HEAD
       dairlib::badSpiritRear(*plant, x_traj, u_traj, l_traj, lc_traj, vc_traj);
 =======
       dairlib::badSpiritJump(*plant,x_traj,u_traj,l_traj,lc_traj,vc_traj);
 >>>>>>> Refactored joint limits
+=======
+      dairlib::badSpiritRear(*plant, x_traj, u_traj, l_traj, lc_traj, vc_traj);
+>>>>>>> Leap is working fairly well
       dairlib::runSpiritJump<double>(
           *plant,
           x_traj, u_traj, l_traj,
@@ -976,12 +1126,16 @@ int main(int argc, char* argv[]) {
           0,
           true,
 <<<<<<< HEAD
+<<<<<<< HEAD
           false,
           false,
           false,
 =======
           true, //Does not do anything
 >>>>>>> Seems to be working, messing with 3rd op
+=======
+          false,
+>>>>>>> Leap is working fairly well
           0.5,
           0.3,
           1,
@@ -1016,11 +1170,14 @@ int main(int argc, char* argv[]) {
           false,
           false,
           false,
+<<<<<<< HEAD
           false,
 <<<<<<< HEAD
 =======
           true, //Does not do anything
 >>>>>>> Seems to be working, messing with 3rd op
+=======
+>>>>>>> Leap is working fairly well
           0.8,
           3,
           20,
@@ -1037,6 +1194,43 @@ int main(int argc, char* argv[]) {
 
     std::cout<<"Running 3rd optimization"<<std::endl;
 
+//    dairlib::runSpiritJump<double>(
+//        *plant,
+//        x_traj, u_traj, l_traj,
+//        lc_traj, vc_traj,
+//        false,
+//        {10, 7, 5, 5, 5, 5} ,
+//        0.4,
+//        FLAGS_standHeight,
+//        0.02,
+//        1.5,
+//        0.4,
+//        false,
+//        false,
+//        0.8,
+//        3,
+//        20,
+//        5,
+//        10,
+//        2000,
+//        0,
+//        100000,
+//        1e-2,
+//        1e-4,
+//        1.0,
+//        FLAGS_data_directory+"simple_rear3",
+//        FLAGS_data_directory+"simple_rear2");
+
+    dairlib::DirconTrajectory old_traj(FLAGS_data_directory+"simple_rear3");
+    x_traj = old_traj.ReconstructStateTrajectory();
+    u_traj = old_traj.ReconstructInputTrajectory();
+    l_traj = old_traj.ReconstructLambdaTrajectory();
+    lc_traj = old_traj.ReconstructLambdaCTrajectory();
+    vc_traj = old_traj.ReconstructGammaCTrajectory();
+
+    dairlib::appendFlight(*plant, x_traj, u_traj, l_traj, lc_traj, vc_traj);
+
+    std::cout<<"Running 4th optimization"<<std::endl;
     dairlib::runSpiritJump<double>(
         *plant,
         x_traj, u_traj, l_traj,
@@ -1044,6 +1238,7 @@ int main(int argc, char* argv[]) {
         false,
         true,
         {10, 7, 5, 5, 5, 5} ,
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
         0.35,
@@ -1064,6 +1259,12 @@ int main(int argc, char* argv[]) {
         0.15,
         0.5,
 >>>>>>> Leap start
+=======
+        0.4,
+        FLAGS_standHeight,
+        0.02,
+        1.5,
+>>>>>>> Leap is working fairly well
         0.4,
         0,
         0,
@@ -1072,6 +1273,7 @@ int main(int argc, char* argv[]) {
         false,
         false,
         false,
+<<<<<<< HEAD
         false,
 <<<<<<< HEAD
 =======
@@ -1087,11 +1289,21 @@ int main(int argc, char* argv[]) {
 =======
         2000,
 >>>>>>> Seems to be working, messing with 3rd op
+=======
+        true,
+        1.8,
+        3,
+        20,
+        50,
+        100,
+        500,
+>>>>>>> Leap is working fairly well
         0,
         100000,
         1e-2,
         1e-4,
         1.0,
+<<<<<<< HEAD
         FLAGS_data_directory+"simple_rear3",
         FLAGS_data_directory+"simple_rear2");
 
@@ -1252,6 +1464,9 @@ int main(int argc, char* argv[]) {
         1.0,
         FLAGS_data_directory+"full_leap_min_work",
         FLAGS_data_directory+"full_leap");
+=======
+        FLAGS_data_directory+"half_leap");
+>>>>>>> Leap is working fairly well
   }
 }
 

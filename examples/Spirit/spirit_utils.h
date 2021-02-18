@@ -1,5 +1,7 @@
 #pragma once
 
+#include <drake/multibody/inverse_kinematics/inverse_kinematics.h>
+
 namespace dairlib {
 
 class ModeSequenceHelper {
