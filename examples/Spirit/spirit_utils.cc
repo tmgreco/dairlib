@@ -673,6 +673,105 @@ void visualizeSurface(drake::multibody::MultibodyPlant<double>* plant_vis,
   );
   }
 
+
+std::vector<Eigen::Matrix<double, 7, 1>> calculateBallistic(
+    Eigen::Matrix<double, 3, 1> initialPos,
+    Eigen::Matrix<double, 3, 1>   finalPos,
+    double apexHeight,
+    double time
+  ){
+
+  double g = 9.81; // gravity
+  std::vector<Eigen::Matrix<double, 7, 1>> states; // [t;x;y;z;dx;dy;dz] either [x0,xapex,xf]
+
+  double x0 = initialPos(0);
+  double y0 = initialPos(1);
+  double z0 = initialPos(2);
+
+  double xf = finalPos(0);
+  double yf = finalPos(1);
+  double zf = finalPos(2);
+
+  bool apexValid = (apexHeight >= initialPos(2)) && (apexHeight >= finalPos(2)) ;
+  if(!apexValid){
+    std::cout<<"Apex height not high enough for initial and/or final state. Ignored."<<std::endl;
+  }
+
+  double t0 = 0;
+  double tApex = 0;
+  double tf = 0;
+  double dz0 = 0;
+  double dzf = 0;
+
+  if( !std::isinf(apexHeight) && apexValid ){
+    tApex = sqrt(2*(apexHeight - z0)/g);
+    tf = tApex + sqrt(2*(apexHeight - zf)/g);
+    dz0 = g * tApex;
+    dzf = - g * (tf -tApex);
+  }else if (!std::isinf(time))
+  {
+    tf = time;
+    dz0 = (g/2) * tf + (zf - z0) / tf;
+    dzf = dz0 - g*tf;
+  }
+  else{
+    // Assume one of the ends is apex (this is arbitrary)
+    
+    tf = sqrt(2*abs(zf - z0)/g);
+    dz0 = zf>z0 ? g * tf : 0 ;
+    dzf = zf>z0 ? 0 : -g * tf ;
+  }
+
+  double dx0 = (xf - x0)/tf;
+  double dy0 = (yf - y0)/tf;
+  
+  Eigen::Matrix<double, 7, 1> initialState;
+  Eigen::Matrix<double, 7, 1> apexState;
+  Eigen::Matrix<double, 7, 1> finalState;
+
+  initialState << t0, x0, y0, z0, dx0, dy0, dz0;
+  finalState   << tf, xf, yf, zf, dx0, dy0, dzf;
+
+  states.push_back(initialState);
+  if(apexValid){
+    apexState << tApex, x0, y0, z0, dx0, dy0, 0;
+    states.push_back(apexState);
+  }
+  states.push_back(finalState);
+
+  return states;
+
+  }
+
+std::vector<Eigen::Matrix<double,8,1>> calculateBallisticRotation(
+    Eigen::Matrix<double, 4, 1> qi,
+    Eigen::Matrix<double, 4, 1> qf,
+    std::vector<double> timeSteps
+){
+  std::vector<Eigen::Matrix<double,8,1>> output;
+  Eigen::Quaternion Qi(qi(0),qi(1),qi(2),qi(3));
+  Eigen::Quaternion Qf(qf(0),qf(1),qf(2),qf(3));
+  drake::math::RotationMatrixd wRi(Qi);
+  drake::math::RotationMatrixd wRf(Qf);
+  drake::math::RotationMatrixd iRf(wRi.transpose()*wRf);
+  
+  Eigen::AngleAxis<double> aa = iRf.ToAngleAxis();
+  double angle = aa.angle();
+  Eigen::Vector3d axis = aa.axis();
+  double timeF = timeSteps.back();
+  double omega = angle/(timeF-timeSteps.front());
+  Eigen::Matrix<double,8,1> output_j;
+  for (double time_j : timeSteps){
+    Eigen::AngleAxis<double> aa_j((timeF-time_j)*omega, axis);
+    drake::math::RotationMatrixd wRj(wRi*(aa_j.toRotationMatrix()));
+    output_j.head(1)<<time_j;
+    output_j.tail(7)<<wRj.ToQuaternionAsVector4(),omega;
+    output.push_back(output_j);
+  }
+  return output;
+}
+
+/// TEMPLATING 
 template void nominalSpiritStand(
     drake::multibody::MultibodyPlant<double>& plant, 
     Eigen::VectorXd& xState, 
@@ -728,62 +827,62 @@ template void setSpiritJointLimits(
           dairlib::systems::trajectory_optimization::Dircon<double>& trajopt,  
           int iJoint, 
           double minVal, 
-          double maxVal  );
+          double maxVal  );//NOLINT
 
 template void setSpiritJointLimits(
           drake::multibody::MultibodyPlant<double> & plant, 
           dairlib::systems::trajectory_optimization::Dircon<double>& trajopt,  
           std::vector<int> iJoints, 
           std::vector<double> minVals, 
-          std::vector<double> maxVals  );
+          std::vector<double> maxVals  );//NOLINT
 
 template void setSpiritJointLimits(
           drake::multibody::MultibodyPlant<double> & plant, 
           dairlib::systems::trajectory_optimization::Dircon<double>& trajopt,  
           std::vector<int> iJoints, 
           double minVal, 
-          double maxVal  );
+          double maxVal  );//NOLINT
 
 template void setSpiritJointLimits(
           drake::multibody::MultibodyPlant<double> & plant, 
-          dairlib::systems::trajectory_optimization::Dircon<double>& trajopt );
+          dairlib::systems::trajectory_optimization::Dircon<double>& trajopt );//NOLINT
 
 template void setSpiritActuationLimits(
           drake::multibody::MultibodyPlant<double> & plant, 
           dairlib::systems::trajectory_optimization::Dircon<double>& trajopt,
-          double actuatorLimit);
+          double actuatorLimit);//NOLINT
 
 template void setSpiritSymmetry(
         drake::multibody::MultibodyPlant<double> & plant, 
         dairlib::systems::trajectory_optimization::Dircon<double>& trajopt,
         std::string symmetry,
-        bool ignoreWarning);
+        bool ignoreWarning);//NOLINT
 
 template void setSpiritSymmetry(
         drake::multibody::MultibodyPlant<double> & plant, 
         dairlib::systems::trajectory_optimization::Dircon<double>& trajopt,
-        std::vector<std::string> symmetries);
+        std::vector<std::string> symmetries);//NOLINT
 
 template double calcWork(
     drake::multibody::MultibodyPlant<double> & plant,
     drake::trajectories::PiecewisePolynomial<double>& x_traj,
-    drake::trajectories::PiecewisePolynomial<double>& u_traj);
+    drake::trajectories::PiecewisePolynomial<double>& u_traj);//NOLINT
 
 template double calcWork(
     drake::multibody::MultibodyPlant<double> & plant,
     std::vector<drake::trajectories::PiecewisePolynomial<double>>& x_traj,
-    drake::trajectories::PiecewisePolynomial<double>& u_traj);
+    drake::trajectories::PiecewisePolynomial<double>& u_traj);//NOLINT
 
 template double calcVelocityInt(
     drake::multibody::MultibodyPlant<double> & plant,
-    drake::trajectories::PiecewisePolynomial<double>& x_traj);
+    drake::trajectories::PiecewisePolynomial<double>& x_traj);//NOLINT
 
 template double calcVelocityInt(
     drake::multibody::MultibodyPlant<double> & plant,
-    std::vector<drake::trajectories::PiecewisePolynomial<double>>& x_trajs);
+    std::vector<drake::trajectories::PiecewisePolynomial<double>>& x_trajs);//NOLINT
 
 template double calcTorqueInt(
     drake::multibody::MultibodyPlant<double> & plant,
-    drake::trajectories::PiecewisePolynomial<double>& u_traj);
+    drake::trajectories::PiecewisePolynomial<double>& u_traj);//NOLINT
 
 }//namespace dairlib

@@ -274,4 +274,13 @@ void visualizeSurface(drake::multibody::MultibodyPlant<double>* plant_vis,
   double width_surf = 0.5,
   double thickness_surf = 0.05
   );
+
+/// Calculate the ballistic flight phase of a point mass
+std::vector<Eigen::Matrix<double, 7, 1>>  calculateBallistic(
+    Eigen::Matrix<double, 3, 1> initialPos,
+    Eigen::Matrix<double, 3, 1>   finalPos,
+    double apexHeight = std::numeric_limits<double>::infinity(),
+    double time = std::numeric_limits<double>::infinity()
+  );
+
 } //namespace dairlib
