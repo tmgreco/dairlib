@@ -589,7 +589,14 @@ void addConstraintsTD(MultibodyPlant<T>& plant,
 >>>>>>> It sort of works
 =======
   trajopt.AddBoundingBoxConstraint(initial_height, min_final_height, xtd(positions_map.at("base_z")));
+<<<<<<< HEAD
 >>>>>>> It converges
+=======
+  double eps = 1e-2;
+  trajopt.AddBoundingBoxConstraint(-eps, eps, xtd(positions_map.at("base_qx")));
+  trajopt.AddBoundingBoxConstraint(-eps, eps, xtd(positions_map.at("base_qz")));
+
+>>>>>>> Working much better
 }
 // addConstraints, adds constraints to the trajopt jump problem. See runSpiritJump for a description of the inputs
 template <typename T>
