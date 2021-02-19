@@ -584,8 +584,12 @@ void addConstraintsTD(MultibodyPlant<T>& plant,
   auto positions_map = multibody::makeNameToPositionsMap(plant);
   auto velocities_map = multibody::makeNameToVelocitiesMap(plant);
   auto   xtd  = trajopt.num_modes() > 5 ? trajopt.state_vars(5,0) : trajopt.final_state();
+<<<<<<< HEAD
   trajopt.AddBoundingBoxConstraint(min_final_height/2 + initial_height/2, 100, xtd(positions_map.at("base_z")));
 >>>>>>> It sort of works
+=======
+  trajopt.AddBoundingBoxConstraint(initial_height, min_final_height, xtd(positions_map.at("base_z")));
+>>>>>>> It converges
 }
 // addConstraints, adds constraints to the trajopt jump problem. See runSpiritJump for a description of the inputs
 template <typename T>
@@ -1167,11 +1171,15 @@ void runSpiritJump(
     addConstraintsStance(plant, trajopt, initial_height, td_displacement, eps);
 =======
  if(optimize_flight)
+<<<<<<< HEAD
     addConstraintsFlight(plant, trajopt);
 <<<<<<< HEAD
 
 >>>>>>> Leap is working fairly well
 =======
+=======
+    addConstraintsFlight(plant, trajopt, apex_height);
+>>>>>>> It converges
  if(optimize_flight)
    addConstraintsTD(plant, trajopt, min_final_height, initial_height);
 >>>>>>> It sort of works
@@ -1472,7 +1480,7 @@ int main(int argc, char* argv[]) {
       *plant,
       x_traj, u_traj, l_traj,
       lc_traj, vc_traj,
-      false,
+      true,
       {10, 7, 5, 5, 5, 5} ,
       0.35,
       FLAGS_standHeight,
@@ -1480,7 +1488,7 @@ int main(int argc, char* argv[]) {
       1,
       0.4,
       0,
-      true,
+      false,
       true,
       true,
       1.8,
@@ -1488,11 +1496,11 @@ int main(int argc, char* argv[]) {
       .5,
       5,
       10,
-      100,
+      500,
       0,
       100000,
       1e-2,
-      1e-4,
+      1e-3,
       1.0,
       FLAGS_data_directory+"three_quarter_leap");
 
