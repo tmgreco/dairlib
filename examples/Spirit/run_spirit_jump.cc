@@ -502,12 +502,15 @@ void addCost(MultibodyPlant<T>& plant,
 template <typename T>
 void addConstraintsFlight(MultibodyPlant<T>& plant,
                     dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,
-                    double apex_height = 0){
+                    double apex_height,
+                    double fore_aft_displacement,
+                    double eps = 0){
   auto positions_map = multibody::makeNameToPositionsMap(plant);
   auto velocities_map = multibody::makeNameToVelocitiesMap(plant);
   auto   xapex  = trajopt.num_modes() > 3 ? trajopt.state_vars(3,0) : trajopt.final_state();
   trajopt.AddBoundingBoxConstraint(0, 0, xapex(plant.num_positions()+velocities_map.at("base_vz")));
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 template <typename T>
@@ -594,18 +597,18 @@ void addConstraintsStance(MultibodyPlant<T>& plant,
 =======
   double eps = 1e-2;
 
+=======
+>>>>>>> Cleaned up apex with constraints on position
   if (trajopt.num_modes() > 3){
     nominalSpiritStandConstraint(plant, trajopt, FLAGS_standHeight, {trajopt.get_mode_start(3)}, eps);
   }else{
-    std::cout<<"foo"<<std::endl;
     nominalSpiritStandConstraint(plant, trajopt, FLAGS_standHeight, {trajopt.N()-1}, eps);
+    trajopt.AddBoundingBoxConstraint(fore_aft_displacement-eps, fore_aft_displacement, xapex(positions_map.at("base_x")));
   }
 >>>>>>> Working getting to apex
   if (apex_height > 0.15)
     trajopt.AddBoundingBoxConstraint(apex_height-1e-2, apex_height+1e-2, xapex(positions_map.at("base_z")));
 
-  double fore_aft_displacement = 0.25;
-  trajopt.AddBoundingBoxConstraint(fore_aft_displacement-eps, fore_aft_displacement, xapex(positions_map.at("base_x")));
 
   double pitch = abs(0.2);
   // Body pose constraints (keep the body flat) at apex state
@@ -1124,11 +1127,15 @@ void runSpiritJump(
     const double pitch_magnitude,
     const double apex_height,
 <<<<<<< HEAD
+<<<<<<< HEAD
     const double apex_displacement,
     const double td_height,
     const double td_displacement,
 =======
 >>>>>>> It sort of works
+=======
+    const double apex_displacement,
+>>>>>>> Cleaned up apex with constraints on position
     const bool lock_rotation,
     const bool optimize_flight,
 <<<<<<< HEAD
@@ -1286,7 +1293,7 @@ void runSpiritJump(
 >>>>>>> It sort of works
 =======
   if(optimize_flight)
-    addConstraintsFlight(plant, trajopt, apex_height);
+    addConstraintsFlight(plant, trajopt, apex_height, apex_displacement, eps);
   if(optimize_td)
     addConstraintsTD(plant, trajopt, min_final_height, initial_height);
   if(optimize_stance)
@@ -1423,11 +1430,15 @@ int main(int argc, char* argv[]) {
           0.4,
           0,
 <<<<<<< HEAD
+<<<<<<< HEAD
           0,
           0,
           0,
 =======
 >>>>>>> It sort of works
+=======
+          0,
+>>>>>>> Cleaned up apex with constraints on position
           true,
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1476,11 +1487,15 @@ int main(int argc, char* argv[]) {
           0.4,
           0,
 <<<<<<< HEAD
+<<<<<<< HEAD
           0,
           0,
           0,
 =======
 >>>>>>> It sort of works
+=======
+          0,
+>>>>>>> Cleaned up apex with constraints on position
           false,
           false,
           false,
@@ -1513,37 +1528,38 @@ int main(int argc, char* argv[]) {
           FLAGS_data_directory+"simple_rear2");
     }
 
-//    std::cout<<"Running 3rd optimization"<<std::endl;
-//
-//    dairlib::runSpiritJump<double>(
-//        *plant,
-//        x_traj, u_traj, l_traj,
-//        lc_traj, vc_traj,
-//        false,
-//        {10, 7, 5, 5, 5, 5} ,
-//        0.35,
-//        FLAGS_standHeight,
-//        0.15,
-//        0.5,
-//        0.4,
-//        0,
-//        false,
-//        false,
-//        false,
-//        false,
-//        0.8,
-//        3,
-//        20,
-//        5,
-//        10,
-//        2000,
-//        0,
-//        100000,
-//        1e-2,
-//        1e-4,
-//        1.0,
-//        FLAGS_data_directory+"simple_rear3",
-//        FLAGS_data_directory+"simple_rear2");
+    std::cout<<"Running 3rd optimization"<<std::endl;
+
+    dairlib::runSpiritJump<double>(
+        *plant,
+        x_traj, u_traj, l_traj,
+        lc_traj, vc_traj,
+        false,
+        {10, 7, 5, 5, 5, 5} ,
+        0.35,
+        FLAGS_standHeight,
+        0.15,
+        0.5,
+        0.4,
+        0,
+        0,
+        false,
+        false,
+        false,
+        false,
+        0.8,
+        3,
+        20,
+        5,
+        10,
+        2000,
+        0,
+        100000,
+        1e-2,
+        1e-4,
+        1.0,
+        FLAGS_data_directory+"simple_rear3",
+        FLAGS_data_directory+"simple_rear2");
 
     dairlib::DirconTrajectory old_traj(FLAGS_data_directory+"simple_rear3");
     x_traj = old_traj.ReconstructStateTrajectory();
@@ -1567,6 +1583,7 @@ int main(int argc, char* argv[]) {
         1.8,
         0.6,
         0.43,
+        0.25,
         false,
         true,
         false,
@@ -1606,6 +1623,7 @@ int main(int argc, char* argv[]) {
       0.1,
       0.8,
       0.4,
+      0,
       0,
       false,
       true,
@@ -1914,6 +1932,7 @@ int main(int argc, char* argv[]) {
       0.1,
       0.8,
       0.4,
+      0,
       0,
       false,
       true,
