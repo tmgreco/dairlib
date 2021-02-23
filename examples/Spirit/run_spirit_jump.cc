@@ -47,7 +47,7 @@ DEFINE_string(data_directory, "/home/shane/Drake_ws/dairlib/examples/Spirit/save
 DEFINE_string(distance_name, "90cm","name to describe distance");
 
 DEFINE_bool(runAllOptimization, true, "rerun earlier optimizations?");
-DEFINE_bool(skipInitialOptimization, false, "skip first optimizations?");
+DEFINE_bool(skipInitialOptimization, true, "skip first optimizations?");
 DEFINE_bool(minWork, false, "try to minimize work?");
 
 using drake::AutoDiffXd;
@@ -513,6 +513,7 @@ void addConstraintsFlight(MultibodyPlant<T>& plant,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 template <typename T>
 void addConstraintsFlight(MultibodyPlant<T>& plant,
                     dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,
@@ -602,6 +603,9 @@ void addConstraintsStance(MultibodyPlant<T>& plant,
   if (trajopt.num_modes() > 3){
     nominalSpiritStandConstraint(plant, trajopt, FLAGS_standHeight, {trajopt.get_mode_start(3)}, eps);
   }else{
+=======
+  if (trajopt.num_modes() <= 3){
+>>>>>>> Trying to go all the way
     nominalSpiritStandConstraint(plant, trajopt, FLAGS_standHeight, {trajopt.N()-1}, eps);
     trajopt.AddBoundingBoxConstraint(fore_aft_displacement-eps, fore_aft_displacement, xapex(positions_map.at("base_x")));
   }
@@ -623,10 +627,12 @@ void addConstraintsStance(MultibodyPlant<T>& plant,
 template <typename T>
 void addConstraintsTD(MultibodyPlant<T>& plant,
                           dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,
-                          const double min_final_height,
-                          const double initial_height){
+                          const double td_height,
+                          const double fore_aft_displacement,
+                          const double eps = 0){
   auto positions_map = multibody::makeNameToPositionsMap(plant);
   auto velocities_map = multibody::makeNameToVelocitiesMap(plant);
+<<<<<<< HEAD
   auto   xtd  = trajopt.num_modes() > 5 ? trajopt.state_vars(5,0) : trajopt.final_state();
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -638,9 +644,21 @@ void addConstraintsTD(MultibodyPlant<T>& plant,
 >>>>>>> It converges
 =======
 =======
+=======
+  auto   xtd  =  trajopt.final_state();
+>>>>>>> Trying to go all the way
 
   std::cout<<"Adding td constraints" << std::endl;
+  trajopt.AddBoundingBoxConstraint(fore_aft_displacement-eps, fore_aft_displacement, xtd(positions_map.at("base_x")));
+  trajopt.AddBoundingBoxConstraint(td_height-eps, td_height+eps, xtd(positions_map.at("base_z")));
+  double pitch = abs(0.6);
+  // Body pose constraints (keep the body flat) at apex state
+  trajopt.AddBoundingBoxConstraint(cos(pitch/2.0), 1, xtd(positions_map.at("base_qw")));
+  trajopt.AddBoundingBoxConstraint(0, 0, xtd(positions_map.at("base_qx")));
+  trajopt.AddBoundingBoxConstraint(-sin(pitch/2.0) , sin(pitch/2.0), xtd(positions_map.at("base_qy")));
+  trajopt.AddBoundingBoxConstraint(0, 0, xtd(positions_map.at("base_qz")));
 
+<<<<<<< HEAD
   Eigen::VectorXd end_state_nominal;
   dairlib::nominalSpiritStand(plant, end_state_nominal, 0.3);
   for(int joint_index: {0, 1, 4, 5, 8, 9}){
@@ -652,6 +670,8 @@ void addConstraintsTD(MultibodyPlant<T>& plant,
   double eps = 1e-2;
   trajopt.AddBoundingBoxConstraint(-eps, eps, xtd(positions_map.at("base_qx")));
   trajopt.AddBoundingBoxConstraint(-eps, eps, xtd(positions_map.at("base_qz")));
+=======
+>>>>>>> Trying to go all the way
 }
 
 <<<<<<< HEAD
@@ -1131,11 +1151,14 @@ void runSpiritJump(
     const double apex_displacement,
     const double td_height,
     const double td_displacement,
+<<<<<<< HEAD
 =======
 >>>>>>> It sort of works
 =======
     const double apex_displacement,
 >>>>>>> Cleaned up apex with constraints on position
+=======
+>>>>>>> Trying to go all the way
     const bool lock_rotation,
     const bool optimize_flight,
 <<<<<<< HEAD
@@ -1295,7 +1318,7 @@ void runSpiritJump(
   if(optimize_flight)
     addConstraintsFlight(plant, trajopt, apex_height, apex_displacement, eps);
   if(optimize_td)
-    addConstraintsTD(plant, trajopt, min_final_height, initial_height);
+    addConstraintsTD(plant, trajopt, td_height, td_displacement, eps);
   if(optimize_stance)
     addConstraintsStance(plant, trajopt, initial_height);
 >>>>>>> Working getting to apex
@@ -1434,11 +1457,16 @@ int main(int argc, char* argv[]) {
           0,
           0,
           0,
+<<<<<<< HEAD
 =======
 >>>>>>> It sort of works
 =======
           0,
 >>>>>>> Cleaned up apex with constraints on position
+=======
+          0,
+          0,
+>>>>>>> Trying to go all the way
           true,
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1495,7 +1523,12 @@ int main(int argc, char* argv[]) {
 >>>>>>> It sort of works
 =======
           0,
+<<<<<<< HEAD
 >>>>>>> Cleaned up apex with constraints on position
+=======
+          0,
+          0,
+>>>>>>> Trying to go all the way
           false,
           false,
           false,
@@ -1528,49 +1561,93 @@ int main(int argc, char* argv[]) {
           FLAGS_data_directory+"simple_rear2");
     }
 
-    std::cout<<"Running 3rd optimization"<<std::endl;
+//    std::cout<<"Running 3rd optimization"<<std::endl;
+//
+//    dairlib::runSpiritJump<double>(
+//        *plant,
+//        x_traj, u_traj, l_traj,
+//        lc_traj, vc_traj,
+//        false,
+//        {10, 7, 5, 5, 5, 5} ,
+//        0.35,
+//        FLAGS_standHeight,
+//        0.15,
+//        0.5,
+//        0.4,
+//        0,
+//        0,
+//        0,
+//        0,
+//        false,
+//        false,
+//        false,
+//        false,
+//        0.8,
+//        3,
+//        20,
+//        5,
+//        10,
+//        2000,
+//        0,
+//        100000,
+//        1e-2,
+//        1e-4,
+//        1.0,
+//        FLAGS_data_directory+"simple_rear3",
+//        FLAGS_data_directory+"simple_rear2");
+//
+//    dairlib::DirconTrajectory old_traj(FLAGS_data_directory+"simple_rear3");
+//    x_traj = old_traj.ReconstructStateTrajectory();
+//    u_traj = old_traj.ReconstructInputTrajectory();
+//    l_traj = old_traj.ReconstructLambdaTrajectory();
+//    lc_traj = old_traj.ReconstructLambdaCTrajectory();
+//    vc_traj = old_traj.ReconstructGammaCTrajectory();
+//
+//    dairlib::appendFlight(*plant, x_traj, u_traj, l_traj, lc_traj, vc_traj);
+//
+//    std::cout<<"Running 4th optimization"<<std::endl;
+//    dairlib::runSpiritJump<double>(
+//        *plant,
+//        x_traj, u_traj, l_traj,
+//        lc_traj, vc_traj,
+//        false,
+//        {10, 7, 7, 7, 7, 7} ,
+//        0.35,
+//        FLAGS_standHeight,
+//        0.06,
+//        1.8,
+//        0.6,
+//        0.43,
+//        0.25,
+//        0,
+//        0,
+//        false,
+//        true,
+//        false,
+//        false,
+//        1.8,
+//        3,
+//        10,
+//        5,
+//        10,
+//        4000,
+//        0,
+//        100000,
+//        1e-2,
+//        1e-3,
+//        1.0,
+//        FLAGS_data_directory+"half_leap");
 
-    dairlib::runSpiritJump<double>(
-        *plant,
-        x_traj, u_traj, l_traj,
-        lc_traj, vc_traj,
-        false,
-        {10, 7, 5, 5, 5, 5} ,
-        0.35,
-        FLAGS_standHeight,
-        0.15,
-        0.5,
-        0.4,
-        0,
-        0,
-        false,
-        false,
-        false,
-        false,
-        0.8,
-        3,
-        20,
-        5,
-        10,
-        2000,
-        0,
-        100000,
-        1e-2,
-        1e-4,
-        1.0,
-        FLAGS_data_directory+"simple_rear3",
-        FLAGS_data_directory+"simple_rear2");
 
-    dairlib::DirconTrajectory old_traj(FLAGS_data_directory+"simple_rear3");
-    x_traj = old_traj.ReconstructStateTrajectory();
-    u_traj = old_traj.ReconstructInputTrajectory();
-    l_traj = old_traj.ReconstructLambdaTrajectory();
-    lc_traj = old_traj.ReconstructLambdaCTrajectory();
-    vc_traj = old_traj.ReconstructGammaCTrajectory();
+  dairlib::DirconTrajectory old_traj2(FLAGS_data_directory+"half_leap");
+  x_traj = old_traj2.ReconstructStateTrajectory();
+  u_traj = old_traj2.ReconstructInputTrajectory();
+  l_traj = old_traj2.ReconstructLambdaTrajectory();
+  lc_traj = old_traj2.ReconstructLambdaCTrajectory();
+  vc_traj = old_traj2.ReconstructGammaCTrajectory();
 
-    dairlib::appendFlight(*plant, x_traj, u_traj, l_traj, lc_traj, vc_traj);
+  dairlib::appendFrontTD(*plant, x_traj, u_traj, l_traj, lc_traj, vc_traj, 0.30);
 
-    std::cout<<"Running 4th optimization"<<std::endl;
     dairlib::runSpiritJump<double>(
         *plant,
         x_traj, u_traj, l_traj,
@@ -1584,21 +1661,24 @@ int main(int argc, char* argv[]) {
         0.6,
         0.43,
         0.25,
+        0.30,
+        0.48,
         false,
         true,
-        false,
+        true,
         false,
         1.8,
         3,
         10,
+        3,
         5,
-        10,
-        4000,
+        2000,
         0,
         100000,
         1e-2,
         1e-3,
         1.0,
+<<<<<<< HEAD
         FLAGS_data_directory+"half_leap");
 
 
@@ -1910,6 +1990,9 @@ int main(int argc, char* argv[]) {
 =======
 >>>>>>> Things are working ish
 =======
+=======
+        FLAGS_data_directory+"three_quarter_leap");
+>>>>>>> Trying to go all the way
 
     dairlib::DirconTrajectory old_traj3(FLAGS_data_directory+"three_quarter_leap");
     x_traj = old_traj3.ReconstructStateTrajectory();
@@ -1932,6 +2015,8 @@ int main(int argc, char* argv[]) {
       0.1,
       0.8,
       0.4,
+      0,
+      0,
       0,
       0,
       false,
