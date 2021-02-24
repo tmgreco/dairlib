@@ -1587,94 +1587,128 @@ int main(int argc, char* argv[]) {
           FLAGS_data_directory+"simple_rear2");
     }
 
-    std::cout<<"Running 3rd optimization"<<std::endl;
+//    std::cout<<"Running 3rd optimization"<<std::endl;
+//
+//    dairlib::runSpiritJump<double>(
+//        *plant,
+//        x_traj, u_traj, l_traj,
+//        lc_traj, vc_traj,
+//        false,
+//        {10, 7, 5, 5, 5, 5} ,
+//        0.35,
+//        FLAGS_standHeight,
+//        0.15,
+//        0.5,
+//        0.4,
+//        0,
+//        0,
+//        0,
+//        0,
+//        false,
+//        false,
+//        false,
+//        false,
+//        0.8,
+//        3,
+//        20,
+//        5,
+//        10,
+//        2000,
+//        0,
+//        100000,
+//        1e-2,
+//        1e-4,
+//        1.0,
+//        FLAGS_data_directory+"simple_rear3",
+//        FLAGS_data_directory+"simple_rear2");
+//
+//    dairlib::DirconTrajectory old_traj(FLAGS_data_directory+"simple_rear3");
+//    x_traj = old_traj.ReconstructStateTrajectory();
+//    u_traj = old_traj.ReconstructInputTrajectory();
+//    l_traj = old_traj.ReconstructLambdaTrajectory();
+//    lc_traj = old_traj.ReconstructLambdaCTrajectory();
+//    vc_traj = old_traj.ReconstructGammaCTrajectory();
+//
+//    dairlib::appendFlight(*plant, x_traj, u_traj, l_traj, lc_traj, vc_traj);
+//
+//    std::cout<<"Running 4th optimization"<<std::endl;
+//    dairlib::runSpiritJump<double>(
+//        *plant,
+//        x_traj, u_traj, l_traj,
+//        lc_traj, vc_traj,
+//        false,
+//        {10, 7, 7, 7, 7, 7} ,
+//        0.35,
+//        FLAGS_standHeight,
+//        0.06,
+//        1.8,
+//        0.6,
+//        0.43,
+//        0.25,
+//        0,
+//        0,
+//        false,
+//        true,
+//        false,
+//        false,
+//        1.8,
+//        3,
+//        10,
+//        5,
+//        10,
+//        4000,
+//        0,
+//        100000,
+//        1e-2,
+//        1e-3,
+//        1.0,
+//        FLAGS_data_directory+"half_leap");
+//
+//
+//  dairlib::DirconTrajectory old_traj2(FLAGS_data_directory+"half_leap");
+//  x_traj = old_traj2.ReconstructStateTrajectory();
+//  u_traj = old_traj2.ReconstructInputTrajectory();
+//  l_traj = old_traj2.ReconstructLambdaTrajectory();
+//  lc_traj = old_traj2.ReconstructLambdaCTrajectory();
+//  vc_traj = old_traj2.ReconstructGammaCTrajectory();
+//
+//  dairlib::appendFrontTD(*plant, x_traj, u_traj, l_traj, lc_traj, vc_traj, 0.30);
+//  dairlib::appendStance(*plant, x_traj, u_traj, l_traj, lc_traj, vc_traj, FLAGS_standHeight);
+//
+//    dairlib::runSpiritJump<double>(
+//        *plant,
+//        x_traj, u_traj, l_traj,
+//        lc_traj, vc_traj,
+//        true,
+//        {7, 7, 7, 7, 7, 7} ,
+//        0.35,
+//        FLAGS_standHeight,
+//        0.06,
+//        1.8,
+//        0.6,
+//        0.43,
+//        0.25,
+//        0.30,
+//        -10.0,
+//        false,
+//        true,
+//        true,
+//        true,
+//        1.8,
+//        3,
+//        10,
+//        50,
+//        10,
+//        4000,
+//        0,
+//        100000,
+//        1e-2,
+//        1e-3,
+//        1.0,
+//        FLAGS_data_directory+"three_quarter_leap");
 
-    dairlib::runSpiritJump<double>(
-        *plant,
-        x_traj, u_traj, l_traj,
-        lc_traj, vc_traj,
-        false,
-        {10, 7, 5, 5, 5, 5} ,
-        0.35,
-        FLAGS_standHeight,
-        0.15,
-        0.5,
-        0.4,
-        0,
-        0,
-        0,
-        0,
-        false,
-        false,
-        false,
-        false,
-        0.8,
-        3,
-        20,
-        5,
-        10,
-        2000,
-        0,
-        100000,
-        1e-2,
-        1e-4,
-        1.0,
-        FLAGS_data_directory+"simple_rear3",
-        FLAGS_data_directory+"simple_rear2");
 
-    dairlib::DirconTrajectory old_traj(FLAGS_data_directory+"simple_rear3");
-    x_traj = old_traj.ReconstructStateTrajectory();
-    u_traj = old_traj.ReconstructInputTrajectory();
-    l_traj = old_traj.ReconstructLambdaTrajectory();
-    lc_traj = old_traj.ReconstructLambdaCTrajectory();
-    vc_traj = old_traj.ReconstructGammaCTrajectory();
-
-    dairlib::appendFlight(*plant, x_traj, u_traj, l_traj, lc_traj, vc_traj);
-
-    std::cout<<"Running 4th optimization"<<std::endl;
-    dairlib::runSpiritJump<double>(
-        *plant,
-        x_traj, u_traj, l_traj,
-        lc_traj, vc_traj,
-        false,
-        {10, 7, 7, 7, 7, 7} ,
-        0.35,
-        FLAGS_standHeight,
-        0.06,
-        1.8,
-        0.6,
-        0.43,
-        0.25,
-        0,
-        0,
-        false,
-        true,
-        false,
-        false,
-        1.8,
-        3,
-        10,
-        5,
-        10,
-        4000,
-        0,
-        100000,
-        1e-2,
-        1e-3,
-        1.0,
-        FLAGS_data_directory+"half_leap");
-
-
-  dairlib::DirconTrajectory old_traj2(FLAGS_data_directory+"half_leap");
-  x_traj = old_traj2.ReconstructStateTrajectory();
-  u_traj = old_traj2.ReconstructInputTrajectory();
-  l_traj = old_traj2.ReconstructLambdaTrajectory();
-  lc_traj = old_traj2.ReconstructLambdaCTrajectory();
-  vc_traj = old_traj2.ReconstructGammaCTrajectory();
-
-  dairlib::appendFrontTD(*plant, x_traj, u_traj, l_traj, lc_traj, vc_traj, 0.30);
-  dairlib::appendStance(*plant, x_traj, u_traj, l_traj, lc_traj, vc_traj, FLAGS_standHeight);
-
+    std::cout<<"Running 6th optimization"<<std::endl;
     dairlib::runSpiritJump<double>(
         *plant,
         x_traj, u_traj, l_traj,
@@ -1687,9 +1721,9 @@ int main(int argc, char* argv[]) {
         1.8,
         0.6,
         0.43,
-        0.25,
+        -0.25,
         0.30,
-        -10.0,
+        1,
         false,
         true,
         true,
@@ -1705,6 +1739,7 @@ int main(int argc, char* argv[]) {
         1e-2,
         1e-3,
         1.0,
+<<<<<<< HEAD
 <<<<<<< HEAD
         FLAGS_data_directory+"half_leap");
 
@@ -2062,6 +2097,10 @@ int main(int argc, char* argv[]) {
       1.0,
       FLAGS_data_directory+"full_leap");
 >>>>>>> Working getting to apex
+=======
+        FLAGS_data_directory+"full_leap",
+        FLAGS_data_directory+"three_quarter_leap");
+>>>>>>> Starting work on full leap
   }
 }
 
