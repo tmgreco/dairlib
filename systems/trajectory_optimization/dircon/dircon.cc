@@ -843,12 +843,16 @@ void Dircon<T>::SetInitialTrajectory(
     guess_control = traj_init_u.value(start_time + i * h);
     SetInitialGuess(input_vars(mode_index, i), guess_control);
 
+  }
+
+  for (int i = 0; i < mode.num_knotpoints()-1; ++i) {
     // Time steps
     VectorXd guess_time(1);
     guess_time[0] = h;
     SetInitialGuess(timestep(get_mode_start(mode_index)+i), guess_time);
+
   }
-}
+  }
 
 template <typename T>
 int Dircon<T>::num_modes() const {

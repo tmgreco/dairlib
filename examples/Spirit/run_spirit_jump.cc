@@ -47,7 +47,7 @@ DEFINE_string(data_directory, "/home/shane/Drake_ws/dairlib/examples/Spirit/save
 DEFINE_string(distance_name, "90cm","name to describe distance");
 
 DEFINE_bool(runAllOptimization, true, "rerun earlier optimizations?");
-DEFINE_bool(skipInitialOptimization, false, "skip first optimizations?");
+DEFINE_bool(skipInitialOptimization, true, "skip first optimizations?");
 DEFINE_bool(minWork, false, "try to minimize work?");
 
 using drake::AutoDiffXd;
@@ -83,10 +83,14 @@ using std::endl;
 template <typename T>
 void badSpiritRear(MultibodyPlant<T>& plant,
 <<<<<<< HEAD
+<<<<<<< HEAD
                    vector<PiecewisePolynomial<double>>& x_traj,
 =======
                    PiecewisePolynomial<double>& x_traj,
 >>>>>>> Leap is working fairly well
+=======
+                   vector<PiecewisePolynomial<double>>& x_traj,
+>>>>>>> Making some progress with new initial guess load in
                    PiecewisePolynomial<double>& u_traj,
                    vector<PiecewisePolynomial<double>>& l_traj,
                    vector<PiecewisePolynomial<double>>& lc_traj,
@@ -207,29 +211,41 @@ void badSpiritRear(MultibodyPlant<T>& plant,
 template <typename T>
 void appendFlight(MultibodyPlant<T>& plant,
 <<<<<<< HEAD
+<<<<<<< HEAD
                   vector<PiecewisePolynomial<double>>& x_traj,
 =======
                   PiecewisePolynomial<double>& x_traj,
 >>>>>>> Leap is working fairly well
+=======
+                  vector<PiecewisePolynomial<double>>& x_traj,
+>>>>>>> Making some progress with new initial guess load in
                   PiecewisePolynomial<double>& u_traj,
                   vector<PiecewisePolynomial<double>>& l_traj,
                   vector<PiecewisePolynomial<double>>& lc_traj,
                   vector<PiecewisePolynomial<double>>& vc_traj){
 <<<<<<< HEAD
+<<<<<<< HEAD
   auto xlo = x_traj[1].value(x_traj[1].end_time());
 =======
   auto xlo = x_traj.value(x_traj.end_time());
 >>>>>>> Leap is working fairly well
+=======
+  auto xlo = x_traj[1].value(x_traj[1].end_time());
+>>>>>>> Making some progress with new initial guess load in
   auto positions_map = multibody::makeNameToPositionsMap(plant);
   auto velocities_map = multibody::makeNameToVelocitiesMap(plant);
   int n_q = plant.num_positions();
 
   double apex_height = xlo(positions_map.at("base_z")) + xlo(n_q+velocities_map.at("base_vz"))/2.0/9.81;
 <<<<<<< HEAD
+<<<<<<< HEAD
   double apex_time = x_traj[1].end_time() + xlo(n_q+velocities_map.at("base_vz"))/9.81;
 =======
   double apex_time = x_traj.end_time() + xlo(n_q+velocities_map.at("base_vz"))/9.81;
 >>>>>>> Leap is working fairly well
+=======
+  double apex_time = x_traj[1].end_time() + xlo(n_q+velocities_map.at("base_vz"))/9.81;
+>>>>>>> Making some progress with new initial guess load in
   double initial_pitch = 2 * asin(xlo(positions_map.at("base_qy")));
   double apex_pitch = initial_pitch + xlo(n_q+velocities_map.at("base_vz"))/9.81 * xlo(n_q + velocities_map.at("base_wy"));
   double apex_foreaft_pos = xlo(positions_map.at("base_x")) + xlo(n_q+velocities_map.at("base_vz"))/9.81 * xlo(n_q + velocities_map.at("base_vx"));
@@ -238,12 +254,17 @@ void appendFlight(MultibodyPlant<T>& plant,
   x_const(positions_map.at("base_x")) = apex_foreaft_pos;
   std::vector<MatrixXd> x_points = {xlo, x_const};
 <<<<<<< HEAD
+<<<<<<< HEAD
   std::vector<double> time_vec = {x_traj[1].end_time(), apex_time};
   x_traj.push_back(PiecewisePolynomial<double>::FirstOrderHold(time_vec,x_points));
 =======
   std::vector<double> time_vec = {x_traj.end_time(), apex_time};
   x_traj.ConcatenateInTime(PiecewisePolynomial<double>::FirstOrderHold(time_vec,x_points));
 >>>>>>> Leap is working fairly well
+=======
+  std::vector<double> time_vec = {x_traj[1].end_time(), apex_time};
+  x_traj.push_back(PiecewisePolynomial<double>::FirstOrderHold(time_vec,x_points));
+>>>>>>> Making some progress with new initial guess load in
 
   std::vector<MatrixXd> u_points = {u_traj.value(u_traj.end_time()), u_traj.value(u_traj.end_time())};
   u_traj.ConcatenateInTime(PiecewisePolynomial<double>::FirstOrderHold(time_vec,u_points));
@@ -321,8 +342,12 @@ void appendStance(MultibodyPlant<T>& plant,
                   vector<PiecewisePolynomial<double>>& x_traj,
 =======
 void appendFrontTD(MultibodyPlant<T>& plant,
+<<<<<<< HEAD
                   PiecewisePolynomial<double>& x_traj,
 >>>>>>> Jump seems to be working alright
+=======
+                  vector<PiecewisePolynomial<double>>& x_traj,
+>>>>>>> Making some progress with new initial guess load in
                   PiecewisePolynomial<double>& u_traj,
                   vector<PiecewisePolynomial<double>>& l_traj,
                   vector<PiecewisePolynomial<double>>& lc_traj,
@@ -335,13 +360,13 @@ void appendFrontTD(MultibodyPlant<T>& plant,
   int n_q = plant.num_positions();
 =======
                   const double td_height){
-  auto xapex = x_traj.value(x_traj.end_time());
+  auto xapex = x_traj[2].value(x_traj[2].end_time());
   auto positions_map = multibody::makeNameToPositionsMap(plant);
   auto velocities_map = multibody::makeNameToVelocitiesMap(plant);
   int n_q = plant.num_positions();
 
   double apex_height = xapex(positions_map.at("base_z"));
-  double apex_time = x_traj.end_time();
+  double apex_time = x_traj[2].end_time();
   double td_time = apex_time + sqrt((apex_height-td_height)*2/9.81);
   double initial_pitch = 2 * asin(xapex(positions_map.at("base_qy")));
   double td_pitch = initial_pitch + (td_time - apex_time) * xapex(n_q + velocities_map.at("base_wy"));
@@ -351,9 +376,18 @@ void appendFrontTD(MultibodyPlant<T>& plant,
   x_const(positions_map.at("base_x")) = td_foreaft_pos;
   std::vector<MatrixXd> x_points = {xapex, x_const};
   std::vector<double> time_vec = {apex_time, td_time};
-  x_traj.ConcatenateInTime(PiecewisePolynomial<double>::FirstOrderHold(time_vec,x_points));
+  x_traj.push_back(PiecewisePolynomial<double>::FirstOrderHold(time_vec,x_points));
+  x_points[0] = x_const;
+  dairlib::ikSpiritStand(plant, x_const, {true, true, true, true}, td_height-0.02, 0.15, 0, td_pitch/2.0);
+  x_const(positions_map.at("base_x")) = td_foreaft_pos;
+  x_points[1] = x_const;
+
+  time_vec[0] = x_traj[2].end_time();
+  time_vec[1] = td_time+0.05;
+  x_traj.push_back(PiecewisePolynomial<double>::FirstOrderHold(time_vec,x_points));
 
   std::vector<MatrixXd> u_points = {u_traj.value(u_traj.end_time()), u_traj.value(u_traj.end_time())};
+
   u_traj.ConcatenateInTime(PiecewisePolynomial<double>::FirstOrderHold(time_vec,u_points));
 
   auto zero_vec = VectorXd::Zero(12);
@@ -379,13 +413,13 @@ void appendFrontTD(MultibodyPlant<T>& plant,
 =======
 template <typename T>
 void appendStance(MultibodyPlant<T>& plant,
-                  PiecewisePolynomial<double>& x_traj,
+                  vector<PiecewisePolynomial<double>>& x_traj,
                   PiecewisePolynomial<double>& u_traj,
                   vector<PiecewisePolynomial<double>>& l_traj,
                   vector<PiecewisePolynomial<double>>& lc_traj,
                   vector<PiecewisePolynomial<double>>& vc_traj,
                   double final_height){
-  auto xtd = x_traj.value(x_traj.end_time());
+  auto xtd = x_traj[4].value(x_traj[4].end_time());
   auto positions_map = multibody::makeNameToPositionsMap(plant);
   auto velocities_map = multibody::makeNameToVelocitiesMap(plant);
   int n_q = plant.num_positions();
@@ -396,12 +430,17 @@ void appendStance(MultibodyPlant<T>& plant,
   x_const(positions_map.at("base_x")) = xtd(positions_map.at("base_x"));
   std::vector<MatrixXd> x_points = {xtd, x_const};
 <<<<<<< HEAD
+<<<<<<< HEAD
   std::vector<double> time_vec = {x_traj[4].end_time(), x_traj[4].end_time() + 0.02};
   x_traj.push_back(PiecewisePolynomial<double>::FirstOrderHold(time_vec,x_points));
 =======
   std::vector<double> time_vec = {x_traj.end_time(), x_traj.end_time() + 0.1};
   x_traj.ConcatenateInTime(PiecewisePolynomial<double>::FirstOrderHold(time_vec,x_points));
 >>>>>>> Things are working ish
+=======
+  std::vector<double> time_vec = {x_traj[4].end_time(), x_traj[4].end_time() + 0.1};
+  x_traj.push_back(PiecewisePolynomial<double>::FirstOrderHold(time_vec,x_points));
+>>>>>>> Making some progress with new initial guess load in
 
   std::vector<MatrixXd> u_points = {u_traj.value(u_traj.end_time()), u_traj.value(u_traj.end_time())};
   u_traj.ConcatenateInTime(PiecewisePolynomial<double>::FirstOrderHold(time_vec,u_points));
@@ -557,6 +596,7 @@ void addConstraintsTD(MultibodyPlant<T>& plant,
 
   if(td_height > 0)
     trajopt.AddBoundingBoxConstraint(td_height-eps, td_height+eps, xtd(positions_map.at("base_z")));
+<<<<<<< HEAD
   double pitch = abs(0.6);
   // Body pose constraints (keep the body flat) at apex state
   trajopt.AddBoundingBoxConstraint(cos(pitch/2.0), 1, xtd(positions_map.at("base_qw")));
@@ -654,6 +694,8 @@ void addConstraintsTD(MultibodyPlant<T>& plant,
   std::cout<<"Adding td constraints" << std::endl;
   //trajopt.AddBoundingBoxConstraint(fore_aft_displacement-eps, fore_aft_displacement, xtd(positions_map.at("base_x")));
   //trajopt.AddBoundingBoxConstraint(td_height-eps, td_height+eps, xtd(positions_map.at("base_z")));
+=======
+>>>>>>> Making some progress with new initial guess load in
   double pitch = abs(0.6);
   // Body pose constraints (keep the body flat) at apex state
   trajopt.AddBoundingBoxConstraint(cos(pitch/2.0), 1, xtd(positions_map.at("base_qw")));
@@ -692,8 +734,10 @@ void addConstraintsStance(MultibodyPlant<T>& plant,
   std::cout<<"Adding stance constraints" << std::endl;
   nominalSpiritStandConstraint(plant,trajopt,initial_height, {trajopt.N()-1}, eps);
 
-  if (fore_aft_displacement >= 0)
+  std::cout<< fore_aft_displacement << std::endl;
+  if (fore_aft_displacement >= 0){
     trajopt.AddBoundingBoxConstraint(fore_aft_displacement-eps, fore_aft_displacement, xf(positions_map.at("base_x")));
+  }
 
   double n_v = plant.num_velocities();
 
@@ -831,9 +875,12 @@ void addConstraints(MultibodyPlant<T>& plant,
     trajopt.AddBoundingBoxConstraint( 0.15, 5, xi( positions_map.at("base_z")));
     trajopt.AddBoundingBoxConstraint( -eps, eps, xi( n_q+velocities_map.at("base_vy")));
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 
 >>>>>>> Seems to be working, messing with 3rd op
+=======
+>>>>>>> Making some progress with new initial guess load in
   }
   Eigen::VectorXd end_state_nominal;
   dairlib::nominalSpiritStand(plant, end_state_nominal, initial_height);
@@ -921,6 +968,7 @@ getModeSequenceRear(
           Eigen::Vector3d::Zero(),  // world offset
           mu, //friction
 <<<<<<< HEAD
+<<<<<<< HEAD
           0.03,
 <<<<<<< HEAD
           0.1
@@ -929,6 +977,9 @@ getModeSequenceRear(
 >>>>>>> Things are working ish
 =======
           0.01,
+=======
+          0.03,
+>>>>>>> Making some progress with new initial guess load in
           0.4
 >>>>>>> Getting full leap succsessful
       );
@@ -939,6 +990,7 @@ getModeSequenceRear(
             Eigen::Vector3d::UnitZ(), // normal
             Eigen::Vector3d::Zero(),  // world offset
             mu, //friction
+<<<<<<< HEAD
 <<<<<<< HEAD
             0.03,
 <<<<<<< HEAD
@@ -993,6 +1045,9 @@ getModeSequence(
 =======
             0.01,
 >>>>>>> Getting full leap succsessful
+=======
+            0.03,
+>>>>>>> Making some progress with new initial guess load in
             0.4
 >>>>>>> Working getting to apex
         );
@@ -1105,19 +1160,19 @@ getModeSequenceTouchdown(
       mode->MakeConstraintRelative(i,1);
     }
     mode->SetDynamicsScale(
-        {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19}, 150.0);
+        {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19}, 200.0);
     if (mode->evaluators().num_evaluators() == 4)
     {
       mode->SetKinVelocityScale(
           {0, 1, 2, 3}, {0, 1, 2}, 1.0);
       mode->SetKinPositionScale(
-          {0, 1, 2, 3}, {0, 1, 2}, 150.0);
+          {0, 1, 2, 3}, {0, 1, 2}, 200.0);
     }
     else if (mode->evaluators().num_evaluators() == 2){
       mode->SetKinVelocityScale(
           {0, 1}, {0, 1, 2}, 1.0);
       mode->SetKinPositionScale(
-          {0, 1}, {0, 1, 2}, 150.0);
+          {0, 1}, {0, 1, 2}, 200.0);
     }
     sequence.AddMode(mode.get());
   }
@@ -1292,12 +1347,17 @@ void runSpiritJump(
     //trajopt.SetInitialGuessForAllVariables(
     //    VectorXd::Zero(trajopt.decision_variables().size()));
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
     trajopt.drake::systems::trajectory_optimization::MultipleShooting::
         SetInitialTrajectory(u_traj, x_traj);
 >>>>>>> Leap is working fairly well
     for (int j = 0; j < sequence.num_modes(); j++) {
       trajopt.SetInitialTrajectoryForMode(j, x_traj[j], u_traj, x_traj[j].start_time(), x_traj[j].end_time());
+=======
+    for (int j = 0; j < sequence.num_modes(); j++) {
+      trajopt.SetInitialTrajectory(j, x_traj[j], u_traj, x_traj[j].start_time(), x_traj[j].end_time());
+>>>>>>> Making some progress with new initial guess load in
       trajopt.SetInitialForceTrajectory(j, l_traj[j], lc_traj[j],
                                         vc_traj[j], l_traj[j].start_time());
     }
@@ -1339,8 +1399,8 @@ void runSpiritJump(
 =======
   if(optimize_flight)
     addConstraintsFlight(plant, trajopt, apex_height, apex_displacement, eps);
-  //if(optimize_td)
-    //addConstraintsTD(plant, trajopt, td_height, td_displacement, eps);
+  if(optimize_td)
+    addConstraintsTD(plant, trajopt, td_height, td_displacement, eps);
   if(optimize_stance)
 <<<<<<< HEAD
     addConstraintsStance(plant, trajopt, initial_height);
@@ -1623,7 +1683,7 @@ int main(int argc, char* argv[]) {
         FLAGS_data_directory+"simple_rear2");
 
     dairlib::DirconTrajectory old_traj(FLAGS_data_directory+"simple_rear3");
-    x_traj = old_traj.ReconstructStateTrajectory();
+    x_traj = old_traj.ReconstructStateDiscontinuousTrajectory();
     u_traj = old_traj.ReconstructInputTrajectory();
     l_traj = old_traj.ReconstructLambdaTrajectory();
     lc_traj = old_traj.ReconstructLambdaCTrajectory();
@@ -1643,8 +1703,8 @@ int main(int argc, char* argv[]) {
         0.06,
         1.8,
         0.6,
-        0.43,
-        0.25,
+        0.4,
+        0.5,
         0,
         0,
         false,
@@ -1666,15 +1726,16 @@ int main(int argc, char* argv[]) {
 
 
   dairlib::DirconTrajectory old_traj2(FLAGS_data_directory+"half_leap");
-  x_traj = old_traj2.ReconstructStateTrajectory();
+  x_traj = old_traj2.ReconstructStateDiscontinuousTrajectory();
   u_traj = old_traj2.ReconstructInputTrajectory();
   l_traj = old_traj2.ReconstructLambdaTrajectory();
   lc_traj = old_traj2.ReconstructLambdaCTrajectory();
   vc_traj = old_traj2.ReconstructGammaCTrajectory();
 
   dairlib::appendFrontTD(*plant, x_traj, u_traj, l_traj, lc_traj, vc_traj, 0.30);
-  dairlib::appendStance(*plant, x_traj, u_traj, l_traj, lc_traj, vc_traj, FLAGS_standHeight);
+    dairlib::appendStance(*plant, x_traj, u_traj, l_traj, lc_traj, vc_traj, FLAGS_standHeight);
 
+    std::cout<<"Running 5th optimization"<<std::endl;
     dairlib::runSpiritJump<double>(
         *plant,
         x_traj, u_traj, l_traj,
@@ -1687,9 +1748,9 @@ int main(int argc, char* argv[]) {
         1.8,
         0.6,
         0.43,
-        0.25,
-        0.30,
-        -10.0,
+        0.5,
+        -1.00,
+        -1,
         false,
         true,
         true,
@@ -1697,9 +1758,9 @@ int main(int argc, char* argv[]) {
         1.8,
         3,
         10,
-        50,
         10,
-        4000,
+        5,
+        10000,
         0,
         100000,
         1e-2,
@@ -1707,7 +1768,14 @@ int main(int argc, char* argv[]) {
         1.0,
         FLAGS_data_directory+"three_quarter_leap");
 
+    dairlib::DirconTrajectory old_traj3(FLAGS_data_directory+"three_quarter_leap");
+    x_traj = old_traj3.ReconstructStateDiscontinuousTrajectory();
+    u_traj = old_traj3.ReconstructInputTrajectory();
+    l_traj = old_traj3.ReconstructLambdaTrajectory();
+    lc_traj = old_traj3.ReconstructLambdaCTrajectory();
+    vc_traj = old_traj3.ReconstructGammaCTrajectory();
 
+    dairlib::appendStance(*plant, x_traj, u_traj, l_traj, lc_traj, vc_traj, FLAGS_standHeight);
     std::cout<<"Running 6th optimization"<<std::endl;
     dairlib::runSpiritJump<double>(
         *plant,
@@ -1722,8 +1790,8 @@ int main(int argc, char* argv[]) {
         0.6,
         0.43,
         -0.25,
-        0.30,
-        1,
+        -1.0,
+        0.55,
         false,
         true,
         true,
@@ -1739,6 +1807,7 @@ int main(int argc, char* argv[]) {
         1e-2,
         1e-3,
         1.0,
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
         FLAGS_data_directory+"half_leap");
@@ -2101,6 +2170,9 @@ int main(int argc, char* argv[]) {
         FLAGS_data_directory+"full_leap",
         FLAGS_data_directory+"three_quarter_leap");
 >>>>>>> Starting work on full leap
+=======
+        FLAGS_data_directory+"full_leap");
+>>>>>>> Making some progress with new initial guess load in
   }
 }
 
