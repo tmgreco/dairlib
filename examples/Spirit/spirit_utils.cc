@@ -485,7 +485,8 @@ double calcWork(
   double work = 0;
   std::vector<double> knot_points = x_traj.get_segment_times();
 
-  for(int knot_index = 0; knot_index < knot_points.size()-1; knot_index++){
+  int N = knot_points.size();
+    for (int knot_index = 0; knot_index < N - 1; knot_index++) {
       auto u_low = u_traj.value(knot_points[knot_index]);
       auto u_up  = u_traj.value(knot_points[knot_index + 1]);
       auto x_low = x_traj.value(knot_points[knot_index]);
@@ -523,7 +524,8 @@ double calcWork(
   double work = 0;
   for(const auto& x_traj : x_trajs) {
     std::vector<double> knot_points = x_traj.get_segment_times();
-    for (int knot_index = 0; knot_index < knot_points.size() - 1; knot_index++) {
+    int N = knot_points.size();
+    for (int knot_index = 0; knot_index < N - 1; knot_index++) {
       auto u_low = u_traj.value(knot_points[knot_index]);
       auto u_up = u_traj.value(knot_points[knot_index + 1]);
       auto x_low = x_traj.value(knot_points[knot_index]);
@@ -559,7 +561,8 @@ double calcVelocityInt(
   double vel_int = 0;
   std::vector<double> knot_points = x_traj.get_segment_times();
 
-  for(int knot_index = 0; knot_index < knot_points.size()-1; knot_index++){
+  int N = knot_points.size();
+  for(int knot_index = 0; knot_index < N-1; knot_index++){
     Eigen::VectorXd x_low = x_traj.value(knot_points[knot_index]);
     Eigen::VectorXd x_up  = x_traj.value(knot_points[knot_index + 1]);
 
@@ -590,7 +593,8 @@ double calcVelocityInt(
   for(const auto& x_traj : x_trajs){
     std::vector<double> knot_points = x_traj.get_segment_times();
 
-    for(int knot_index = 0; knot_index < knot_points.size()-1; knot_index++){
+    int N = knot_points.size();
+    for(int knot_index = 0; knot_index < N-1; knot_index++){
       Eigen::VectorXd x_low = x_traj.value(knot_points[knot_index]);
       Eigen::VectorXd x_up  = x_traj.value(knot_points[knot_index + 1]);
 
@@ -618,7 +622,8 @@ double calcTorqueInt(
   double act_int = 0;
   std::vector<double> knot_points = u_traj.get_segment_times();
 
-  for(int knot_index = 0; knot_index < knot_points.size()-1; knot_index++){
+  int N = knot_points.size();
+  for(int knot_index = 0; knot_index < N-1; knot_index++){
     Eigen::VectorXd u_low = u_traj.value(knot_points[knot_index]);
     Eigen::VectorXd u_up  = u_traj.value(knot_points[knot_index + 1]);
 
@@ -636,7 +641,8 @@ void visualizeSurface(drake::multibody::MultibodyPlant<double>* plant_vis,
   double length_surf, 
   double width_surf,
   double thickness_surf,
-  const drake::Vector4<double> color
+  const drake::Vector4<double> color,
+  std::string name
   ){
   Eigen::Vector3d unit_normal = surface_normal/surface_normal.norm();
   Eigen::Vector3d bodyOffset(0,0,-thickness_surf/2);
@@ -653,7 +659,7 @@ void visualizeSurface(drake::multibody::MultibodyPlant<double>* plant_vis,
     plant_vis->world_body(),
     worldToBodyTransform*bodyToSurfaceTransform,     /* Pose X_BG of the geometry frame G in the cylinder body frame B. */
     drake::geometry::Box(lx, ly, lz), 
-    "box", color);
+    name, color);
 }
 void visualizeSurface(drake::multibody::MultibodyPlant<double>* plant_vis, 
   Eigen::Vector3d surface_normal,
@@ -674,9 +680,10 @@ void visualizeSurface(drake::multibody::MultibodyPlant<double>* plant_vis,
   }
 
 
-std::vector<Eigen::Matrix<double, 7, 1>> calculateBallistic(
+std::pair< std::vector<Eigen::Matrix<double, 7, 1>>, Eigen::Matrix<double, 7, 1>> calculateBallistic(
     Eigen::Matrix<double, 3, 1> initialPos,
     Eigen::Matrix<double, 3, 1>   finalPos,
+    int nTimesteps,
     double apexHeight,
     double time
   ){
@@ -700,53 +707,79 @@ std::vector<Eigen::Matrix<double, 7, 1>> calculateBallistic(
   double t0 = 0;
   double tApex = 0;
   double tf = 0;
-  double dz0 = 0;
-  double dzf = 0;
 
+  double dz0 = 0;
+  // double dzf = 0;
   if( !std::isinf(apexHeight) && apexValid ){
+    std::cout<<"A"<<std::endl;
     tApex = sqrt(2*(apexHeight - z0)/g);
     tf = tApex + sqrt(2*(apexHeight - zf)/g);
     dz0 = g * tApex;
-    dzf = - g * (tf -tApex);
+    // dzf = - g * (tf -tApex);
   }else if (!std::isinf(time))
   {
+    std::cout<<"B"<<std::endl;
     tf = time;
-    dz0 = (g/2) * tf + (zf - z0) / tf;
-    dzf = dz0 - g*tf;
+    dz0 = (g/2.0) * tf + (zf - z0) / tf;
+    // dzf = dz0 - g*tf;
   }
   else{
     // Assume one of the ends is apex (this is arbitrary)
     
+    std::cout<<"C"<<std::endl;
     tf = sqrt(2*abs(zf - z0)/g);
     dz0 = zf>z0 ? g * tf : 0 ;
-    dzf = zf>z0 ? 0 : -g * tf ;
+    // dzf = zf>z0 ? 0 : -g * tf ;
   }
-
+  double deltaT = tf/(nTimesteps-1);
   double dx0 = (xf - x0)/tf;
   double dy0 = (yf - y0)/tf;
+
+  // Eigen::Matrix<double, 7, 1> initialState;
+  // initialState << t0, x0, y0, z0, dx0, dy0, dz0;
+  // states.push_back(initialState);
+  // Eigen::Matrix<double, 7, 1> finalState;
+  // finalState   << tf, xf, yf, zf, dx0, dy0, dzf;
+  // states.push_back(finalState);
+
+  double DT = 0;
+  for(int j = 0; j<nTimesteps; j++){ 
+    Eigen::Matrix<double, 7, 1> stateI;
+    
+    stateI << t0 + DT, 
+              x0 + dx0*DT, 
+              y0 + dy0*DT, 
+              z0 + dz0*DT - (g / 2.0) * DT * DT, 
+              dx0, 
+              dy0, 
+              dz0 - g * DT;
+    DT = DT + deltaT;
+    states.push_back(stateI);
+  }
   
-  Eigen::Matrix<double, 7, 1> initialState;
+
+
   Eigen::Matrix<double, 7, 1> apexState;
-  Eigen::Matrix<double, 7, 1> finalState;
-
-  initialState << t0, x0, y0, z0, dx0, dy0, dz0;
-  finalState   << tf, xf, yf, zf, dx0, dy0, dzf;
-
-  states.push_back(initialState);
   if(apexValid){
-    apexState << tApex, x0, y0, z0, dx0, dy0, 0;
-    states.push_back(apexState);
+    apexState <<  tApex,
+                  x0 + dx0*tApex, 
+                  y0 + dy0*tApex, 
+                  z0 + dz0*tApex - (g / 2.0) * tApex*tApex, 
+                  dx0, 
+                  dy0, 
+                  0;
+    // states.push_back(apexState);
   }
-  states.push_back(finalState);
 
-  return states;
+  return std::make_pair(states,apexState);
 
-  }
+}
 
 std::vector<Eigen::Matrix<double,8,1>> calculateBallisticRotation(
     Eigen::Matrix<double, 4, 1> qi,
     Eigen::Matrix<double, 4, 1> qf,
-    std::vector<double> timeSteps
+    int nTimesteps,
+    double time
 ){
   std::vector<Eigen::Matrix<double,8,1>> output;
   Eigen::Quaternion Qi(qi(0),qi(1),qi(2),qi(3));
@@ -757,19 +790,46 @@ std::vector<Eigen::Matrix<double,8,1>> calculateBallisticRotation(
   
   Eigen::AngleAxis<double> aa = iRf.ToAngleAxis();
   double angle = aa.angle();
+  std::cout<<wRi.matrix()<<std::endl;
+  std::cout<<wRf.matrix()<<std::endl;
+  std::cout<<iRf.matrix()<<std::endl;
+  std::cout<<angle<<std::endl;
   Eigen::Vector3d axis = aa.axis();
-  double timeF = timeSteps.back();
-  double omega = angle/(timeF-timeSteps.front());
+  double tf = time;
+  double deltaT = tf/(nTimesteps-1);
+  double omega = angle/tf;
   Eigen::Matrix<double,8,1> output_j;
-  for (double time_j : timeSteps){
-    Eigen::AngleAxis<double> aa_j((timeF-time_j)*omega, axis);
+  for (int j=0; j<nTimesteps; j++){
+    Eigen::AngleAxis<double> aa_j((deltaT*j)*omega, axis);
     drake::math::RotationMatrixd wRj(wRi*(aa_j.toRotationMatrix()));
-    output_j.head(1)<<time_j;
+    output_j.head(1)<<(deltaT*j);
     output_j.tail(7)<<wRj.ToQuaternionAsVector4(),omega;
     output.push_back(output_j);
   }
   return output;
 }
+
+std::vector<Eigen::Matrix<double, -1, 1>> interpolateVectors(
+        Eigen::Matrix<double, -1, 1> init,
+        Eigen::Matrix<double, -1, 1> final,
+        int numSteps){
+  std::vector<Eigen::Matrix<double, -1, 1>> outVector;
+  for(int j; j<numSteps; j++){
+    outVector.push_back(init + j*(final-init)/(numSteps-1));
+  }
+  return outVector;
+}
+
+
+///takes a vector of configurations and creates a ballistic trajectory to match
+// std::pair< PiecewisePolynomial<double>, PiecewisePolynomial<double>> initialTraj(
+//     drake::multibody::MultibodyPlant<double> & plant,
+//     std::vector<Eigen::Matrix<double,-1,1>> configurations,
+//     std::vector<double> knotpoints
+//     ){
+  
+// }
+
 
 /// TEMPLATING 
 template void nominalSpiritStand(

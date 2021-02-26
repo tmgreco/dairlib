@@ -62,6 +62,7 @@ namespace dairlib {
             double height, 
             Eigen::Vector3d normal,
             Eigen::Vector3d offset,
+            double mu,
             bool rerun,
             double tol,
             bool animate,
@@ -73,6 +74,7 @@ namespace dairlib {
         normal_ = normal/normal.norm(); // Normalize the surface normal
         offset_ = offset;
         plantPtr_ = plantPtr;
+        mu_ = mu;
         // Get the RPY represenation of the unit normal
         drake::math::RollPitchYaw<double> rpy(dairlib::normal2Rotation(normal_)) ;
         rpy_ = rpy.vector();
@@ -126,7 +128,7 @@ namespace dairlib {
             5,
             normal_,
             Eigen::Vector3d::Zero(),//offset
-            std::numeric_limits<double>::infinity(),//mu
+            mu_,//mu
             1,//MinT
             1//MaxT
             );

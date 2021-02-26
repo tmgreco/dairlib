@@ -27,6 +27,19 @@ class ModeSequenceHelper {
         minTs.push_back(minT);
         maxTs.push_back(maxT);
     }
+    void addFlight(
+      int num_knots,
+      double minT = 0,
+      double maxT = std::numeric_limits<double>::infinity() 
+    ){
+      addMode(
+          (Eigen::Matrix<bool,1,4>() << false, false, false, false).finished(),
+          num_knots, 
+          Eigen::Vector3d::UnitZ(), 
+          Eigen::Vector3d::Zero(), 
+          std::numeric_limits<double>::infinity()
+      );
+    }
 };
 
 drake::math::RotationMatrix<double> normal2Rotation(Eigen::Vector3d nHat);
@@ -264,7 +277,8 @@ void visualizeSurface(drake::multibody::MultibodyPlant<double>* plant_vis,
   double length_surf, 
   double width_surf,
   double thickness_surf,
-  const drake::Vector4<double> color
+  const drake::Vector4<double> color,
+  std::string name="box0"
   );
 
 void visualizeSurface(drake::multibody::MultibodyPlant<double>* plant_vis, 
@@ -276,11 +290,24 @@ void visualizeSurface(drake::multibody::MultibodyPlant<double>* plant_vis,
   );
 
 /// Calculate the ballistic flight phase of a point mass
-std::vector<Eigen::Matrix<double, 7, 1>>  calculateBallistic(
+std::pair< std::vector<Eigen::Matrix<double, 7, 1>>, Eigen::Matrix<double, 7, 1>>  calculateBallistic(
     Eigen::Matrix<double, 3, 1> initialPos,
     Eigen::Matrix<double, 3, 1>   finalPos,
+    int nTimesteps = 10,
     double apexHeight = std::numeric_limits<double>::infinity(),
     double time = std::numeric_limits<double>::infinity()
-  );
+    );
+  
+std::vector<Eigen::Matrix<double,8,1>> calculateBallisticRotation(
+    Eigen::Matrix<double, 4, 1> qi,
+    Eigen::Matrix<double, 4, 1> qf,
+    int nTimesteps,
+    double time = 1
+    );
+  
+std::vector<Eigen::Matrix<double, -1, 1>> interpolateVectors(
+        Eigen::Matrix<double, -1, 1> init,
+        Eigen::Matrix<double, -1, 1> final,
+        int numSteps);
 
 } //namespace dairlib

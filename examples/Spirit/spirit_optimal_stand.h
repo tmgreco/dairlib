@@ -8,6 +8,7 @@ class OptimalSpiritStand {
     double height_;
     Eigen::Vector3d normal_;
     Eigen::Vector3d offset_;
+    double mu_;
     Eigen::VectorXd fullstate_;
     std::string filename_;
     Eigen::Vector3d rpy_;
@@ -35,6 +36,7 @@ class OptimalSpiritStand {
           double height, 
           Eigen::Vector3d normal,
           Eigen::Vector3d offset,
+          double mu,
           bool rerun = false,
           double tol = 1e-4,
           bool animate = false,
@@ -44,6 +46,10 @@ class OptimalSpiritStand {
     Eigen::VectorXd normal(){ return normal_; }
     // Get the surface nominal offset 
     Eigen::VectorXd offset(){ return offset_; }
+    // Get the standing friction
+    double height(){ return height_; }
+    // Get the standing friction
+    double mu(){ return mu_; }
     // Get the fullstate of the stand (velocities should be zero)
     Eigen::VectorXd getState(){ return fullstate_; }
     // Get the roll pitch yaw as a vector
