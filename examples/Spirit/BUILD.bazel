@@ -147,6 +147,24 @@ cc_binary(
 )
 
 cc_binary(
+    name = "run_spirit_parkour",
+    srcs = ["run_spirit_parkour.cc"],
+    data = ["spirit_drake.urdf"],
+    deps = [
+        ":animate_spirit",
+        ":spirit_utils",
+        ":spirit_optimal_stand",
+        "//systems/trajectory_optimization/dircon",
+        "//lcm:dircon_trajectory_saver",
+        "//multibody/kinematic",
+        "//common",
+        "//systems/primitives",
+        "@drake//:drake_shared_library",
+        "@gflags",
+    ],
+)
+
+cc_binary(
     name = "run_spirit_optimal_stand",
     srcs = ["run_spirit_optimal_stand.cc"],
     data = ["spirit_drake.urdf"],
