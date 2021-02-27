@@ -47,7 +47,7 @@ DEFINE_string(data_directory, "/home/shane/Drake_ws/dairlib/examples/Spirit/save
 DEFINE_string(distance_name, "90cm","name to describe distance");
 
 DEFINE_bool(runAllOptimization, true, "rerun earlier optimizations?");
-DEFINE_bool(skipInitialOptimization, true, "skip first optimizations?");
+DEFINE_bool(skipInitialOptimization, false, "skip first optimizations?");
 DEFINE_bool(minWork, false, "try to minimize work?");
 
 using drake::AutoDiffXd;
@@ -1026,7 +1026,11 @@ getModeSequence(
       mode->MakeConstraintRelative(i,1);
     }
     mode->SetDynamicsScale(
+<<<<<<< HEAD
         {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19}, 500.0);
+=======
+        {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19}, 150.0);
+>>>>>>> Optimization success with pipeline
     if (mode->evaluators().num_evaluators() == 4)
     {
       mode->SetKinVelocityScale(
@@ -1039,6 +1043,7 @@ getModeSequence(
           {0, 1}, {0, 1, 2}, 1.0);
       mode->SetKinPositionScale(
           {0, 1}, {0, 1, 2}, 150.0);
+<<<<<<< HEAD
 =======
             0.5
 =======
@@ -1053,6 +1058,8 @@ getModeSequence(
         );
       }
 >>>>>>> Things are working ish
+=======
+>>>>>>> Optimization success with pipeline
     }
   }
 <<<<<<< HEAD
@@ -1740,7 +1747,7 @@ int main(int argc, char* argv[]) {
         *plant,
         x_traj, u_traj, l_traj,
         lc_traj, vc_traj,
-        true,
+        false,
         {7, 7, 7, 7, 7, 7} ,
         0.35,
         FLAGS_standHeight,
@@ -1768,14 +1775,6 @@ int main(int argc, char* argv[]) {
         1.0,
         FLAGS_data_directory+"three_quarter_leap");
 
-    dairlib::DirconTrajectory old_traj3(FLAGS_data_directory+"three_quarter_leap");
-    x_traj = old_traj3.ReconstructStateDiscontinuousTrajectory();
-    u_traj = old_traj3.ReconstructInputTrajectory();
-    l_traj = old_traj3.ReconstructLambdaTrajectory();
-    lc_traj = old_traj3.ReconstructLambdaCTrajectory();
-    vc_traj = old_traj3.ReconstructGammaCTrajectory();
-
-    dairlib::appendStance(*plant, x_traj, u_traj, l_traj, lc_traj, vc_traj, FLAGS_standHeight);
     std::cout<<"Running 6th optimization"<<std::endl;
     dairlib::runSpiritJump<double>(
         *plant,
@@ -1789,9 +1788,9 @@ int main(int argc, char* argv[]) {
         1.8,
         0.6,
         0.43,
-        -0.25,
-        -1.0,
-        0.55,
+        -0.5,
+        -1.00,
+        1,
         false,
         true,
         true,
@@ -1799,14 +1798,15 @@ int main(int argc, char* argv[]) {
         1.8,
         3,
         10,
-        50,
         10,
-        4000,
+        5,
+        10000,
         0,
         100000,
         1e-2,
         1e-3,
         1.0,
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2173,6 +2173,10 @@ int main(int argc, char* argv[]) {
 =======
         FLAGS_data_directory+"full_leap");
 >>>>>>> Making some progress with new initial guess load in
+=======
+        FLAGS_data_directory+"full_leap",
+        FLAGS_data_directory+"three_quarter_leap");
+>>>>>>> Optimization success with pipeline
   }
 }
 
