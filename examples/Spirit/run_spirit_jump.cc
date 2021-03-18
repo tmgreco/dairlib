@@ -47,7 +47,7 @@ DEFINE_string(data_directory, "/home/shane/Drake_ws/dairlib/examples/Spirit/save
 DEFINE_string(distance_name, "90cm","name to describe distance");
 
 DEFINE_bool(runAllOptimization, true, "rerun earlier optimizations?");
-DEFINE_bool(skipInitialOptimization, false, "skip first optimizations?");
+DEFINE_bool(skipInitialOptimization, true, "skip first optimizations?");
 DEFINE_bool(minWork, false, "try to minimize work?");
 
 using drake::AutoDiffXd;
@@ -158,11 +158,19 @@ void badSpiritRear(MultibodyPlant<T>& plant,
     init_lc_j.push_back(init_l_vec);
     init_vc_j.push_back(VectorXd::Zero(12));
   }
+<<<<<<< HEAD
 
   auto init_l_traj_j = PiecewisePolynomial<double>::ZeroOrderHold(init_time_j,init_l_j);
   auto init_lc_traj_j = PiecewisePolynomial<double>::ZeroOrderHold(init_time_j,init_lc_j);
   auto init_vc_traj_j = PiecewisePolynomial<double>::ZeroOrderHold(init_time_j,init_vc_j);
 
+=======
+
+  auto init_l_traj_j = PiecewisePolynomial<double>::ZeroOrderHold(init_time_j,init_l_j);
+  auto init_lc_traj_j = PiecewisePolynomial<double>::ZeroOrderHold(init_time_j,init_lc_j);
+  auto init_vc_traj_j = PiecewisePolynomial<double>::ZeroOrderHold(init_time_j,init_vc_j);
+
+>>>>>>> I really should have commited this a long time ago
   l_traj.push_back(init_l_traj_j);
   lc_traj.push_back(init_lc_traj_j);
   vc_traj.push_back(init_vc_traj_j);
@@ -383,7 +391,7 @@ void appendFrontTD(MultibodyPlant<T>& plant,
   x_points[1] = x_const;
 
   time_vec[0] = x_traj[2].end_time();
-  time_vec[1] = td_time+0.05;
+  time_vec[1] = td_time+0.03;
   x_traj.push_back(PiecewisePolynomial<double>::FirstOrderHold(time_vec,x_points));
 
   std::vector<MatrixXd> u_points = {u_traj.value(u_traj.end_time()), u_traj.value(u_traj.end_time())};
@@ -431,6 +439,7 @@ void appendStance(MultibodyPlant<T>& plant,
   std::vector<MatrixXd> x_points = {xtd, x_const};
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
   std::vector<double> time_vec = {x_traj[4].end_time(), x_traj[4].end_time() + 0.02};
   x_traj.push_back(PiecewisePolynomial<double>::FirstOrderHold(time_vec,x_points));
 =======
@@ -439,6 +448,9 @@ void appendStance(MultibodyPlant<T>& plant,
 >>>>>>> Things are working ish
 =======
   std::vector<double> time_vec = {x_traj[4].end_time(), x_traj[4].end_time() + 0.1};
+=======
+  std::vector<double> time_vec = {x_traj[4].end_time(), x_traj[4].end_time() + 0.02};
+>>>>>>> I really should have commited this a long time ago
   x_traj.push_back(PiecewisePolynomial<double>::FirstOrderHold(time_vec,x_points));
 >>>>>>> Making some progress with new initial guess load in
 
@@ -979,9 +991,13 @@ getModeSequenceRear(
           0.01,
 =======
           0.03,
+<<<<<<< HEAD
 >>>>>>> Making some progress with new initial guess load in
           0.4
 >>>>>>> Getting full leap succsessful
+=======
+          0.1
+>>>>>>> I really should have commited this a long time ago
       );
       if(optimize_stance){
         msh.addMode( // Stance
@@ -995,6 +1011,9 @@ getModeSequenceRear(
             0.03,
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> I really should have commited this a long time ago
             0.1
         );
       }
@@ -1027,10 +1046,14 @@ getModeSequence(
     }
     mode->SetDynamicsScale(
 <<<<<<< HEAD
+<<<<<<< HEAD
         {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19}, 500.0);
 =======
         {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19}, 150.0);
 >>>>>>> Optimization success with pipeline
+=======
+        {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19}, 500.0);
+>>>>>>> I really should have commited this a long time ago
     if (mode->evaluators().num_evaluators() == 4)
     {
       mode->SetKinVelocityScale(
@@ -1417,7 +1440,7 @@ void runSpiritJump(
 >>>>>>> Getting full leap succsessful
 
   /// Setup the visualization during the optimization
-  int num_ghosts = 5;// Number of ghosts in visualization. NOTE: there are limitations on number of ghosts based on modes and knotpoints
+  int num_ghosts = 1;// Number of ghosts in visualization. NOTE: there are limitations on number of ghosts based on modes and knotpoints
   std::vector<unsigned int> visualizer_poses; // Ghosts for visualizing during optimization
   for(int i = 0; i < sequence.num_modes(); i++){
       visualizer_poses.push_back(num_ghosts); 
@@ -1531,6 +1554,7 @@ int main(int argc, char* argv[]) {
 >>>>>>> Refactored joint limits
 =======
       dairlib::badSpiritRear(*plant, x_traj, u_traj, l_traj, lc_traj, vc_traj);
+<<<<<<< HEAD
 >>>>>>> Leap is working fairly well
       dairlib::runSpiritJump<double>(
           *plant,
@@ -1594,6 +1618,42 @@ int main(int argc, char* argv[]) {
 
       std::cout<<"Running 2nd optimization"<<std::endl;
 
+=======
+//      dairlib::runSpiritJump<double>(
+//          *plant,
+//          x_traj, u_traj, l_traj,
+//          lc_traj, vc_traj,
+//          false,
+//          {10, 7, 5, 5, 5, 5} ,
+//          0.3,
+//          0.2,
+//          0,
+//          0,
+//          0.4,
+//          0,
+//          0,
+//          0,
+//          0,
+//          true,
+//          false,
+//          false,
+//          false,
+//          0.5,
+//          0.3,
+//          1,
+//          5,
+//          10,
+//          2000,
+//          0,
+//          100000,
+//          0,
+//          1e-4,
+//          1.0,
+//          FLAGS_data_directory+"simple_rear");
+//
+//      std::cout<<"Running 2nd optimization"<<std::endl;
+//
+>>>>>>> I really should have commited this a long time ago
       dairlib::runSpiritJump<double>(
           *plant,
           x_traj, u_traj, l_traj,
@@ -1654,82 +1714,82 @@ int main(int argc, char* argv[]) {
           FLAGS_data_directory+"simple_rear2");
     }
 
-    std::cout<<"Running 3rd optimization"<<std::endl;
-
-    dairlib::runSpiritJump<double>(
-        *plant,
-        x_traj, u_traj, l_traj,
-        lc_traj, vc_traj,
-        false,
-        {10, 7, 5, 5, 5, 5} ,
-        0.35,
-        FLAGS_standHeight,
-        0.15,
-        0.5,
-        0.4,
-        0,
-        0,
-        0,
-        0,
-        false,
-        false,
-        false,
-        false,
-        0.8,
-        3,
-        20,
-        5,
-        10,
-        2000,
-        0,
-        100000,
-        1e-2,
-        1e-4,
-        1.0,
-        FLAGS_data_directory+"simple_rear3",
-        FLAGS_data_directory+"simple_rear2");
-
-    dairlib::DirconTrajectory old_traj(FLAGS_data_directory+"simple_rear3");
-    x_traj = old_traj.ReconstructStateDiscontinuousTrajectory();
-    u_traj = old_traj.ReconstructInputTrajectory();
-    l_traj = old_traj.ReconstructLambdaTrajectory();
-    lc_traj = old_traj.ReconstructLambdaCTrajectory();
-    vc_traj = old_traj.ReconstructGammaCTrajectory();
-
-    dairlib::appendFlight(*plant, x_traj, u_traj, l_traj, lc_traj, vc_traj);
-
-    std::cout<<"Running 4th optimization"<<std::endl;
-    dairlib::runSpiritJump<double>(
-        *plant,
-        x_traj, u_traj, l_traj,
-        lc_traj, vc_traj,
-        false,
-        {10, 7, 7, 7, 7, 7} ,
-        0.35,
-        FLAGS_standHeight,
-        0.06,
-        1.8,
-        0.6,
-        0.4,
-        0.5,
-        0,
-        0,
-        false,
-        true,
-        false,
-        false,
-        1.8,
-        3,
-        10,
-        5,
-        10,
-        4000,
-        0,
-        100000,
-        1e-2,
-        1e-3,
-        1.0,
-        FLAGS_data_directory+"half_leap");
+//    std::cout<<"Running 3rd optimization"<<std::endl;
+//
+//    dairlib::runSpiritJump<double>(
+//        *plant,
+//        x_traj, u_traj, l_traj,
+//        lc_traj, vc_traj,
+//        false,
+//        {10, 7, 5, 5, 5, 5} ,
+//        0.35,
+//        FLAGS_standHeight,
+//        0.15,
+//        0.5,
+//        0.4,
+//        0,
+//        0,
+//        0,
+//        0,
+//        false,
+//        false,
+//        false,
+//        false,
+//        0.8,
+//        3,
+//        20,
+//        5,
+//        10,
+//        4000,
+//        0,
+//        100000,
+//        1e-2,
+//        1e-4,
+//        1.0,
+//        FLAGS_data_directory+"simple_rear3",
+//        FLAGS_data_directory+"simple_rear2");
+//
+//    dairlib::DirconTrajectory old_traj(FLAGS_data_directory+"simple_rear3");
+//    x_traj = old_traj.ReconstructStateDiscontinuousTrajectory();
+//    u_traj = old_traj.ReconstructInputTrajectory();
+//    l_traj = old_traj.ReconstructLambdaTrajectory();
+//    lc_traj = old_traj.ReconstructLambdaCTrajectory();
+//    vc_traj = old_traj.ReconstructGammaCTrajectory();
+//
+//    dairlib::appendFlight(*plant, x_traj, u_traj, l_traj, lc_traj, vc_traj);
+//
+//    std::cout<<"Running 4th optimization"<<std::endl;
+//    dairlib::runSpiritJump<double>(
+//        *plant,
+//        x_traj, u_traj, l_traj,
+//        lc_traj, vc_traj,
+//        false,
+//        {10, 7, 7, 7, 7, 7} ,
+//        0.35,
+//        FLAGS_standHeight,
+//        0.06,
+//        1.8,
+//        0.6,
+//        0.4,
+//        0.5,
+//        0,
+//        0,
+//        false,
+//        true,
+//        false,
+//        false,
+//        1.8,
+//        3,
+//        10,
+//        5,
+//        10,
+//        4000,
+//        0,
+//        100000,
+//        1e-2,
+//        1e-6,
+//        1.0,
+//        FLAGS_data_directory+"half_leap");
 
 
   dairlib::DirconTrajectory old_traj2(FLAGS_data_directory+"half_leap");
@@ -1739,7 +1799,7 @@ int main(int argc, char* argv[]) {
   lc_traj = old_traj2.ReconstructLambdaCTrajectory();
   vc_traj = old_traj2.ReconstructGammaCTrajectory();
 
-  dairlib::appendFrontTD(*plant, x_traj, u_traj, l_traj, lc_traj, vc_traj, 0.30);
+  dairlib::appendFrontTD(*plant, x_traj, u_traj, l_traj, lc_traj, vc_traj, 0.25);
     dairlib::appendStance(*plant, x_traj, u_traj, l_traj, lc_traj, vc_traj, FLAGS_standHeight);
 
     std::cout<<"Running 5th optimization"<<std::endl;
@@ -1765,9 +1825,9 @@ int main(int argc, char* argv[]) {
         1.8,
         3,
         10,
-        10,
-        5,
-        10000,
+        10/5.0,
+        5/5.0,
+        50000,
         0,
         100000,
         1e-2,
@@ -1785,12 +1845,12 @@ int main(int argc, char* argv[]) {
         0.35,
         FLAGS_standHeight,
         0.06,
-        1.8,
+        1.0,
         0.6,
-        0.43,
+        0.41,
         -0.5,
         -1.00,
-        1,
+        1.85,
         false,
         true,
         true,
@@ -1806,6 +1866,7 @@ int main(int argc, char* argv[]) {
         1e-2,
         1e-3,
         1.0,
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2177,6 +2238,9 @@ int main(int argc, char* argv[]) {
         FLAGS_data_directory+"full_leap",
         FLAGS_data_directory+"three_quarter_leap");
 >>>>>>> Optimization success with pipeline
+=======
+        FLAGS_data_directory+"full_leap");
+>>>>>>> I really should have commited this a long time ago
   }
 }
 

@@ -37,7 +37,7 @@ using Eigen::MatrixXd;
 DEFINE_string(data_directory, "/home/shane/Drake_ws/dairlib/examples/Spirit/saved_trajectories/",
               "directory to save/read data");
 
-DEFINE_string(file_name, "half_leap","file to read data");
+DEFINE_string(file_name, "simple_rear2","file to read data");
 
 
 int main(int argc, char* argv[]) {
