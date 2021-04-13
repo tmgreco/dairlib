@@ -70,11 +70,11 @@ DEFINE_string(data_directory, "../dairlib_data/cassie_trajopt_data/",
 DEFINE_string(save_filename, "default_filename",
               "Filename to save decision vars to.");
 DEFINE_bool(store_data, false, "To store solution or not");
-DEFINE_int32(max_iter, 100, "Iteration limit");
+DEFINE_int32(max_iter, 1000, "Iteration limit");
 DEFINE_int32(N, 20, "Number of knotpoints");
 DEFINE_double(duration, 0.4, "Duration of the single support phase (s)");
 DEFINE_double(tol, 1e-4, "Tolerance for constraint violation and dual gap");
-DEFINE_bool(ipopt, false, "Use IPOPT as solver instead of SNOPT");
+DEFINE_bool(ipopt, true, "Use IPOPT as solver instead of SNOPT");
 DEFINE_bool(playback, true, "Playback the solution");
 
 // Parameters which enable dircon-improving features
