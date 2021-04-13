@@ -13,6 +13,7 @@
 #include "drake/systems/framework/diagram_builder.h"
 #include "drake/multibody/parsing/parser.h"
 #include <drake/multibody/inverse_kinematics/inverse_kinematics.h>
+#include <drake/solvers/choose_best_solver.h>
 #include "drake/geometry/geometry_visualization.h"
 #include "drake/solvers/solve.h"
 
@@ -48,7 +49,8 @@ DEFINE_string(distance_name, "100cm","name to describe distance");
 
 DEFINE_bool(runAllOptimization, true, "rerun earlier optimizations?");
 DEFINE_bool(skipInitialOptimization, false, "skip first optimizations?");
-DEFINE_bool(minWork, true, "try to minimize work?");
+DEFINE_bool(minWork, false, "try to minimize work?");
+DEFINE_bool(ipopt, true, "Use IPOPT as solver instead of SNOPT");
 
 using drake::AutoDiffXd;
 using drake::multibody::MultibodyPlant;
@@ -521,18 +523,42 @@ void runSpiritJump(
 
   ///Setup trajectory optimization
   auto trajopt = Dircon<T>(sequence);
-  // Set up Trajectory Optimization options
-  trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(),
-                           "Print file", "../snopt.out");
-  trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(),
-                           "Major iterations limit", 10000);
-  trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(), "Iterations limit", 1000000);
-  trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(),
-                           "Major optimality tolerance",
-                           tol);  // target optimality
-  trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(), "Major feasibility tolerance", tol);
-  trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(), "Verify level",
-                           0);  // 0
+
+  if (FLAGS_ipopt) {
+    // Ipopt settings adapted from CaSaDi and FROST
+    auto id = drake::solvers::IpoptSolver::id();
+    trajopt.SetSolverOption(id, "tol", tol);
+    trajopt.SetSolverOption(id, "dual_inf_tol", tol);
+    trajopt.SetSolverOption(id, "constr_viol_tol", tol);
+    trajopt.SetSolverOption(id, "compl_inf_tol", tol);
+    trajopt.SetSolverOption(id, "max_iter", 1000000);
+    trajopt.SetSolverOption(id, "nlp_lower_bound_inf", -1e6);
+    trajopt.SetSolverOption(id, "nlp_upper_bound_inf", 1e6);
+    trajopt.SetSolverOption(id, "print_timing_statistics", "yes");
+    trajopt.SetSolverOption(id, "print_level", 5);
+
+    // Set to ignore overall tolerance/dual infeasibility, but terminate when
+    // primal feasible and objective fails to increase over 5 iterations.
+    trajopt.SetSolverOption(id, "acceptable_compl_inf_tol", tol);
+    trajopt.SetSolverOption(id, "acceptable_constr_viol_tol", tol);
+    trajopt.SetSolverOption(id, "acceptable_obj_change_tol", 1e-3);
+    trajopt.SetSolverOption(id, "acceptable_tol", 1e2);
+    trajopt.SetSolverOption(id, "acceptable_iter", 5);
+  } else {
+    // Set up Trajectory Optimization options
+    trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(),
+                            "Print file", "../snopt.out");
+    trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(),
+                            "Major iterations limit", 10000);
+    trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(), "Iterations limit", 1000000);
+    trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(),
+                            "Major optimality tolerance",
+                            tol);  // target optimality
+    trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(), "Major feasibility tolerance", tol);
+    trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(), "Verify level",
+                            0);  // 0
+  }
+
 
   // Setting up cost
   addCost(plant, trajopt, cost_actuation, cost_velocity, cost_work, work_constraint_scale);
@@ -565,10 +591,21 @@ void runSpiritJump(
       dairlib::FindResourceOrThrow("examples/Spirit/spirit_drake.urdf"),
       visualizer_poses, 0.2); // setup which URDF, how many poses, and alpha transparency 
 
-  
+  drake::solvers::SolverId solver_id("");
+  if (FLAGS_ipopt) {
+    solver_id = drake::solvers::IpoptSolver().id();
+    cout << "\nChose manually: " << solver_id.name() << endl;
+  } else {
+    solver_id = drake::solvers::ChooseBestSolver(trajopt);
+    cout << "\nChose the best solver: " << solver_id.name() << endl;
+  }
+
   /// Run the optimization using your initial guess
   auto start = std::chrono::high_resolution_clock::now();
-  const auto result = Solve(trajopt, trajopt.initial_guess());
+  auto solver = drake::solvers::MakeSolver(solver_id);
+  drake::solvers::MathematicalProgramResult result;
+  solver->Solve(trajopt, trajopt.initial_guess(), trajopt.solver_options(),
+                &result);
   auto finish = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> elapsed = finish - start;
   std::cout << "Solve time: " << elapsed.count() <<std::endl;
