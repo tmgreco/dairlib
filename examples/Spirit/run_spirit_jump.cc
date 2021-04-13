@@ -49,6 +49,7 @@ DEFINE_string(distance_name, "90cm","name to describe distance");
 DEFINE_bool(runAllOptimization, true, "rerun earlier optimizations?");
 DEFINE_bool(skipInitialOptimization, true, "skip first optimizations?");
 DEFINE_bool(minWork, false, "try to minimize work?");
+DEFINE_bool(ipopt, true, "Use IPOPT as solver instead of SNOPT");
 
 using drake::AutoDiffXd;
 using drake::multibody::MultibodyPlant;
@@ -1333,7 +1334,11 @@ void runSpiritJump(
   ///Setup trajectory optimization
   auto trajopt = Dircon<T>(sequence);
 
+<<<<<<< HEAD
   if (ipopt) {
+=======
+  if (FLAGS_ipopt) {
+>>>>>>> Using IPOPT and first 4 optimizations working fine
     // Ipopt settings adapted from CaSaDi and FROST
     auto id = drake::solvers::IpoptSolver::id();
     trajopt.SetSolverOption(id, "tol", tol);
@@ -1350,8 +1355,13 @@ void runSpiritJump(
     // primal feasible and objective fails to increase over 5 iterations.
     trajopt.SetSolverOption(id, "acceptable_compl_inf_tol", tol);
     trajopt.SetSolverOption(id, "acceptable_constr_viol_tol", tol);
+<<<<<<< HEAD
     trajopt.SetSolverOption(id, "acceptable_obj_change_tol", tol);
     trajopt.SetSolverOption(id, "acceptable_tol", tol);
+=======
+    trajopt.SetSolverOption(id, "acceptable_obj_change_tol", 1e-3);
+    trajopt.SetSolverOption(id, "acceptable_tol", 1e2);
+>>>>>>> Using IPOPT and first 4 optimizations working fine
     trajopt.SetSolverOption(id, "acceptable_iter", 5);
   } else {
     // Set up Trajectory Optimization options
@@ -1386,8 +1396,12 @@ void runSpiritJump(
       trajopt.SetInitialTrajectoryForMode(j, x_traj[j], u_traj, x_traj[j].start_time(), x_traj[j].end_time());
 =======
     for (int j = 0; j < sequence.num_modes(); j++) {
+<<<<<<< HEAD
       trajopt.SetInitialTrajectory(j, x_traj[j], u_traj, x_traj[j].start_time(), x_traj[j].end_time());
 >>>>>>> Making some progress with new initial guess load in
+=======
+      trajopt.SetInitialTrajectoryForMode(j, x_traj[j], u_traj, x_traj[j].start_time(), x_traj[j].end_time());
+>>>>>>> Using IPOPT and first 4 optimizations working fine
       trajopt.SetInitialForceTrajectory(j, l_traj[j], lc_traj[j],
                                         vc_traj[j], l_traj[j].start_time());
     }
@@ -1450,8 +1464,13 @@ void runSpiritJump(
       visualizer_poses, 0.2); // setup which URDF, how many poses, and alpha transparency 
 
 <<<<<<< HEAD
+<<<<<<< HEAD
   drake::solvers::SolverId solver_id("");
   if (ipopt) {
+=======
+  drake::solvers::SolverId solver_id("");
+  if (FLAGS_ipopt) {
+>>>>>>> Using IPOPT and first 4 optimizations working fine
     solver_id = drake::solvers::IpoptSolver().id();
     cout << "\nChose manually: " << solver_id.name() << endl;
   } else {
@@ -1459,8 +1478,11 @@ void runSpiritJump(
     cout << "\nChose the best solver: " << solver_id.name() << endl;
   }
 
+<<<<<<< HEAD
 =======
 >>>>>>> It sort of works
+=======
+>>>>>>> Using IPOPT and first 4 optimizations working fine
   /// Run the optimization using your initial guess
   auto start = std::chrono::high_resolution_clock::now();
   auto solver = drake::solvers::MakeSolver(solver_id);
@@ -1549,6 +1571,7 @@ int main(int argc, char* argv[]) {
 <<<<<<< HEAD
 <<<<<<< HEAD
       dairlib::badSpiritRear(*plant, x_traj, u_traj, l_traj, lc_traj, vc_traj);
+<<<<<<< HEAD
 =======
       dairlib::badSpiritJump(*plant,x_traj,u_traj,l_traj,lc_traj,vc_traj);
 >>>>>>> Refactored joint limits
@@ -1556,12 +1579,17 @@ int main(int argc, char* argv[]) {
       dairlib::badSpiritRear(*plant, x_traj, u_traj, l_traj, lc_traj, vc_traj);
 <<<<<<< HEAD
 >>>>>>> Leap is working fairly well
+=======
+>>>>>>> Using IPOPT and first 4 optimizations working fine
       dairlib::runSpiritJump<double>(
           *plant,
           x_traj, u_traj, l_traj,
           lc_traj, vc_traj,
           false,
+<<<<<<< HEAD
           true,
+=======
+>>>>>>> Using IPOPT and first 4 optimizations working fine
           {10, 7, 5, 5, 5, 5} ,
           0.3,
           0.2,
@@ -1569,6 +1597,7 @@ int main(int argc, char* argv[]) {
           0,
           0.4,
           0,
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
           0,
@@ -1603,6 +1632,15 @@ int main(int argc, char* argv[]) {
 =======
           false,
 >>>>>>> Working getting to apex
+=======
+          0,
+          0,
+          0,
+          true,
+          false,
+          false,
+          false,
+>>>>>>> Using IPOPT and first 4 optimizations working fine
           0.5,
           0.3,
           1,
@@ -1618,6 +1656,7 @@ int main(int argc, char* argv[]) {
 
       std::cout<<"Running 2nd optimization"<<std::endl;
 
+<<<<<<< HEAD
 =======
 //      dairlib::runSpiritJump<double>(
 //          *plant,
@@ -1654,6 +1693,8 @@ int main(int argc, char* argv[]) {
 //      std::cout<<"Running 2nd optimization"<<std::endl;
 //
 >>>>>>> I really should have commited this a long time ago
+=======
+>>>>>>> Using IPOPT and first 4 optimizations working fine
       dairlib::runSpiritJump<double>(
           *plant,
           x_traj, u_traj, l_traj,
@@ -1713,7 +1754,7 @@ int main(int argc, char* argv[]) {
           1.0,
           FLAGS_data_directory+"simple_rear2");
     }
-
+//
 //    std::cout<<"Running 3rd optimization"<<std::endl;
 //
 //    dairlib::runSpiritJump<double>(
@@ -1763,7 +1804,7 @@ int main(int argc, char* argv[]) {
 //        *plant,
 //        x_traj, u_traj, l_traj,
 //        lc_traj, vc_traj,
-//        false,
+//        true,
 //        {10, 7, 7, 7, 7, 7} ,
 //        0.35,
 //        FLAGS_standHeight,
@@ -1799,7 +1840,7 @@ int main(int argc, char* argv[]) {
   lc_traj = old_traj2.ReconstructLambdaCTrajectory();
   vc_traj = old_traj2.ReconstructGammaCTrajectory();
 
-  dairlib::appendFrontTD(*plant, x_traj, u_traj, l_traj, lc_traj, vc_traj, 0.25);
+    dairlib::appendFrontTD(*plant, x_traj, u_traj, l_traj, lc_traj, vc_traj, 0.25);
     dairlib::appendStance(*plant, x_traj, u_traj, l_traj, lc_traj, vc_traj, FLAGS_standHeight);
 
     std::cout<<"Running 5th optimization"<<std::endl;
@@ -1817,7 +1858,7 @@ int main(int argc, char* argv[]) {
         0.43,
         0.5,
         -1.00,
-        -1,
+        1,
         false,
         true,
         true,
