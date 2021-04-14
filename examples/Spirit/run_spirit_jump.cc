@@ -49,8 +49,8 @@ DEFINE_string(distance_name, "100cm","name to describe distance");
 
 DEFINE_bool(runAllOptimization, true, "rerun earlier optimizations?");
 DEFINE_bool(skipInitialOptimization, false, "skip first optimizations?");
-DEFINE_bool(minWork, false, "try to minimize work?");
-DEFINE_bool(ipopt, true, "Use IPOPT as solver instead of SNOPT");
+DEFINE_bool(minWork, true, "try to minimize work?");
+DEFINE_bool(ipopt, false, "Use IPOPT as solver instead of SNOPT");
 
 using drake::AutoDiffXd;
 using drake::multibody::MultibodyPlant;
@@ -541,8 +541,8 @@ void runSpiritJump(
     // primal feasible and objective fails to increase over 5 iterations.
     trajopt.SetSolverOption(id, "acceptable_compl_inf_tol", tol);
     trajopt.SetSolverOption(id, "acceptable_constr_viol_tol", tol);
-    trajopt.SetSolverOption(id, "acceptable_obj_change_tol", 1e-3);
-    trajopt.SetSolverOption(id, "acceptable_tol", 1e2);
+    trajopt.SetSolverOption(id, "acceptable_obj_change_tol", tol);
+    trajopt.SetSolverOption(id, "acceptable_tol", tol);
     trajopt.SetSolverOption(id, "acceptable_iter", 5);
   } else {
     // Set up Trajectory Optimization options
