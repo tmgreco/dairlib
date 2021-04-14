@@ -40,7 +40,7 @@ DEFINE_double(apexGoal, 0.5, "Apex state goal");
 DEFINE_double(inputCost, 3, "The standing height.");
 DEFINE_double(velocityCost, 10, "The standing height.");
 DEFINE_double(eps, 1e-2, "The wiggle room.");
-DEFINE_double(tol, 1e-6, "Optimization Tolerance");
+DEFINE_double(tol, 1e-4, "Optimization Tolerance");
 DEFINE_double(mu, 1, "coefficient of friction");
 
 DEFINE_string(data_directory, "/home/shane/Drake_ws/dairlib/examples/Spirit/saved_trajectories/",
@@ -50,7 +50,7 @@ DEFINE_string(distance_name, "100cm","name to describe distance");
 DEFINE_bool(runAllOptimization, true, "rerun earlier optimizations?");
 DEFINE_bool(skipInitialOptimization, false, "skip first optimizations?");
 DEFINE_bool(minWork, true, "try to minimize work?");
-DEFINE_bool(ipopt, false, "Use IPOPT as solver instead of SNOPT");
+DEFINE_bool(ipopt, true, "Use IPOPT as solver instead of SNOPT");
 
 using drake::AutoDiffXd;
 using drake::multibody::MultibodyPlant;
