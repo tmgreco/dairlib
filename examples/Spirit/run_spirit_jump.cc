@@ -47,9 +47,8 @@ DEFINE_string(data_directory, "/home/shane/Drake_ws/dairlib/examples/Spirit/save
 DEFINE_string(distance_name, "90cm","name to describe distance");
 
 DEFINE_bool(runAllOptimization, true, "rerun earlier optimizations?");
-DEFINE_bool(skipInitialOptimization, true, "skip first optimizations?");
+DEFINE_bool(skipInitialOptimization, false, "skip first optimizations?");
 DEFINE_bool(minWork, false, "try to minimize work?");
-DEFINE_bool(ipopt, true, "Use IPOPT as solver instead of SNOPT");
 
 using drake::AutoDiffXd;
 using drake::multibody::MultibodyPlant;
@@ -1775,165 +1774,165 @@ int main(int argc, char* argv[]) {
           1.0,
           FLAGS_data_directory+"simple_rear2");
     }
-//
-//    std::cout<<"Running 3rd optimization"<<std::endl;
-//
-//    dairlib::runSpiritJump<double>(
-//        *plant,
-//        x_traj, u_traj, l_traj,
-//        lc_traj, vc_traj,
-//        false,
-//        true,
-//        {10, 7, 5, 5, 5, 5} ,
-//        0.35,
-//        FLAGS_standHeight,
-//        0.15,
-//        0.5,
-//        0.4,
-//        0,
-//        0,
-//        0,
-//        0,
-//        false,
-//        false,
-//        false,
-//        false,
-//        0.8,
-//        3,
-//        20,
-//        5,
-//        10,
-//        4000,
-//        0,
-//        100000,
-//        1e-2,
-//        1e-4,
-//        1.0,
-//        FLAGS_data_directory+"simple_rear3",
-//        FLAGS_data_directory+"simple_rear2");
-//
-//    dairlib::DirconTrajectory old_traj(FLAGS_data_directory+"simple_rear3");
-//    x_traj = old_traj.ReconstructStateDiscontinuousTrajectory();
-//    u_traj = old_traj.ReconstructInputTrajectory();
-//    l_traj = old_traj.ReconstructLambdaTrajectory();
-//    lc_traj = old_traj.ReconstructLambdaCTrajectory();
-//    vc_traj = old_traj.ReconstructGammaCTrajectory();
-//
-//    dairlib::appendFlight(*plant, x_traj, u_traj, l_traj, lc_traj, vc_traj);
-//
-//    std::cout<<"Running 4th optimization"<<std::endl;
-//    dairlib::runSpiritJump<double>(
-//        *plant,
-//        x_traj, u_traj, l_traj,
-//        lc_traj, vc_traj,
-//        true,
-//        true,
-//        {10, 7, 7, 7, 7, 7} ,
-//        0.35,
-//        FLAGS_standHeight,
-//        0.06,
-//        1.8,
-//        0.6,
-//        0.4,
-//        0.5,
-//        0,
-//        0,
-//        false,
-//        true,
-//        false,
-//        false,
-//        1.8,
-//        3,
-//        10,
-//        5,
-//        10,
-//        4000,
-//        0,
-//        100000,
-//        1e-2,
-//        1e-6,
-//        1.0,
-//        FLAGS_data_directory+"half_leap");
+
+    std::cout<<"Running 3rd optimization"<<std::endl;
+
+    dairlib::runSpiritJump<double>(
+        *plant,
+        x_traj, u_traj, l_traj,
+        lc_traj, vc_traj,
+        false,
+        true,
+        {10, 7, 5, 5, 5, 5} ,
+        0.35,
+        FLAGS_standHeight,
+        0.15,
+        0.5,
+        0.4,
+        0,
+        0,
+        0,
+        0,
+        false,
+        false,
+        false,
+        false,
+        0.8,
+        3,
+        20,
+        5,
+        10,
+        4000,
+        0,
+        100000,
+        1e-2,
+        1e-4,
+        1.0,
+        FLAGS_data_directory+"simple_rear3",
+        FLAGS_data_directory+"simple_rear2");
+
+    dairlib::DirconTrajectory old_traj(FLAGS_data_directory+"simple_rear3");
+    x_traj = old_traj.ReconstructStateDiscontinuousTrajectory();
+    u_traj = old_traj.ReconstructInputTrajectory();
+    l_traj = old_traj.ReconstructLambdaTrajectory();
+    lc_traj = old_traj.ReconstructLambdaCTrajectory();
+    vc_traj = old_traj.ReconstructGammaCTrajectory();
+
+    dairlib::appendFlight(*plant, x_traj, u_traj, l_traj, lc_traj, vc_traj);
+
+    std::cout<<"Running 4th optimization"<<std::endl;
+    dairlib::runSpiritJump<double>(
+        *plant,
+        x_traj, u_traj, l_traj,
+        lc_traj, vc_traj,
+        false,
+        true,
+        {10, 7, 7, 7, 7, 7} ,
+        0.35,
+        FLAGS_standHeight,
+        0.06,
+        1.8,
+        0.6,
+        0.4,
+        0.5,
+        0,
+        0,
+        false,
+        true,
+        false,
+        false,
+        1.8,
+        3,
+        10,
+        5,
+        10,
+        4000,
+        0,
+        100000,
+        1e-2,
+        1e-3,
+        1.0,
+        FLAGS_data_directory+"half_leap");
 
 
-//  dairlib::DirconTrajectory old_traj2(FLAGS_data_directory+"half_leap");
-//  x_traj = old_traj2.ReconstructStateDiscontinuousTrajectory();
-//  u_traj = old_traj2.ReconstructInputTrajectory();
-//  l_traj = old_traj2.ReconstructLambdaTrajectory();
-//  lc_traj = old_traj2.ReconstructLambdaCTrajectory();
-//  vc_traj = old_traj2.ReconstructGammaCTrajectory();
-//
-//    dairlib::appendFrontTD(*plant, x_traj, u_traj, l_traj, lc_traj, vc_traj, 0.25);
-//    dairlib::appendStance(*plant, x_traj, u_traj, l_traj, lc_traj, vc_traj, FLAGS_standHeight);
-//
-//    std::cout<<"Running 5th optimization"<<std::endl;
-//    dairlib::runSpiritJump<double>(
-//        *plant,
-//        x_traj, u_traj, l_traj,
-//        lc_traj, vc_traj,
-//        false,
-//        true,
-//        {7, 7, 7, 7, 7, 7} ,
-//        0.35,     // Only active small number modes
-//        FLAGS_standHeight,
-//        0.06, // Only active small number modes
-//        1.8,       // Only active small number modes
-//        0.6,
-//        0.43,
-//        0.5,
-//        -1.00,
-//        1,
-//        false,
-//        true,
-//        true,
-//        true,
-//        1.8,
-//        3,
-//        10,
-//        10/5.0,
-//        5/5.0,
-//        50000,
-//        0,
-//        100000,
-//        1e-2,
-//        1e-3,
-//        1.0,
-//        FLAGS_data_directory+"three_quarter_leap");
+  dairlib::DirconTrajectory old_traj2(FLAGS_data_directory+"half_leap");
+  x_traj = old_traj2.ReconstructStateDiscontinuousTrajectory();
+  u_traj = old_traj2.ReconstructInputTrajectory();
+  l_traj = old_traj2.ReconstructLambdaTrajectory();
+  lc_traj = old_traj2.ReconstructLambdaCTrajectory();
+  vc_traj = old_traj2.ReconstructGammaCTrajectory();
 
-//    std::cout<<"Running 6th optimization"<<std::endl;
-//    dairlib::runSpiritJump<double>(
-//        *plant,
-//        x_traj, u_traj, l_traj,
-//        lc_traj, vc_traj,
-//        true,
-//        true,
-//        {7, 7, 7, 7, 7, 7} ,
-//        0.35,     // Only active small number modes
-//        FLAGS_standHeight,
-//        0.06, // Only active small number modes
-//        1.8,       // Only active small number modes
-//        0.6,
-//        0.43,       // Ignored if small
-//        0.5,   // Ignored if negative
-//        -1.00,       // Ignored if negative
-//        1,
-//        false,
-//        true,
-//        true,
-//        true,
-//        1.8,
-//        3,
-//        10,
-//        10/5.0,
-//        5/5.0,
-//        50000,
-//        10,
-//        100000,
-//        1e-2,
-//        1e-3,
-//        1.0,
-//        FLAGS_data_directory+"full_leap",
-//        FLAGS_data_directory+"three_quarter_leap");
+    dairlib::appendFrontTD(*plant, x_traj, u_traj, l_traj, lc_traj, vc_traj, 0.25);
+    dairlib::appendStance(*plant, x_traj, u_traj, l_traj, lc_traj, vc_traj, FLAGS_standHeight);
+
+    std::cout<<"Running 5th optimization"<<std::endl;
+    dairlib::runSpiritJump<double>(
+        *plant,
+        x_traj, u_traj, l_traj,
+        lc_traj, vc_traj,
+        false,
+        true,
+        {7, 7, 7, 7, 7, 7} ,
+        0.35,     // Only active small number modes
+        FLAGS_standHeight,
+        0.06, // Only active small number modes
+        1.8,       // Only active small number modes
+        0.6,
+        0.43,
+        0.5,
+        -1.00,
+        1,
+        false,
+        true,
+        true,
+        true,
+        1.8,
+        3,
+        10,
+        10/5.0,
+        5/5.0,
+        50000,
+        0,
+        100000,
+        1e-2,
+        1e-3,
+        1.0,
+        FLAGS_data_directory+"three_quarter_leap");
+
+    std::cout<<"Running 6th optimization"<<std::endl;
+    dairlib::runSpiritJump<double>(
+        *plant,
+        x_traj, u_traj, l_traj,
+        lc_traj, vc_traj,
+        true,
+        true,
+        {7, 7, 7, 7, 7, 7} ,
+        0.35,     // Only active small number modes
+        FLAGS_standHeight,
+        0.06, // Only active small number modes
+        1.8,       // Only active small number modes
+        0.6,
+        0.43,       // Ignored if small
+        0.5,   // Ignored if negative
+        -1.00,       // Ignored if negative
+        1,
+        false,
+        true,
+        true,
+        true,
+        1.8,
+        3,
+        10,
+        10/5.0,
+        5/5.0,
+        50000,
+        10,
+        100000,
+        1e-2,
+        1e-3,
+        1.0,
+        FLAGS_data_directory+"full_leap",
+        FLAGS_data_directory+"three_quarter_leap");
 
     std::cout<<"Running 6th optimization"<<std::endl;
     dairlib::runSpiritJump<double>(
