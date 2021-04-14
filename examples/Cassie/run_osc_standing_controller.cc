@@ -12,8 +12,8 @@
 #include "systems/framework/lcm_driven_loop.h"
 #include "systems/robot_lcm_systems.h"
 #include "yaml-cpp/yaml.h"
-
 #include "drake/common/yaml/yaml_read_archive.h"
+
 #include "drake/systems/framework/diagram_builder.h"
 #include "drake/systems/lcm/lcm_publisher_system.h"
 
@@ -56,6 +56,7 @@ DEFINE_double(cost_weight_multiplier, 0.001,
 DEFINE_double(height, .8, "The initial COM height (m)");
 DEFINE_string(gains_filename, "examples/Cassie/osc/osc_standing_gains.yaml",
               "Filepath containing gains");
+DEFINE_bool(use_radio, false, "use the radio to set height or not");
 
 // Currently the controller runs at the rate between 500 Hz and 200 Hz, so the
 // publish rate of the robot state needs to be less than 500 Hz. Otherwise, the
@@ -198,7 +199,7 @@ int DoMain(int argc, char* argv[]) {
   std::vector<std::pair<const Vector3d, const drake::multibody::Frame<double>&>>
       feet_contact_points = {left_toe, left_heel, right_toe, right_heel};
   auto com_traj_generator = builder.AddSystem<cassie::osc::StandingComTraj>(
-      plant_w_springs, context_w_spr.get(), feet_contact_points, FLAGS_height);
+      plant_w_springs, context_w_spr.get(), feet_contact_points, FLAGS_height, FLAGS_use_radio);
   auto pelvis_rot_traj_generator =
       builder.AddSystem<cassie::osc::StandingPelvisOrientationTraj>(
           plant_w_springs, context_w_spr.get(), feet_contact_points,
@@ -261,9 +262,13 @@ int DoMain(int argc, char* argv[]) {
   osc->SetAccelerationCostForAllJoints(Q_accel);
   // Center of mass tracking
   // Weighting x-y higher than z, as they are more important to balancing
-  ComTrackingData center_of_mass_traj("com_traj", K_p_com, K_d_com,
-                                      W_com * FLAGS_cost_weight_multiplier,
-                                      plant_w_springs, plant_wo_springs);
+  //  ComTrackingData center_of_mass_traj("com_traj", K_p_com, K_d_com,
+  //                                      W_com * FLAGS_cost_weight_multiplier,
+  //                                      plant_w_springs, plant_wo_springs);
+  TransTaskSpaceTrackingData center_of_mass_traj(
+      "com_traj", K_p_com, K_d_com, W_com * FLAGS_cost_weight_multiplier,
+      plant_w_springs, plant_wo_springs);
+  center_of_mass_traj.AddPointToTrack("pelvis");
   osc->AddTrackingData(&center_of_mass_traj);
   // Pelvis rotation tracking
   RotTaskSpaceTrackingData pelvis_rot_traj(
