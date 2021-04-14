@@ -1360,6 +1360,7 @@ void runSpiritJump(
     trajopt.SetSolverOption(id, "acceptable_compl_inf_tol", tol);
     trajopt.SetSolverOption(id, "acceptable_constr_viol_tol", tol);
 <<<<<<< HEAD
+<<<<<<< HEAD
     trajopt.SetSolverOption(id, "acceptable_obj_change_tol", tol);
     trajopt.SetSolverOption(id, "acceptable_tol", tol);
 =======
@@ -1370,6 +1371,10 @@ void runSpiritJump(
 =======
     trajopt.SetSolverOption(id, "acceptable_tol", 1e-4);
 >>>>>>> Lowering acceptable tol seems to be pretty nice
+=======
+    trajopt.SetSolverOption(id, "acceptable_obj_change_tol", tol);
+    trajopt.SetSolverOption(id, "acceptable_tol", tol);
+>>>>>>> Final opt working, uncommenting and testing everyhting
     trajopt.SetSolverOption(id, "acceptable_iter", 5);
   } else {
     // Set up Trajectory Optimization options
@@ -1960,7 +1965,7 @@ int main(int argc, char* argv[]) {
         100,
         100000,
         1e-2,
-        1e-3,
+        1e-4,
         1.0,
 <<<<<<< HEAD
 <<<<<<< HEAD
