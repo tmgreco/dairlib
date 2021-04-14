@@ -1335,10 +1335,14 @@ void runSpiritJump(
   auto trajopt = Dircon<T>(sequence);
 
 <<<<<<< HEAD
+<<<<<<< HEAD
   if (ipopt) {
 =======
   if (FLAGS_ipopt) {
 >>>>>>> Using IPOPT and first 4 optimizations working fine
+=======
+  if (ipopt) {
+>>>>>>> Lowering acceptable tol seems to be pretty nice
     // Ipopt settings adapted from CaSaDi and FROST
     auto id = drake::solvers::IpoptSolver::id();
     trajopt.SetSolverOption(id, "tol", tol);
@@ -1360,8 +1364,12 @@ void runSpiritJump(
     trajopt.SetSolverOption(id, "acceptable_tol", tol);
 =======
     trajopt.SetSolverOption(id, "acceptable_obj_change_tol", 1e-3);
+<<<<<<< HEAD
     trajopt.SetSolverOption(id, "acceptable_tol", 1e2);
 >>>>>>> Using IPOPT and first 4 optimizations working fine
+=======
+    trajopt.SetSolverOption(id, "acceptable_tol", 1e-4);
+>>>>>>> Lowering acceptable tol seems to be pretty nice
     trajopt.SetSolverOption(id, "acceptable_iter", 5);
   } else {
     // Set up Trajectory Optimization options
@@ -1469,8 +1477,12 @@ void runSpiritJump(
   if (ipopt) {
 =======
   drake::solvers::SolverId solver_id("");
+<<<<<<< HEAD
   if (FLAGS_ipopt) {
 >>>>>>> Using IPOPT and first 4 optimizations working fine
+=======
+  if (ipopt) {
+>>>>>>> Lowering acceptable tol seems to be pretty nice
     solver_id = drake::solvers::IpoptSolver().id();
     cout << "\nChose manually: " << solver_id.name() << endl;
   } else {
@@ -1587,9 +1599,13 @@ int main(int argc, char* argv[]) {
           lc_traj, vc_traj,
           false,
 <<<<<<< HEAD
+<<<<<<< HEAD
           true,
 =======
 >>>>>>> Using IPOPT and first 4 optimizations working fine
+=======
+          true,
+>>>>>>> Lowering acceptable tol seems to be pretty nice
           {10, 7, 5, 5, 5, 5} ,
           0.3,
           0.2,
@@ -1762,6 +1778,7 @@ int main(int argc, char* argv[]) {
 //        x_traj, u_traj, l_traj,
 //        lc_traj, vc_traj,
 //        false,
+//        true,
 //        {10, 7, 5, 5, 5, 5} ,
 //        0.35,
 //        FLAGS_standHeight,
@@ -1805,6 +1822,7 @@ int main(int argc, char* argv[]) {
 //        x_traj, u_traj, l_traj,
 //        lc_traj, vc_traj,
 //        true,
+//        true,
 //        {10, 7, 7, 7, 7, 7} ,
 //        0.35,
 //        FLAGS_standHeight,
@@ -1833,31 +1851,101 @@ int main(int argc, char* argv[]) {
 //        FLAGS_data_directory+"half_leap");
 
 
-  dairlib::DirconTrajectory old_traj2(FLAGS_data_directory+"half_leap");
-  x_traj = old_traj2.ReconstructStateDiscontinuousTrajectory();
-  u_traj = old_traj2.ReconstructInputTrajectory();
-  l_traj = old_traj2.ReconstructLambdaTrajectory();
-  lc_traj = old_traj2.ReconstructLambdaCTrajectory();
-  vc_traj = old_traj2.ReconstructGammaCTrajectory();
+//  dairlib::DirconTrajectory old_traj2(FLAGS_data_directory+"half_leap");
+//  x_traj = old_traj2.ReconstructStateDiscontinuousTrajectory();
+//  u_traj = old_traj2.ReconstructInputTrajectory();
+//  l_traj = old_traj2.ReconstructLambdaTrajectory();
+//  lc_traj = old_traj2.ReconstructLambdaCTrajectory();
+//  vc_traj = old_traj2.ReconstructGammaCTrajectory();
+//
+//    dairlib::appendFrontTD(*plant, x_traj, u_traj, l_traj, lc_traj, vc_traj, 0.25);
+//    dairlib::appendStance(*plant, x_traj, u_traj, l_traj, lc_traj, vc_traj, FLAGS_standHeight);
+//
+//    std::cout<<"Running 5th optimization"<<std::endl;
+//    dairlib::runSpiritJump<double>(
+//        *plant,
+//        x_traj, u_traj, l_traj,
+//        lc_traj, vc_traj,
+//        false,
+//        true,
+//        {7, 7, 7, 7, 7, 7} ,
+//        0.35,     // Only active small number modes
+//        FLAGS_standHeight,
+//        0.06, // Only active small number modes
+//        1.8,       // Only active small number modes
+//        0.6,
+//        0.43,
+//        0.5,
+//        -1.00,
+//        1,
+//        false,
+//        true,
+//        true,
+//        true,
+//        1.8,
+//        3,
+//        10,
+//        10/5.0,
+//        5/5.0,
+//        50000,
+//        0,
+//        100000,
+//        1e-2,
+//        1e-3,
+//        1.0,
+//        FLAGS_data_directory+"three_quarter_leap");
 
-    dairlib::appendFrontTD(*plant, x_traj, u_traj, l_traj, lc_traj, vc_traj, 0.25);
-    dairlib::appendStance(*plant, x_traj, u_traj, l_traj, lc_traj, vc_traj, FLAGS_standHeight);
+//    std::cout<<"Running 6th optimization"<<std::endl;
+//    dairlib::runSpiritJump<double>(
+//        *plant,
+//        x_traj, u_traj, l_traj,
+//        lc_traj, vc_traj,
+//        true,
+//        true,
+//        {7, 7, 7, 7, 7, 7} ,
+//        0.35,     // Only active small number modes
+//        FLAGS_standHeight,
+//        0.06, // Only active small number modes
+//        1.8,       // Only active small number modes
+//        0.6,
+//        0.43,       // Ignored if small
+//        0.5,   // Ignored if negative
+//        -1.00,       // Ignored if negative
+//        1,
+//        false,
+//        true,
+//        true,
+//        true,
+//        1.8,
+//        3,
+//        10,
+//        10/5.0,
+//        5/5.0,
+//        50000,
+//        10,
+//        100000,
+//        1e-2,
+//        1e-3,
+//        1.0,
+//        FLAGS_data_directory+"full_leap",
+//        FLAGS_data_directory+"three_quarter_leap");
 
-    std::cout<<"Running 5th optimization"<<std::endl;
+    std::cout<<"Running 6th optimization"<<std::endl;
     dairlib::runSpiritJump<double>(
         *plant,
         x_traj, u_traj, l_traj,
         lc_traj, vc_traj,
-        false,
+        true,
+        true,
         {7, 7, 7, 7, 7, 7} ,
-        0.35,
+        0.35,     // Only active small number modes
         FLAGS_standHeight,
-        0.06,
-        1.8,
+        0.06, // Only active small number modes
+        1.8,       // Only active small number modes
         0.6,
-        0.43,
-        0.5,
-        -1.00,
+        0.43,       // Ignored if small
+        -0.5,   // Ignored if negative
+        -1.00,       // Ignored if negative
         1,
         false,
         true,
@@ -1869,44 +1957,12 @@ int main(int argc, char* argv[]) {
         10/5.0,
         5/5.0,
         50000,
-        0,
+        100,
         100000,
         1e-2,
         1e-3,
         1.0,
-        FLAGS_data_directory+"three_quarter_leap");
-
-    std::cout<<"Running 6th optimization"<<std::endl;
-    dairlib::runSpiritJump<double>(
-        *plant,
-        x_traj, u_traj, l_traj,
-        lc_traj, vc_traj,
-        true,
-        {7, 7, 7, 7, 7, 7} ,
-        0.35,
-        FLAGS_standHeight,
-        0.06,
-        1.0,
-        0.6,
-        0.41,
-        -0.5,
-        -1.00,
-        1.85,
-        false,
-        true,
-        true,
-        true,
-        1.8,
-        3,
-        10,
-        10,
-        5,
-        10000,
-        0,
-        100000,
-        1e-2,
-        1e-3,
-        1.0,
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -2280,6 +2336,9 @@ int main(int argc, char* argv[]) {
         FLAGS_data_directory+"three_quarter_leap");
 >>>>>>> Optimization success with pipeline
 =======
+=======
+        FLAGS_data_directory+"full_leap_min_work",
+>>>>>>> Lowering acceptable tol seems to be pretty nice
         FLAGS_data_directory+"full_leap");
 >>>>>>> I really should have commited this a long time ago
   }
