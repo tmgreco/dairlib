@@ -258,36 +258,7 @@ void addCost(MultibodyPlant<T>& plant,
   // Setup the traditional cost function
   trajopt.AddRunningCost( u.transpose()*cost_actuation*u);
   trajopt.AddVelocityCost(cost_velocity);
-  //return AddWorkCost(plant, trajopt, cost_work, work_constraint_scale, 0.0);
-
-  std::vector<drake::solvers::Binding<drake::solvers::Cost>> cost_joint_work_bindings;
-  int n_q = plant.num_positions();
-  auto velocities_map = multibody::makeNameToVelocitiesMap(plant);
-  auto actuator_map = multibody::makeNameToActuatorsMap(plant);
-
-  double Q = 0;
-  // Loop through each joint
-  for (int joint = 0; joint < 12; joint++) {
-    if(joint == 1 or joint == 3 or joint == 5 or joint == 7)
-      Q = 0.249;
-    else
-      Q = 0.561;
-    auto joint_work_cost = std::make_shared<JointWorkCost>(plant, actuator_map.at("motor_" + std::to_string(joint)),
-                                                           n_q + velocities_map.at("joint_" + std::to_string(joint) +"dot") , Q, cost_work,4);
-    // Loop through each mode
-    for (int mode_index = 0; mode_index < trajopt.num_modes(); mode_index++) {
-      for (int knot_index = 0; knot_index < trajopt.mode_length(mode_index)-1; knot_index++) {
-        drake::solvers::VectorXDecisionVariable u_i = trajopt.input(trajopt.get_mode_start(mode_index) + knot_index);
-        drake::solvers::VectorXDecisionVariable x_i   = trajopt.state_vars(mode_index, knot_index);
-        drake::solvers::VectorXDecisionVariable u_ip = trajopt.input(trajopt.get_mode_start(mode_index) + knot_index+1);
-        drake::solvers::VectorXDecisionVariable x_ip   = trajopt.state_vars(mode_index, knot_index+1);
-
-        auto hi = trajopt.timestep(trajopt.get_mode_start(mode_index) + knot_index);
-        cost_joint_work_bindings.push_back(trajopt.AddCost(joint_work_cost, {hi,u_i,u_ip, x_i, x_ip}));
-      } // knot point loop
-    } // Mode loop
-  } // Joint loop
-
+  AddWorkCost(plant, trajopt, cost_work, work_constraint_scale, 0.0);
 
 } // Function
 

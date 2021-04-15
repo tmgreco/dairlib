@@ -304,7 +304,7 @@ template <typename T>
 double calcTorqueInt(
     drake::multibody::MultibodyPlant<T> & plant,
     drake::trajectories::PiecewisePolynomial<double>& u_traj);
-/*
+
 /// Adds a cost on the integral of electrical power
 ///     @param plant, the robot model
 ///     @param trajopt the dircon object
@@ -316,7 +316,7 @@ std::vector<drake::solvers::Binding<drake::solvers::Cost>> AddWorkCost(drake::mu
                  dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,
                  double cost_work_gain,
                  double work_constraint_scale = 1.0,
-                 double regenEfficiency = 0);*/
+                 double regenEfficiency = 0);
 
 
 class JointWorkCost : public solvers::NonlinearCost<double> {
