@@ -77,64 +77,6 @@ using std::vector;
 using std::cout;
 using std::endl;
 
-class JointWorkCost : public solvers::NonlinearCost<double> {
- public:
-  JointWorkCost(const drake::multibody::MultibodyPlant<double>& plant,
-                const double &act_index,
-                const double &vel_index,
-                const double &Q,
-                const double &cost_work,
-                const double &alpha,
-                const std::string &description = "")
-      :solvers::NonlinearCost<double>(1+2*plant.num_positions() + 2*plant.num_velocities() +
-      2*plant.num_actuators(),description), plant_(plant){
-    Q_ = Q;
-    cost_work_ = cost_work;
-    alpha_ = alpha;
-    act_index_ = act_index;
-    vel_index_ = vel_index;
-    DRAKE_DEMAND(alpha_ > 0);
-  };
-
- private:
-  double relu(const double x) const{
-    return  x>5 ? x : 1/alpha_ * log(1 + exp(alpha_ * x));
-  };
-  void EvaluateCost(const Eigen::Ref<const drake::VectorX<double>> &x,
-                    drake::VectorX<double> *y) const override {
-
-    int n_q = plant_.num_positions();
-    int n_v = plant_.num_velocities();
-    int n_u = plant_.num_actuators();
-
-    double h_i = x(0);
-    auto u_i_all = x.segment(1, n_u);
-    auto u_ip_all = x.segment(1+n_u, n_u);
-    auto x_i_all = x.segment(1+n_u+n_u, n_q+n_v);
-    auto x_ip_all = x.segment(1+n_u+n_u+n_q+n_v, n_q+n_v);
-
-    double u_i = u_i_all(act_index_);
-    double u_ip = u_ip_all(act_index_);
-    double v_i = x_i_all(vel_index_);
-    double v_ip = x_ip_all(vel_index_);
-    double work_low = cost_work_ * relu(u_i * v_i + Q_ * u_i * u_i);
-    double work_up = cost_work_ * relu(u_ip * v_ip + Q_ * u_ip * u_ip);
-    if(isinff(work_low)){
-      std::cout<<"*****************"<<std::endl;
-      std::cout<<work_low<<std::endl;
-      std::cout<<u_i * v_i + Q_ * u_i * u_i<< std::endl;
-    }
-    drake::VectorX<double> rv(1);
-    rv[0] = 1/2.0 * h_i *(work_low + work_up);
-    (*y) = rv;
-  };
-  const drake::multibody::MultibodyPlant<double>& plant_;
-  double Q_;
-  double cost_work_;
-  double alpha_;
-  double act_index_;
-  double vel_index_;
-};
 
 /// badSpiritJump, generates a bad initial guess for the spirit jump traj opt
 /// \param plant: robot model
@@ -317,6 +259,36 @@ void addCost(MultibodyPlant<T>& plant,
   trajopt.AddRunningCost( u.transpose()*cost_actuation*u);
   trajopt.AddVelocityCost(cost_velocity);
   //return AddWorkCost(plant, trajopt, cost_work, work_constraint_scale, 0.0);
+
+  std::vector<drake::solvers::Binding<drake::solvers::Cost>> cost_joint_work_bindings;
+  int n_q = plant.num_positions();
+  auto velocities_map = multibody::makeNameToVelocitiesMap(plant);
+  auto actuator_map = multibody::makeNameToActuatorsMap(plant);
+
+  double Q = 0;
+  // Loop through each joint
+  for (int joint = 0; joint < 12; joint++) {
+    if(joint == 1 or joint == 3 or joint == 5 or joint == 7)
+      Q = 0.249;
+    else
+      Q = 0.561;
+    auto joint_work_cost = std::make_shared<JointWorkCost>(plant, actuator_map.at("motor_" + std::to_string(joint)),
+                                                           n_q + velocities_map.at("joint_" + std::to_string(joint) +"dot") , Q, cost_work,4);
+    // Loop through each mode
+    for (int mode_index = 0; mode_index < trajopt.num_modes(); mode_index++) {
+      for (int knot_index = 0; knot_index < trajopt.mode_length(mode_index)-1; knot_index++) {
+        drake::solvers::VectorXDecisionVariable u_i = trajopt.input(trajopt.get_mode_start(mode_index) + knot_index);
+        drake::solvers::VectorXDecisionVariable x_i   = trajopt.state_vars(mode_index, knot_index);
+        drake::solvers::VectorXDecisionVariable u_ip = trajopt.input(trajopt.get_mode_start(mode_index) + knot_index+1);
+        drake::solvers::VectorXDecisionVariable x_ip   = trajopt.state_vars(mode_index, knot_index+1);
+
+        auto hi = trajopt.timestep(trajopt.get_mode_start(mode_index) + knot_index);
+        cost_joint_work_bindings.push_back(trajopt.AddCost(joint_work_cost, {hi,u_i,u_ip, x_i, x_ip}));
+      } // knot point loop
+    } // Mode loop
+  } // Joint loop
+
+
 } // Function
 
 
@@ -625,35 +597,6 @@ void runSpiritJump(
   addCost(plant, trajopt, cost_actuation, cost_velocity, cost_work, work_constraint_scale);
 
 
-  std::vector<drake::solvers::Binding<drake::solvers::Cost>> cost_joint_work_bindings;
-  int n_q = plant.num_positions();
-  auto velocities_map = multibody::makeNameToVelocitiesMap(plant);
-  auto actuator_map = multibody::makeNameToActuatorsMap(plant);
-
-  double Q = 0;
-  // Loop through each joint
-  for (int joint = 0; joint < 12; joint++) {
-    if(joint == 1 or joint == 3 or joint == 5 or joint == 7)
-      Q = 0.249;
-    else
-      Q = 0.561;
-    auto joint_work_cost = std::make_shared<JointWorkCost>(plant, actuator_map.at("motor_" + std::to_string(joint)),
-        n_q + velocities_map.at("joint_" + std::to_string(joint) +"dot") , Q, cost_work,4);
-    // Loop through each mode
-    for (int mode_index = 0; mode_index < trajopt.num_modes(); mode_index++) {
-      for (int knot_index = 0; knot_index < trajopt.mode_length(mode_index)-1; knot_index++) {
-        drake::solvers::VectorXDecisionVariable u_i = trajopt.input(trajopt.get_mode_start(mode_index) + knot_index);
-        drake::solvers::VectorXDecisionVariable x_i   = trajopt.state_vars(mode_index, knot_index);
-        drake::solvers::VectorXDecisionVariable u_ip = trajopt.input(trajopt.get_mode_start(mode_index) + knot_index+1);
-        drake::solvers::VectorXDecisionVariable x_ip   = trajopt.state_vars(mode_index, knot_index+1);
-
-        auto hi = trajopt.timestep(trajopt.get_mode_start(mode_index) + knot_index);
-        cost_joint_work_bindings.push_back(trajopt.AddCost(joint_work_cost, {hi,u_i,u_ip, x_i, x_ip}));
-      } // knot point loop
-    } // Mode loop
-  } // Joint loop
-
-
 
 // Initialize the trajectory control state and forces
   if (file_name_in.empty()){
@@ -727,9 +670,9 @@ void runSpiritJump(
   }
   auto x_trajs = trajopt.ReconstructDiscontinuousStateTrajectory(result);
   std::cout<<"Work = " << dairlib::calcElectricalWork(plant, x_trajs, u_traj) << std::endl;
-  double cost_work_acceleration = solvers::EvalCostGivenSolution(
-      result, cost_joint_work_bindings);
-  std::cout<<"Cost Work = " << cost_work_acceleration << std::endl;
+//  double cost_work_acceleration = solvers::EvalCostGivenSolution(
+//      result, cost_joint_work_bindings);
+//  std::cout<<"Cost Work = " << cost_work_acceleration << std::endl;
   /// Run animation of the final trajectory
   const drake::trajectories::PiecewisePolynomial<double> pp_xtraj =
       trajopt.ReconstructStateTrajectory(result);
