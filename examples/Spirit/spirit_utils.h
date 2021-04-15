@@ -29,6 +29,7 @@ class ModeSequenceHelper {
     }
 };
 
+
 /// Outputs a nominal stand state into the xState vector pointer based on the 
 /// height. This is an approximation for use in initial conditions.
 ///   @param plant a pointer to the MultibodyPlant
@@ -303,7 +304,7 @@ template <typename T>
 double calcTorqueInt(
     drake::multibody::MultibodyPlant<T> & plant,
     drake::trajectories::PiecewisePolynomial<double>& u_traj);
-
+/*
 /// Adds a cost on the integral of electrical power
 ///     @param plant, the robot model
 ///     @param trajopt the dircon object
@@ -311,11 +312,11 @@ double calcTorqueInt(
 ///     @param work_constraint_scale, scale on the absolute value constraint
 ///     @param efficiency, gain on what percent of negative power is useable by the battery
 template <typename T>
-void AddWorkCost(drake::multibody::MultibodyPlant<T> & plant,
+std::vector<drake::solvers::Binding<drake::solvers::Cost>> AddWorkCost(drake::multibody::MultibodyPlant<T> & plant,
                  dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,
                  double cost_work_gain,
                  double work_constraint_scale = 1.0,
-                 double regenEfficiency = 0);
+                 double regenEfficiency = 0);*/
 
 
 double positivePart(double x);

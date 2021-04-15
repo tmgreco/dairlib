@@ -748,6 +748,7 @@ double calcTorqueInt(
   }
   return act_int;
 }
+/*
 
 class JointWorkCost : public solvers::NonlinearCost<double> {
  public:
@@ -787,7 +788,7 @@ class JointWorkCost : public solvers::NonlinearCost<double> {
 
 
 template <typename T>
-void AddWorkCost(drake::multibody::MultibodyPlant<T> & plant,
+std::vector<drake::solvers::Binding<drake::solvers::Cost>> AddWorkCost(drake::multibody::MultibodyPlant<T> & plant,
                  dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,
                  double cost_work_gain,
                  double work_constraint_scale,
@@ -796,10 +797,8 @@ void AddWorkCost(drake::multibody::MultibodyPlant<T> & plant,
   auto actuator_map = multibody::makeNameToActuatorsMap(plant);
   int n_q = plant.num_positions();
 
+  std::vector<drake::solvers::Binding<drake::solvers::Cost>> cost_joint_work_bindings;
 
-  // Vector of new decision variables
-  std::vector<drake::symbolic::Variable> power_pluses;
-  std::vector<drake::symbolic::Variable> power_minuses;
   double Q = 0;
   // Loop through each joint
   for (int joint = 0; joint < 12; joint++) {
@@ -829,11 +828,13 @@ void AddWorkCost(drake::multibody::MultibodyPlant<T> & plant,
         variable(2) = actuation_p;
         variable(3) = velocity;
         variable(4) = velocity_p;
-        trajopt.AddCost(joint_work_cost, variable);
+        cost_joint_work_bindings.push_back(trajopt.AddCost(joint_work_cost, variable));
       } // knot point loop
     } // Mode loop
   } // Joint loop
+  return cost_joint_work_bindings;
 }
+*/
 
 double positivePart(double x){
   return(std::max(x,0.0));
@@ -962,10 +963,10 @@ template double calcTorqueInt(
     drake::multibody::MultibodyPlant<double> & plant,
     drake::trajectories::PiecewisePolynomial<double>& u_traj);
 
-template void AddWorkCost(drake::multibody::MultibodyPlant<double> & plant,
+/*template std::vector<drake::solvers::Binding<drake::solvers::Cost>> AddWorkCost(drake::multibody::MultibodyPlant<double> & plant,
                  dairlib::systems::trajectory_optimization::Dircon<double>& trajopt,
                  double cost_work_gain,
                  double work_constraint_scale,
-                 double regenEfficiency);
+                 double regenEfficiency);*/
 
 }//namespace dairlib
