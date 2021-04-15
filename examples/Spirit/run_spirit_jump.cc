@@ -42,7 +42,7 @@ DEFINE_double(apexGoal, 0.5, "Apex state goal");
 DEFINE_double(inputCost, 3, "The standing height.");
 DEFINE_double(velocityCost, 10, "The standing height.");
 DEFINE_double(eps, 1e-2, "The wiggle room.");
-DEFINE_double(tol, 1e-4, "Optimization Tolerance");
+DEFINE_double(tol, 1e-3, "Optimization Tolerance");
 DEFINE_double(mu, 1, "coefficient of friction");
 
 DEFINE_string(data_directory, "/home/shane/Drake_ws/dairlib/examples/Spirit/saved_trajectories/",
@@ -93,11 +93,12 @@ class JointWorkCost : public solvers::NonlinearCost<double> {
     alpha_ = alpha;
     act_index_ = act_index;
     vel_index_ = vel_index;
+    DRAKE_DEMAND(alpha_ > 0);
   };
 
  private:
   double relu(const double x) const{
-    return 1/alpha_ * log(1 + exp(alpha_ * x));
+    return  x>5 ? x : 1/alpha_ * log(1 + exp(alpha_ * x));
   };
   void EvaluateCost(const Eigen::Ref<const drake::VectorX<double>> &x,
                     drake::VectorX<double> *y) const override {
@@ -116,12 +117,15 @@ class JointWorkCost : public solvers::NonlinearCost<double> {
     double u_ip = u_ip_all(act_index_);
     double v_i = x_i_all(vel_index_);
     double v_ip = x_ip_all(vel_index_);
-    std::cout<<cost_work_<<std::endl;
     double work_low = cost_work_ * relu(u_i * v_i + Q_ * u_i * u_i);
     double work_up = cost_work_ * relu(u_ip * v_ip + Q_ * u_ip * u_ip);
+    if(isinff(work_low)){
+      std::cout<<"*****************"<<std::endl;
+      std::cout<<work_low<<std::endl;
+      std::cout<<u_i * v_i + Q_ * u_i * u_i<< std::endl;
+    }
     drake::VectorX<double> rv(1);
-    rv[1] = 1/2.0 * h_i *(work_low + work_up);
-
+    rv[0] = 1/2.0 * h_i *(work_low + work_up);
     (*y) = rv;
   };
   const drake::multibody::MultibodyPlant<double>& plant_;
@@ -633,7 +637,8 @@ void runSpiritJump(
       Q = 0.249;
     else
       Q = 0.561;
-    auto joint_work_cost = std::make_shared<JointWorkCost>(plant, actuator_map.at("motor_" + std::to_string(joint)), n_q + velocities_map.at("joint_" + std::to_string(joint) +"dot") , Q, cost_work,10);
+    auto joint_work_cost = std::make_shared<JointWorkCost>(plant, actuator_map.at("motor_" + std::to_string(joint)),
+        n_q + velocities_map.at("joint_" + std::to_string(joint) +"dot") , Q, cost_work,4);
     // Loop through each mode
     for (int mode_index = 0; mode_index < trajopt.num_modes(); mode_index++) {
       for (int knot_index = 0; knot_index < trajopt.mode_length(mode_index)-1; knot_index++) {
@@ -850,7 +855,7 @@ int main(int argc, char* argv[]) {
       2,
       3,
       10,
-      5,
+      0,
       FLAGS_mu,
       FLAGS_eps,
       FLAGS_tol,
@@ -877,7 +882,7 @@ int main(int argc, char* argv[]) {
         1.5,
         FLAGS_inputCost/10,
         FLAGS_velocityCost/10,
-        500,
+        100,
         FLAGS_mu,
         FLAGS_eps,
         FLAGS_tol,
