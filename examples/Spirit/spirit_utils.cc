@@ -785,6 +785,52 @@ std::vector<drake::solvers::Binding<drake::solvers::Cost>> AddWorkCost(drake::mu
   return cost_joint_work_bindings;
 }
 
+JointWorkCost::JointWorkCost(const drake::multibody::MultibodyPlant<double>& plant,
+                             const double &act_index,
+                             const double &vel_index,
+                             const double &Q,
+                             const double &cost_work,
+                             const double &alpha,
+                             const std::string &description)
+    :solvers::NonlinearCost<double>(1+2*plant.num_positions() + 2*plant.num_velocities() +
+    2*plant.num_actuators(),description), plant_(plant){
+  Q_ = Q;
+  cost_work_ = cost_work;
+  alpha_ = alpha;
+  act_index_ = act_index;
+  vel_index_ = vel_index;
+  n_q_ = plant_.num_positions();
+  n_v_ = plant_.num_velocities();
+  n_u_ = plant_.num_actuators();
+  DRAKE_DEMAND(alpha_ > 0);
+}
+
+double JointWorkCost::relu(const double x) const{
+  return  x>5 ? x : 1/alpha_ * log(1 + exp(alpha_ * x));
+}
+
+void JointWorkCost::EvaluateCost(const Eigen::Ref<const drake::VectorX<double>> &x,
+                  drake::VectorX<double> *y) const{
+
+
+
+double h_i = x(0);
+auto u_i_all = x.segment(1, n_u_);
+auto u_ip_all = x.segment(1+n_u_, n_u_);
+auto x_i_all = x.segment(1+n_u_+n_u_, n_q_+n_v_);
+auto x_ip_all = x.segment(1+n_u_+n_u_+n_q_+n_v_, n_q_+n_v_);
+
+double u_i = u_i_all(act_index_);
+double u_ip = u_ip_all(act_index_);
+double v_i = x_i_all(vel_index_);
+double v_ip = x_ip_all(vel_index_);
+double work_low = cost_work_ * relu(u_i * v_i + Q_ * u_i * u_i);
+double work_up = cost_work_ * relu(u_ip * v_ip + Q_ * u_ip * u_ip);
+
+drake::VectorX<double> rv(1);
+rv[0] = 1/2.0 * h_i *(work_low + work_up);
+(*y) = rv;
+};
 
 double positivePart(double x){
   return(std::max(x,0.0));
