@@ -252,13 +252,12 @@ void addCost(MultibodyPlant<T>& plant,
              dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,
              const double cost_actuation,
              const double cost_velocity,
-             const double cost_work,
-             const double work_constraint_scale = 1.0){
+             const double cost_work){
   auto u   = trajopt.input();
   // Setup the traditional cost function
   trajopt.AddRunningCost( u.transpose()*cost_actuation*u);
   trajopt.AddVelocityCost(cost_velocity);
-  AddWorkCost(plant, trajopt, cost_work, work_constraint_scale, 0.0);
+  AddWorkCost(plant, trajopt, cost_work);
 
 } // Function
 
@@ -505,7 +504,6 @@ void runSpiritJump(
     const double mu,
     const double eps,
     const double tol,
-    const double work_constraint_scale,
     const std::string& file_name_out,
     const std::string& file_name_in= ""
     ) {
@@ -562,12 +560,8 @@ void runSpiritJump(
     trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(), "Verify level",
                             0);  // 0
   }
-
-
   // Setting up cost
-  addCost(plant, trajopt, cost_actuation, cost_velocity, cost_work, work_constraint_scale);
-
-
+  addCost(plant, trajopt, cost_actuation, cost_velocity, cost_work);
 
 // Initialize the trajectory control state and forces
   if (file_name_in.empty()){
@@ -714,7 +708,6 @@ int main(int argc, char* argv[]) {
           100,
           FLAGS_eps,
           1e-1,
-          0,
           FLAGS_data_directory+"simple_jump");
     }
     else{
@@ -748,7 +741,6 @@ int main(int argc, char* argv[]) {
         100,
         0,
         1e-2,
-        0,
         FLAGS_data_directory+"jump_"+FLAGS_distance_name);
   }
   std::cout<<"Running 3rd optimization"<<std::endl;
@@ -773,7 +765,6 @@ int main(int argc, char* argv[]) {
       FLAGS_mu,
       FLAGS_eps,
       FLAGS_tol,
-      0,
       FLAGS_data_directory+"jump_"+FLAGS_distance_name+"_hq",
       FLAGS_data_directory+"jump_"+FLAGS_distance_name);
 
@@ -800,7 +791,6 @@ int main(int argc, char* argv[]) {
         FLAGS_mu,
         FLAGS_eps,
         FLAGS_tol,
-        1.0,
         FLAGS_data_directory+"jump_"+FLAGS_distance_name+"_hq_work_option3",
         FLAGS_data_directory+"jump_"+FLAGS_distance_name+"_hq");
   }
