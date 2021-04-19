@@ -805,7 +805,7 @@ JointWorkCost::JointWorkCost(const drake::multibody::MultibodyPlant<double>& pla
   DRAKE_DEMAND(alpha_ > 0);
 }
 
-double JointWorkCost::relu(const double x) const{
+double JointWorkCost::relu_smooth(const double x) const{
   return  x>5 ? x : 1/alpha_ * log(1 + exp(alpha_ * x));
 }
 
@@ -824,8 +824,8 @@ double u_i = x(1);
 double u_ip = x(2);
 double v_i = x(3);
 double v_ip = x(4);
-double work_low = cost_work_ * relu(u_i * v_i + Q_ * u_i * u_i);
-double work_up = cost_work_ * relu(u_ip * v_ip + Q_ * u_ip * u_ip);
+double work_low = cost_work_ * relu_smooth(u_i * v_i + Q_ * u_i * u_i);
+double work_up = cost_work_ * relu_smooth(u_ip * v_ip + Q_ * u_ip * u_ip);
 
 drake::VectorX<double> rv(1);
 rv[0] = 1/2.0 * h_i *(work_low + work_up);

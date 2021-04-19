@@ -326,7 +326,7 @@ class JointWorkCost : public solvers::NonlinearCost<double> {
 
  private:
   /// Smooth relu
-  double relu(const double x) const;
+  double relu_smooth(const double x) const;
   void EvaluateCost(const Eigen::Ref<const drake::VectorX<double>> &x,
                     drake::VectorX<double> *y) const override;
   const drake::multibody::MultibodyPlant<double>& plant_;
