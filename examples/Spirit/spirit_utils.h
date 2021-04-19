@@ -29,6 +29,7 @@ class ModeSequenceHelper {
     }
 };
 
+
 /// Outputs a nominal stand state into the xState vector pointer based on the 
 /// height. This is an approximation for use in initial conditions.
 ///   @param plant a pointer to the MultibodyPlant
@@ -308,15 +309,34 @@ double calcTorqueInt(
 ///     @param plant, the robot model
 ///     @param trajopt the dircon object
 ///     @param cost_work_gain, the gain on the electrical work
-///     @param work_constraint_scale, scale on the absolute value constraint
-///     @param efficiency, gain on what percent of negative power is useable by the battery
 template <typename T>
-void AddWorkCost(drake::multibody::MultibodyPlant<T> & plant,
+std::vector<drake::solvers::Binding<drake::solvers::Cost>> AddWorkCost(drake::multibody::MultibodyPlant<T> & plant,
                  dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,
-                 double cost_work_gain,
-                 double work_constraint_scale = 1.0,
-                 double regenEfficiency = 0);
+                 double cost_work_gain);
 
+
+/// JointWorkCost object for adding smooth relu without slack variables to cost
+class JointWorkCost : public solvers::NonlinearCost<double> {
+ public:
+  JointWorkCost(const drake::multibody::MultibodyPlant<double>& plant,
+                const double &Q,
+                const double &cost_work,
+                const double &alpha,
+                const std::string &description = "");
+
+ private:
+  /// Smooth relu
+  double relu_smooth(const double x) const;
+  void EvaluateCost(const Eigen::Ref<const drake::VectorX<double>> &x,
+                    drake::VectorX<double> *y) const override;
+  const drake::multibody::MultibodyPlant<double>& plant_;
+  double Q_; /// Gain on actuation squared
+  double cost_work_;
+  double alpha_; /// Gain on smoothing for relu, higher is less smooth
+  int n_q_;
+  int n_v_;
+  int n_u_;
+};
 
 double positivePart(double x);
 double negativePart(double x);

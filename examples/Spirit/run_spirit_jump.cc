@@ -13,6 +13,7 @@
 #include "drake/systems/framework/diagram_builder.h"
 #include "drake/multibody/parsing/parser.h"
 #include <drake/multibody/inverse_kinematics/inverse_kinematics.h>
+#include <drake/solvers/choose_best_solver.h>
 #include "drake/geometry/geometry_visualization.h"
 #include "drake/solvers/solve.h"
 
@@ -29,26 +30,29 @@
 #include "common/file_utils.h"
 #include "lcm/dircon_saved_trajectory.h"
 #include "solvers/optimization_utils.h"
+#include "solvers/nonlinear_cost.h"
+
 
 #include "examples/Spirit/spirit_utils.h"
 
 DEFINE_double(duration, 1, "The stand duration");
 DEFINE_double(standHeight, 0.25, "The standing height.");
-DEFINE_double(foreAftDisplacement, 1.0, "The fore-aft displacement.");
+DEFINE_double(foreAftDisplacement, 0.75  , "The fore-aft displacement.");
 DEFINE_double(apexGoal, 0.5, "Apex state goal");
 DEFINE_double(inputCost, 3, "The standing height.");
 DEFINE_double(velocityCost, 10, "The standing height.");
 DEFINE_double(eps, 1e-2, "The wiggle room.");
-DEFINE_double(tol, 1e-6, "Optimization Tolerance");
+DEFINE_double(tol, 1e-3, "Optimization Tolerance");
 DEFINE_double(mu, 1, "coefficient of friction");
 
 DEFINE_string(data_directory, "/home/shane/Drake_ws/dairlib/examples/Spirit/saved_trajectories/",
               "directory to save/read data");
-DEFINE_string(distance_name, "100cm","name to describe distance");
+DEFINE_string(distance_name, "075cm","name to describe distance");
 
 DEFINE_bool(runAllOptimization, true, "rerun earlier optimizations?");
-DEFINE_bool(skipInitialOptimization, false, "skip first optimizations?");
+DEFINE_bool(skipInitialOptimization, true, "skip first optimizations?");
 DEFINE_bool(minWork, true, "try to minimize work?");
+DEFINE_bool(ipopt, true, "Use IPOPT as solver instead of SNOPT");
 
 using drake::AutoDiffXd;
 using drake::multibody::MultibodyPlant;
@@ -72,6 +76,7 @@ using systems::trajectory_optimization::KinematicConstraintType;
 using std::vector;
 using std::cout;
 using std::endl;
+
 
 /// badSpiritJump, generates a bad initial guess for the spirit jump traj opt
 /// \param plant: robot model
@@ -247,13 +252,13 @@ void addCost(MultibodyPlant<T>& plant,
              dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,
              const double cost_actuation,
              const double cost_velocity,
-             const double cost_work,
-             const double work_constraint_scale = 1.0){
+             const double cost_work){
   auto u   = trajopt.input();
   // Setup the traditional cost function
   trajopt.AddRunningCost( u.transpose()*cost_actuation*u);
   trajopt.AddVelocityCost(cost_velocity);
-  AddWorkCost(plant, trajopt, cost_work, work_constraint_scale, 0.0);
+  AddWorkCost(plant, trajopt, cost_work);
+
 } // Function
 
 
@@ -499,7 +504,6 @@ void runSpiritJump(
     const double mu,
     const double eps,
     const double tol,
-    const double work_constraint_scale,
     const std::string& file_name_out,
     const std::string& file_name_in= ""
     ) {
@@ -521,24 +525,45 @@ void runSpiritJump(
 
   ///Setup trajectory optimization
   auto trajopt = Dircon<T>(sequence);
-  // Set up Trajectory Optimization options
-  trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(),
-                           "Print file", "../snopt.out");
-  trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(),
-                           "Major iterations limit", 10000);
-  trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(), "Iterations limit", 1000000);
-  trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(),
-                           "Major optimality tolerance",
-                           tol);  // target optimality
-  trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(), "Major feasibility tolerance", tol);
-  trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(), "Verify level",
-                           0);  // 0
 
+  if (FLAGS_ipopt) {
+    // Ipopt settings adapted from CaSaDi and FROST
+    auto id = drake::solvers::IpoptSolver::id();
+    trajopt.SetSolverOption(id, "tol", tol);
+    trajopt.SetSolverOption(id, "dual_inf_tol", tol);
+    trajopt.SetSolverOption(id, "constr_viol_tol", tol);
+    trajopt.SetSolverOption(id, "compl_inf_tol", tol);
+    trajopt.SetSolverOption(id, "max_iter", 1000000);
+    trajopt.SetSolverOption(id, "nlp_lower_bound_inf", -1e6);
+    trajopt.SetSolverOption(id, "nlp_upper_bound_inf", 1e6);
+    trajopt.SetSolverOption(id, "print_timing_statistics", "yes");
+    trajopt.SetSolverOption(id, "print_level", 5);
+
+    // Set to ignore overall tolerance/dual infeasibility, but terminate when
+    // primal feasible and objective fails to increase over 5 iterations.
+    trajopt.SetSolverOption(id, "acceptable_compl_inf_tol", tol);
+    trajopt.SetSolverOption(id, "acceptable_constr_viol_tol", tol);
+    trajopt.SetSolverOption(id, "acceptable_obj_change_tol", tol);
+    trajopt.SetSolverOption(id, "acceptable_tol", tol);
+    trajopt.SetSolverOption(id, "acceptable_iter", 5);
+  } else {
+    // Set up Trajectory Optimization options
+    trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(),
+                            "Print file", "../snopt.out");
+    trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(),
+                            "Major iterations limit", 10000);
+    trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(), "Iterations limit", 1000000);
+    trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(),
+                            "Major optimality tolerance",
+                            tol);  // target optimality
+    trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(), "Major feasibility tolerance", tol);
+    trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(), "Verify level",
+                            0);  // 0
+  }
   // Setting up cost
-  addCost(plant, trajopt, cost_actuation, cost_velocity, cost_work, work_constraint_scale);
+  addCost(plant, trajopt, cost_actuation, cost_velocity, cost_work);
 
-
-  // Initialize the trajectory control state and forces
+// Initialize the trajectory control state and forces
   if (file_name_in.empty()){
     trajopt.drake::systems::trajectory_optimization::MultipleShooting::
         SetInitialTrajectory(u_traj, x_traj);
@@ -565,10 +590,21 @@ void runSpiritJump(
       dairlib::FindResourceOrThrow("examples/Spirit/spirit_drake.urdf"),
       visualizer_poses, 0.2); // setup which URDF, how many poses, and alpha transparency 
 
-  
+  drake::solvers::SolverId solver_id("");
+  if (FLAGS_ipopt) {
+    solver_id = drake::solvers::IpoptSolver().id();
+    cout << "\nChose manually: " << solver_id.name() << endl;
+  } else {
+    solver_id = drake::solvers::ChooseBestSolver(trajopt);
+    cout << "\nChose the best solver: " << solver_id.name() << endl;
+  }
+
   /// Run the optimization using your initial guess
   auto start = std::chrono::high_resolution_clock::now();
-  const auto result = Solve(trajopt, trajopt.initial_guess());
+  auto solver = drake::solvers::MakeSolver(solver_id);
+  drake::solvers::MathematicalProgramResult result;
+  solver->Solve(trajopt, trajopt.initial_guess(), trajopt.solver_options(),
+                &result);
   auto finish = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> elapsed = finish - start;
   std::cout << "Solve time: " << elapsed.count() <<std::endl;
@@ -599,7 +635,9 @@ void runSpiritJump(
   }
   auto x_trajs = trajopt.ReconstructDiscontinuousStateTrajectory(result);
   std::cout<<"Work = " << dairlib::calcElectricalWork(plant, x_trajs, u_traj) << std::endl;
-
+//  double cost_work_acceleration = solvers::EvalCostGivenSolution(
+//      result, cost_joint_work_bindings);
+//  std::cout<<"Cost Work = " << cost_work_acceleration << std::endl;
   /// Run animation of the final trajectory
   const drake::trajectories::PiecewisePolynomial<double> pp_xtraj =
       trajopt.ReconstructStateTrajectory(result);
@@ -670,7 +708,6 @@ int main(int argc, char* argv[]) {
           100,
           FLAGS_eps,
           1e-1,
-          0,
           FLAGS_data_directory+"simple_jump");
     }
     else{
@@ -704,7 +741,6 @@ int main(int argc, char* argv[]) {
         100,
         0,
         1e-2,
-        0,
         FLAGS_data_directory+"jump_"+FLAGS_distance_name);
   }
   std::cout<<"Running 3rd optimization"<<std::endl;
@@ -729,7 +765,6 @@ int main(int argc, char* argv[]) {
       FLAGS_mu,
       FLAGS_eps,
       FLAGS_tol,
-      0,
       FLAGS_data_directory+"jump_"+FLAGS_distance_name+"_hq",
       FLAGS_data_directory+"jump_"+FLAGS_distance_name);
 
@@ -752,11 +787,10 @@ int main(int argc, char* argv[]) {
         1.5,
         FLAGS_inputCost/10,
         FLAGS_velocityCost/10,
-        500,
+        100,
         FLAGS_mu,
         FLAGS_eps,
         FLAGS_tol,
-        1.0,
         FLAGS_data_directory+"jump_"+FLAGS_distance_name+"_hq_work_option3",
         FLAGS_data_directory+"jump_"+FLAGS_distance_name+"_hq");
   }

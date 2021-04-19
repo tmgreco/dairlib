@@ -51,12 +51,7 @@ class DirconTrajectory : public LcmTrajectory {
       const;
   std::vector<drake::trajectories::PiecewisePolynomial<double>> ReconstructStateDiscontinuousTrajectory()
   const;
-  std::vector<drake::trajectories::PiecewisePolynomial<double>> ReconstructLambdaTrajectory()
-  const;
-  std::vector<drake::trajectories::PiecewisePolynomial<double>> ReconstructLambdaCTrajectory()
-  const;
-  std::vector<drake::trajectories::PiecewisePolynomial<double>> ReconstructGammaCTrajectory()
-  const;
+
 
   /// Returns a vector of polynomials describing the contact forces for each mode. For use when
   /// adding knot points to the initial guess
