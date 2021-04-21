@@ -368,7 +368,7 @@ void addConstraintsFlight(MultibodyPlant<T>& plant,
                     double eps = 0){
   auto positions_map = multibody::makeNameToPositionsMap(plant);
   auto velocities_map = multibody::makeNameToVelocitiesMap(plant);
-  auto   xapex  = trajopt.num_modes() > 3 ? trajopt.state_vars(3,0) : trajopt.final_state();
+  auto   xapex  = trajopt.state_vars(3,0) ;
   trajopt.AddBoundingBoxConstraint(0, 0, xapex(plant.num_positions()+velocities_map.at("base_vz")));
 
   if (apex_height > 0.15)
@@ -469,13 +469,6 @@ void addConstraints(MultibodyPlant<T>& plant,
   // Initial body positions
   trajopt.AddBoundingBoxConstraint(0, 0, x0(positions_map.at("base_x"))); // Give the initial condition room to choose the x_init position
 
-  if(trajopt.num_modes() < 3){
-    trajopt.AddBoundingBoxConstraint(fore_aft_displacement-eps, fore_aft_displacement+eps, xlo(positions_map.at("base_x"))); // Give the initial condition room to choose the x_init position
-    trajopt.AddBoundingBoxConstraint(liftoff_velocity, 100, xlo(n_q+velocities_map.at("base_vz")));
-    trajopt.AddBoundingBoxConstraint(liftoff_velocity/2, 100, x_pitch(n_q+velocities_map.at("base_vz")));
-    trajopt.AddBoundingBoxConstraint(min_final_height, 100, xlo(positions_map.at("base_z")) );
-  }
-
   trajopt.AddBoundingBoxConstraint( -eps, eps, x0( positions_map.at("base_y")));
   trajopt.AddBoundingBoxConstraint(-eps, eps, xlo(positions_map.at("base_y")));
 
@@ -501,25 +494,9 @@ void addConstraints(MultibodyPlant<T>& plant,
 
   for (int i = 0; i < trajopt.N(); i++){
     auto xi = trajopt.state(i);
-    //Orientation
-    if(lock_rotation){
-      trajopt.AddBoundingBoxConstraint(0, 0, xi(positions_map.at("base_qx")));
-      trajopt.AddBoundingBoxConstraint(0, 0, xi(positions_map.at("base_qz")));
-    }
     // Height
     trajopt.AddBoundingBoxConstraint( 0.15, 5, xi( positions_map.at("base_z")));
     trajopt.AddBoundingBoxConstraint( -eps, eps, xi( n_q+velocities_map.at("base_vy")));
-  }
-  Eigen::VectorXd end_state_nominal;
-  dairlib::nominalSpiritStand(plant, end_state_nominal, initial_height);
-  vector<double> joint_vec;
-  if (trajopt.num_modes() > 2)
-    joint_vec =  {};
-  else
-    joint_vec =  {0, 1, 4, 5, 8, 10};
-  for(int joint_index: joint_vec){
-    double joint_val = end_state_nominal[positions_map.at("joint_"+std::to_string(joint_index))];
-    trajopt.AddBoundingBoxConstraint(joint_val - eps, joint_val + eps, xlo(positions_map.at("joint_"+std::to_string(joint_index))));
   }
 }
 
@@ -883,9 +860,7 @@ int main(int argc, char* argv[]) {
   std::vector<PiecewisePolynomial<double>> l_traj;
   std::vector<PiecewisePolynomial<double>> lc_traj;
   std::vector<PiecewisePolynomial<double>> vc_traj;
-
-  dairlib::badInplaceBound(*plant, x_traj, u_traj, l_traj, lc_traj, vc_traj);
-
+  
   if (FLAGS_runAllOptimization){
     if(!FLAGS_skipInitialOptimization){
       std::cout<<"Running 1st optimization"<<std::endl;
