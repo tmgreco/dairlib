@@ -364,45 +364,17 @@ template <typename T>
 void addConstraintsFlight(MultibodyPlant<T>& plant,
                     dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,
                     double apex_height,
-                    double fore_aft_displacement,
                     double eps = 0){
   auto positions_map = multibody::makeNameToPositionsMap(plant);
   auto velocities_map = multibody::makeNameToVelocitiesMap(plant);
-  auto   xapex  = trajopt.state_vars(3,0) ;
-  trajopt.AddBoundingBoxConstraint(0, 0, xapex(plant.num_positions()+velocities_map.at("base_vz")));
-
-  if (apex_height > 0.15)
-    trajopt.AddBoundingBoxConstraint(apex_height-1e-2, apex_height+1e-2, xapex(positions_map.at("base_z")));
-
-  double pitch = abs(0.1);
-  // Body pose constraints (keep the body flat) at apex state
-  trajopt.AddBoundingBoxConstraint(cos(pitch/2.0), 1, xapex(positions_map.at("base_qw")));
-  trajopt.AddBoundingBoxConstraint(-eps, eps, xapex(positions_map.at("base_qx")));
-  trajopt.AddBoundingBoxConstraint(-sin(pitch/2.0) , sin(pitch/2.0), xapex(positions_map.at("base_qy")));
-  trajopt.AddBoundingBoxConstraint(-eps, eps, xapex(positions_map.at("base_qz")));
-  std::cout<<"Adding flight constraints" << std::endl;
-
 }
 
 template <typename T>
 void addConstraintsTD(MultibodyPlant<T>& plant,
                           dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,
-                          const double td_height,
-                          const double fore_aft_displacement,
                           const double eps = 0){
   auto positions_map = multibody::makeNameToPositionsMap(plant);
   auto velocities_map = multibody::makeNameToVelocitiesMap(plant);
-  auto   xtd  =  trajopt.final_state();
-
-  std::cout<<"Adding td constraints" << std::endl;
-
-  double pitch = abs(0.6);
-  // Body pose constraints (keep the body flat) at apex state
-  trajopt.AddBoundingBoxConstraint(cos(pitch/2.0), 1, xtd(positions_map.at("base_qw")));
-  trajopt.AddBoundingBoxConstraint(-eps, eps, xtd(positions_map.at("base_qx")));
-  trajopt.AddBoundingBoxConstraint(-sin(pitch/2.0) , sin(pitch/2.0), xtd(positions_map.at("base_qy")));
-  trajopt.AddBoundingBoxConstraint(-eps, eps, xtd(positions_map.at("base_qz")));
-
 }
 
 template <typename T>
@@ -413,37 +385,15 @@ void addConstraintsStance(MultibodyPlant<T>& plant,
                       const double eps = 0){
   auto positions_map = multibody::makeNameToPositionsMap(plant);
   auto velocities_map = multibody::makeNameToVelocitiesMap(plant);
-  auto   xf  = trajopt.final_state();
-  std::cout<<"Adding stance constraints" << std::endl;
-  nominalSpiritStandConstraint(plant,trajopt,initial_height, {trajopt.N()-1}, eps);
-
-  std::cout<< fore_aft_displacement << std::endl;
-  if (fore_aft_displacement >= 0){
-    trajopt.AddBoundingBoxConstraint(fore_aft_displacement-eps, fore_aft_displacement, xf(positions_map.at("base_x")));
-  }
-
-  double n_v = plant.num_velocities();
-
-  trajopt.AddBoundingBoxConstraint(VectorXd::Zero(n_v), VectorXd::Zero(n_v), xf.tail(n_v));
-  trajopt.AddBoundingBoxConstraint(0-eps, 0+eps, xf(positions_map.at("base_y")));
-
-  // Body pose constraints (keep the body flat) at initial state
-  trajopt.AddBoundingBoxConstraint(1-eps, 1 + eps, xf(positions_map.at("base_qw")));
-  trajopt.AddBoundingBoxConstraint(0-eps , 0+ eps, xf(positions_map.at("base_qx")));
-  trajopt.AddBoundingBoxConstraint(0-eps, 0+ eps, xf(positions_map.at("base_qy")));
-  trajopt.AddBoundingBoxConstraint(0-eps, 0 + eps, xf(positions_map.at("base_qz")));
 }
 // addConstraints, adds constraints to the trajopt jump problem. See runSpiritJump for a description of the inputs
 template <typename T>
 void addConstraints(MultibodyPlant<T>& plant,
              dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,
-                    const double min_final_height,
                     const double initial_height,
+                    const double apex_height,
                     const double fore_aft_displacement,
-                    const double liftoff_velocity,
                     const double pitch_magnitude,
-                    const bool lock_rotation,
-                    const bool lock_knees_stance,
                     const double max_duration,
                     const double eps){
 
@@ -498,6 +448,51 @@ void addConstraints(MultibodyPlant<T>& plant,
     trajopt.AddBoundingBoxConstraint( 0.15, 5, xi( positions_map.at("base_z")));
     trajopt.AddBoundingBoxConstraint( -eps, eps, xi( n_q+velocities_map.at("base_vy")));
   }
+
+  auto   xapex  = trajopt.state_vars(3,0) ;
+  trajopt.AddBoundingBoxConstraint(0, 0, xapex(plant.num_positions()+velocities_map.at("base_vz")));
+
+  if (apex_height > 0.15)
+    trajopt.AddBoundingBoxConstraint(apex_height-1e-2, apex_height+1e-2, xapex(positions_map.at("base_z")));
+
+  pitch = abs(0.1);
+  // Body pose constraints (keep the body flat) at apex state
+  trajopt.AddBoundingBoxConstraint(cos(pitch/2.0), 1, xapex(positions_map.at("base_qw")));
+  trajopt.AddBoundingBoxConstraint(-eps, eps, xapex(positions_map.at("base_qx")));
+  trajopt.AddBoundingBoxConstraint(-sin(pitch/2.0) , sin(pitch/2.0), xapex(positions_map.at("base_qy")));
+  trajopt.AddBoundingBoxConstraint(-eps, eps, xapex(positions_map.at("base_qz")));
+  std::cout<<"Adding flight constraints" << std::endl;
+
+
+  auto   xtd  =  trajopt.state_vars(4,0);
+
+  std::cout<<"Adding td constraints" << std::endl;
+  pitch = abs(0.6);
+  // Body pose constraints (keep the body flat) at apex state
+  trajopt.AddBoundingBoxConstraint(cos(pitch/2.0), 1, xtd(positions_map.at("base_qw")));
+  trajopt.AddBoundingBoxConstraint(-eps, eps, xtd(positions_map.at("base_qx")));
+  trajopt.AddBoundingBoxConstraint(-sin(pitch/2.0) , sin(pitch/2.0), xtd(positions_map.at("base_qy")));
+  trajopt.AddBoundingBoxConstraint(-eps, eps, xtd(positions_map.at("base_qz")));
+
+  auto   xf  = trajopt.final_state();
+  std::cout<<"Adding stance constraints" << std::endl;
+  nominalSpiritStandConstraint(plant,trajopt,initial_height, {trajopt.N()-1}, eps);
+
+  if (fore_aft_displacement >= 0){
+    trajopt.AddBoundingBoxConstraint(fore_aft_displacement-eps, fore_aft_displacement, xf(positions_map.at("base_x")));
+  }
+
+
+
+  trajopt.AddBoundingBoxConstraint(VectorXd::Zero(n_v), VectorXd::Zero(n_v), xf.tail(n_v));
+  trajopt.AddBoundingBoxConstraint(0-eps, 0+eps, xf(positions_map.at("base_y")));
+
+  // Body pose constraints (keep the body flat) at initial state
+  trajopt.AddBoundingBoxConstraint(1-eps, 1 + eps, xf(positions_map.at("base_qw")));
+  trajopt.AddBoundingBoxConstraint(0-eps , 0+ eps, xf(positions_map.at("base_qx")));
+  trajopt.AddBoundingBoxConstraint(0-eps, 0+ eps, xf(positions_map.at("base_qy")));
+  trajopt.AddBoundingBoxConstraint(0-eps, 0 + eps, xf(positions_map.at("base_qz")));
+
 }
 
 void getModeSequenceHelper(dairlib::ModeSequenceHelper& msh,
@@ -751,13 +746,12 @@ void runSpiritJump(
     trajopt.SetInitialGuessForAllVariables(loaded_traj.GetDecisionVariables());
   }
 
-  addConstraints(plant, trajopt, min_final_height,
-                 initial_height, fore_aft_displacement, liftoff_velocity, pitch_magnitude,
-                 lock_rotation, false, max_duration, eps);
+  addConstraints(plant, trajopt,
+                 initial_height, apex_height, td_displacement,  pitch_magnitude,max_duration, eps);
   if(optimize_flight)
-    addConstraintsFlight(plant, trajopt, apex_height, apex_displacement, eps);
+    addConstraintsFlight(plant, trajopt, apex_height, eps);
   if(optimize_td)
-    addConstraintsTD(plant, trajopt, td_height, td_displacement, eps);
+    addConstraintsTD(plant, trajopt, eps);
   if(optimize_stance)
     addConstraintsStance(plant, trajopt, initial_height, td_displacement, eps);
 
