@@ -73,6 +73,223 @@ using std::vector;
 using std::cout;
 using std::endl;
 
+template <typename T>
+void badInplaceBound(MultibodyPlant<T>& plant,
+                    vector<PiecewisePolynomial<double>>& x_traj,
+                    PiecewisePolynomial<double>& u_traj,
+                    vector<PiecewisePolynomial<double>>& l_traj,
+                    vector<PiecewisePolynomial<double>>& lc_traj,
+                    vector<PiecewisePolynomial<double>>& vc_traj) {
+
+  double stand_height = FLAGS_standHeight;
+  double pitch_lo = -0.3;
+  double apex_height = FLAGS_apexGoal;
+  double duration = 0.3;
+
+  std::vector<MatrixXd> x_points;
+  VectorXd x_const;
+  //Stance
+  dairlib::ikSpiritStand(plant, x_const, {true, true, true, true}, stand_height, 0.2, 0, 0);
+  x_points.push_back(x_const);
+  dairlib::ikSpiritStand(plant, x_const, {true, true, true, true}, stand_height+0.02, 0.2, 0, pitch_lo/2.0);
+  x_points.push_back(x_const);
+
+  x_traj.push_back(PiecewisePolynomial<double>::FirstOrderHold({0,duration/3.0},x_points));
+
+  x_points.clear();
+
+  //Rear stance
+  dairlib::ikSpiritStand(plant, x_const, {true, true, true, true}, stand_height+0.02, 0.2, 0, pitch_lo/2.0);
+  x_points.push_back(x_const);
+  dairlib::ikSpiritStand(plant, x_const, {false, true, false, true}, stand_height+0.05, 0.2, 0, pitch_lo);
+  x_points.push_back(x_const);
+
+  x_traj.push_back(PiecewisePolynomial<double>::FirstOrderHold({duration/3.0, 2 * duration/3.0},x_points));
+  x_points.clear();
+
+  //Flight 1
+  dairlib::ikSpiritStand(plant, x_const, {false, true, false, true}, stand_height+0.05, 0.2, 0, pitch_lo);
+  x_points.push_back(x_const);
+  dairlib::ikSpiritStand(plant, x_const, {false, false, false, false}, apex_height, 0.2, 0, 0);
+  x_points.push_back(x_const);
+
+  x_traj.push_back(PiecewisePolynomial<double>::FirstOrderHold({2 * duration/3.0, 3 * duration/3.0},x_points));
+  x_points.clear();
+
+  //Flight 2
+  dairlib::ikSpiritStand(plant, x_const, {false, false, false, false}, apex_height, 0.2, 0, 0);
+  x_points.push_back(x_const);
+  dairlib::ikSpiritStand(plant, x_const, {true, false, true, false}, stand_height+0.05, 0.2, 0, -pitch_lo);
+  x_points.push_back(x_const);
+
+  x_traj.push_back(PiecewisePolynomial<double>::FirstOrderHold({3 * duration/3.0, 4 * duration/3.0},x_points));
+  x_points.clear();
+
+  //Front stance
+  dairlib::ikSpiritStand(plant, x_const, {true, false, true, false}, stand_height+0.05, 0.2, 0, -pitch_lo);
+  x_points.push_back(x_const);
+  dairlib::ikSpiritStand(plant, x_const, {true, true, true, true}, stand_height+0.02, 0.2, 0, -pitch_lo/2.0);
+  x_points.push_back(x_const);
+
+  x_traj.push_back(PiecewisePolynomial<double>::FirstOrderHold({4 * duration/3.0, 5 * duration/3.0},x_points));
+  x_points.clear();
+
+  //stance
+  dairlib::ikSpiritStand(plant, x_const, {true, true, true, true}, stand_height+0.02, 0.2, 0, -pitch_lo/2.0);
+  x_points.push_back(x_const);
+  dairlib::ikSpiritStand(plant, x_const, {true, true, true, true}, stand_height, 0.2, 0, 0);
+  x_points.push_back(x_const);
+
+
+  x_traj.push_back(PiecewisePolynomial<double>::FirstOrderHold({5 * duration/3.0, 6 * duration/3.0},x_points));
+  x_points.clear();
+
+  std::vector<MatrixXd> u_points;
+  u_points.push_back(MatrixXd::Zero( plant.num_actuators(), 1));
+  u_points.push_back(MatrixXd::Zero( plant.num_actuators(), 1));
+
+  u_traj = PiecewisePolynomial<double>::FirstOrderHold({0, 6 * duration/3.0},u_points);
+
+  // Four contacts so forces are 12 dimensional
+  Eigen::VectorXd init_l_vec(12);
+  // Initial guess
+  init_l_vec << 0, 0, 12*9.81, 0, 0, 12*9.81, 0, 0, 12*9.81, 0, 0, 12*9.81; //gravity and mass distributed
+
+  Eigen::VectorXd init_l_vec_front_stance(12);
+  init_l_vec_front_stance << 0, 0, 0, 0, 0, 24*9.81, 0, 0, 0, 0, 0, 24*9.81; //gravity and mass distributed
+
+  Eigen::VectorXd init_l_vec_back_stance(12);
+  init_l_vec_back_stance << 0, 0, 24*9.81, 0, 0, 0, 0, 0, 24*9.81, 0, 0, 0; //gravity and mass distributed
+
+  //Stance
+  int N = 10;
+  std::vector<MatrixXd> init_l_j;
+  std::vector<MatrixXd> init_lc_j;
+  std::vector<MatrixXd> init_vc_j;
+  std::vector<double> init_time_j;
+
+  // stance
+  init_l_j.clear();
+  init_lc_j.clear();
+  init_vc_j.clear();
+  init_time_j.clear();
+  for (int i = 0; i < N; i++) {
+    init_time_j.push_back(i * duration /3.0/ (N - 1));
+    init_l_j.push_back(init_l_vec);
+    init_lc_j.push_back(init_l_vec);
+    init_vc_j.push_back(VectorXd::Zero(12));
+  }
+
+  auto init_l_traj_j = PiecewisePolynomial<double>::ZeroOrderHold(init_time_j,init_l_j);
+  auto init_lc_traj_j = PiecewisePolynomial<double>::ZeroOrderHold(init_time_j,init_lc_j);
+  auto init_vc_traj_j = PiecewisePolynomial<double>::ZeroOrderHold(init_time_j,init_vc_j);
+
+  l_traj.push_back(init_l_traj_j);
+  lc_traj.push_back(init_lc_traj_j);
+  vc_traj.push_back(init_vc_traj_j);
+
+  // front stance
+  init_l_j.clear();
+  init_lc_j.clear();
+  init_vc_j.clear();
+  init_time_j.clear();
+  for (int i = 0; i < N; i++) {
+    init_time_j.push_back(i * duration /3.0/ (N - 1) + duration/3.0);
+    init_l_j.push_back(init_l_vec_front_stance);
+    init_lc_j.push_back(init_l_vec_front_stance);
+    init_vc_j.push_back(VectorXd::Zero(12));
+  }
+
+  init_l_traj_j = PiecewisePolynomial<double>::ZeroOrderHold(init_time_j,init_l_j);
+  init_lc_traj_j = PiecewisePolynomial<double>::ZeroOrderHold(init_time_j,init_lc_j);
+  init_vc_traj_j = PiecewisePolynomial<double>::ZeroOrderHold(init_time_j,init_vc_j);
+
+  l_traj.push_back(init_l_traj_j);
+  lc_traj.push_back(init_lc_traj_j);
+  vc_traj.push_back(init_vc_traj_j);
+
+  // Flight
+  init_l_j.clear();
+  init_lc_j.clear();
+  init_vc_j.clear();
+  init_time_j.clear();
+  for (int i = 0; i < N; i++) {
+    init_time_j.push_back(i * duration /3.0/ (N - 1) +2.0 * duration/3.0);
+    init_l_j.push_back(VectorXd::Zero(12));
+    init_lc_j.push_back(VectorXd::Zero(12));
+    init_vc_j.push_back(VectorXd::Zero(12));
+  }
+
+  init_l_traj_j = PiecewisePolynomial<double>::ZeroOrderHold(init_time_j,init_l_j);
+  init_lc_traj_j = PiecewisePolynomial<double>::ZeroOrderHold(init_time_j,init_lc_j);
+  init_vc_traj_j = PiecewisePolynomial<double>::ZeroOrderHold(init_time_j,init_vc_j);
+
+  l_traj.push_back(init_l_traj_j);
+  lc_traj.push_back(init_lc_traj_j);
+  vc_traj.push_back(init_vc_traj_j);
+
+  // Flight
+  init_l_j.clear();
+  init_lc_j.clear();
+  init_vc_j.clear();
+  init_time_j.clear();
+  for (int i = 0; i < N; i++) {
+    init_time_j.push_back(i * duration /3.0/ (N - 1) +3.0 * duration/3.0);
+    init_l_j.push_back(VectorXd::Zero(12));
+    init_lc_j.push_back(VectorXd::Zero(12));
+    init_vc_j.push_back(VectorXd::Zero(12));
+  }
+
+  init_l_traj_j = PiecewisePolynomial<double>::ZeroOrderHold(init_time_j,init_l_j);
+  init_lc_traj_j = PiecewisePolynomial<double>::ZeroOrderHold(init_time_j,init_lc_j);
+  init_vc_traj_j = PiecewisePolynomial<double>::ZeroOrderHold(init_time_j,init_vc_j);
+
+  l_traj.push_back(init_l_traj_j);
+  lc_traj.push_back(init_lc_traj_j);
+  vc_traj.push_back(init_vc_traj_j);
+
+  // back stance
+  init_l_j.clear();
+  init_lc_j.clear();
+  init_vc_j.clear();
+  init_time_j.clear();
+  for (int i = 0; i < N; i++) {
+    init_time_j.push_back(i * duration /3.0/ (N - 1) + 4 * duration/3.0);
+    init_l_j.push_back(init_l_vec_back_stance);
+    init_lc_j.push_back(init_l_vec_back_stance);
+    init_vc_j.push_back(VectorXd::Zero(12));
+  }
+
+  init_l_traj_j = PiecewisePolynomial<double>::ZeroOrderHold(init_time_j,init_l_j);
+  init_lc_traj_j = PiecewisePolynomial<double>::ZeroOrderHold(init_time_j,init_lc_j);
+  init_vc_traj_j = PiecewisePolynomial<double>::ZeroOrderHold(init_time_j,init_vc_j);
+
+  l_traj.push_back(init_l_traj_j);
+  lc_traj.push_back(init_lc_traj_j);
+  vc_traj.push_back(init_vc_traj_j);
+
+  // stance
+  init_l_j.clear();
+  init_lc_j.clear();
+  init_vc_j.clear();
+  init_time_j.clear();
+  for (int i = 0; i < N; i++) {
+    init_time_j.push_back(i * duration /3.0/ (N - 1) + 5 * duration/3.0);
+    init_l_j.push_back(init_l_vec);
+    init_lc_j.push_back(init_l_vec);
+    init_vc_j.push_back(VectorXd::Zero(12));
+  }
+
+  init_l_traj_j = PiecewisePolynomial<double>::ZeroOrderHold(init_time_j,init_l_j);
+  init_lc_traj_j = PiecewisePolynomial<double>::ZeroOrderHold(init_time_j,init_lc_j);
+  init_vc_traj_j = PiecewisePolynomial<double>::ZeroOrderHold(init_time_j,init_vc_j);
+
+  l_traj.push_back(init_l_traj_j);
+  lc_traj.push_back(init_lc_traj_j);
+  vc_traj.push_back(init_vc_traj_j);
+
+}
+
 /// badSpiritRear, generates a bad initial guess for the spirit jump traj opt
 /// \param plant: robot model
 /// \param x_traj[out]: initial and solution state trajectory
@@ -403,21 +620,15 @@ void addConstraintsFlight(MultibodyPlant<T>& plant,
   auto   xapex  = trajopt.num_modes() > 3 ? trajopt.state_vars(3,0) : trajopt.final_state();
   trajopt.AddBoundingBoxConstraint(0, 0, xapex(plant.num_positions()+velocities_map.at("base_vz")));
 
-  if (trajopt.num_modes() <= 3){
-    nominalSpiritStandConstraint(plant, trajopt, FLAGS_standHeight, {trajopt.N()-1}, eps);
-  }
   if (apex_height > 0.15)
     trajopt.AddBoundingBoxConstraint(apex_height-1e-2, apex_height+1e-2, xapex(positions_map.at("base_z")));
 
-  if (fore_aft_displacement >= 0)
-    trajopt.AddBoundingBoxConstraint(fore_aft_displacement-eps, fore_aft_displacement, xapex(positions_map.at("base_x")));
-
-  double pitch = abs(0.2);
+  double pitch = abs(0.1);
   // Body pose constraints (keep the body flat) at apex state
   trajopt.AddBoundingBoxConstraint(cos(pitch/2.0), 1, xapex(positions_map.at("base_qw")));
-  trajopt.AddBoundingBoxConstraint(0, 0, xapex(positions_map.at("base_qx")));
+  trajopt.AddBoundingBoxConstraint(-eps, eps, xapex(positions_map.at("base_qx")));
   trajopt.AddBoundingBoxConstraint(-sin(pitch/2.0) , sin(pitch/2.0), xapex(positions_map.at("base_qy")));
-  trajopt.AddBoundingBoxConstraint(0, 0, xapex(positions_map.at("base_qz")));
+  trajopt.AddBoundingBoxConstraint(-eps, eps, xapex(positions_map.at("base_qz")));
   std::cout<<"Adding flight constraints" << std::endl;
 
 }
@@ -434,14 +645,12 @@ void addConstraintsTD(MultibodyPlant<T>& plant,
 
   std::cout<<"Adding td constraints" << std::endl;
 
-  if(td_height > 0)
-    trajopt.AddBoundingBoxConstraint(td_height-eps, td_height+eps, xtd(positions_map.at("base_z")));
   double pitch = abs(0.6);
   // Body pose constraints (keep the body flat) at apex state
   trajopt.AddBoundingBoxConstraint(cos(pitch/2.0), 1, xtd(positions_map.at("base_qw")));
-  trajopt.AddBoundingBoxConstraint(0, 0, xtd(positions_map.at("base_qx")));
+  trajopt.AddBoundingBoxConstraint(-eps, eps, xtd(positions_map.at("base_qx")));
   trajopt.AddBoundingBoxConstraint(-sin(pitch/2.0) , sin(pitch/2.0), xtd(positions_map.at("base_qy")));
-  trajopt.AddBoundingBoxConstraint(0, 0, xtd(positions_map.at("base_qz")));
+  trajopt.AddBoundingBoxConstraint(-eps, eps, xtd(positions_map.at("base_qz")));
 
 }
 
@@ -491,7 +700,7 @@ void addConstraints(MultibodyPlant<T>& plant,
   auto positions_map = multibody::makeNameToPositionsMap(plant);
   auto velocities_map = multibody::makeNameToVelocitiesMap(plant);
 
-  setSpiritJointLimits(plant, trajopt, true);
+  setSpiritJointLimits(plant, trajopt);
   setSpiritActuationLimits(plant, trajopt);
 
   /// Setup all the optimization constraints
@@ -924,45 +1133,81 @@ int main(int argc, char* argv[]) {
   std::vector<PiecewisePolynomial<double>> lc_traj;
   std::vector<PiecewisePolynomial<double>> vc_traj;
 
+  dairlib::badInplaceBound(*plant, x_traj, u_traj, l_traj, lc_traj, vc_traj);
+
   if (FLAGS_runAllOptimization){
     if(!FLAGS_skipInitialOptimization){
       std::cout<<"Running 1st optimization"<<std::endl;
       //Hopping correct distance, but heavily constrained
-      dairlib::badSpiritRear(*plant, x_traj, u_traj, l_traj, lc_traj, vc_traj);
+      dairlib::badInplaceBound(*plant, x_traj, u_traj, l_traj, lc_traj, vc_traj);
       dairlib::runSpiritJump<double>(
           *plant,
           x_traj, u_traj, l_traj,
           lc_traj, vc_traj,
           false,
           true,
-          {10, 7, 5, 5, 5, 5} ,
-          0.3,
-          0.2,
+          {7, 7, 7, 7, 7, 7} ,
+          0.35,     // Only active small number modes
+          FLAGS_standHeight,
+          0.00, // Only active small number modes
+          1.8,       // Only active small number modes
+          0.6,
+          0.43,       // Ignored if small
+          0.0,   // Ignored if negative
+          -1.00,       // Ignored if negative
           0,
-          0,
-          0.4,
-          0,
-          0,
-          0,
-          0,
+          false,
           true,
-          false,
-          false,
-          false,
-          0.5,
-          0.3,
-          1,
-          5,
+          true,
+          true,
+          1.8,
+          3,
           10,
-          2000,
+          10/5.0,
+          5/5.0,
+          50000,
           0,
           100000,
-          0,
-          1e-4,
+          1e-2,
+          1e-3,
           1.0,
-          FLAGS_data_directory+"simple_rear");
+          FLAGS_data_directory+"jump");
 
       std::cout<<"Running 2nd optimization"<<std::endl;
+
+      dairlib::runSpiritJump<double>(
+          *plant,
+          x_traj, u_traj, l_traj,
+          lc_traj, vc_traj,
+          true,
+          true,
+          {7, 7, 7, 7, 7, 7} ,
+          0.35,     // Only active small number modes
+          FLAGS_standHeight,
+          0.00, // Only active small number modes
+          1.8,       // Only active small number modes
+          0.6,
+          0.43,       // Ignored if small
+          0.0,   // Ignored if negative
+          -1.00,       // Ignored if negative
+          0.5,
+          false,
+          true,
+          true,
+          true,
+          1.8,
+          3,
+          10,
+          10/5.0,
+          5/5.0,
+          50000,
+          0,
+          100000,
+          1e-2,
+          1e-3,
+          1.0,
+          FLAGS_data_directory+"jump_forward",
+          FLAGS_data_directory+"jump");
 
       dairlib::runSpiritJump<double>(
           *plant,
