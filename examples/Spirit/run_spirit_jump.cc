@@ -34,8 +34,8 @@
 #include "examples/Spirit/spirit_utils.h"
 
 DEFINE_double(standHeight, 0.2, "The standing height.");
-DEFINE_double(foreAftDisplacement, 0.0, "The fore-aft displacement.");
-DEFINE_double(apexGoal, 0.3, "Apex state goal");
+DEFINE_double(foreAftDisplacement, 1, "The fore-aft displacement.");
+DEFINE_double(apexGoal, 0.45, "Apex state goal");
 DEFINE_double(inputCost, 3, "The standing height.");
 DEFINE_double(velocityCost, 10, "The standing height.");
 DEFINE_double(eps, 1e-2, "The wiggle room.");
@@ -44,7 +44,7 @@ DEFINE_double(mu, 1, "coefficient of friction");
 
 DEFINE_string(data_directory, "/home/shane/Drake_ws/dairlib/examples/Spirit/saved_trajectories/",
               "directory to save/read data");
-DEFINE_string(distance_name, "90cm","name to describe distance");
+DEFINE_string(distance_name, "100cm","name to describe distance");
 
 DEFINE_bool(runAllOptimization, true, "rerun earlier optimizations?");
 DEFINE_bool(skipInitialOptimization, false, "skip first optimizations?");
@@ -290,255 +290,6 @@ void badInplaceBound(MultibodyPlant<T>& plant,
 
 }
 
-/// badSpiritRear, generates a bad initial guess for the spirit jump traj opt
-/// \param plant: robot model
-/// \param x_traj[out]: initial and solution state trajectory
-/// \param u_traj[out]: initial and solution control trajectory
-/// \param l_traj[out]: initial and solution contact force trajectory
-/// \param lc_traj[out]: initial and solution contact force slack variable trajectory
-/// \param vc_traj[out]: initial and solution contact velocity slack variable trajectory
-template <typename T>
-void badSpiritRear(MultibodyPlant<T>& plant,
-                   vector<PiecewisePolynomial<double>>& x_traj,
-                   PiecewisePolynomial<double>& u_traj,
-                   vector<PiecewisePolynomial<double>>& l_traj,
-                   vector<PiecewisePolynomial<double>>& lc_traj,
-                   vector<PiecewisePolynomial<double>>& vc_traj){
-
-  const double duration = 0.3;
-  std::vector<MatrixXd> x_points;
-  dairlib::DirconTrajectory old_traj(FLAGS_data_directory+"simple_yaw2");
-
-  std::vector<double> time_vec = {0, duration/3.0};
-
-  auto positions_map = multibody::makeNameToPositionsMap(plant);
-  auto velocities_map = multibody::makeNameToVelocitiesMap(plant);
-  VectorXd x_const;
-  dairlib::ikSpiritStand(plant, x_const, {true, true, true, true}, FLAGS_standHeight, 0.15, 0, 0);
-  x_points.push_back(x_const);
-  dairlib::ikSpiritStand(plant, x_const, {true, true, true, true}, FLAGS_standHeight, 0.2, 0, -0.3);
-  x_points.push_back(x_const);
-  x_traj.push_back(PiecewisePolynomial<double>::FirstOrderHold(time_vec,x_points));
-
-  x_points[0]=x_const;
-  dairlib::ikSpiritStand(plant, x_const, {false, true, false, true},  (FLAGS_standHeight + FLAGS_apexGoal)/2.0, 0.15, 0, -0.35/2);
-  x_points[1]=x_const;
-  time_vec[0] = time_vec[1];
-  time_vec[1] = 2* time_vec[1];
-  x_traj.push_back(PiecewisePolynomial<double>::FirstOrderHold(time_vec,x_points));
-
-  std::vector<MatrixXd> u_points;
-  u_points.push_back(MatrixXd::Zero( plant.num_actuators(), 1));
-  u_points.push_back(MatrixXd::Zero(plant.num_actuators(), 1));
-  u_points.push_back(MatrixXd::Zero(plant.num_actuators(), 1));
-  time_vec = {0, duration/3.0, 2.0 * duration/3.0};
-//  time_vec.push_back(x_traj.end_time());
-  u_traj = PiecewisePolynomial<double>::FirstOrderHold(time_vec,u_points);
-
-  // Four contacts so forces are 12 dimensional
-  Eigen::VectorXd init_l_vec(12);
-  // Initial guess
-  init_l_vec << 0, 0, 60*9.81, 0, 0, 10*9.81, 0, 0, 60*9.81, 0, 0, 10*9.81; //gravity and mass distributed
-
-  Eigen::VectorXd init_l_vec_front_stance(12);
-  init_l_vec_front_stance << 0, 0, 0, 0, 0, 60*9.81, 0, 0, 0, 0, 0, 60*9.81; //gravity and mass distributed
-
-  Eigen::VectorXd init_l_vec_back_stance(12);
-  init_l_vec_back_stance << 0, 0, 60*9.81, 0, 0, 0, 0, 0, 60*9.81, 0, 0, 0; //gravity and mass distributed
-
-  //Initialize force trajectories
-
-  //Stance
-  int N = 10;
-  std::vector<MatrixXd> init_l_j;
-  std::vector<MatrixXd> init_lc_j;
-  std::vector<MatrixXd> init_vc_j;
-  std::vector<double> init_time_j;
-
-
-  // stance
-  init_l_j.clear();
-  init_lc_j.clear();
-  init_vc_j.clear();
-  init_time_j.clear();
-  for (int i = 0; i < N; i++) {
-    init_time_j.push_back(i * duration /6.0/ (N - 1));
-    init_l_j.push_back(init_l_vec);
-    init_lc_j.push_back(init_l_vec);
-    init_vc_j.push_back(VectorXd::Zero(12));
-  }
-
-  auto init_l_traj_j = PiecewisePolynomial<double>::ZeroOrderHold(init_time_j,init_l_j);
-  auto init_lc_traj_j = PiecewisePolynomial<double>::ZeroOrderHold(init_time_j,init_lc_j);
-  auto init_vc_traj_j = PiecewisePolynomial<double>::ZeroOrderHold(init_time_j,init_vc_j);
-
-  l_traj.push_back(init_l_traj_j);
-  lc_traj.push_back(init_lc_traj_j);
-  vc_traj.push_back(init_vc_traj_j);
-
-  // front stance
-  init_l_j.clear();
-  init_lc_j.clear();
-  init_vc_j.clear();
-  init_time_j.clear();
-  for (int i = 0; i < N; i++) {
-    init_time_j.push_back(i * duration /6.0/ (N - 1) + duration/3.0);
-    init_l_j.push_back(init_l_vec_front_stance);
-    init_lc_j.push_back(init_l_vec_front_stance);
-    init_vc_j.push_back(VectorXd::Zero(12));
-  }
-
-  init_l_traj_j = PiecewisePolynomial<double>::ZeroOrderHold(init_time_j,init_l_j);
-  init_lc_traj_j = PiecewisePolynomial<double>::ZeroOrderHold(init_time_j,init_lc_j);
-  init_vc_traj_j = PiecewisePolynomial<double>::ZeroOrderHold(init_time_j,init_vc_j);
-
-  l_traj.push_back(init_l_traj_j);
-  lc_traj.push_back(init_lc_traj_j);
-  vc_traj.push_back(init_vc_traj_j);
-
-  // Flight
-  init_l_j.clear();
-  init_lc_j.clear();
-  init_vc_j.clear();
-  init_time_j.clear();
-  for (int i = 0; i < N; i++) {
-    init_time_j.push_back(i * duration /6.0/ (N - 1) +2.0 * duration/3.0);
-    init_l_j.push_back(VectorXd::Zero(12));
-    init_lc_j.push_back(VectorXd::Zero(12));
-    init_vc_j.push_back(VectorXd::Zero(12));
-  }
-
-  init_l_traj_j = PiecewisePolynomial<double>::ZeroOrderHold(init_time_j,init_l_j);
-  init_lc_traj_j = PiecewisePolynomial<double>::ZeroOrderHold(init_time_j,init_lc_j);
-  init_vc_traj_j = PiecewisePolynomial<double>::ZeroOrderHold(init_time_j,init_vc_j);
-
-  l_traj.push_back(init_l_traj_j);
-  lc_traj.push_back(init_lc_traj_j);
-  vc_traj.push_back(init_vc_traj_j);
-}
-
-template <typename T>
-void appendFlight(MultibodyPlant<T>& plant,
-                  vector<PiecewisePolynomial<double>>& x_traj,
-                  PiecewisePolynomial<double>& u_traj,
-                  vector<PiecewisePolynomial<double>>& l_traj,
-                  vector<PiecewisePolynomial<double>>& lc_traj,
-                  vector<PiecewisePolynomial<double>>& vc_traj){
-  auto xlo = x_traj[1].value(x_traj[1].end_time());
-  auto positions_map = multibody::makeNameToPositionsMap(plant);
-  auto velocities_map = multibody::makeNameToVelocitiesMap(plant);
-  int n_q = plant.num_positions();
-
-  double apex_height = xlo(positions_map.at("base_z")) + xlo(n_q+velocities_map.at("base_vz"))/2.0/9.81;
-  double apex_time = x_traj[1].end_time() + xlo(n_q+velocities_map.at("base_vz"))/9.81;
-  double initial_pitch = 2 * asin(xlo(positions_map.at("base_qy")));
-  double apex_pitch = initial_pitch + xlo(n_q+velocities_map.at("base_vz"))/9.81 * xlo(n_q + velocities_map.at("base_wy"));
-  double apex_foreaft_pos = xlo(positions_map.at("base_x")) + xlo(n_q+velocities_map.at("base_vz"))/9.81 * xlo(n_q + velocities_map.at("base_vx"));
-  VectorXd x_const;
-  dairlib::ikSpiritStand(plant, x_const, {false, false, false, false}, apex_height, 0.15, 0, apex_pitch);
-  x_const(positions_map.at("base_x")) = apex_foreaft_pos;
-  std::vector<MatrixXd> x_points = {xlo, x_const};
-  std::vector<double> time_vec = {x_traj[1].end_time(), apex_time};
-  x_traj.push_back(PiecewisePolynomial<double>::FirstOrderHold(time_vec,x_points));
-
-  std::vector<MatrixXd> u_points = {u_traj.value(u_traj.end_time()), u_traj.value(u_traj.end_time())};
-  u_traj.ConcatenateInTime(PiecewisePolynomial<double>::FirstOrderHold(time_vec,u_points));
-
-  auto zero_vec = VectorXd::Zero(12);
-  std::vector<MatrixXd> zero_traj = {zero_vec, zero_vec};
-  auto zero_poly = PiecewisePolynomial<double>::ZeroOrderHold(time_vec, zero_traj);
-  l_traj.push_back(zero_poly);
-  lc_traj.push_back(zero_poly);
-  vc_traj.push_back(zero_poly);
-}
-
-template <typename T>
-void appendFrontTD(MultibodyPlant<T>& plant,
-                  vector<PiecewisePolynomial<double>>& x_traj,
-                  PiecewisePolynomial<double>& u_traj,
-                  vector<PiecewisePolynomial<double>>& l_traj,
-                  vector<PiecewisePolynomial<double>>& lc_traj,
-                  vector<PiecewisePolynomial<double>>& vc_traj,
-                  const double td_height){
-  auto xapex = x_traj[2].value(x_traj[2].end_time());
-  auto positions_map = multibody::makeNameToPositionsMap(plant);
-  auto velocities_map = multibody::makeNameToVelocitiesMap(plant);
-  int n_q = plant.num_positions();
-
-  double apex_height = xapex(positions_map.at("base_z"));
-  double apex_time = x_traj[2].end_time();
-  double td_time = apex_time + sqrt((apex_height-td_height)*2/9.81);
-  double initial_pitch = 2 * asin(xapex(positions_map.at("base_qy")));
-  double td_pitch = initial_pitch + (td_time - apex_time) * xapex(n_q + velocities_map.at("base_wy"));
-  double td_foreaft_pos = xapex(positions_map.at("base_x")) + (td_time - apex_time) * xapex(n_q + velocities_map.at("base_vx"));
-  VectorXd x_const;
-  dairlib::ikSpiritStand(plant, x_const, {true, false, true, false}, td_height, 0.15, 0, td_pitch);
-  x_const(positions_map.at("base_x")) = td_foreaft_pos;
-  std::vector<MatrixXd> x_points = {xapex, x_const};
-  std::vector<double> time_vec = {apex_time, td_time};
-  x_traj.push_back(PiecewisePolynomial<double>::FirstOrderHold(time_vec,x_points));
-  x_points[0] = x_const;
-  dairlib::ikSpiritStand(plant, x_const, {true, true, true, true}, td_height-0.02, 0.15, 0, td_pitch/2.0);
-  x_const(positions_map.at("base_x")) = td_foreaft_pos;
-  x_points[1] = x_const;
-
-  time_vec[0] = x_traj[2].end_time();
-  time_vec[1] = td_time+0.03;
-  x_traj.push_back(PiecewisePolynomial<double>::FirstOrderHold(time_vec,x_points));
-
-  std::vector<MatrixXd> u_points = {u_traj.value(u_traj.end_time()), u_traj.value(u_traj.end_time())};
-
-  u_traj.ConcatenateInTime(PiecewisePolynomial<double>::FirstOrderHold(time_vec,u_points));
-
-  auto zero_vec = VectorXd::Zero(12);
-  std::vector<MatrixXd> zero_traj = {zero_vec, zero_vec};
-  time_vec ={apex_time, td_time/2.0 + apex_time/2.0};
-  auto zero_poly = PiecewisePolynomial<double>::ZeroOrderHold(time_vec, zero_traj);
-  l_traj.push_back(zero_poly);
-  lc_traj.push_back(zero_poly);
-  vc_traj.push_back(zero_poly);
-
-  VectorXd front_stance_vec(12);
-  front_stance_vec << 0, 0, 10*9.81, 0, 0, 0, 0, 0, 10*9.81, 0, 0, 0;
-  std::vector<MatrixXd> front_traj = {front_stance_vec, front_stance_vec};
-  time_vec = {td_time/2.0 + apex_time/2.0, td_time};
-  auto front_poly = PiecewisePolynomial<double>::ZeroOrderHold(time_vec, front_traj);
-  l_traj.push_back(front_poly);
-  lc_traj.push_back(front_poly);
-  vc_traj.push_back(front_poly);
-}
-
-template <typename T>
-void appendStance(MultibodyPlant<T>& plant,
-                  vector<PiecewisePolynomial<double>>& x_traj,
-                  PiecewisePolynomial<double>& u_traj,
-                  vector<PiecewisePolynomial<double>>& l_traj,
-                  vector<PiecewisePolynomial<double>>& lc_traj,
-                  vector<PiecewisePolynomial<double>>& vc_traj,
-                  double final_height){
-  auto xtd = x_traj[4].value(x_traj[4].end_time());
-  auto positions_map = multibody::makeNameToPositionsMap(plant);
-  auto velocities_map = multibody::makeNameToVelocitiesMap(plant);
-  int n_q = plant.num_positions();
-
-  VectorXd x_const;
-  dairlib::ikSpiritStand(plant, x_const, {true, true, true, true}, final_height, 0.15, 0, 0);
-  x_const(positions_map.at("base_x")) = xtd(positions_map.at("base_x"));
-  std::vector<MatrixXd> x_points = {xtd, x_const};
-  std::vector<double> time_vec = {x_traj[4].end_time(), x_traj[4].end_time() + 0.02};
-  x_traj.push_back(PiecewisePolynomial<double>::FirstOrderHold(time_vec,x_points));
-
-  std::vector<MatrixXd> u_points = {u_traj.value(u_traj.end_time()), u_traj.value(u_traj.end_time())};
-  u_traj.ConcatenateInTime(PiecewisePolynomial<double>::FirstOrderHold(time_vec,u_points));
-
-  VectorXd full_stance_force(12);
-  full_stance_force << 0, 0, 10*9.81, 0, 0, 10*9.81, 0, 0, 10*9.81, 0, 0, 10*9.81;
-  std::vector<MatrixXd> full_stance_vec = {full_stance_force, full_stance_force};
-  auto full_stance_poly = PiecewisePolynomial<double>::ZeroOrderHold(time_vec, full_stance_vec);
-  l_traj.push_back(full_stance_poly);
-  lc_traj.push_back(full_stance_poly);
-  vc_traj.push_back(full_stance_poly);
-}
 template <typename T>
 void addCostLegs(MultibodyPlant<T>& plant,
                  dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,
@@ -1152,7 +903,7 @@ int main(int argc, char* argv[]) {
           0.00, // Only active small number modes
           1.8,       // Only active small number modes
           0.6,
-          0.43,       // Ignored if small
+          FLAGS_apexGoal,       // Ignored if small
           0.0,   // Ignored if negative
           -1.00,       // Ignored if negative
           0,
@@ -1165,83 +916,51 @@ int main(int argc, char* argv[]) {
           10,
           10/5.0,
           5/5.0,
-          50000,
+          1000,
           0,
-          100000,
+          100,
           1e-2,
           1e-3,
           1.0,
-          FLAGS_data_directory+"jump");
+          FLAGS_data_directory+"in_place_bound");
 
-      std::cout<<"Running 2nd optimization"<<std::endl;
-
-      dairlib::runSpiritJump<double>(
-          *plant,
-          x_traj, u_traj, l_traj,
-          lc_traj, vc_traj,
-          true,
-          true,
-          {7, 7, 7, 7, 7, 7} ,
-          0.35,     // Only active small number modes
-          FLAGS_standHeight,
-          0.00, // Only active small number modes
-          1.8,       // Only active small number modes
-          0.6,
-          0.43,       // Ignored if small
-          0.0,   // Ignored if negative
-          -1.00,       // Ignored if negative
-          0.5,
-          false,
-          true,
-          true,
-          true,
-          1.8,
-          3,
-          10,
-          10/5.0,
-          5/5.0,
-          50000,
-          0,
-          100000,
-          1e-2,
-          1e-3,
-          1.0,
-          FLAGS_data_directory+"jump_forward",
-          FLAGS_data_directory+"jump");
-
-      dairlib::runSpiritJump<double>(
-          *plant,
-          x_traj, u_traj, l_traj,
-          lc_traj, vc_traj,
-          false,
-          true,
-          {10, 7, 5, 5, 5, 5} ,
-          0.3,
-          0.2,
-          0,
-          0,
-          0.4,
-          0,
-          0,
-          0,
-          0,
-          false,
-          false,
-          false,
-          false,
-          0.8,
-          3,
-          20,
-          5,
-          10,
-          2000,
-          0,
-          100000,
-          1e-2,
-          1e-4,
-          1.0,
-          FLAGS_data_directory+"simple_rear2");
     }
+
+    std::cout<<"Running 2nd optimization"<<std::endl;
+
+    dairlib::runSpiritJump<double>(
+        *plant,
+        x_traj, u_traj, l_traj,
+        lc_traj, vc_traj,
+        false,
+        true,
+        {7, 7, 7, 7, 7, 7} ,
+        0.35,     // Only active small number modes
+        FLAGS_standHeight,
+        0.00, // Only active small number modes
+        1.8,       // Only active small number modes
+        0.6,
+        FLAGS_apexGoal,       // Ignored if small
+        0.0,   // Ignored if negative
+        -1.00,       // Ignored if negative
+        FLAGS_foreAftDisplacement,
+        false,
+        true,
+        true,
+        true,
+        1.8,
+        3,
+        10,
+        10/5.0,
+        5/5.0,
+        1000,
+        0,
+        100,
+        1e-2,
+        1e-3,
+        1.0,
+        FLAGS_data_directory+"bound_"+FLAGS_distance_name,
+        FLAGS_data_directory+"in_place_bound");
 
     std::cout<<"Running 3rd optimization"<<std::endl;
 
@@ -1249,193 +968,35 @@ int main(int argc, char* argv[]) {
         *plant,
         x_traj, u_traj, l_traj,
         lc_traj, vc_traj,
-        false,
-        true,
-        {10, 7, 5, 5, 5, 5} ,
-        0.35,
-        FLAGS_standHeight,
-        0.15,
-        0.5,
-        0.4,
-        0,
-        0,
-        0,
-        0,
-        false,
-        false,
-        false,
-        false,
-        0.8,
-        3,
-        20,
-        5,
-        10,
-        4000,
-        0,
-        100000,
-        1e-2,
-        1e-4,
-        1.0,
-        FLAGS_data_directory+"simple_rear3",
-        FLAGS_data_directory+"simple_rear2");
-
-    dairlib::DirconTrajectory old_traj(FLAGS_data_directory+"simple_rear3");
-    x_traj = old_traj.ReconstructStateDiscontinuousTrajectory();
-    u_traj = old_traj.ReconstructInputTrajectory();
-    l_traj = old_traj.ReconstructLambdaTrajectory();
-    lc_traj = old_traj.ReconstructLambdaCTrajectory();
-    vc_traj = old_traj.ReconstructGammaCTrajectory();
-
-    dairlib::appendFlight(*plant, x_traj, u_traj, l_traj, lc_traj, vc_traj);
-
-    std::cout<<"Running 4th optimization"<<std::endl;
-    dairlib::runSpiritJump<double>(
-        *plant,
-        x_traj, u_traj, l_traj,
-        lc_traj, vc_traj,
-        false,
-        true,
-        {10, 7, 7, 7, 7, 7} ,
-        0.35,
-        FLAGS_standHeight,
-        0.06,
-        1.8,
-        0.6,
-        0.4,
-        0.5,
-        0,
-        0,
-        false,
-        true,
-        false,
-        false,
-        1.8,
-        3,
-        10,
-        5,
-        10,
-        4000,
-        0,
-        100000,
-        1e-2,
-        1e-3,
-        1.0,
-        FLAGS_data_directory+"half_leap");
-
-
-  dairlib::DirconTrajectory old_traj2(FLAGS_data_directory+"half_leap");
-  x_traj = old_traj2.ReconstructStateDiscontinuousTrajectory();
-  u_traj = old_traj2.ReconstructInputTrajectory();
-  l_traj = old_traj2.ReconstructLambdaTrajectory();
-  lc_traj = old_traj2.ReconstructLambdaCTrajectory();
-  vc_traj = old_traj2.ReconstructGammaCTrajectory();
-
-    dairlib::appendFrontTD(*plant, x_traj, u_traj, l_traj, lc_traj, vc_traj, 0.25);
-    dairlib::appendStance(*plant, x_traj, u_traj, l_traj, lc_traj, vc_traj, FLAGS_standHeight);
-
-    std::cout<<"Running 5th optimization"<<std::endl;
-    dairlib::runSpiritJump<double>(
-        *plant,
-        x_traj, u_traj, l_traj,
-        lc_traj, vc_traj,
-        false,
-        true,
-        {7, 7, 7, 7, 7, 7} ,
-        0.35,     // Only active small number modes
-        FLAGS_standHeight,
-        0.06, // Only active small number modes
-        1.8,       // Only active small number modes
-        0.6,
-        0.43,
-        0.5,
-        -1.00,
-        1,
-        false,
-        true,
-        true,
-        true,
-        1.8,
-        3,
-        10,
-        10/5.0,
-        5/5.0,
-        50000,
-        0,
-        100000,
-        1e-2,
-        1e-3,
-        1.0,
-        FLAGS_data_directory+"three_quarter_leap");
-
-    std::cout<<"Running 6th optimization"<<std::endl;
-    dairlib::runSpiritJump<double>(
-        *plant,
-        x_traj, u_traj, l_traj,
-        lc_traj, vc_traj,
         true,
         true,
         {7, 7, 7, 7, 7, 7} ,
         0.35,     // Only active small number modes
         FLAGS_standHeight,
-        0.06, // Only active small number modes
+        0.00, // Only active small number modes
         1.8,       // Only active small number modes
         0.6,
-        0.43,       // Ignored if small
-        0.5,   // Ignored if negative
+        FLAGS_apexGoal,       // Ignored if small
+        0.0,   // Ignored if negative
         -1.00,       // Ignored if negative
-        1,
+        FLAGS_foreAftDisplacement,
         false,
         true,
         true,
         true,
         1.8,
-        3,
-        10,
+        3/10.0,
+        10/10.0,
         10/5.0,
         5/5.0,
-        50000,
-        10,
-        100000,
-        1e-2,
-        1e-3,
-        1.0,
-        FLAGS_data_directory+"full_leap",
-        FLAGS_data_directory+"three_quarter_leap");
-
-    std::cout<<"Running 6th optimization"<<std::endl;
-    dairlib::runSpiritJump<double>(
-        *plant,
-        x_traj, u_traj, l_traj,
-        lc_traj, vc_traj,
-        true,
-        true,
-        {7, 7, 7, 7, 7, 7} ,
-        0.35,     // Only active small number modes
-        FLAGS_standHeight,
-        0.06, // Only active small number modes
-        1.8,       // Only active small number modes
-        0.6,
-        0.43,       // Ignored if small
-        -0.5,   // Ignored if negative
-        -1.00,       // Ignored if negative
-        1,
-        false,
-        true,
-        true,
-        true,
-        1.8,
-        3,
-        10,
-        10/5.0,
-        5/5.0,
-        50000,
+        1000,
         100,
-        100000,
+        100,
         1e-2,
-        1e-4,
+        1e-3,
         1.0,
-        FLAGS_data_directory+"full_leap_min_work",
-        FLAGS_data_directory+"full_leap");
+        FLAGS_data_directory+"bound_"+FLAGS_distance_name+"min_work",
+        FLAGS_data_directory+"bound_"+FLAGS_distance_name);
   }
 }
 
