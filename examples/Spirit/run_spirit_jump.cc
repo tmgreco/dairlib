@@ -366,7 +366,8 @@ void addConstraints(MultibodyPlant<T>& plant,
                     const double initial_height,
                     const double apex_height,
                     const double fore_aft_displacement,
-                    const double pitch_magnitude,
+                    const double pitch_magnitude_lo,
+                    const double pitch_magnitude_apex,
                     const double max_duration,
                     const double eps){
 
@@ -374,97 +375,90 @@ void addConstraints(MultibodyPlant<T>& plant,
   auto positions_map = multibody::makeNameToPositionsMap(plant);
   auto velocities_map = multibody::makeNameToVelocitiesMap(plant);
 
+
+  // General constraints
   setSpiritJointLimits(plant, trajopt);
   setSpiritActuationLimits(plant, trajopt);
+  trajopt.AddDurationBounds(0, max_duration);
 
   /// Setup all the optimization constraints
   int n_q = plant.num_positions();
   int n_v = plant.num_velocities();
-
   auto x0  = trajopt.initial_state();
-  auto xlo = trajopt.num_modes()> 2 ? trajopt.state_vars(2,0):trajopt.final_state();
-  auto x_pitch = trajopt.state_vars(1,0);
+  auto xlo = trajopt.state_vars(2,0);
+  auto xapex  = trajopt.state_vars(3,0) ;
+  auto   xtd  =  trajopt.state_vars(4,0);
+  auto   xf  = trajopt.final_state();
 
-  // Add duration constraint, currently constrained not bounded
-  trajopt.AddDurationBounds(0, max_duration);
 
-  /// Constraining xy position
-  // Initial body positions
+  /// Initial constraint
+
+  // xy position
   trajopt.AddBoundingBoxConstraint(0, 0, x0(positions_map.at("base_x"))); // Give the initial condition room to choose the x_init position
-
   trajopt.AddBoundingBoxConstraint( -eps, eps, x0( positions_map.at("base_y")));
-  trajopt.AddBoundingBoxConstraint(-eps, eps, xlo(positions_map.at("base_y")));
-
-  // Nominal stand or z and attitude
+  // Nominal stand
   nominalSpiritStandConstraint(plant,trajopt,initial_height, {0}, eps);
-
   // Body pose constraints (keep the body flat) at initial state
-  trajopt.AddBoundingBoxConstraint(1, 1 , x0(positions_map.at("base_qw")));
-  trajopt.AddBoundingBoxConstraint(0 , 0, x0(positions_map.at("base_qx")));
-  trajopt.AddBoundingBoxConstraint(0, 0, x0(positions_map.at("base_qy")));
-  trajopt.AddBoundingBoxConstraint(0, 0, x0(positions_map.at("base_qz")));
-
-  double pitch = abs(pitch_magnitude);
-  // Body pose constraints (keep the body flat) at apex state
-  trajopt.AddBoundingBoxConstraint(cos(pitch/2.0), 1, xlo(positions_map.at("base_qw")));
-  trajopt.AddBoundingBoxConstraint(0, 0, xlo(positions_map.at("base_qx")));
-  trajopt.AddBoundingBoxConstraint(-sin(pitch/2.0) , sin(pitch/2.0), xlo(positions_map.at("base_qy")));
-  trajopt.AddBoundingBoxConstraint(0, 0, xlo(positions_map.at("base_qz")));
-
-
-  // Initial and final velocity
+  trajopt.AddBoundingBoxConstraint(1-eps, 1 + eps, xf(positions_map.at("base_qw")));
+  trajopt.AddBoundingBoxConstraint(0-eps , 0+ eps, xf(positions_map.at("base_qx")));
+  trajopt.AddBoundingBoxConstraint(0-eps, 0+ eps, xf(positions_map.at("base_qy")));
+  trajopt.AddBoundingBoxConstraint(0-eps, 0 + eps, xf(positions_map.at("base_qz")));
+  // Initial  velocity
   trajopt.AddBoundingBoxConstraint(VectorXd::Zero(n_v), VectorXd::Zero(n_v), x0.tail(n_v));
 
+  /// LO constraints
+  // Limit magnitude of pitch
+  double pitch = abs(pitch_magnitude_lo);
+  trajopt.AddBoundingBoxConstraint(cos(pitch/2.0), 1, xtd(positions_map.at("base_qw")));
+  trajopt.AddBoundingBoxConstraint(-eps, eps, xtd(positions_map.at("base_qx")));
+  trajopt.AddBoundingBoxConstraint(-sin(pitch/2.0) , sin(pitch/2.0), xtd(positions_map.at("base_qy")));
+  trajopt.AddBoundingBoxConstraint(-eps, eps, xtd(positions_map.at("base_qz")));
+
+  /// Apex Flight constraints
+  // Velocity
+  trajopt.AddBoundingBoxConstraint(0, 0, xapex(plant.num_positions()+velocities_map.at("base_vz")));
+  // Height
+  if (apex_height > 0.15)
+    trajopt.AddBoundingBoxConstraint(apex_height-1e-2, apex_height+1e-2, xapex(positions_map.at("base_z")));
+  // Limit magnitude of pitch
+  pitch = abs(pitch_magnitude_apex);
+  trajopt.AddBoundingBoxConstraint(cos(pitch/2.0), 1, xapex(positions_map.at("base_qw")));
+  trajopt.AddBoundingBoxConstraint(-eps, eps, xapex(positions_map.at("base_qx")));
+  trajopt.AddBoundingBoxConstraint(-sin(pitch/2.0) , sin(pitch/2.0), xapex(positions_map.at("base_qy")));
+  trajopt.AddBoundingBoxConstraint(-eps, eps, xapex(positions_map.at("base_qz")));
+
+  /// TD constraints
+  // Limit magnitude of pitch
+  pitch = abs(pitch_magnitude_lo);
+  trajopt.AddBoundingBoxConstraint(cos(pitch/2.0), 1, xtd(positions_map.at("base_qw")));
+  trajopt.AddBoundingBoxConstraint(-eps, eps, xtd(positions_map.at("base_qx")));
+  trajopt.AddBoundingBoxConstraint(-sin(pitch/2.0) , sin(pitch/2.0), xtd(positions_map.at("base_qy")));
+  trajopt.AddBoundingBoxConstraint(-eps, eps, xtd(positions_map.at("base_qz")));
+
+
+  /// Final constraints
+  // x,y position
+  trajopt.AddBoundingBoxConstraint(0-eps, 0+eps, xf(positions_map.at("base_y")));
+  if (fore_aft_displacement >= 0){
+    trajopt.AddBoundingBoxConstraint(fore_aft_displacement-eps, fore_aft_displacement, xf(positions_map.at("base_x")));
+  }
+  // Nominal stand
+  nominalSpiritStandConstraint(plant,trajopt,initial_height, {trajopt.N()-1}, eps);
+  // Body pose constraints (keep the body flat) at final state
+  trajopt.AddBoundingBoxConstraint(1-eps, 1 + eps, xf(positions_map.at("base_qw")));
+  trajopt.AddBoundingBoxConstraint(0-eps , 0+ eps, xf(positions_map.at("base_qx")));
+  trajopt.AddBoundingBoxConstraint(0-eps, 0+ eps, xf(positions_map.at("base_qy")));
+  trajopt.AddBoundingBoxConstraint(0-eps, 0 + eps, xf(positions_map.at("base_qz")));
+  // Zero velocity
+  trajopt.AddBoundingBoxConstraint(VectorXd::Zero(n_v), VectorXd::Zero(n_v), xf.tail(n_v));
+
+  /// Constraints on all points
   for (int i = 0; i < trajopt.N(); i++){
     auto xi = trajopt.state(i);
     // Height
     trajopt.AddBoundingBoxConstraint( 0.15, 5, xi( positions_map.at("base_z")));
     trajopt.AddBoundingBoxConstraint( -eps, eps, xi( n_q+velocities_map.at("base_vy")));
   }
-
-  auto   xapex  = trajopt.state_vars(3,0) ;
-  trajopt.AddBoundingBoxConstraint(0, 0, xapex(plant.num_positions()+velocities_map.at("base_vz")));
-
-  if (apex_height > 0.15)
-    trajopt.AddBoundingBoxConstraint(apex_height-1e-2, apex_height+1e-2, xapex(positions_map.at("base_z")));
-
-  pitch = abs(0.1);
-  // Body pose constraints (keep the body flat) at apex state
-  trajopt.AddBoundingBoxConstraint(cos(pitch/2.0), 1, xapex(positions_map.at("base_qw")));
-  trajopt.AddBoundingBoxConstraint(-eps, eps, xapex(positions_map.at("base_qx")));
-  trajopt.AddBoundingBoxConstraint(-sin(pitch/2.0) , sin(pitch/2.0), xapex(positions_map.at("base_qy")));
-  trajopt.AddBoundingBoxConstraint(-eps, eps, xapex(positions_map.at("base_qz")));
-  std::cout<<"Adding flight constraints" << std::endl;
-
-
-  auto   xtd  =  trajopt.state_vars(4,0);
-
-  std::cout<<"Adding td constraints" << std::endl;
-  pitch = abs(0.6);
-  // Body pose constraints (keep the body flat) at apex state
-  trajopt.AddBoundingBoxConstraint(cos(pitch/2.0), 1, xtd(positions_map.at("base_qw")));
-  trajopt.AddBoundingBoxConstraint(-eps, eps, xtd(positions_map.at("base_qx")));
-  trajopt.AddBoundingBoxConstraint(-sin(pitch/2.0) , sin(pitch/2.0), xtd(positions_map.at("base_qy")));
-  trajopt.AddBoundingBoxConstraint(-eps, eps, xtd(positions_map.at("base_qz")));
-
-  auto   xf  = trajopt.final_state();
-  std::cout<<"Adding stance constraints" << std::endl;
-  nominalSpiritStandConstraint(plant,trajopt,initial_height, {trajopt.N()-1}, eps);
-
-  if (fore_aft_displacement >= 0){
-    trajopt.AddBoundingBoxConstraint(fore_aft_displacement-eps, fore_aft_displacement, xf(positions_map.at("base_x")));
-  }
-
-
-
-  trajopt.AddBoundingBoxConstraint(VectorXd::Zero(n_v), VectorXd::Zero(n_v), xf.tail(n_v));
-  trajopt.AddBoundingBoxConstraint(0-eps, 0+eps, xf(positions_map.at("base_y")));
-
-  // Body pose constraints (keep the body flat) at initial state
-  trajopt.AddBoundingBoxConstraint(1-eps, 1 + eps, xf(positions_map.at("base_qw")));
-  trajopt.AddBoundingBoxConstraint(0-eps , 0+ eps, xf(positions_map.at("base_qx")));
-  trajopt.AddBoundingBoxConstraint(0-eps, 0+ eps, xf(positions_map.at("base_qy")));
-  trajopt.AddBoundingBoxConstraint(0-eps, 0 + eps, xf(positions_map.at("base_qz")));
 
 }
 
@@ -601,7 +595,8 @@ void runSpiritJump(
     const bool ipopt,
     std::vector<int> num_knot_points,
     const double initial_height,
-    const double pitch_magnitude,
+    const double pitch_magnitude_lo,
+    const double pitch_magnitude_apex,
     const double apex_height,
     const double td_displacement,
     const double max_duration,
@@ -655,7 +650,7 @@ void runSpiritJump(
     trajopt.SetSolverOption(id, "acceptable_compl_inf_tol", tol);
     trajopt.SetSolverOption(id, "acceptable_constr_viol_tol", tol);
     trajopt.SetSolverOption(id, "acceptable_obj_change_tol", tol);
-    trajopt.SetSolverOption(id, "acceptable_tol", tol);
+    trajopt.SetSolverOption(id, "acceptable_tol", tol * 10);
     trajopt.SetSolverOption(id, "acceptable_iter", 5);
   } else {
     // Set up Trajectory Optimization options
@@ -692,7 +687,7 @@ void runSpiritJump(
   }
 
   addConstraints(plant, trajopt,
-                 initial_height, apex_height, td_displacement,  pitch_magnitude,max_duration, eps);
+                 initial_height, apex_height, td_displacement, pitch_magnitude_lo, pitch_magnitude_apex, max_duration, eps);
 
   /// Setup the visualization during the optimization
   int num_ghosts = 1;// Number of ghosts in visualization. NOTE: there are limitations on number of ghosts based on modes and knotpoints
@@ -816,6 +811,7 @@ int main(int argc, char* argv[]) {
           {7, 7, 7, 7, 7, 7} ,
           FLAGS_standHeight,
           0.6,
+          0.1,
           FLAGS_apexGoal,       // Ignored if small
           0,
           1.8,
@@ -826,8 +822,8 @@ int main(int argc, char* argv[]) {
           1000,
           0,
           100,
+          1e-3,
           1e-2,
-          1e-1,
           1.0,
           FLAGS_data_directory+"in_place_bound");
 
@@ -844,6 +840,7 @@ int main(int argc, char* argv[]) {
         {7, 7, 7, 7, 7, 7} ,
         FLAGS_standHeight,
         0.6,
+        0.1,
         FLAGS_apexGoal,       // Ignored if small
         FLAGS_foreAftDisplacement,
         1.8,
@@ -854,8 +851,8 @@ int main(int argc, char* argv[]) {
         1000,
         0,
         100,
-        1e-2,
-        1e-2,
+        1e-3,
+        1e0,
         1.0,
         FLAGS_data_directory+"bound_"+distance_name,
         FLAGS_data_directory+"in_place_bound");
@@ -871,6 +868,7 @@ int main(int argc, char* argv[]) {
         {7, 7, 7, 7, 7, 7} ,
         FLAGS_standHeight,
         0.6,
+        0.1,
         FLAGS_apexGoal,       // Ignored if small
         FLAGS_foreAftDisplacement,
         1.8,
