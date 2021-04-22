@@ -535,10 +535,7 @@ getModeSequence(
     drake::multibody::MultibodyPlant<T>& plant, // multibodyPlant
     const double mu,
     std::vector<int> num_knot_points,
-    DirconModeSequence<T>& sequence,
-    const bool optimize_flight,
-    const bool optimize_td,
-    const bool optimize_stance){
+    DirconModeSequence<T>& sequence){
   dairlib::ModeSequenceHelper msh;
 
   getModeSequenceHelper(msh, mu, num_knot_points);
@@ -581,13 +578,8 @@ getModeSequence(
 /// \param vc_traj[in, out]: initial and solution contact velocity slack variable trajectory
 /// \param animate: true if solution should be animated, false otherwise
 /// \param num_knot_points: number of knot points used for each mode (vector)
-/// \param min_final_height: apex height of the jump, if 0, do not enforce and apex height
 /// \param initial_height: initial and final height of the jump
 /// \param fore_aft_displacement: fore-aft displacemnt after jump
-/// \param lock_rotation: true if rotation is constrained at all knot points, false if just initial and final state
-/// \param lock_legs_apex if true, legs have fixed pose at apex
-/// \param force_symmetry forces saggital plane symmetry {todo} make it so it does not overdefine initial and final state
-/// \param use_nominal_stand if true sets initial and final state to be a nominal stand
 /// \param max_duration: maximum time allowed for jump
 /// \param cost_actuation: Cost on actuation
 /// \param cost_velocity: Cost on state velocity
@@ -608,19 +600,10 @@ void runSpiritJump(
     const bool animate,
     const bool ipopt,
     std::vector<int> num_knot_points,
-    const double min_final_height,
     const double initial_height,
-    const double fore_aft_displacement,
-    const double liftoff_velocity,
     const double pitch_magnitude,
     const double apex_height,
-    const double apex_displacement,
-    const double td_height,
     const double td_displacement,
-    const bool lock_rotation,
-    const bool optimize_flight,
-    const bool optimize_td,
-    const bool optimize_stance,
     const double max_duration,
     const double cost_actuation,
     const double cost_velocity,
@@ -649,7 +632,7 @@ void runSpiritJump(
 
   // Setup mode sequence
   auto sequence = DirconModeSequence<T>(plant);
-  auto [modeVector, toeEvals, toeEvalSets] =  getModeSequence(plant, mu, num_knot_points, sequence, optimize_flight, optimize_td, optimize_stance);
+  auto [modeVector, toeEvals, toeEvalSets] =  getModeSequence(plant, mu, num_knot_points, sequence);
 
   ///Setup trajectory optimization
   auto trajopt = Dircon<T>(sequence);
@@ -831,19 +814,10 @@ int main(int argc, char* argv[]) {
           false,
           true,
           {7, 7, 7, 7, 7, 7} ,
-          0.35,     // Only active small number modes
           FLAGS_standHeight,
-          0.00, // Only active small number modes
-          1.8,       // Only active small number modes
           0.6,
           FLAGS_apexGoal,       // Ignored if small
-          0.0,   // Ignored if negative
-          -1.00,       // Ignored if negative
           0,
-          false,
-          true,
-          true,
-          true,
           1.8,
           3,
           10,
@@ -868,19 +842,10 @@ int main(int argc, char* argv[]) {
         false,
         true,
         {7, 7, 7, 7, 7, 7} ,
-        0.35,     // Only active small number modes
         FLAGS_standHeight,
-        0.00, // Only active small number modes
-        1.8,       // Only active small number modes
         0.6,
         FLAGS_apexGoal,       // Ignored if small
-        0.0,   // Ignored if negative
-        -1.00,       // Ignored if negative
         FLAGS_foreAftDisplacement,
-        false,
-        true,
-        true,
-        true,
         1.8,
         3,
         10,
@@ -904,19 +869,10 @@ int main(int argc, char* argv[]) {
         true,
         true,
         {7, 7, 7, 7, 7, 7} ,
-        0.35,     // Only active small number modes
         FLAGS_standHeight,
-        0.00, // Only active small number modes
-        1.8,       // Only active small number modes
         0.6,
         FLAGS_apexGoal,       // Ignored if small
-        0.0,   // Ignored if negative
-        -1.00,       // Ignored if negative
         FLAGS_foreAftDisplacement,
-        false,
-        true,
-        true,
-        true,
         1.8,
         3/100.0,
         10/100.0,
