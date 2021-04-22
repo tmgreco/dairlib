@@ -34,17 +34,14 @@
 #include "examples/Spirit/spirit_utils.h"
 
 DEFINE_double(standHeight, 0.2, "The standing height.");
-DEFINE_double(foreAftDisplacement, 1, "The fore-aft displacement.");
+DEFINE_double(foreAftDisplacement, 1.2, "The fore-aft displacement.");
 DEFINE_double(apexGoal, 0.45, "Apex state goal");
-DEFINE_double(inputCost, 3, "The standing height.");
-DEFINE_double(velocityCost, 10, "The standing height.");
 DEFINE_double(eps, 1e-2, "The wiggle room.");
-DEFINE_double(tol, 1e-6, "Optimization Tolerance");
+DEFINE_double(tol, 1e-2, "Optimization Tolerance");
 DEFINE_double(mu, 1, "coefficient of friction");
 
 DEFINE_string(data_directory, "/home/shane/Drake_ws/dairlib/examples/Spirit/saved_trajectories/",
               "directory to save/read data");
-DEFINE_string(distance_name, "100cm","name to describe distance");
 
 DEFINE_bool(runAllOptimization, true, "rerun earlier optimizations?");
 DEFINE_bool(skipInitialOptimization, false, "skip first optimizations?");
@@ -329,7 +326,7 @@ void addCostLegs(MultibodyPlant<T>& plant,
 
 /// addCost, adds the cost to the trajopt jump problem. See runSpiritJump for a description of the inputs
 template <typename T>
-void addCost(MultibodyPlant<T>& plant,
+std::vector<drake::solvers::Binding<drake::solvers::Cost>> addCost(MultibodyPlant<T>& plant,
              dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,
              const double cost_actuation,
              const double cost_velocity,
@@ -344,7 +341,6 @@ void addCost(MultibodyPlant<T>& plant,
   // Setup the traditional cost function
   trajopt.AddRunningCost( u.transpose()*cost_actuation*u);
   trajopt.AddVelocityCost(cost_velocity);
-  AddWorkCost(plant, trajopt, cost_work);
 
   trajopt.AddRunningCost(cost_time);
 
@@ -358,6 +354,8 @@ void addCost(MultibodyPlant<T>& plant,
   if(trajopt.num_modes() > 4){
     addCostLegs(plant, trajopt, cost_velocity_legs_flight, cost_actuation_legs_flight, {2, 3, 6, 7, 10, 11}, 4);
   }
+
+  return AddWorkCost(plant, trajopt, cost_work);
 } // Function
 
 template <typename T>
@@ -589,7 +587,7 @@ getModeSequence(
       mode->MakeConstraintRelative(i,1);
     }
     mode->SetDynamicsScale(
-        {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19}, 500.0);
+        {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19}, 150.0);
     if (mode->evaluators().num_evaluators() == 4)
     {
       mode->SetKinVelocityScale(
@@ -728,7 +726,7 @@ void runSpiritJump(
   }
 
   // Setting up cost
-  addCost(plant, trajopt, cost_actuation, cost_velocity, cost_velocity_legs_flight, cost_actuation_legs_flight, cost_time, cost_work, work_constraint_scale);
+  auto work_binding = addCost(plant, trajopt, cost_actuation, cost_velocity, cost_velocity_legs_flight, cost_actuation_legs_flight, cost_time, cost_work, work_constraint_scale);
 
 
   // Initialize the trajectory control state and forces
@@ -784,7 +782,6 @@ void runSpiritJump(
   std::cout << "Solve time: " << elapsed.count() <<std::endl;
   std::cout << "Cost: " << result.get_optimal_cost() <<std::endl;
   std::cout << (result.is_success() ? "Optimization Success" : "Optimization Fail") << std::endl;
-
   /// Save trajectory
 
   if(!file_name_out.empty()){
@@ -808,6 +805,13 @@ void runSpiritJump(
     l_traj  = trajopt.ReconstructLambdaTrajectory(result);
   }
   auto x_trajs = trajopt.ReconstructDiscontinuousStateTrajectory(result);
+  std::cout<<"Work = " << dairlib::calcElectricalWork(plant, x_trajs, u_traj) << std::endl;
+
+  if(cost_work > 0){
+    double cost_work_val = solvers::EvalCostGivenSolution(
+        result, work_binding);
+    std::cout<<"ReLu Work = " << cost_work_val/cost_work << std::endl;
+  }
 
   /// Run animation of the final trajectory
   const drake::trajectories::PiecewisePolynomial<double> pp_xtraj =
@@ -854,7 +858,9 @@ int main(int argc, char* argv[]) {
   std::vector<PiecewisePolynomial<double>> l_traj;
   std::vector<PiecewisePolynomial<double>> lc_traj;
   std::vector<PiecewisePolynomial<double>> vc_traj;
-  
+
+  std::string distance_name = std::to_string(floor(100*FLAGS_foreAftDisplacement))+"cm";
+
   if (FLAGS_runAllOptimization){
     if(!FLAGS_skipInitialOptimization){
       std::cout<<"Running 1st optimization"<<std::endl;
@@ -889,7 +895,7 @@ int main(int argc, char* argv[]) {
           0,
           100,
           1e-2,
-          1e-3,
+          1e-1,
           1.0,
           FLAGS_data_directory+"in_place_bound");
 
@@ -926,9 +932,9 @@ int main(int argc, char* argv[]) {
         0,
         100,
         1e-2,
-        1e-3,
+        1e-2,
         1.0,
-        FLAGS_data_directory+"bound_"+FLAGS_distance_name,
+        FLAGS_data_directory+"bound_"+distance_name,
         FLAGS_data_directory+"in_place_bound");
 
     std::cout<<"Running 3rd optimization"<<std::endl;
@@ -954,18 +960,18 @@ int main(int argc, char* argv[]) {
         true,
         true,
         1.8,
-        3/10.0,
-        10/10.0,
-        10/5.0,
-        5/5.0,
-        1000,
+        3/100.0,
+        10/100.0,
+        10/5.0/10.0,
+        5/5.0/10.0,
+        0,
         100,
         100,
-        1e-2,
-        1e-3,
+        FLAGS_eps,
+        FLAGS_tol,
         1.0,
-        FLAGS_data_directory+"bound_"+FLAGS_distance_name+"min_work",
-        FLAGS_data_directory+"bound_"+FLAGS_distance_name);
+        FLAGS_data_directory+"bound_"+distance_name+"min_work",
+        FLAGS_data_directory+"bound_"+distance_name);
   }
 }
 

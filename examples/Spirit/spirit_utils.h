@@ -1,5 +1,6 @@
 #pragma once
 #include "solvers/nonlinear_cost.h"
+#include <drake/multibody/inverse_kinematics/inverse_kinematics.h>
 
 namespace dairlib {
 
