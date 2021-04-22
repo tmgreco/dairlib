@@ -358,32 +358,7 @@ std::vector<drake::solvers::Binding<drake::solvers::Cost>> addCost(MultibodyPlan
   return AddWorkCost(plant, trajopt, cost_work);
 } // Function
 
-template <typename T>
-void addConstraintsFlight(MultibodyPlant<T>& plant,
-                    dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,
-                    double apex_height,
-                    double eps = 0){
-  auto positions_map = multibody::makeNameToPositionsMap(plant);
-  auto velocities_map = multibody::makeNameToVelocitiesMap(plant);
-}
 
-template <typename T>
-void addConstraintsTD(MultibodyPlant<T>& plant,
-                          dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,
-                          const double eps = 0){
-  auto positions_map = multibody::makeNameToPositionsMap(plant);
-  auto velocities_map = multibody::makeNameToVelocitiesMap(plant);
-}
-
-template <typename T>
-void addConstraintsStance(MultibodyPlant<T>& plant,
-                      dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,
-                      const double initial_height,
-                      const double fore_aft_displacement,
-                      const double eps = 0){
-  auto positions_map = multibody::makeNameToPositionsMap(plant);
-  auto velocities_map = multibody::makeNameToVelocitiesMap(plant);
-}
 // addConstraints, adds constraints to the trajopt jump problem. See runSpiritJump for a description of the inputs
 template <typename T>
 void addConstraints(MultibodyPlant<T>& plant,
@@ -495,10 +470,7 @@ void addConstraints(MultibodyPlant<T>& plant,
 
 void getModeSequenceHelper(dairlib::ModeSequenceHelper& msh,
                            const double mu,
-                           std::vector<int> num_knot_points,
-                          const bool optimize_flight,
-                           const bool optimize_td,
-                           const bool optimize_stance){
+                           std::vector<int> num_knot_points){
   msh.addMode( // Stance
       (Eigen::Matrix<bool,1,4>() << true,  true,  true,  true).finished(), // contact bools
       num_knot_points[0],  // number of knot points in the collocation
@@ -508,7 +480,7 @@ void getModeSequenceHelper(dairlib::ModeSequenceHelper& msh,
       0.03,
       0.5
   );
-  msh.addMode( // Stance
+  msh.addMode( // Rear stance
       (Eigen::Matrix<bool,1,4>() << false,  true,  false,  true).finished(), // contact bools
       num_knot_points[1],  // number of knot points in the collocation
       Eigen::Vector3d::UnitZ(), // normal
@@ -517,50 +489,42 @@ void getModeSequenceHelper(dairlib::ModeSequenceHelper& msh,
       0.03,
       1.0
   );
-
-  if(optimize_flight){
-    msh.addMode( // Stance
-        (Eigen::Matrix<bool,1,4>() << false,  false,  false,  false).finished(), // contact bools
-        num_knot_points[2],  // number of knot points in the collocation
-        Eigen::Vector3d::UnitZ(), // normal
-        Eigen::Vector3d::Zero(),  // world offset
-        mu, //friction
-        0.03,
-        1.0
-    );
-    if(optimize_td){
-      msh.addMode( // Stance
-          (Eigen::Matrix<bool,1,4>() << false,  false,  false,  false).finished(), // contact bools
-          num_knot_points[3],  // number of knot points in the collocation
-          Eigen::Vector3d::UnitZ(), // normal
-          Eigen::Vector3d::Zero(),  // world offset
-          mu, //friction
-          0.03,
-          1.0
-      );
-
-      msh.addMode( // Stance
-          (Eigen::Matrix<bool,1,4>() << true,  false,  true,  false).finished(), // contact bools
-          num_knot_points[4],  // number of knot points in the collocation
-          Eigen::Vector3d::UnitZ(), // normal
-          Eigen::Vector3d::Zero(),  // world offset
-          mu, //friction
-          0.03,
-          0.1
-      );
-      if(optimize_stance){
-        msh.addMode( // Stance
-            (Eigen::Matrix<bool,1,4>() << true,  true,  true,  true).finished(), // contact bools
-            num_knot_points[5],  // number of knot points in the collocation
-            Eigen::Vector3d::UnitZ(), // normal
-            Eigen::Vector3d::Zero(),  // world offset
-            mu, //friction
-            0.03,
-            0.1
-        );
-      }
-    }
-  }
+  msh.addMode( // Flight
+      (Eigen::Matrix<bool,1,4>() << false,  false,  false,  false).finished(), // contact bools
+      num_knot_points[2],  // number of knot points in the collocation
+      Eigen::Vector3d::UnitZ(), // normal
+      Eigen::Vector3d::Zero(),  // world offset
+      mu, //friction
+      0.03,
+      1.0
+  );
+  msh.addMode( // Flight
+      (Eigen::Matrix<bool,1,4>() << false,  false,  false,  false).finished(), // contact bools
+      num_knot_points[3],  // number of knot points in the collocation
+      Eigen::Vector3d::UnitZ(), // normal
+      Eigen::Vector3d::Zero(),  // world offset
+      mu, //friction
+      0.03,
+      1.0
+  );
+  msh.addMode( // Front Stance
+      (Eigen::Matrix<bool,1,4>() << true,  false,  true,  false).finished(), // contact bools
+      num_knot_points[4],  // number of knot points in the collocation
+      Eigen::Vector3d::UnitZ(), // normal
+      Eigen::Vector3d::Zero(),  // world offset
+      mu, //friction
+      0.03,
+      0.1
+  );
+  msh.addMode( // Stance
+      (Eigen::Matrix<bool,1,4>() << true,  true,  true,  true).finished(), // contact bools
+      num_knot_points[5],  // number of knot points in the collocation
+      Eigen::Vector3d::UnitZ(), // normal
+      Eigen::Vector3d::Zero(),  // world offset
+      mu, //friction
+      0.03,
+      0.1
+  );
 }
 /// getModeSequenceRear, initializes the trajopt mode seqence for jump, see runSpiritJump for a def of inputs
 template <typename T>
@@ -577,7 +541,7 @@ getModeSequence(
     const bool optimize_stance){
   dairlib::ModeSequenceHelper msh;
 
-  getModeSequenceHelper(msh, mu, num_knot_points, optimize_flight, optimize_td, optimize_stance);
+  getModeSequenceHelper(msh, mu, num_knot_points);
 
   auto [modeVector, toeEvals, toeEvalSets] = createSpiritModeSequence(plant, msh);
 
@@ -746,12 +710,6 @@ void runSpiritJump(
 
   addConstraints(plant, trajopt,
                  initial_height, apex_height, td_displacement,  pitch_magnitude,max_duration, eps);
-  if(optimize_flight)
-    addConstraintsFlight(plant, trajopt, apex_height, eps);
-  if(optimize_td)
-    addConstraintsTD(plant, trajopt, eps);
-  if(optimize_stance)
-    addConstraintsStance(plant, trajopt, initial_height, td_displacement, eps);
 
   /// Setup the visualization during the optimization
   int num_ghosts = 1;// Number of ghosts in visualization. NOTE: there are limitations on number of ghosts based on modes and knotpoints
