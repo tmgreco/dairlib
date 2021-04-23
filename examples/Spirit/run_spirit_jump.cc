@@ -34,17 +34,17 @@
 #include "examples/Spirit/spirit_utils.h"
 
 DEFINE_double(standHeight, 0.2, "The standing height.");
-DEFINE_double(foreAftDisplacement, 1.2, "The fore-aft displacement.");
+DEFINE_double(foreAftDisplacement, 1.0, "The fore-aft displacement.");
 DEFINE_double(apexGoal, 0.45, "Apex state goal");
 DEFINE_double(eps, 1e-2, "The wiggle room.");
-DEFINE_double(tol, 1e-2, "Optimization Tolerance");
+DEFINE_double(tol, 5e-1, "Optimization Tolerance");
 DEFINE_double(mu, 1, "coefficient of friction");
 
 DEFINE_string(data_directory, "/home/shane/Drake_ws/dairlib/examples/Spirit/saved_trajectories/",
               "directory to save/read data");
 
 DEFINE_bool(runAllOptimization, true, "rerun earlier optimizations?");
-DEFINE_bool(skipInitialOptimization, false, "skip first optimizations?");
+DEFINE_bool(skipInitialOptimization, true, "skip first optimizations?");
 DEFINE_bool(minWork, false, "try to minimize work?");
 
 using drake::AutoDiffXd;
@@ -399,10 +399,10 @@ void addConstraints(MultibodyPlant<T>& plant,
   // Nominal stand
   nominalSpiritStandConstraint(plant,trajopt,initial_height, {0}, eps);
   // Body pose constraints (keep the body flat) at initial state
-  trajopt.AddBoundingBoxConstraint(1-eps, 1 + eps, xf(positions_map.at("base_qw")));
-  trajopt.AddBoundingBoxConstraint(0-eps , 0+ eps, xf(positions_map.at("base_qx")));
-  trajopt.AddBoundingBoxConstraint(0-eps, 0+ eps, xf(positions_map.at("base_qy")));
-  trajopt.AddBoundingBoxConstraint(0-eps, 0 + eps, xf(positions_map.at("base_qz")));
+  trajopt.AddBoundingBoxConstraint(1, 1 , xf(positions_map.at("base_qw")));
+  trajopt.AddBoundingBoxConstraint(0 , 0, xf(positions_map.at("base_qx")));
+  trajopt.AddBoundingBoxConstraint(0, 0, xf(positions_map.at("base_qy")));
+  trajopt.AddBoundingBoxConstraint(0, 0 , xf(positions_map.at("base_qz")));
   // Initial  velocity
   trajopt.AddBoundingBoxConstraint(VectorXd::Zero(n_v), VectorXd::Zero(n_v), x0.tail(n_v));
 
@@ -445,10 +445,10 @@ void addConstraints(MultibodyPlant<T>& plant,
   // Nominal stand
   nominalSpiritStandConstraint(plant,trajopt,initial_height, {trajopt.N()-1}, eps);
   // Body pose constraints (keep the body flat) at final state
-  trajopt.AddBoundingBoxConstraint(1-eps, 1 + eps, xf(positions_map.at("base_qw")));
-  trajopt.AddBoundingBoxConstraint(0-eps , 0+ eps, xf(positions_map.at("base_qx")));
-  trajopt.AddBoundingBoxConstraint(0-eps, 0+ eps, xf(positions_map.at("base_qy")));
-  trajopt.AddBoundingBoxConstraint(0-eps, 0 + eps, xf(positions_map.at("base_qz")));
+  trajopt.AddBoundingBoxConstraint(1, 1, xf(positions_map.at("base_qw")));
+  trajopt.AddBoundingBoxConstraint(0, 0, xf(positions_map.at("base_qx")));
+  trajopt.AddBoundingBoxConstraint(0, 0, xf(positions_map.at("base_qy")));
+  trajopt.AddBoundingBoxConstraint(0, 0, xf(positions_map.at("base_qz")));
   // Zero velocity
   trajopt.AddBoundingBoxConstraint(VectorXd::Zero(n_v), VectorXd::Zero(n_v), xf.tail(n_v));
 
@@ -795,7 +795,7 @@ int main(int argc, char* argv[]) {
   std::vector<PiecewisePolynomial<double>> lc_traj;
   std::vector<PiecewisePolynomial<double>> vc_traj;
 
-  std::string distance_name = std::to_string(floor(100*FLAGS_foreAftDisplacement))+"cm";
+  std::string distance_name = std::to_string(int(floor(100*FLAGS_foreAftDisplacement)))+"cm";
 
   if (FLAGS_runAllOptimization){
     if(!FLAGS_skipInitialOptimization){
@@ -850,7 +850,7 @@ int main(int argc, char* argv[]) {
         5/5.0,
         1000,
         0,
-        100,
+        10,
         1e-3,
         1e0,
         1.0,
@@ -858,6 +858,34 @@ int main(int argc, char* argv[]) {
         FLAGS_data_directory+"in_place_bound");
 
     std::cout<<"Running 3rd optimization"<<std::endl;
+
+    dairlib::runSpiritJump<double>(
+        *plant,
+        x_traj, u_traj, l_traj,
+        lc_traj, vc_traj,
+        false,
+        true,
+        {7, 7, 7, 7, 7, 7} ,
+        FLAGS_standHeight,
+        0.6,
+        0.1,
+        FLAGS_apexGoal,       // Ignored if small
+        FLAGS_foreAftDisplacement,
+        1.8,
+        3,
+        10,
+        10/5.0,
+        5/5.0,
+        1000,
+        0,
+        FLAGS_mu,
+        1e-3,
+        1e0,
+        1.0,
+        FLAGS_data_directory+"bound_"+distance_name+"low_mu",
+        FLAGS_data_directory+"bound_"+distance_name);
+
+    std::cout<<"Running 4th optimization"<<std::endl;
 
     dairlib::runSpiritJump<double>(
         *plant,
@@ -878,12 +906,12 @@ int main(int argc, char* argv[]) {
         5/5.0/10.0,
         0,
         100,
-        100,
+        FLAGS_mu,
         FLAGS_eps,
         FLAGS_tol,
         1.0,
         FLAGS_data_directory+"bound_"+distance_name+"min_work",
-        FLAGS_data_directory+"bound_"+distance_name);
+        FLAGS_data_directory+"bound_"+distance_name+"low_mu");
   }
 }
 
