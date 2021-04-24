@@ -37,7 +37,7 @@ DEFINE_double(standHeight, 0.2, "The standing height.");
 DEFINE_double(foreAftDisplacement, 1.0, "The fore-aft displacement.");
 DEFINE_double(apexGoal, 0.45, "Apex state goal");
 DEFINE_double(eps, 1e-2, "The wiggle room.");
-DEFINE_double(tol, 5e-1, "Optimization Tolerance");
+DEFINE_double(tol, 2e-1, "Optimization Tolerance");
 DEFINE_double(mu, 1, "coefficient of friction");
 
 DEFINE_string(data_directory, "/home/shane/Drake_ws/dairlib/examples/Spirit/saved_trajectories/",
@@ -419,7 +419,7 @@ void addConstraints(MultibodyPlant<T>& plant,
   trajopt.AddBoundingBoxConstraint(0, 0, xapex(plant.num_positions()+velocities_map.at("base_vz")));
   // Height
   if (apex_height > 0.15)
-    trajopt.AddBoundingBoxConstraint(apex_height-1e-2, apex_height+1e-2, xapex(positions_map.at("base_z")));
+    trajopt.AddBoundingBoxConstraint(apex_height-1e-2, 1, xapex(positions_map.at("base_z")));
   // Limit magnitude of pitch
   pitch = abs(pitch_magnitude_apex);
   trajopt.AddBoundingBoxConstraint(cos(pitch/2.0), 1, xapex(positions_map.at("base_qw")));
@@ -456,7 +456,7 @@ void addConstraints(MultibodyPlant<T>& plant,
   for (int i = 0; i < trajopt.N(); i++){
     auto xi = trajopt.state(i);
     // Height
-    trajopt.AddBoundingBoxConstraint( 0.15, 5, xi( positions_map.at("base_z")));
+    trajopt.AddBoundingBoxConstraint( 0.15, 2, xi( positions_map.at("base_z")));
     trajopt.AddBoundingBoxConstraint( -eps, eps, xi( n_q+velocities_map.at("base_vy")));
   }
 
@@ -839,8 +839,8 @@ int main(int argc, char* argv[]) {
         true,
         {7, 7, 7, 7, 7, 7} ,
         FLAGS_standHeight,
-        0.6,
-        0.1,
+        1.0,
+        0.3,
         FLAGS_apexGoal,       // Ignored if small
         FLAGS_foreAftDisplacement,
         1.8,
@@ -867,8 +867,8 @@ int main(int argc, char* argv[]) {
         true,
         {7, 7, 7, 7, 7, 7} ,
         FLAGS_standHeight,
-        0.6,
-        0.1,
+        1.0,
+        0.3,
         FLAGS_apexGoal,       // Ignored if small
         FLAGS_foreAftDisplacement,
         1.8,
@@ -895,15 +895,15 @@ int main(int argc, char* argv[]) {
         true,
         {7, 7, 7, 7, 7, 7} ,
         FLAGS_standHeight,
-        0.6,
-        0.1,
+        1.0,
+        0.3,
         FLAGS_apexGoal,       // Ignored if small
         FLAGS_foreAftDisplacement,
         1.8,
         3/100.0,
         10/100.0,
-        10/5.0/10.0,
-        5/5.0/10.0,
+        10/5.0,
+        5/5.0,
         0,
         100,
         FLAGS_mu,
