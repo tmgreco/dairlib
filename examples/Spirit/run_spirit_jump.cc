@@ -42,10 +42,7 @@ DEFINE_double(mu, 1, "coefficient of friction");
 
 DEFINE_string(data_directory, "/home/shane/Drake_ws/dairlib/examples/Spirit/saved_trajectories/",
               "directory to save/read data");
-
-DEFINE_bool(runAllOptimization, true, "rerun earlier optimizations?");
 DEFINE_bool(skipInitialOptimization, true, "skip first optimizations?");
-DEFINE_bool(minWork, false, "try to minimize work?");
 
 using drake::AutoDiffXd;
 using drake::multibody::MultibodyPlant;
@@ -70,6 +67,13 @@ using std::vector;
 using std::cout;
 using std::endl;
 
+/// Uses IK to generate a bad initial guess for an inplace bound
+/// @param plant the multibody plant
+/// @param x_traj[out] the vector for state trajectories for each mode
+/// @param u_traj[out] control trajectory
+/// @param l_traj[out] the contact force trajectory
+/// @param lc_traj[out] slack contact force trajectory
+/// @param vc_traj[out] slack contact velocity trajectory
 template <typename T>
 void badInplaceBound(MultibodyPlant<T>& plant,
                     vector<PiecewisePolynomial<double>>& x_traj,
@@ -92,7 +96,6 @@ void badInplaceBound(MultibodyPlant<T>& plant,
   x_points.push_back(x_const);
 
   x_traj.push_back(PiecewisePolynomial<double>::FirstOrderHold({0,duration/3.0},x_points));
-
   x_points.clear();
 
   //Rear stance
@@ -137,16 +140,17 @@ void badInplaceBound(MultibodyPlant<T>& plant,
   dairlib::ikSpiritStand(plant, x_const, {true, true, true, true}, stand_height, 0.2, 0, 0);
   x_points.push_back(x_const);
 
-
   x_traj.push_back(PiecewisePolynomial<double>::FirstOrderHold({5 * duration/3.0, 6 * duration/3.0},x_points));
   x_points.clear();
 
+  // Create control initial guess (zeros)
   std::vector<MatrixXd> u_points;
   u_points.push_back(MatrixXd::Zero( plant.num_actuators(), 1));
   u_points.push_back(MatrixXd::Zero( plant.num_actuators(), 1));
 
   u_traj = PiecewisePolynomial<double>::FirstOrderHold({0, 6 * duration/3.0},u_points);
 
+  // Contact force initial guess
   // Four contacts so forces are 12 dimensional
   Eigen::VectorXd init_l_vec(12);
   // Initial guess
@@ -284,9 +288,14 @@ void badInplaceBound(MultibodyPlant<T>& plant,
   l_traj.push_back(init_l_traj_j);
   lc_traj.push_back(init_lc_traj_j);
   vc_traj.push_back(init_vc_traj_j);
-
 }
-
+/// Add a cost on a specific mode for a specific subset of joints, to be used to add a cost on the legs in flight
+/// @param plant the plant
+/// @param trajopt the trajectory optimization object
+/// @param cost_actuation a cost on actuation squared
+/// @param cost_velocity a cost on velocity squared
+/// @param joints a vector of joints corresponding to which joints to apply the cost to
+/// @param mode_index the mode to apply the cost to
 template <typename T>
 void addCostLegs(MultibodyPlant<T>& plant,
                  dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,
@@ -333,8 +342,7 @@ std::vector<drake::solvers::Binding<drake::solvers::Cost>> addCost(MultibodyPlan
              const double cost_velocity_legs_flight,
              const double cost_actuation_legs_flight,
              const double cost_time,
-             const double cost_work,
-             const double work_constraint_scale = 1.0){
+             const double cost_work){
   auto u   = trajopt.input();
   auto x   = trajopt.state();
 
@@ -344,16 +352,11 @@ std::vector<drake::solvers::Binding<drake::solvers::Cost>> addCost(MultibodyPlan
 
   trajopt.AddRunningCost(cost_time);
 
+  // Hard code which joints are in flight for which mode
   addCostLegs(plant, trajopt, cost_velocity_legs_flight, cost_actuation_legs_flight, {0, 1, 4, 5, 8, 10}, 1);
-  if(trajopt.num_modes() > 2){
-    addCostLegs(plant, trajopt, cost_velocity_legs_flight, cost_actuation_legs_flight, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}, 2);
-  }
-  if(trajopt.num_modes() > 3){
-    addCostLegs(plant, trajopt, cost_velocity_legs_flight, cost_actuation_legs_flight, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}, 3);
-  }
-  if(trajopt.num_modes() > 4){
-    addCostLegs(plant, trajopt, cost_velocity_legs_flight, cost_actuation_legs_flight, {2, 3, 6, 7, 10, 11}, 4);
-  }
+  addCostLegs(plant, trajopt, cost_velocity_legs_flight, cost_actuation_legs_flight, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}, 2);
+  addCostLegs(plant, trajopt, cost_velocity_legs_flight, cost_actuation_legs_flight, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}, 3);
+  addCostLegs(plant, trajopt, cost_velocity_legs_flight, cost_actuation_legs_flight, {2, 3, 6, 7, 10, 11}, 4);
 
   return AddWorkCost(plant, trajopt, cost_work);
 } // Function
@@ -462,6 +465,10 @@ void addConstraints(MultibodyPlant<T>& plant,
 
 }
 
+/// Generates a mode sequence helper
+/// @param[out] the msh
+/// @param mu the coefficient of friction for each mode
+/// @param num_knot_points[in] vector of num knot points per mode
 void getModeSequenceHelper(dairlib::ModeSequenceHelper& msh,
                            const double mu,
                            std::vector<int> num_knot_points){
@@ -471,7 +478,7 @@ void getModeSequenceHelper(dairlib::ModeSequenceHelper& msh,
       Eigen::Vector3d::UnitZ(), // normal
       Eigen::Vector3d::Zero(),  // world offset
       mu, //friction
-      0.03,
+      0.02,
       0.5
   );
   msh.addMode( // Rear stance
@@ -480,7 +487,7 @@ void getModeSequenceHelper(dairlib::ModeSequenceHelper& msh,
       Eigen::Vector3d::UnitZ(), // normal
       Eigen::Vector3d::Zero(),  // world offset
       mu, //friction
-      0.03,
+      0.02,
       1.0
   );
   msh.addMode( // Flight
@@ -489,7 +496,7 @@ void getModeSequenceHelper(dairlib::ModeSequenceHelper& msh,
       Eigen::Vector3d::UnitZ(), // normal
       Eigen::Vector3d::Zero(),  // world offset
       mu, //friction
-      0.03,
+      0.02,
       1.0
   );
   msh.addMode( // Flight
@@ -498,7 +505,7 @@ void getModeSequenceHelper(dairlib::ModeSequenceHelper& msh,
       Eigen::Vector3d::UnitZ(), // normal
       Eigen::Vector3d::Zero(),  // world offset
       mu, //friction
-      0.03,
+      0.02,
       1.0
   );
   msh.addMode( // Front Stance
@@ -507,7 +514,7 @@ void getModeSequenceHelper(dairlib::ModeSequenceHelper& msh,
       Eigen::Vector3d::UnitZ(), // normal
       Eigen::Vector3d::Zero(),  // world offset
       mu, //friction
-      0.03,
+      0.02,
       0.1
   );
   msh.addMode( // Stance
@@ -516,7 +523,7 @@ void getModeSequenceHelper(dairlib::ModeSequenceHelper& msh,
       Eigen::Vector3d::UnitZ(), // normal
       Eigen::Vector3d::Zero(),  // world offset
       mu, //friction
-      0.03,
+      0.02,
       0.1
   );
 }
@@ -571,12 +578,18 @@ getModeSequence(
 /// \param lc_traj[in, out]: initial and solution contact force slack variable trajectory
 /// \param vc_traj[in, out]: initial and solution contact velocity slack variable trajectory
 /// \param animate: true if solution should be animated, false otherwise
+/// \param ipopt true if should solve with ipopt
 /// \param num_knot_points: number of knot points used for each mode (vector)
 /// \param initial_height: initial and final height of the jump
+/// \param pitch_magnitude_lo the max magnitude of pitch at lo and td
+/// \param pitch_magnitude_apex the max magnitude of pitch at apex
 /// \param fore_aft_displacement: fore-aft displacemnt after jump
 /// \param max_duration: maximum time allowed for jump
 /// \param cost_actuation: Cost on actuation
 /// \param cost_velocity: Cost on state velocity
+/// \param cost_velocity_legs_flight cost on velocity of legs in flight
+/// \param cost_actuation_legs_flight cost on actuation of legs in flight
+/// \param cost_time cost on duration
 /// \param cost_work: Cost on work
 /// \param mu: coefficient of friction
 /// \param eps: the tolerance for position constraints
@@ -598,7 +611,7 @@ void runSpiritJump(
     const double pitch_magnitude_lo,
     const double pitch_magnitude_apex,
     const double apex_height,
-    const double td_displacement,
+    const double fore_aft_displacement,
     const double max_duration,
     const double cost_actuation,
     const double cost_velocity,
@@ -609,7 +622,6 @@ void runSpiritJump(
     const double mu,
     const double eps,
     const double tol,
-    const double work_constraint_scale,
     const std::string& file_name_out,
     const std::string& file_name_in= ""
     ) {
@@ -668,7 +680,7 @@ void runSpiritJump(
   }
 
   // Setting up cost
-  auto work_binding = addCost(plant, trajopt, cost_actuation, cost_velocity, cost_velocity_legs_flight, cost_actuation_legs_flight, cost_time, cost_work, work_constraint_scale);
+  auto work_binding = addCost(plant, trajopt, cost_actuation, cost_velocity, cost_velocity_legs_flight, cost_actuation_legs_flight, cost_time, cost_work);
 
 
   // Initialize the trajectory control state and forces
@@ -687,7 +699,7 @@ void runSpiritJump(
   }
 
   addConstraints(plant, trajopt,
-                 initial_height, apex_height, td_displacement, pitch_magnitude_lo, pitch_magnitude_apex, max_duration, eps);
+                 initial_height, apex_height, fore_aft_displacement, pitch_magnitude_lo, pitch_magnitude_apex, max_duration, eps);
 
   /// Setup the visualization during the optimization
   int num_ghosts = 1;// Number of ghosts in visualization. NOTE: there are limitations on number of ghosts based on modes and knotpoints
@@ -797,40 +809,10 @@ int main(int argc, char* argv[]) {
 
   std::string distance_name = std::to_string(int(floor(100*FLAGS_foreAftDisplacement)))+"cm";
 
-  if (FLAGS_runAllOptimization){
-    if(!FLAGS_skipInitialOptimization){
-      std::cout<<"Running 1st optimization"<<std::endl;
-      //Hopping correct distance, but heavily constrained
-      dairlib::badInplaceBound(*plant, x_traj, u_traj, l_traj, lc_traj, vc_traj);
-      dairlib::runSpiritJump<double>(
-          *plant,
-          x_traj, u_traj, l_traj,
-          lc_traj, vc_traj,
-          false,
-          true,
-          {7, 7, 7, 7, 7, 7} ,
-          FLAGS_standHeight,
-          0.6,
-          0.1,
-          FLAGS_apexGoal,       // Ignored if small
-          0,
-          1.8,
-          3,
-          10,
-          10/5.0,
-          5/5.0,
-          1000,
-          0,
-          100,
-          1e-3,
-          1e-2,
-          1.0,
-          FLAGS_data_directory+"in_place_bound");
-
-    }
-
-    std::cout<<"Running 2nd optimization"<<std::endl;
-
+  if(!FLAGS_skipInitialOptimization){
+    std::cout<<"Running 1st optimization"<<std::endl;
+    //Hopping correct distance, but heavily constrained
+    dairlib::badInplaceBound(*plant, x_traj, u_traj, l_traj, lc_traj, vc_traj);
     dairlib::runSpiritJump<double>(
         *plant,
         x_traj, u_traj, l_traj,
@@ -839,79 +821,103 @@ int main(int argc, char* argv[]) {
         true,
         {7, 7, 7, 7, 7, 7} ,
         FLAGS_standHeight,
-        1.0,
-        0.3,
+        0.6,
+        0.1,
         FLAGS_apexGoal,       // Ignored if small
-        FLAGS_foreAftDisplacement,
+        0,
         1.8,
         3,
         10,
         10/5.0,
         5/5.0,
         1000,
-        0,
-        10,
-        1e-3,
-        1e0,
-        1.0,
-        FLAGS_data_directory+"bound_"+distance_name,
-        FLAGS_data_directory+"in_place_bound");
-
-    std::cout<<"Running 3rd optimization"<<std::endl;
-
-    dairlib::runSpiritJump<double>(
-        *plant,
-        x_traj, u_traj, l_traj,
-        lc_traj, vc_traj,
-        false,
-        true,
-        {7, 7, 7, 7, 7, 7} ,
-        FLAGS_standHeight,
-        1.0,
-        0.3,
-        FLAGS_apexGoal,       // Ignored if small
-        FLAGS_foreAftDisplacement,
-        1.8,
-        3,
-        10,
-        10/5.0,
-        5/5.0,
-        1000,
-        0,
-        FLAGS_mu,
-        1e-3,
-        1e0,
-        1.0,
-        FLAGS_data_directory+"bound_"+distance_name+"low_mu",
-        FLAGS_data_directory+"bound_"+distance_name);
-
-    std::cout<<"Running 4th optimization"<<std::endl;
-
-    dairlib::runSpiritJump<double>(
-        *plant,
-        x_traj, u_traj, l_traj,
-        lc_traj, vc_traj,
-        true,
-        true,
-        {7, 7, 7, 7, 7, 7} ,
-        FLAGS_standHeight,
-        1.0,
-        0.3,
-        FLAGS_apexGoal,       // Ignored if small
-        FLAGS_foreAftDisplacement,
-        1.8,
-        3/100.0,
-        10/100.0,
-        10/5.0,
-        5/5.0,
         0,
         100,
-        FLAGS_mu,
-        FLAGS_eps,
-        FLAGS_tol,
-        1.0,
-        FLAGS_data_directory+"bound_"+distance_name+"min_work",
-        FLAGS_data_directory+"bound_"+distance_name+"low_mu");
+        1e-3,
+        1e-2,
+        FLAGS_data_directory+"in_place_bound");
   }
+
+  std::cout<<"Running 2nd optimization"<<std::endl;
+
+  dairlib::runSpiritJump<double>(
+      *plant,
+      x_traj, u_traj, l_traj,
+      lc_traj, vc_traj,
+      false,
+      true,
+      {7, 7, 7, 7, 7, 7} ,
+      FLAGS_standHeight,
+      1.0,
+      0.3,
+      FLAGS_apexGoal,       // Ignored if small
+      FLAGS_foreAftDisplacement,
+      1.8,
+      3,
+      10,
+      10/5.0,
+      5/5.0,
+      1000,
+      0,
+      10,
+      1e-3,
+      1e0,
+      FLAGS_data_directory+"bound_"+distance_name,
+      FLAGS_data_directory+"in_place_bound");
+
+  std::cout<<"Running 3rd optimization"<<std::endl;
+
+  dairlib::runSpiritJump<double>(
+      *plant,
+      x_traj, u_traj, l_traj,
+      lc_traj, vc_traj,
+      false,
+      true,
+      {7, 7, 7, 7, 7, 7} ,
+      FLAGS_standHeight,
+      1.0,
+      0.3,
+      FLAGS_apexGoal,       // Ignored if small
+      FLAGS_foreAftDisplacement,
+      1.8,
+      3,
+      10,
+      10/5.0,
+      5/5.0,
+      1000,
+      0,
+      FLAGS_mu,
+      1e-3,
+      1e0,
+      FLAGS_data_directory+"bound_"+distance_name+"low_mu",
+      FLAGS_data_directory+"bound_"+distance_name);
+
+  std::cout<<"Running 4th optimization"<<std::endl;
+
+  dairlib::runSpiritJump<double>(
+      *plant,
+      x_traj, u_traj, l_traj,
+      lc_traj, vc_traj,
+      true,
+      true,
+      {7, 7, 7, 7, 7, 7} ,
+      FLAGS_standHeight,
+      1.0,
+      0.3,
+      FLAGS_apexGoal,       // Ignored if small
+      FLAGS_foreAftDisplacement,
+      1.8,
+      3/100.0,
+      10/100.0,
+      10/5.0,
+      5/5.0,
+      0,
+      100,
+      FLAGS_mu,
+      FLAGS_eps,
+      FLAGS_tol,
+      FLAGS_data_directory+"bound_"+distance_name+"min_work",
+      FLAGS_data_directory+"bound_"+distance_name+"low_mu");
 }
+
 

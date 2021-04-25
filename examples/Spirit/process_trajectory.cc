@@ -37,7 +37,7 @@ using Eigen::MatrixXd;
 DEFINE_string(data_directory, "/home/shane/Drake_ws/dairlib/examples/Spirit/saved_trajectories/",
               "directory to save/read data");
 
-DEFINE_string(file_name, "in_place_bound","file to read data");
+DEFINE_string(file_name, "bound_150cmmin_work","file to read data");
 
 
 int main(int argc, char* argv[]) {
