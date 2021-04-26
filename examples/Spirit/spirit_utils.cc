@@ -56,12 +56,12 @@ void nominalSpiritStand( MultibodyPlant<T>& plant, Eigen::VectorXd& xState, doub
   //Get joint name dictionaries
   auto positions_map = dairlib::multibody::makeNameToPositionsMap(plant);
   auto velocities_map = dairlib::multibody::makeNameToVelocitiesMap(plant);
-
+  
   // Initialize state vector and add orienation and goal height
   xState = Eigen::VectorXd::Zero(plant.num_positions() + plant.num_velocities());
   xState(positions_map.at("base_qw")) = 1;
   xState(positions_map.at("base_z")) = height;
-
+  
   //Calculate the inverse kinematics to get the joint angles for toe placement
   double upperLegLength = 0.206; // length of the upper leg link
   double hipLength = 0.10098; //absOffset ToeLocation
@@ -103,7 +103,7 @@ void ikSpiritStand(drake::multibody::MultibodyPlant<double>& plant,
   // Orientation of body
   drake::math::RotationMatrix<double> orientation;
   orientation = drake::math::RotationMatrix<double>::MakeXRotation(-roll) *
-      drake::math::RotationMatrix<double>::MakeYRotation(-pitch) ;
+                drake::math::RotationMatrix<double>::MakeYRotation(-pitch) ;
 
   const double n_x = plant.num_positions() + plant.num_velocities();
   const double n_q = plant.num_positions();
@@ -224,23 +224,23 @@ const drake::multibody::Frame<T>& getSpiritToeFrame( MultibodyPlant<T>& plant, u
 }
 
 template <typename T>
-std::unique_ptr<dairlib::multibody::WorldPointEvaluator<T>> getSpiritToeEvaluator(
-    MultibodyPlant<T>& plant,
-    const Eigen::Vector3d toePoint ,
-    u_int8_t toeIndex,
-    const Eigen::Vector3d normal ,
-    const Eigen::Vector3d offset ,
-    bool xy_active,
-    double mu
-){
+std::unique_ptr<dairlib::multibody::WorldPointEvaluator<T>> getSpiritToeEvaluator( 
+                      MultibodyPlant<T>& plant, 
+                      const Eigen::Vector3d toePoint ,
+                      u_int8_t toeIndex,
+                      const Eigen::Vector3d normal ,
+                      const Eigen::Vector3d offset ,
+                      bool xy_active, 
+                      double mu 
+                      ){
   assert(toeIndex<4); // Check that toeIndex is an actual Spirit leg
   auto toe_eval =  std::make_unique<dairlib::multibody::WorldPointEvaluator<T>>(
-      plant,
-      toePoint,
-      getSpiritToeFrame(plant, toeIndex ) ,
-      normal,
-      offset,
-      xy_active );
+        plant, 
+        toePoint, 
+        getSpiritToeFrame(plant, toeIndex ) , 
+        normal, 
+        offset, 
+        xy_active );
   if(!std::isinf(mu)){
     toe_eval->set_frictional(); toe_eval->set_mu(mu);
   }
@@ -249,18 +249,18 @@ std::unique_ptr<dairlib::multibody::WorldPointEvaluator<T>> getSpiritToeEvaluato
 
 template <typename T>
 std::tuple<
-    std::vector<std::unique_ptr<DirconMode<T>>>,
-    std::vector<std::unique_ptr<dairlib::multibody::WorldPointEvaluator<T>>> ,
-    std::vector<std::unique_ptr<dairlib::multibody::KinematicEvaluatorSet<T>>>
-> createSpiritModeSequence(
-    MultibodyPlant<T>& plant, // multibodyPlant
-    std::vector<Eigen::Matrix<bool,1,4>> modeSeqVect, // bool matrix describing toe contacts as true or false e.g. {{1,1,1,1},{0,0,0,0}} would be a full support mode and flight mode
-    std::vector<int> knotpointVect, // Matrix of knot points for each mode
-    std::vector<Eigen::Vector3d> normals,
-    std::vector<Eigen::Vector3d> offsets,
-    std::vector<double> mus,
-    std::vector<double> minTs,
-    std::vector<double> maxTs ){
+                std::vector<std::unique_ptr<DirconMode<T>>>,
+                std::vector<std::unique_ptr<dairlib::multibody::WorldPointEvaluator<T>>> ,
+                std::vector<std::unique_ptr<dairlib::multibody::KinematicEvaluatorSet<T>>>
+          > createSpiritModeSequence( 
+          MultibodyPlant<T>& plant, // multibodyPlant
+          std::vector<Eigen::Matrix<bool,1,4>> modeSeqVect, // bool matrix describing toe contacts as true or false e.g. {{1,1,1,1},{0,0,0,0}} would be a full support mode and flight mode
+          std::vector<int> knotpointVect, // Matrix of knot points for each mode  
+          std::vector<Eigen::Vector3d> normals,
+          std::vector<Eigen::Vector3d> offsets, 
+          std::vector<double> mus, 
+          std::vector<double> minTs, 
+          std::vector<double> maxTs ){
 
   // std::cout<<modeSeqMat<<std::endl;
   // std::cout<<knotpointVect<<std::endl;  
@@ -278,7 +278,7 @@ std::tuple<
 
   for (int iMode = 0; iMode<num_modes; iMode++)
   {
-
+    
     toeEvalSets.push_back( std::move( std::make_unique<dairlib::multibody::KinematicEvaluatorSet<T>>(plant) ));
     for ( int iLeg = 0; iLeg < 4; iLeg++ ){
       if (modeSeqVect.at(iMode)(iLeg)){
@@ -291,9 +291,9 @@ std::tuple<
     modeVector.push_back(std::move( std::make_unique<DirconMode<T>>( *dumbToeEvalPtr , num_knotpoints, minTs.at(iMode), maxTs.at(iMode) )));
     // DirconMode<T> modeDum = DirconMode<T>( *dumbToeEvalPtr , num_knotpoints );
     // sequence.AddMode(  &modeDum  ); // Add the evaluator set to the mode sequence
-
+    
   }
-
+  
   return {std::move(modeVector), std::move(toeEvals), std::move(toeEvalSets)};
   // return {std::move(toeEvals), std::move(toeEvalSets)};
 }
@@ -301,14 +301,14 @@ std::tuple<
 
 template <typename T>
 std::tuple<
-    std::vector<std::unique_ptr<DirconMode<T>>>,
-    std::vector<std::unique_ptr<dairlib::multibody::WorldPointEvaluator<T>>> ,
-    std::vector<std::unique_ptr<dairlib::multibody::KinematicEvaluatorSet<T>>>
-> createSpiritModeSequence(
-    MultibodyPlant<T>& plant, // multibodyPlant
-    const dairlib::ModeSequenceHelper& msh ){
+                std::vector<std::unique_ptr<DirconMode<T>>>,
+                std::vector<std::unique_ptr<dairlib::multibody::WorldPointEvaluator<T>>> ,
+                std::vector<std::unique_ptr<dairlib::multibody::KinematicEvaluatorSet<T>>>
+          > createSpiritModeSequence( 
+          MultibodyPlant<T>& plant, // multibodyPlant
+          const dairlib::ModeSequenceHelper& msh ){
 
-  return createSpiritModeSequence(plant, msh.modes , msh.knots , msh.normals , msh.offsets, msh.mus, msh.minTs, msh.maxTs);
+return createSpiritModeSequence(plant, msh.modes , msh.knots , msh.normals , msh.offsets, msh.mus, msh.minTs, msh.maxTs);
 }
 
 
@@ -318,11 +318,11 @@ std::tuple<
 //   SETSPIRITJOINTLIMITS 
 
 
-template <typename T>
-void setSpiritJointLimits(drake::multibody::MultibodyPlant<T> & plant,
-                          dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,
-                          int iJoint,
-                          double minVal,
+template <typename T> 
+void setSpiritJointLimits(drake::multibody::MultibodyPlant<T> & plant, 
+                          dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,  
+                          int iJoint, 
+                          double minVal, 
                           double maxVal  ){
 
   auto positions_map = multibody::makeNameToPositionsMap(plant);
@@ -335,40 +335,40 @@ void setSpiritJointLimits(drake::multibody::MultibodyPlant<T> & plant,
   }
 }
 
-template <typename T>
+template <typename T> 
 void setSpiritJointLimits(drake::multibody::MultibodyPlant<T> & plant,
                           dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,
-                          std::vector<int> iJoints,
-                          std::vector<double> minVals,
+                          std::vector<int> iJoints, 
+                          std::vector<double> minVals, 
                           std::vector<double> maxVals  ){
   int numJoints = iJoints.size();
   assert(numJoints==minVals.size());
   assert(numJoints==maxVals.size());
   for (int i = 0; i<numJoints; i++){
-    setSpiritJointLimits( plant,
-                          trajopt,
-                          iJoints[i],
-                          minVals[i],
+    setSpiritJointLimits( plant, 
+                          trajopt,  
+                          iJoints[i], 
+                          minVals[i], 
                           maxVals[i] );
   }
 }
-template <typename T>
+template <typename T> 
 void setSpiritJointLimits(drake::multibody::MultibodyPlant<T> & plant,
                           dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,
-                          std::vector<int> iJoints,
-                          double minVal,
+                          std::vector<int> iJoints, 
+                          double minVal, 
                           double maxVal  ){
 
   for (int iJoint: iJoints){
-    setSpiritJointLimits( plant,
-                          trajopt,
-                          iJoint,
-                          minVal,
+    setSpiritJointLimits( plant, 
+                          trajopt,  
+                          iJoint, 
+                          minVal, 
                           maxVal );
   }
 }
-template <typename T>
-void setSpiritJointLimits(drake::multibody::MultibodyPlant<T> & plant,
+template <typename T> 
+void setSpiritJointLimits(drake::multibody::MultibodyPlant<T> & plant, 
                           dairlib::systems::trajectory_optimization::Dircon<T>& trajopt ){
   // Upper doesn't need a joint limit for now, but we may eventually want to
   // change this to help the optimizations
@@ -380,13 +380,13 @@ void setSpiritJointLimits(drake::multibody::MultibodyPlant<T> & plant,
   // away from singularity
   double minValLower =  0;
   double maxValLower =  M_PI-0.2;
-
+  
   // The URDF defines symmetric limits if asymmetric constraints we need to
   // add a mirror since the hips are positive in the same direction
   double abKinLimit = 0.707 ; //From the URDF
   double minValAbduc = -abKinLimit ;
   double maxValAbduc =  abKinLimit ;
-
+  
   // Upper 0,2,4,6
   std::vector<int> indicesUpper = {0,2,4,6};
   // Lower 1,3,5,7
@@ -395,34 +395,34 @@ void setSpiritJointLimits(drake::multibody::MultibodyPlant<T> & plant,
   std::vector<int> indicesAbduc = {8,9,10,11};
 
 //See above: Upper doesn't need joint limit since there isnt a meaningful set
-  setSpiritJointLimits( plant,
-                        trajopt,
-                        indicesUpper,
-                        minValUpper,
-                        maxValUpper  );
-
-  setSpiritJointLimits( plant,
-                        trajopt,
-                        indicesLower,
-                        minValLower ,
-                        maxValLower );
-
-  setSpiritJointLimits( plant,
-                        trajopt,
-                        indicesAbduc,
-                        minValAbduc,
-                        maxValAbduc  );
+setSpiritJointLimits( plant, 
+                     trajopt,  
+                     indicesUpper, 
+                     minValUpper, 
+                     maxValUpper  );
+                     
+setSpiritJointLimits( plant, 
+                     trajopt,  
+                     indicesLower, 
+                     minValLower , 
+                     maxValLower );
+                     
+setSpiritJointLimits( plant, 
+                     trajopt,  
+                     indicesAbduc, 
+                     minValAbduc, 
+                     maxValAbduc  );
 
 }
-//   \SETSPIRITJOINTLIMITS
+//   \SETSPIRITJOINTLIMITS 
 
 
 // **********************************************************
 //   SETSPIRITACTUATIONLIMITS
-template <typename T>
-void setSpiritActuationLimits(drake::multibody::MultibodyPlant<T> & plant,
-                              dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,
-                              double actuatorLimit){
+template <typename T>  
+void setSpiritActuationLimits(drake::multibody::MultibodyPlant<T> & plant, 
+                          dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,
+                          double actuatorLimit){
   auto actuators_map = multibody::makeNameToActuatorsMap(plant);
 
   // Upper 0,2,4,6
@@ -433,28 +433,28 @@ void setSpiritActuationLimits(drake::multibody::MultibodyPlant<T> & plant,
   std::vector<int> indicesAbduc = {8,9,10,11};
 
   double mechanicalReductionKnee = 1.5;
-
-
+  
+  
   int N_knotpoints = trajopt.N();
   for(int iKnot = 0; iKnot<N_knotpoints;iKnot++){
     auto ui = trajopt.input(iKnot);
     for (int iMotor : indicesUpper){
       trajopt.AddBoundingBoxConstraint(
-          -actuatorLimit,
-          actuatorLimit,
-          ui(actuators_map.at("motor_" + std::to_string(iMotor))));
+        -actuatorLimit,
+         actuatorLimit,
+         ui(actuators_map.at("motor_" + std::to_string(iMotor))));
     }
     for (int iMotor : indicesLower){
       trajopt.AddBoundingBoxConstraint(
-          -actuatorLimit*mechanicalReductionKnee,
-          actuatorLimit*mechanicalReductionKnee,
-          ui(actuators_map.at("motor_" + std::to_string(iMotor))));
+        -actuatorLimit*mechanicalReductionKnee,
+         actuatorLimit*mechanicalReductionKnee,
+         ui(actuators_map.at("motor_" + std::to_string(iMotor))));
     }
     for (int iMotor : indicesAbduc){
       trajopt.AddBoundingBoxConstraint(
-          -actuatorLimit,
-          actuatorLimit,
-          ui(actuators_map.at("motor_" + std::to_string(iMotor))));
+        -actuatorLimit,
+         actuatorLimit,
+         ui(actuators_map.at("motor_" + std::to_string(iMotor))));
     }
   }
 
@@ -467,21 +467,21 @@ void setSpiritActuationLimits(drake::multibody::MultibodyPlant<T> & plant,
 
 template <typename T>
 void makeSaggitalSymmetric(
-    drake::multibody::MultibodyPlant<T> & plant,
-    dairlib::systems::trajectory_optimization::Dircon<T>& trajopt){
+        drake::multibody::MultibodyPlant<T> & plant, 
+        dairlib::systems::trajectory_optimization::Dircon<T>& trajopt){
 
-  // Get position and velocity dictionaries
+  // Get position and velocity dictionaries 
   auto positions_map = multibody::makeNameToPositionsMap(plant);
   auto velocities_map = multibody::makeNameToVelocitiesMap(plant);
   int num_knotpoints = trajopt.N();
   /// Symmetry constraints
   for (int i = 0; i < num_knotpoints; i++){
-
-    auto xi = trajopt.state(i);
+    
+    auto xi = trajopt.state(i);  
     // Symmetry constraints (mirrored hips all else equal across)
     trajopt.AddLinearConstraint( xi( positions_map.at("joint_8") ) == -xi( positions_map.at("joint_10") ) );
     trajopt.AddLinearConstraint( xi( positions_map.at("joint_9") ) == -xi( positions_map.at("joint_11") ) );
-    // // Front legs equal and back legs equal constraints
+    // // Front legs equal and back legs equal constraints 
     trajopt.AddLinearConstraint( xi( positions_map.at("joint_0") ) ==  xi( positions_map.at("joint_4") ) );
     trajopt.AddLinearConstraint( xi( positions_map.at("joint_1") ) ==  xi( positions_map.at("joint_5") ) );
     trajopt.AddLinearConstraint( xi( positions_map.at("joint_2") ) ==  xi( positions_map.at("joint_6") ) );
@@ -490,19 +490,19 @@ void makeSaggitalSymmetric(
 }
 template <typename T>
 void setSpiritSymmetry(
-    drake::multibody::MultibodyPlant<T> & plant,
-    dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,
-    std::vector<std::string> symmetries){
-
+        drake::multibody::MultibodyPlant<T> & plant, 
+        dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,
+        std::vector<std::string> symmetries){
+  
   bool hasSaggital = false;
   bool hasForeAft  = false;
   hasSaggital = std::any_of(symmetries.begin(), symmetries.end(), [](const std::string & str) {
-    return str == "sagittal";
-  });
-
+                                                        return str == "sagittal";
+                                                    });
+                                                    
   hasForeAft = std::any_of(symmetries.begin(), symmetries.end(), [](const std::string & str) {
-    return str == "foreaft";
-  });
+                                                        return str == "foreaft";
+                                                    });
   if (hasSaggital&&hasForeAft){
     // Avoids having overconstrained system of symmetry
     std::cerr << "Warning: Simultaneous Saggital and ForeAft not implemented yet. Only adding saggital constraints." << std::endl;
@@ -518,14 +518,14 @@ void setSpiritSymmetry(
 }
 
 template <typename T>
-void setSpiritSymmetry(drake::multibody::MultibodyPlant<T> & plant,
+void setSpiritSymmetry(drake::multibody::MultibodyPlant<T> & plant, 
                        dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,
                        std::string symmetry,
                        bool ignoreWarning){
 
   static bool hasRun = false;
   if(hasRun && !ignoreWarning){
-    std::cerr << "Warning: Running different symmetries seperately could cause system to be overconstrained. Use vector overload to avoid this or set ignoreWarning flag if not a problem."
+    std::cerr << "Warning: Running different symmetries seperately could cause system to be overconstrained. Use vector overload to avoid this or set ignoreWarning flag if not a problem." 
               << std::endl;
   }else{
     hasRun = true;
@@ -534,9 +534,9 @@ void setSpiritSymmetry(drake::multibody::MultibodyPlant<T> & plant,
   std::vector<std::string> symmetries;
   symmetries.push_back(symmetry);
   setSpiritSymmetry(
-      plant,
-      trajopt,
-      symmetries);
+                    plant,
+                    trajopt,
+                    symmetries);
 }
 //   \SETSPIRITSYMMETRY
 
@@ -555,10 +555,10 @@ double calcWork(
   std::vector<double> knot_points = x_traj.get_segment_times();
 
   for(int knot_index = 0; knot_index < knot_points.size()-1; knot_index++){
-    auto u_low = u_traj.value(knot_points[knot_index]);
-    auto u_up  = u_traj.value(knot_points[knot_index + 1]);
-    auto x_low = x_traj.value(knot_points[knot_index]);
-    auto x_up  = x_traj.value(knot_points[knot_index + 1]);
+      auto u_low = u_traj.value(knot_points[knot_index]);
+      auto u_up  = u_traj.value(knot_points[knot_index + 1]);
+      auto x_low = x_traj.value(knot_points[knot_index]);
+      auto x_up  = x_traj.value(knot_points[knot_index + 1]);
 
     for (int joint = 0; joint < 12; joint++){
 
@@ -751,8 +751,8 @@ double calcTorqueInt(
 
 template <typename T>
 std::vector<drake::solvers::Binding<drake::solvers::Cost>> AddWorkCost(drake::multibody::MultibodyPlant<T> & plant,
-                                                                       dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,
-                                                                       double cost_work_gain){
+                 dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,
+                 double cost_work_gain){
   std::vector<drake::solvers::Binding<drake::solvers::Cost>> cost_joint_work_bindings;
   int n_q = plant.num_positions();
   auto velocities_map = multibody::makeNameToVelocitiesMap(plant);
@@ -761,12 +761,10 @@ std::vector<drake::solvers::Binding<drake::solvers::Cost>> AddWorkCost(drake::mu
   double Q = 0;
   // Loop through each joint
   for (int joint = 0; joint < 12; joint++) {
-    if(joint == 1 or joint == 3 or joint == 5 or joint == 7){
+    if(joint == 1 or joint == 3 or joint == 5 or joint == 7)
       Q = Q_knee;
-    }
-    else{
+    else
       Q = Q_not_knee;
-    }
     auto joint_work_cost = std::make_shared<JointWorkCost>(plant,  Q, cost_work_gain,4);
     int act_int = actuator_map.at("motor_" + std::to_string(joint));
     int vel_int = n_q + velocities_map.at("joint_" + std::to_string(joint) +"dot");
@@ -812,26 +810,26 @@ double JointWorkCost::relu_smooth(const double x) const{
 }
 
 void JointWorkCost::EvaluateCost(const Eigen::Ref<const drake::VectorX<double>> &x,
-                                 drake::VectorX<double> *y) const{
+                  drake::VectorX<double> *y) const{
 
 
 
-  double h_i = x(0);
+double h_i = x(0);
 //auto u_i_all = x.segment(1, n_u_);
 //auto u_ip_all = x.segment(1+n_u_, n_u_);
 //auto x_i_all = x.segment(1+n_u_+n_u_, n_q_+n_v_);
 //auto x_ip_all = x.segment(1+n_u_+n_u_+n_q_+n_v_, n_q_+n_v_);
 
-  double u_i = x(1);
-  double u_ip = x(2);
-  double v_i = x(3);
-  double v_ip = x(4);
-  double work_low = cost_work_ * relu_smooth(u_i * v_i + Q_ * u_i * u_i);
-  double work_up = cost_work_ * relu_smooth(u_ip * v_ip + Q_ * u_ip * u_ip);
+double u_i = x(1);
+double u_ip = x(2);
+double v_i = x(3);
+double v_ip = x(4);
+double work_low = cost_work_ * relu_smooth(u_i * v_i + Q_ * u_i * u_i);
+double work_up = cost_work_ * relu_smooth(u_ip * v_ip + Q_ * u_ip * u_ip);
 
-  drake::VectorX<double> rv(1);
-  rv[0] = 1/2.0 * h_i *(work_low + work_up);
-  (*y) = rv;
+drake::VectorX<double> rv(1);
+rv[0] = 1/2.0 * h_i *(work_low + work_up);
+(*y) = rv;
 };
 
 double positivePart(double x){
@@ -843,9 +841,9 @@ double negativePart(double x){
 }
 
 template void nominalSpiritStand(
-    drake::multibody::MultibodyPlant<double>& plant,
-    Eigen::VectorXd& xState,
-    double height); // NOLINT
+    drake::multibody::MultibodyPlant<double>& plant, 
+    Eigen::VectorXd& xState, 
+    double height); // NOLINT 
 
 template void nominalSpiritStandConstraint(
     drake::multibody::MultibodyPlant<double>& plant,
@@ -854,84 +852,84 @@ template void nominalSpiritStandConstraint(
     std::vector<int> knotPoints,
     const double eps); // NOLINT
 
-template const drake::multibody::Frame<double>& getSpiritToeFrame(
-    drake::multibody::MultibodyPlant<double>& plant,
-    u_int8_t toeIndex ); // NOLINT
+template const drake::multibody::Frame<double>& getSpiritToeFrame( 
+    drake::multibody::MultibodyPlant<double>& plant, 
+    u_int8_t toeIndex ); // NOLINT 
 
-template std::unique_ptr<multibody::WorldPointEvaluator<double>> getSpiritToeEvaluator(
-    MultibodyPlant<double>& plant,
-    const Eigen::Vector3d toePoint ,
-    u_int8_t toeIndex,
-    const Eigen::Vector3d normal ,
-    const Eigen::Vector3d offset ,
-    bool xy_active,
-    double mu
-); // NOLINT
-
+template std::unique_ptr<multibody::WorldPointEvaluator<double>> getSpiritToeEvaluator( 
+                      MultibodyPlant<double>& plant, 
+                      const Eigen::Vector3d toePoint ,
+                      u_int8_t toeIndex,
+                      const Eigen::Vector3d normal ,
+                      const Eigen::Vector3d offset ,
+                      bool xy_active, 
+                      double mu 
+                      ); // NOLINT
+                      
 template std::tuple<  std::vector<std::unique_ptr<dairlib::systems::trajectory_optimization::DirconMode<double>>>,
-                      std::vector<std::unique_ptr<multibody::WorldPointEvaluator<double>>> ,
-                      std::vector<std::unique_ptr<multibody::KinematicEvaluatorSet<double>>>
->
-createSpiritModeSequence(
-    drake::multibody::MultibodyPlant<double>& plant, // multibodyPlant
-    std::vector<Eigen::Matrix<bool,1,4>> modeSeqVect, // bool matrix describing toe contacts as true or false e.g. {{1,1,1,1},{0,0,0,0}} would be a full support mode and flight mode
-    std::vector<int> knotpointVect, // Matrix of knot points for each mode
-    std::vector<Eigen::Vector3d> normals,
-    std::vector<Eigen::Vector3d> offsets,
-    std::vector<double> mus ,
-    std::vector<double> minTs,
-    std::vector<double> maxTs); // NOLINT
-
+             std::vector<std::unique_ptr<multibody::WorldPointEvaluator<double>>> ,
+             std::vector<std::unique_ptr<multibody::KinematicEvaluatorSet<double>>>   
+          >     
+    createSpiritModeSequence( 
+          drake::multibody::MultibodyPlant<double>& plant, // multibodyPlant
+          std::vector<Eigen::Matrix<bool,1,4>> modeSeqVect, // bool matrix describing toe contacts as true or false e.g. {{1,1,1,1},{0,0,0,0}} would be a full support mode and flight mode
+          std::vector<int> knotpointVect, // Matrix of knot points for each mode  
+          std::vector<Eigen::Vector3d> normals,
+          std::vector<Eigen::Vector3d> offsets, 
+          std::vector<double> mus , 
+          std::vector<double> minTs, 
+          std::vector<double> maxTs); // NOLINT
+          
 
 template std::tuple<
-    std::vector<std::unique_ptr<DirconMode<double>>>,
-    std::vector<std::unique_ptr<dairlib::multibody::WorldPointEvaluator<double>>> ,
-    std::vector<std::unique_ptr<dairlib::multibody::KinematicEvaluatorSet<double>>>
-> createSpiritModeSequence(
-    MultibodyPlant<double>& plant, // multibodyPlant
-    const dairlib::ModeSequenceHelper& msh );//NOLINT
-
+                std::vector<std::unique_ptr<DirconMode<double>>>,
+                std::vector<std::unique_ptr<dairlib::multibody::WorldPointEvaluator<double>>> ,
+                std::vector<std::unique_ptr<dairlib::multibody::KinematicEvaluatorSet<double>>>
+          > createSpiritModeSequence( 
+          MultibodyPlant<double>& plant, // multibodyPlant
+          const dairlib::ModeSequenceHelper& msh );//NOLINT
+          
+  
+template void setSpiritJointLimits(
+          drake::multibody::MultibodyPlant<double> & plant, 
+          dairlib::systems::trajectory_optimization::Dircon<double>& trajopt,  
+          int iJoint, 
+          double minVal, 
+          double maxVal  );
 
 template void setSpiritJointLimits(
-    drake::multibody::MultibodyPlant<double> & plant,
-    dairlib::systems::trajectory_optimization::Dircon<double>& trajopt,
-    int iJoint,
-    double minVal,
-    double maxVal  );
+          drake::multibody::MultibodyPlant<double> & plant,
+          dairlib::systems::trajectory_optimization::Dircon<double>& trajopt,
+          std::vector<int> iJoints, 
+          std::vector<double> minVals, 
+          std::vector<double> maxVals  );
 
 template void setSpiritJointLimits(
-    drake::multibody::MultibodyPlant<double> & plant,
-    dairlib::systems::trajectory_optimization::Dircon<double>& trajopt,
-    std::vector<int> iJoints,
-    std::vector<double> minVals,
-    std::vector<double> maxVals  );
+          drake::multibody::MultibodyPlant<double> & plant,
+          dairlib::systems::trajectory_optimization::Dircon<double>& trajopt,
+          std::vector<int> iJoints, 
+          double minVal, 
+          double maxVal  );
 
 template void setSpiritJointLimits(
-    drake::multibody::MultibodyPlant<double> & plant,
-    dairlib::systems::trajectory_optimization::Dircon<double>& trajopt,
-    std::vector<int> iJoints,
-    double minVal,
-    double maxVal  );
-
-template void setSpiritJointLimits(
-    drake::multibody::MultibodyPlant<double> & plant,
-    dairlib::systems::trajectory_optimization::Dircon<double>& trajopt );
+          drake::multibody::MultibodyPlant<double> & plant,
+          dairlib::systems::trajectory_optimization::Dircon<double>& trajopt );
 
 template void setSpiritActuationLimits(
-    drake::multibody::MultibodyPlant<double> & plant,
-    dairlib::systems::trajectory_optimization::Dircon<double>& trajopt,
-    double actuatorLimit);
+          drake::multibody::MultibodyPlant<double> & plant, 
+          dairlib::systems::trajectory_optimization::Dircon<double>& trajopt,
+          double actuatorLimit);
 
 template void setSpiritSymmetry(
-    drake::multibody::MultibodyPlant<double> & plant,
-    dairlib::systems::trajectory_optimization::Dircon<double>& trajopt,
-    std::string symmetry,
-    bool ignoreWarning);
+        drake::multibody::MultibodyPlant<double> & plant, 
+        dairlib::systems::trajectory_optimization::Dircon<double>& trajopt,
+        std::string symmetry,
+        bool ignoreWarning);
 
 template void setSpiritSymmetry(
-    drake::multibody::MultibodyPlant<double> & plant,
-    dairlib::systems::trajectory_optimization::Dircon<double>& trajopt,
-    std::vector<std::string> symmetries);
+        drake::multibody::MultibodyPlant<double> & plant, 
+        dairlib::systems::trajectory_optimization::Dircon<double>& trajopt,
+        std::vector<std::string> symmetries);
 
 template double calcWork(
     drake::multibody::MultibodyPlant<double> & plant,
@@ -962,7 +960,7 @@ template double calcTorqueInt(
     drake::trajectories::PiecewisePolynomial<double>& u_traj);
 
 template std::vector<drake::solvers::Binding<drake::solvers::Cost>> AddWorkCost(drake::multibody::MultibodyPlant<double> & plant,
-                                                                                dairlib::systems::trajectory_optimization::Dircon<double>& trajopt,
-                                                                                double cost_work_gain);
+                 dairlib::systems::trajectory_optimization::Dircon<double>& trajopt,
+                 double cost_work_gain);
 
 }//namespace dairlib
