@@ -170,7 +170,8 @@ std::tuple<  std::vector<std::unique_ptr<dairlib::systems::trajectory_optimizati
 template <typename T>
 void setSpiritJointLimits(
                     drake::multibody::MultibodyPlant<T> & plant,
-                    dairlib::systems::trajectory_optimization::Dircon<T>& trajopt );
+                    dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,
+                    const bool spine = false);
 
 /// This overload sets an individual joint's position limit
 ///    @param plant a pointer to a multibodyPlant
@@ -224,6 +225,7 @@ template <typename T>
 void setSpiritActuationLimits(
           drake::multibody::MultibodyPlant<T> & plant, 
           dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,
+          const bool spine = false,
           double actuatorLimit = 3.5 * 6);// URDF has 40 this is more realistic based on the modules 
 
 /// Constrains the system to a single symmetric leg behavior
@@ -312,7 +314,8 @@ double calcTorqueInt(
 template <typename T>
 std::vector<drake::solvers::Binding<drake::solvers::Cost>> AddWorkCost(drake::multibody::MultibodyPlant<T> & plant,
                  dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,
-                 double cost_work_gain);
+                 double cost_work_gain,
+                 const bool spine = false);
 
 
 /// JointWorkCost object for adding smooth relu without slack variables to cost

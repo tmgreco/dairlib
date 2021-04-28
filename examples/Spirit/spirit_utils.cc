@@ -369,7 +369,8 @@ void setSpiritJointLimits(drake::multibody::MultibodyPlant<T> & plant,
 }
 template <typename T> 
 void setSpiritJointLimits(drake::multibody::MultibodyPlant<T> & plant, 
-                          dairlib::systems::trajectory_optimization::Dircon<T>& trajopt ){
+                          dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,
+                          const bool spine){
   // Upper doesn't need a joint limit for now, but we may eventually want to
   // change this to help the optimizations
   double minValUpper = -2 * M_PI ;
@@ -413,6 +414,16 @@ setSpiritJointLimits( plant,
                      minValAbduc, 
                      maxValAbduc  );
 
+if(spine){
+  auto positions_map = multibody::makeNameToPositionsMap(plant);
+  // std::cout<<"joint_" + std::to_string(iJoint)<<std::endl;
+  int N_knotpoints = trajopt.N();
+  for(int i = 0; i<N_knotpoints;i++){
+    auto xi = trajopt.state(i);
+    trajopt.AddBoundingBoxConstraint(-M_PI,M_PI,xi(positions_map.at("spine")));
+  }
+
+}
 }
 //   \SETSPIRITJOINTLIMITS 
 
@@ -422,6 +433,7 @@ setSpiritJointLimits( plant,
 template <typename T>  
 void setSpiritActuationLimits(drake::multibody::MultibodyPlant<T> & plant, 
                           dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,
+                          const bool spine,
                           double actuatorLimit){
   auto actuators_map = multibody::makeNameToActuatorsMap(plant);
 
@@ -455,6 +467,12 @@ void setSpiritActuationLimits(drake::multibody::MultibodyPlant<T> & plant,
         -actuatorLimit,
          actuatorLimit,
          ui(actuators_map.at("motor_" + std::to_string(iMotor))));
+    }
+    if(spine){
+      trajopt.AddBoundingBoxConstraint(
+          -actuatorLimit,
+          actuatorLimit,
+          ui(actuators_map.at("motor_spine")));
     }
   }
 
@@ -752,7 +770,8 @@ double calcTorqueInt(
 template <typename T>
 std::vector<drake::solvers::Binding<drake::solvers::Cost>> AddWorkCost(drake::multibody::MultibodyPlant<T> & plant,
                  dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,
-                 double cost_work_gain){
+                 double cost_work_gain,
+                 const bool spine){
   std::vector<drake::solvers::Binding<drake::solvers::Cost>> cost_joint_work_bindings;
   int n_q = plant.num_positions();
   auto velocities_map = multibody::makeNameToVelocitiesMap(plant);
@@ -760,14 +779,14 @@ std::vector<drake::solvers::Binding<drake::solvers::Cost>> AddWorkCost(drake::mu
 
   double Q = 0;
   // Loop through each joint
-  for (int joint = 0; joint < 12; joint++) {
+  for (int joint = 0; joint < (spine ? 13 : 12); joint++) {
     if(joint == 1 or joint == 3 or joint == 5 or joint == 7)
       Q = Q_knee;
     else
       Q = Q_not_knee;
     auto joint_work_cost = std::make_shared<JointWorkCost>(plant,  Q, cost_work_gain,4);
-    int act_int = actuator_map.at("motor_" + std::to_string(joint));
-    int vel_int = n_q + velocities_map.at("joint_" + std::to_string(joint) +"dot");
+    int act_int = joint == 12 ? actuator_map.at("motor_spine") : actuator_map.at("motor_" + std::to_string(joint));
+    int vel_int = joint == 12 ? n_q + velocities_map.at("spinedot"):  n_q + velocities_map.at("joint_" + std::to_string(joint) +"dot");
     // Loop through each mode
     for (int mode_index = 0; mode_index < trajopt.num_modes(); mode_index++) {
       for (int knot_index = 0; knot_index < trajopt.mode_length(mode_index)-1; knot_index++) {
@@ -913,11 +932,13 @@ template void setSpiritJointLimits(
 
 template void setSpiritJointLimits(
           drake::multibody::MultibodyPlant<double> & plant,
-          dairlib::systems::trajectory_optimization::Dircon<double>& trajopt );
+          dairlib::systems::trajectory_optimization::Dircon<double>& trajopt,
+          const bool spine);
 
 template void setSpiritActuationLimits(
           drake::multibody::MultibodyPlant<double> & plant, 
           dairlib::systems::trajectory_optimization::Dircon<double>& trajopt,
+          const bool spine,
           double actuatorLimit);
 
 template void setSpiritSymmetry(
@@ -961,6 +982,7 @@ template double calcTorqueInt(
 
 template std::vector<drake::solvers::Binding<drake::solvers::Cost>> AddWorkCost(drake::multibody::MultibodyPlant<double> & plant,
                  dairlib::systems::trajectory_optimization::Dircon<double>& trajopt,
-                 double cost_work_gain);
+                 double cost_work_gain,
+                 const bool spine);
 
 }//namespace dairlib

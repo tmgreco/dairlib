@@ -51,7 +51,10 @@ cc_binary(
 cc_binary(
     name = "process_trajectory",
     srcs = ["process_trajectory.cc"],
-    data = ["spirit_drake.urdf"],
+    data = [
+        "spirit_drake.urdf",
+        "spirit_spine_drake.urdf",
+    ],
     deps = [
         ":animate_spirit",
         ":spirit_utils",
@@ -117,7 +120,10 @@ cc_binary(
 cc_binary(
     name = "run_spirit_jump",
     srcs = ["run_spirit_jump.cc"],
-    data = ["spirit_drake.urdf"],
+    data = [
+        "spirit_drake.urdf",
+        "spirit_spine_drake.urdf",
+    ],
     deps = [
         ":animate_spirit",
         ":spirit_utils",

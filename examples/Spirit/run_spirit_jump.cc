@@ -53,6 +53,8 @@ DEFINE_bool(skipInitialOptimization, false, "skip first optimizations?");
 DEFINE_bool(minWork, true, "try to minimize work?");
 DEFINE_bool(ipopt, true, "Use IPOPT as solver instead of SNOPT");
 
+DEFINE_bool(spine, true, "use a spine?");
+
 using drake::AutoDiffXd;
 using drake::multibody::MultibodyPlant;
 using drake::geometry::SceneGraph;
@@ -251,12 +253,13 @@ void addCost(MultibodyPlant<T>& plant,
              dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,
              const double cost_actuation,
              const double cost_velocity,
-             const double cost_work){
+             const double cost_work,
+             const bool spine){
   auto u   = trajopt.input();
   // Setup the traditional cost function
   trajopt.AddRunningCost( u.transpose()*cost_actuation*u);
   trajopt.AddVelocityCost(cost_velocity);
-  AddWorkCost(plant, trajopt, cost_work);
+  AddWorkCost(plant, trajopt, cost_work, spine);
 
 } // Function
 
@@ -273,18 +276,17 @@ void addConstraints(MultibodyPlant<T>& plant,
                     const bool force_symmetry,
                     const bool use_nominal_stand,
                     const double max_duration,
-                    const double eps){
+                    const double eps,
+                    const bool spine,
+                    const bool lock_spline){
 
   // Get position and velocity dictionaries
   auto positions_map = multibody::makeNameToPositionsMap(plant);
   auto velocities_map = multibody::makeNameToVelocitiesMap(plant);
 
-  setSpiritJointLimits(plant, trajopt);
-  setSpiritActuationLimits(plant, trajopt);
+  setSpiritJointLimits(plant, trajopt, spine);
+  setSpiritActuationLimits(plant, trajopt, spine);
 
-  if (force_symmetry) {
-    setSpiritSymmetry(plant, trajopt);
-  }
   /// Setup all the optimization constraints
   int n_q = plant.num_positions();
   int n_v = plant.num_velocities();
@@ -318,6 +320,13 @@ void addConstraints(MultibodyPlant<T>& plant,
   }else{
     trajopt.AddBoundingBoxConstraint(initial_height - eps, initial_height + eps, x0(positions_map.at("base_z")));
     trajopt.AddBoundingBoxConstraint(initial_height - eps, initial_height + eps, xf(positions_map.at("base_z")));
+  }
+  if(spine and !lock_spline){
+    trajopt.AddBoundingBoxConstraint(-eps, eps, x0( positions_map.at("spine")));
+    trajopt.AddBoundingBoxConstraint(-eps, eps, xf( positions_map.at("spine")));
+    trajopt.AddBoundingBoxConstraint(-eps, eps, xapex( positions_map.at("spine")));
+    trajopt.AddBoundingBoxConstraint(-eps, eps, xapex( n_q + velocities_map.at("spinedot")));
+
   }
 
 
@@ -386,6 +395,10 @@ void addConstraints(MultibodyPlant<T>& plant,
 
     // Height
     trajopt.AddBoundingBoxConstraint( 0.15, 5, xi( positions_map.at("base_z")));
+
+    if(spine and lock_spline){
+      trajopt.AddBoundingBoxConstraint(-0, 0, xi( positions_map.at("spine")));
+    }
   }
 }
 
@@ -503,6 +516,8 @@ void runSpiritJump(
     const double mu,
     const double eps,
     const double tol,
+    const bool spine,
+    const bool lock_spine,
     const std::string& file_name_out,
     const std::string& file_name_in= ""
     ) {
@@ -511,8 +526,15 @@ void runSpiritJump(
   auto plant_vis = std::make_unique<MultibodyPlant<double>>(0.0);
   auto scene_graph_ptr = std::make_unique<SceneGraph<double>>();
   Parser parser_vis(plant_vis.get(), scene_graph_ptr.get());
-  std::string full_name =
-      dairlib::FindResourceOrThrow("examples/Spirit/spirit_drake.urdf");
+  std::string full_name;
+  if(!spine){
+    full_name =
+        dairlib::FindResourceOrThrow("examples/Spirit/spirit_drake.urdf");
+  }
+  else{
+    full_name =
+        dairlib::FindResourceOrThrow("examples/Spirit/spirit_spine_drake.urdf");
+  }
   parser_vis.AddModelFromFile(full_name);
   plant_vis->Finalize();
   SceneGraph<double>& scene_graph =
@@ -560,7 +582,7 @@ void runSpiritJump(
                             0);  // 0
   }
   // Setting up cost
-  addCost(plant, trajopt, cost_actuation, cost_velocity, cost_work);
+  addCost(plant, trajopt, cost_actuation, cost_velocity, cost_work, spine);
 
 // Initialize the trajectory control state and forces
   if (file_name_in.empty()){
@@ -577,7 +599,7 @@ void runSpiritJump(
   }
 
   addConstraints(plant, trajopt, apex_height, initial_height, fore_aft_displacement, lock_rotation,
-                    lock_legs_apex, force_symmetry, use_nominal_stand, max_duration, eps);
+                    lock_legs_apex, force_symmetry, use_nominal_stand, max_duration, eps, spine, lock_spine);
 
   /// Setup the visualization during the optimization
   int num_ghosts = 3;// Number of ghosts in visualization. NOTE: there are limitations on number of ghosts based on modes and knotpoints
@@ -585,9 +607,16 @@ void runSpiritJump(
   for(int i = 0; i < sequence.num_modes(); i++){
       visualizer_poses.push_back(num_ghosts); 
   }
-  trajopt.CreateVisualizationCallback(
-      dairlib::FindResourceOrThrow("examples/Spirit/spirit_drake.urdf"),
-      visualizer_poses, 0.2); // setup which URDF, how many poses, and alpha transparency 
+  if(!spine){
+    trajopt.CreateVisualizationCallback(
+        dairlib::FindResourceOrThrow("examples/Spirit/spirit_drake.urdf"),
+        visualizer_poses, 0.2); // setup which URDF, how many poses, and alpha transparency
+  } else {
+    trajopt.CreateVisualizationCallback(
+        dairlib::FindResourceOrThrow("examples/Spirit/spirit_spine_drake.urdf"),
+        visualizer_poses, 0.2); // setup which URDF, how many poses, and alpha transparency
+
+  }
 
   drake::solvers::SolverId solver_id("");
   if (FLAGS_ipopt) {
@@ -665,8 +694,15 @@ int main(int argc, char* argv[]) {
   auto scene_graph = std::make_unique<SceneGraph<double>>();
   Parser parser(plant.get());
   Parser parser_vis(plant_vis.get(), scene_graph.get());
-  std::string full_name =
-      dairlib::FindResourceOrThrow("examples/Spirit/spirit_drake.urdf");
+
+  std::string full_name;
+  if(!FLAGS_spine){
+    full_name =
+        dairlib::FindResourceOrThrow("examples/Spirit/spirit_drake.urdf");
+  } else{
+    full_name =
+        dairlib::FindResourceOrThrow("examples/Spirit/spirit_spine_drake.urdf");
+  }
 
   parser.AddModelFromFile(full_name);
   parser_vis.AddModelFromFile(full_name);
@@ -709,6 +745,8 @@ int main(int argc, char* argv[]) {
           100,
           FLAGS_eps,
           1e-1,
+          FLAGS_spine,
+          true,
           FLAGS_data_directory+"simple_jump");
     }
     else{
@@ -742,6 +780,8 @@ int main(int argc, char* argv[]) {
         100,
         0,
         1e-2,
+        FLAGS_spine,
+        true,
         FLAGS_data_directory+"jump_"+distance_name);
   }
   std::cout<<"Running 3rd optimization"<<std::endl;
@@ -766,6 +806,8 @@ int main(int argc, char* argv[]) {
       FLAGS_mu,
       FLAGS_eps,
       FLAGS_tol,
+      FLAGS_spine,
+      false,
       FLAGS_data_directory+"jump_"+distance_name+"_hq",
       FLAGS_data_directory+"jump_"+distance_name);
 
@@ -792,8 +834,9 @@ int main(int argc, char* argv[]) {
         FLAGS_mu,
         FLAGS_eps,
         FLAGS_tol,
+        FLAGS_spine,
+        false,
         FLAGS_data_directory+"jump_"+distance_name+"_hq_work_option3",
         FLAGS_data_directory+"jump_"+distance_name+"_hq");
   }
 }
-
