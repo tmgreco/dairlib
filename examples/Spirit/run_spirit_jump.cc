@@ -43,12 +43,12 @@ DEFINE_double(inputCost, 3, "The standing height.");
 DEFINE_double(velocityCost, 10, "The standing height.");
 DEFINE_double(eps, 1e-2, "The wiggle room.");
 DEFINE_double(tol, 1e-3, "Optimization Tolerance");
-DEFINE_double(mu, 1, "coefficient of friction");
+DEFINE_double(mu, 1.0, "coefficient of friction");
 
 DEFINE_string(data_directory, "/home/shane/Drake_ws/dairlib/examples/Spirit/saved_trajectories/",
               "directory to save/read data");
 
-DEFINE_bool(runAllOptimization, true, "rerun earlier optimizations?");
+DEFINE_bool(runAllOptimization, false, "rerun earlier optimizations?");
 DEFINE_bool(skipInitialOptimization, false, "skip first optimizations?");
 DEFINE_bool(minWork, true, "try to minimize work?");
 DEFINE_bool(ipopt, true, "Use IPOPT as solver instead of SNOPT");
