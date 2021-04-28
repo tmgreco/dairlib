@@ -53,7 +53,7 @@ DEFINE_bool(skipInitialOptimization, false, "skip first optimizations?");
 DEFINE_bool(minWork, true, "try to minimize work?");
 DEFINE_bool(ipopt, true, "Use IPOPT as solver instead of SNOPT");
 
-DEFINE_bool(spine, false, "use a spine?");
+DEFINE_bool(spine, true, "use a spine?");
 
 using drake::AutoDiffXd;
 using drake::multibody::MultibodyPlant;
@@ -663,7 +663,7 @@ void runSpiritJump(
     l_traj  = trajopt.ReconstructLambdaTrajectory(result);
   }
   auto x_trajs = trajopt.ReconstructDiscontinuousStateTrajectory(result);
-  std::cout<<"Work = " << dairlib::calcElectricalWork(plant, x_trajs, u_traj) << std::endl;
+  std::cout<<"Work = " << dairlib::calcElectricalWork(plant, x_trajs, u_traj, spine) << std::endl;
 //  double cost_work_acceleration = solvers::EvalCostGivenSolution(
 //      result, cost_joint_work_bindings);
 //  std::cout<<"Cost Work = " << cost_work_acceleration << std::endl;

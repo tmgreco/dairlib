@@ -640,6 +640,7 @@ double calcElectricalWork(
     drake::multibody::MultibodyPlant<T> & plant,
     std::vector<drake::trajectories::PiecewisePolynomial<double>>& x_trajs,
     drake::trajectories::PiecewisePolynomial<double>& u_traj,
+    const bool spine,
     double efficiency){
 
   auto velocities_map = multibody::makeNameToVelocitiesMap(plant);
@@ -679,6 +680,21 @@ double calcElectricalWork(
         // trapazoidal integration
         work += (knot_points[knot_index + 1] - knot_points[knot_index]) / 2.0 * (battery_pow_low + battery_pow_up);
       }
+
+      double actuation_low = u_low(actuator_map.at("motor_spine"));
+      double actuation_up = u_up(actuator_map.at("motor_spine"));
+
+      double velocity_low = x_low(n_q + velocities_map.at("spinedot"));
+      double velocity_up = x_up(n_q + velocities_map.at("spinedot"));
+
+      double pow_low = actuation_low * velocity_low + Q * actuation_low * actuation_low;
+      double pow_up = actuation_up * velocity_up+ Q * actuation_up * actuation_up;
+
+      double battery_pow_low = positivePart(pow_low) + efficiency * negativePart(pow_low);
+      double battery_pow_up = positivePart(pow_up) + efficiency * negativePart(pow_up);
+
+      // trapazoidal integration
+      work += (knot_points[knot_index + 1] - knot_points[knot_index]) / 2.0 * (battery_pow_low + battery_pow_up);
     }
   }
   return work;
@@ -966,6 +982,7 @@ template double calcElectricalWork(
     drake::multibody::MultibodyPlant<double> & plant,
     std::vector<drake::trajectories::PiecewisePolynomial<double>>& x_traj,
     drake::trajectories::PiecewisePolynomial<double>& u_traj,
+    const bool spine,
     double efficiency);
 
 template double calcVelocityInt(

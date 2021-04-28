@@ -1,5 +1,7 @@
 #pragma once
 #include "solvers/nonlinear_cost.h"
+#include "drake/multibody/inverse_kinematics/inverse_kinematics.h"
+
 namespace dairlib {
 
 class ModeSequenceHelper {
@@ -281,6 +283,7 @@ double calcElectricalWork(
     drake::multibody::MultibodyPlant<T> & plant,
     std::vector<drake::trajectories::PiecewisePolynomial<double>>& x_trajs,
     drake::trajectories::PiecewisePolynomial<double>& u_traj,
+    const bool spine = false,
     double efficiency = 0);
 
 /// Calculates the integral of velocities squared
