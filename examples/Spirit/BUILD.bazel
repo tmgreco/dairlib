@@ -34,7 +34,10 @@ cc_library(
 cc_binary(
     name = "run_spirit_vis",
     srcs = ["run_spirit_vis.cc"],
-    data = ["spirit_drake.urdf"],
+    data = [
+        "spirit_drake.urdf",
+        "spirit_spine_drake.urdf",
+    ],
     deps = [
         ":animate_spirit",
         "//common",

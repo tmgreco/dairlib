@@ -1,0 +1,375 @@
+==27924== Memcheck, a memory error detector
+==27924== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==27924== Using Valgrind-3.13.0 and LibVEX; rerun with -h for copyright info
+==27924== Command: bazel-bin/examples/Spirit/run_spirit_jump
+==27924== 
+--27924-- warning: DiCfSI 0xc622450 .. 0xcb3ec2f is huge; length = 5359584 (NONE)
+base_qw = 0
+base_qx = 1
+base_qy = 2
+base_qz = 3
+base_x = 4
+base_y = 5
+base_z = 6
+joint_0 = 11
+joint_1 = 15
+joint_10 = 9
+joint_11 = 10
+joint_2 = 12
+joint_3 = 16
+joint_4 = 13
+joint_5 = 17
+joint_6 = 14
+joint_7 = 18
+joint_8 = 7
+joint_9 = 8
+base_vx = 3
+base_vy = 4
+base_vz = 5
+base_wx = 0
+base_wy = 1
+base_wz = 2
+joint_0dot = 10
+joint_10dot = 8
+joint_11dot = 9
+joint_1dot = 14
+joint_2dot = 11
+joint_3dot = 15
+joint_4dot = 12
+joint_5dot = 16
+joint_6dot = 13
+joint_7dot = 17
+joint_8dot = 6
+joint_9dot = 7
+base_qw = 0
+base_qx = 1
+base_qy = 2
+base_qz = 3
+base_x = 4
+base_y = 5
+base_z = 6
+joint_0 = 11
+joint_1 = 15
+joint_10 = 9
+joint_11 = 10
+joint_2 = 12
+joint_3 = 16
+joint_4 = 13
+joint_5 = 17
+joint_6 = 14
+joint_7 = 18
+joint_8 = 7
+joint_9 = 8
+base_vx = 3
+base_vy = 4
+base_vz = 5
+base_wx = 0
+base_wy = 1
+base_wz = 2
+joint_0dot = 10
+joint_10dot = 8
+joint_11dot = 9
+joint_1dot = 14
+joint_2dot = 11
+joint_3dot = 15
+joint_4dot = 12
+joint_5dot = 16
+joint_6dot = 13
+joint_7dot = 17
+joint_8dot = 6
+joint_9dot = 7
+Line223
+Line 251-dircon
+==27924== Invalid read of size 8
+==27924==    at 0x2E4E7C2: drake::symbolic::Variable::Variable(drake::symbolic::Variable const&) (symbolic_variable.h:51)
+==27924==    by 0x2E5491A: Eigen::internal::mapbase_evaluator<Eigen::Block<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> const, -1, 1, false>, Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> >::coeff(long) const (CoreEvaluators.h:840)
+==27924==    by 0x2E4C47C: Eigen::DenseCoeffsBase<Eigen::Block<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> const, -1, 1, false>, 0>::coeff(long) const (DenseCoeffsBase.h:144)
+==27924==    by 0x2E4456E: Eigen::DenseCoeffsBase<Eigen::Block<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> const, -1, 1, false>, 0>::operator()(long) const (DenseCoeffsBase.h:181)
+==27924==    by 0x2E992FF: dairlib::systems::trajectory_optimization::Dircon<double>::Dircon(std::unique_ptr<dairlib::systems::trajectory_optimization::DirconModeSequence<double>, std::default_delete<dairlib::systems::trajectory_optimization::DirconModeSequence<double> > >, dairlib::systems::trajectory_optimization::DirconModeSequence<double> const*, drake::multibody::MultibodyPlant<double> const&, int) (dircon.cc:254)
+==27924==    by 0x2E92AB0: dairlib::systems::trajectory_optimization::Dircon<double>::Dircon(dairlib::systems::trajectory_optimization::DirconModeSequence<double> const&) (dircon.cc:29)
+==27924==    by 0x2E317F2: void dairlib::(anonymous namespace)::runSpiritStand<double>(std::unique_ptr<drake::multibody::MultibodyPlant<double>, std::default_delete<drake::multibody::MultibodyPlant<double> > >, drake::multibody::MultibodyPlant<double>*, std::unique_ptr<drake::geometry::SceneGraph<double>, std::default_delete<drake::geometry::SceneGraph<double> > >, double, drake::trajectories::PiecewisePolynomial<double>, drake::trajectories::PiecewisePolynomial<double>, std::vector<drake::trajectories::PiecewisePolynomial<double>, std::allocator<drake::trajectories::PiecewisePolynomial<double> > >, std::vector<drake::trajectories::PiecewisePolynomial<double>, std::allocator<drake::trajectories::PiecewisePolynomial<double> > >, std::vector<drake::trajectories::PiecewisePolynomial<double>, std::allocator<drake::trajectories::PiecewisePolynomial<double> > >) (run_spirit_jump.cc:205)
+==27924==    by 0x2E2B88F: main (run_spirit_jump.cc:554)
+==27924==  Address 0x22ac8860 is 608 bytes inside a block of size 1,184 free'd
+==27924==    at 0x5B8FD3B: free (vg_replace_malloc.c:530)
+==27924==    by 0x2E35E0F: Eigen::internal::aligned_free(void*) (Memory.h:177)
+==27924==    by 0x2E45DD3: void Eigen::internal::conditional_aligned_free<true>(void*) (Memory.h:230)
+==27924==    by 0x2E40A4A: void Eigen::internal::conditional_aligned_delete_auto<drake::symbolic::Variable, true>(drake::symbolic::Variable*, unsigned long) (Memory.h:416)
+==27924==    by 0x2E3C6C2: Eigen::DenseStorage<drake::symbolic::Variable, -1, -1, 1, 0>::~DenseStorage() (DenseStorage.h:542)
+==27924==    by 0x2E39627: Eigen::PlainObjectBase<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> >::~PlainObjectBase() (PlainObjectBase.h:98)
+==27924==    by 0x2E39643: Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1>::~Matrix() (Matrix.h:178)
+==27924==    by 0x2E99282: dairlib::systems::trajectory_optimization::Dircon<double>::Dircon(std::unique_ptr<dairlib::systems::trajectory_optimization::DirconModeSequence<double>, std::default_delete<dairlib::systems::trajectory_optimization::DirconModeSequence<double> > >, dairlib::systems::trajectory_optimization::DirconModeSequence<double> const*, drake::multibody::MultibodyPlant<double> const&, int) (dircon.cc:249)
+==27924==    by 0x2E92AB0: dairlib::systems::trajectory_optimization::Dircon<double>::Dircon(dairlib::systems::trajectory_optimization::DirconModeSequence<double> const&) (dircon.cc:29)
+==27924==    by 0x2E317F2: void dairlib::(anonymous namespace)::runSpiritStand<double>(std::unique_ptr<drake::multibody::MultibodyPlant<double>, std::default_delete<drake::multibody::MultibodyPlant<double> > >, drake::multibody::MultibodyPlant<double>*, std::unique_ptr<drake::geometry::SceneGraph<double>, std::default_delete<drake::geometry::SceneGraph<double> > >, double, drake::trajectories::PiecewisePolynomial<double>, drake::trajectories::PiecewisePolynomial<double>, std::vector<drake::trajectories::PiecewisePolynomial<double>, std::allocator<drake::trajectories::PiecewisePolynomial<double> > >, std::vector<drake::trajectories::PiecewisePolynomial<double>, std::allocator<drake::trajectories::PiecewisePolynomial<double> > >, std::vector<drake::trajectories::PiecewisePolynomial<double>, std::allocator<drake::trajectories::PiecewisePolynomial<double> > >) (run_spirit_jump.cc:205)
+==27924==    by 0x2E2B88F: main (run_spirit_jump.cc:554)
+==27924==  Block was alloc'd at
+==27924==    at 0x5B8EB0F: malloc (vg_replace_malloc.c:299)
+==27924==    by 0x2E35DA8: Eigen::internal::aligned_malloc(unsigned long) (Memory.h:159)
+==27924==    by 0x2E511A9: void* Eigen::internal::conditional_aligned_malloc<true>(unsigned long) (Memory.h:214)
+==27924==    by 0x2E5C366: drake::symbolic::Variable* Eigen::internal::conditional_aligned_new_auto<drake::symbolic::Variable, true>(unsigned long) (Memory.h:374)
+==27924==    by 0x2E51515: Eigen::DenseStorage<drake::symbolic::Variable, -1, -1, 1, 0>::resize(long, long, long) (DenseStorage.h:557)
+==27924==    by 0x2E48285: Eigen::PlainObjectBase<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> >::resize(long, long) (PlainObjectBase.h:293)
+==27924==    by 0x2EB29AB: void Eigen::PlainObjectBase<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> >::resizeLike<Eigen::Block<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> const, -1, 1, false> >(Eigen::EigenBase<Eigen::Block<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> const, -1, 1, false> > const&) (PlainObjectBase.h:375)
+==27924==    by 0x2EADAC2: Eigen::PlainObjectBase<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> >::PlainObjectBase<Eigen::Block<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> const, -1, 1, false> >(Eigen::DenseBase<Eigen::Block<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> const, -1, 1, false> > const&) (PlainObjectBase.h:536)
+==27924==    by 0x2EA7D31: Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1>::Matrix<Eigen::Block<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> const, -1, 1, false> >(Eigen::EigenBase<Eigen::Block<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> const, -1, 1, false> > const&) (Matrix.h:379)
+==27924==    by 0x2E95AC3: dairlib::systems::trajectory_optimization::Dircon<double>::state_vars(int, int) const (dircon.cc:383)
+==27924==    by 0x2E99241: dairlib::systems::trajectory_optimization::Dircon<double>::Dircon(std::unique_ptr<dairlib::systems::trajectory_optimization::DirconModeSequence<double>, std::default_delete<dairlib::systems::trajectory_optimization::DirconModeSequence<double> > >, dairlib::systems::trajectory_optimization::DirconModeSequence<double> const*, drake::multibody::MultibodyPlant<double> const&, int) (dircon.cc:249)
+==27924==    by 0x2E92AB0: dairlib::systems::trajectory_optimization::Dircon<double>::Dircon(dairlib::systems::trajectory_optimization::DirconModeSequence<double> const&) (dircon.cc:29)
+==27924== 
+==27924== Invalid read of size 4
+==27924==    at 0x2E4E7D0: drake::symbolic::Variable::Variable(drake::symbolic::Variable const&) (symbolic_variable.h:51)
+==27924==    by 0x2E5491A: Eigen::internal::mapbase_evaluator<Eigen::Block<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> const, -1, 1, false>, Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> >::coeff(long) const (CoreEvaluators.h:840)
+==27924==    by 0x2E4C47C: Eigen::DenseCoeffsBase<Eigen::Block<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> const, -1, 1, false>, 0>::coeff(long) const (DenseCoeffsBase.h:144)
+==27924==    by 0x2E4456E: Eigen::DenseCoeffsBase<Eigen::Block<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> const, -1, 1, false>, 0>::operator()(long) const (DenseCoeffsBase.h:181)
+==27924==    by 0x2E992FF: dairlib::systems::trajectory_optimization::Dircon<double>::Dircon(std::unique_ptr<dairlib::systems::trajectory_optimization::DirconModeSequence<double>, std::default_delete<dairlib::systems::trajectory_optimization::DirconModeSequence<double> > >, dairlib::systems::trajectory_optimization::DirconModeSequence<double> const*, drake::multibody::MultibodyPlant<double> const&, int) (dircon.cc:254)
+==27924==    by 0x2E92AB0: dairlib::systems::trajectory_optimization::Dircon<double>::Dircon(dairlib::systems::trajectory_optimization::DirconModeSequence<double> const&) (dircon.cc:29)
+==27924==    by 0x2E317F2: void dairlib::(anonymous namespace)::runSpiritStand<double>(std::unique_ptr<drake::multibody::MultibodyPlant<double>, std::default_delete<drake::multibody::MultibodyPlant<double> > >, drake::multibody::MultibodyPlant<double>*, std::unique_ptr<drake::geometry::SceneGraph<double>, std::default_delete<drake::geometry::SceneGraph<double> > >, double, drake::trajectories::PiecewisePolynomial<double>, drake::trajectories::PiecewisePolynomial<double>, std::vector<drake::trajectories::PiecewisePolynomial<double>, std::allocator<drake::trajectories::PiecewisePolynomial<double> > >, std::vector<drake::trajectories::PiecewisePolynomial<double>, std::allocator<drake::trajectories::PiecewisePolynomial<double> > >, std::vector<drake::trajectories::PiecewisePolynomial<double>, std::allocator<drake::trajectories::PiecewisePolynomial<double> > >) (run_spirit_jump.cc:205)
+==27924==    by 0x2E2B88F: main (run_spirit_jump.cc:554)
+==27924==  Address 0x22ac8868 is 616 bytes inside a block of size 1,184 free'd
+==27924==    at 0x5B8FD3B: free (vg_replace_malloc.c:530)
+==27924==    by 0x2E35E0F: Eigen::internal::aligned_free(void*) (Memory.h:177)
+==27924==    by 0x2E45DD3: void Eigen::internal::conditional_aligned_free<true>(void*) (Memory.h:230)
+==27924==    by 0x2E40A4A: void Eigen::internal::conditional_aligned_delete_auto<drake::symbolic::Variable, true>(drake::symbolic::Variable*, unsigned long) (Memory.h:416)
+==27924==    by 0x2E3C6C2: Eigen::DenseStorage<drake::symbolic::Variable, -1, -1, 1, 0>::~DenseStorage() (DenseStorage.h:542)
+==27924==    by 0x2E39627: Eigen::PlainObjectBase<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> >::~PlainObjectBase() (PlainObjectBase.h:98)
+==27924==    by 0x2E39643: Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1>::~Matrix() (Matrix.h:178)
+==27924==    by 0x2E99282: dairlib::systems::trajectory_optimization::Dircon<double>::Dircon(std::unique_ptr<dairlib::systems::trajectory_optimization::DirconModeSequence<double>, std::default_delete<dairlib::systems::trajectory_optimization::DirconModeSequence<double> > >, dairlib::systems::trajectory_optimization::DirconModeSequence<double> const*, drake::multibody::MultibodyPlant<double> const&, int) (dircon.cc:249)
+==27924==    by 0x2E92AB0: dairlib::systems::trajectory_optimization::Dircon<double>::Dircon(dairlib::systems::trajectory_optimization::DirconModeSequence<double> const&) (dircon.cc:29)
+==27924==    by 0x2E317F2: void dairlib::(anonymous namespace)::runSpiritStand<double>(std::unique_ptr<drake::multibody::MultibodyPlant<double>, std::default_delete<drake::multibody::MultibodyPlant<double> > >, drake::multibody::MultibodyPlant<double>*, std::unique_ptr<drake::geometry::SceneGraph<double>, std::default_delete<drake::geometry::SceneGraph<double> > >, double, drake::trajectories::PiecewisePolynomial<double>, drake::trajectories::PiecewisePolynomial<double>, std::vector<drake::trajectories::PiecewisePolynomial<double>, std::allocator<drake::trajectories::PiecewisePolynomial<double> > >, std::vector<drake::trajectories::PiecewisePolynomial<double>, std::allocator<drake::trajectories::PiecewisePolynomial<double> > >, std::vector<drake::trajectories::PiecewisePolynomial<double>, std::allocator<drake::trajectories::PiecewisePolynomial<double> > >) (run_spirit_jump.cc:205)
+==27924==    by 0x2E2B88F: main (run_spirit_jump.cc:554)
+==27924==  Block was alloc'd at
+==27924==    at 0x5B8EB0F: malloc (vg_replace_malloc.c:299)
+==27924==    by 0x2E35DA8: Eigen::internal::aligned_malloc(unsigned long) (Memory.h:159)
+==27924==    by 0x2E511A9: void* Eigen::internal::conditional_aligned_malloc<true>(unsigned long) (Memory.h:214)
+==27924==    by 0x2E5C366: drake::symbolic::Variable* Eigen::internal::conditional_aligned_new_auto<drake::symbolic::Variable, true>(unsigned long) (Memory.h:374)
+==27924==    by 0x2E51515: Eigen::DenseStorage<drake::symbolic::Variable, -1, -1, 1, 0>::resize(long, long, long) (DenseStorage.h:557)
+==27924==    by 0x2E48285: Eigen::PlainObjectBase<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> >::resize(long, long) (PlainObjectBase.h:293)
+==27924==    by 0x2EB29AB: void Eigen::PlainObjectBase<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> >::resizeLike<Eigen::Block<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> const, -1, 1, false> >(Eigen::EigenBase<Eigen::Block<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> const, -1, 1, false> > const&) (PlainObjectBase.h:375)
+==27924==    by 0x2EADAC2: Eigen::PlainObjectBase<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> >::PlainObjectBase<Eigen::Block<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> const, -1, 1, false> >(Eigen::DenseBase<Eigen::Block<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> const, -1, 1, false> > const&) (PlainObjectBase.h:536)
+==27924==    by 0x2EA7D31: Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1>::Matrix<Eigen::Block<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> const, -1, 1, false> >(Eigen::EigenBase<Eigen::Block<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> const, -1, 1, false> > const&) (Matrix.h:379)
+==27924==    by 0x2E95AC3: dairlib::systems::trajectory_optimization::Dircon<double>::state_vars(int, int) const (dircon.cc:383)
+==27924==    by 0x2E99241: dairlib::systems::trajectory_optimization::Dircon<double>::Dircon(std::unique_ptr<dairlib::systems::trajectory_optimization::DirconModeSequence<double>, std::default_delete<dairlib::systems::trajectory_optimization::DirconModeSequence<double> > >, dairlib::systems::trajectory_optimization::DirconModeSequence<double> const*, drake::multibody::MultibodyPlant<double> const&, int) (dircon.cc:249)
+==27924==    by 0x2E92AB0: dairlib::systems::trajectory_optimization::Dircon<double>::Dircon(dairlib::systems::trajectory_optimization::DirconModeSequence<double> const&) (dircon.cc:29)
+==27924== 
+==27924== Invalid read of size 8
+==27924==    at 0x2E4E760: std::__shared_ptr<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, (__gnu_cxx::_Lock_policy)2>::__shared_ptr(std::__shared_ptr<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, (__gnu_cxx::_Lock_policy)2> const&) (shared_ptr_base.h:1121)
+==27924==    by 0x2E4E7AA: std::shared_ptr<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const>::shared_ptr(std::shared_ptr<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const> const&) (shared_ptr.h:119)
+==27924==    by 0x2E4E7F4: drake::symbolic::Variable::Variable(drake::symbolic::Variable const&) (symbolic_variable.h:51)
+==27924==    by 0x2E5491A: Eigen::internal::mapbase_evaluator<Eigen::Block<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> const, -1, 1, false>, Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> >::coeff(long) const (CoreEvaluators.h:840)
+==27924==    by 0x2E4C47C: Eigen::DenseCoeffsBase<Eigen::Block<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> const, -1, 1, false>, 0>::coeff(long) const (DenseCoeffsBase.h:144)
+==27924==    by 0x2E4456E: Eigen::DenseCoeffsBase<Eigen::Block<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> const, -1, 1, false>, 0>::operator()(long) const (DenseCoeffsBase.h:181)
+==27924==    by 0x2E992FF: dairlib::systems::trajectory_optimization::Dircon<double>::Dircon(std::unique_ptr<dairlib::systems::trajectory_optimization::DirconModeSequence<double>, std::default_delete<dairlib::systems::trajectory_optimization::DirconModeSequence<double> > >, dairlib::systems::trajectory_optimization::DirconModeSequence<double> const*, drake::multibody::MultibodyPlant<double> const&, int) (dircon.cc:254)
+==27924==    by 0x2E92AB0: dairlib::systems::trajectory_optimization::Dircon<double>::Dircon(dairlib::systems::trajectory_optimization::DirconModeSequence<double> const&) (dircon.cc:29)
+==27924==    by 0x2E317F2: void dairlib::(anonymous namespace)::runSpiritStand<double>(std::unique_ptr<drake::multibody::MultibodyPlant<double>, std::default_delete<drake::multibody::MultibodyPlant<double> > >, drake::multibody::MultibodyPlant<double>*, std::unique_ptr<drake::geometry::SceneGraph<double>, std::default_delete<drake::geometry::SceneGraph<double> > >, double, drake::trajectories::PiecewisePolynomial<double>, drake::trajectories::PiecewisePolynomial<double>, std::vector<drake::trajectories::PiecewisePolynomial<double>, std::allocator<drake::trajectories::PiecewisePolynomial<double> > >, std::vector<drake::trajectories::PiecewisePolynomial<double>, std::allocator<drake::trajectories::PiecewisePolynomial<double> > >, std::vector<drake::trajectories::PiecewisePolynomial<double>, std::allocator<drake::trajectories::PiecewisePolynomial<double> > >) (run_spirit_jump.cc:205)
+==27924==    by 0x2E2B88F: main (run_spirit_jump.cc:554)
+==27924==  Address 0x22ac8870 is 624 bytes inside a block of size 1,184 free'd
+==27924==    at 0x5B8FD3B: free (vg_replace_malloc.c:530)
+==27924==    by 0x2E35E0F: Eigen::internal::aligned_free(void*) (Memory.h:177)
+==27924==    by 0x2E45DD3: void Eigen::internal::conditional_aligned_free<true>(void*) (Memory.h:230)
+==27924==    by 0x2E40A4A: void Eigen::internal::conditional_aligned_delete_auto<drake::symbolic::Variable, true>(drake::symbolic::Variable*, unsigned long) (Memory.h:416)
+==27924==    by 0x2E3C6C2: Eigen::DenseStorage<drake::symbolic::Variable, -1, -1, 1, 0>::~DenseStorage() (DenseStorage.h:542)
+==27924==    by 0x2E39627: Eigen::PlainObjectBase<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> >::~PlainObjectBase() (PlainObjectBase.h:98)
+==27924==    by 0x2E39643: Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1>::~Matrix() (Matrix.h:178)
+==27924==    by 0x2E99282: dairlib::systems::trajectory_optimization::Dircon<double>::Dircon(std::unique_ptr<dairlib::systems::trajectory_optimization::DirconModeSequence<double>, std::default_delete<dairlib::systems::trajectory_optimization::DirconModeSequence<double> > >, dairlib::systems::trajectory_optimization::DirconModeSequence<double> const*, drake::multibody::MultibodyPlant<double> const&, int) (dircon.cc:249)
+==27924==    by 0x2E92AB0: dairlib::systems::trajectory_optimization::Dircon<double>::Dircon(dairlib::systems::trajectory_optimization::DirconModeSequence<double> const&) (dircon.cc:29)
+==27924==    by 0x2E317F2: void dairlib::(anonymous namespace)::runSpiritStand<double>(std::unique_ptr<drake::multibody::MultibodyPlant<double>, std::default_delete<drake::multibody::MultibodyPlant<double> > >, drake::multibody::MultibodyPlant<double>*, std::unique_ptr<drake::geometry::SceneGraph<double>, std::default_delete<drake::geometry::SceneGraph<double> > >, double, drake::trajectories::PiecewisePolynomial<double>, drake::trajectories::PiecewisePolynomial<double>, std::vector<drake::trajectories::PiecewisePolynomial<double>, std::allocator<drake::trajectories::PiecewisePolynomial<double> > >, std::vector<drake::trajectories::PiecewisePolynomial<double>, std::allocator<drake::trajectories::PiecewisePolynomial<double> > >, std::vector<drake::trajectories::PiecewisePolynomial<double>, std::allocator<drake::trajectories::PiecewisePolynomial<double> > >) (run_spirit_jump.cc:205)
+==27924==    by 0x2E2B88F: main (run_spirit_jump.cc:554)
+==27924==  Block was alloc'd at
+==27924==    at 0x5B8EB0F: malloc (vg_replace_malloc.c:299)
+==27924==    by 0x2E35DA8: Eigen::internal::aligned_malloc(unsigned long) (Memory.h:159)
+==27924==    by 0x2E511A9: void* Eigen::internal::conditional_aligned_malloc<true>(unsigned long) (Memory.h:214)
+==27924==    by 0x2E5C366: drake::symbolic::Variable* Eigen::internal::conditional_aligned_new_auto<drake::symbolic::Variable, true>(unsigned long) (Memory.h:374)
+==27924==    by 0x2E51515: Eigen::DenseStorage<drake::symbolic::Variable, -1, -1, 1, 0>::resize(long, long, long) (DenseStorage.h:557)
+==27924==    by 0x2E48285: Eigen::PlainObjectBase<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> >::resize(long, long) (PlainObjectBase.h:293)
+==27924==    by 0x2EB29AB: void Eigen::PlainObjectBase<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> >::resizeLike<Eigen::Block<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> const, -1, 1, false> >(Eigen::EigenBase<Eigen::Block<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> const, -1, 1, false> > const&) (PlainObjectBase.h:375)
+==27924==    by 0x2EADAC2: Eigen::PlainObjectBase<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> >::PlainObjectBase<Eigen::Block<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> const, -1, 1, false> >(Eigen::DenseBase<Eigen::Block<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> const, -1, 1, false> > const&) (PlainObjectBase.h:536)
+==27924==    by 0x2EA7D31: Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1>::Matrix<Eigen::Block<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> const, -1, 1, false> >(Eigen::EigenBase<Eigen::Block<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> const, -1, 1, false> > const&) (Matrix.h:379)
+==27924==    by 0x2E95AC3: dairlib::systems::trajectory_optimization::Dircon<double>::state_vars(int, int) const (dircon.cc:383)
+==27924==    by 0x2E99241: dairlib::systems::trajectory_optimization::Dircon<double>::Dircon(std::unique_ptr<dairlib::systems::trajectory_optimization::DirconModeSequence<double>, std::default_delete<dairlib::systems::trajectory_optimization::DirconModeSequence<double> > >, dairlib::systems::trajectory_optimization::DirconModeSequence<double> const*, drake::multibody::MultibodyPlant<double> const&, int) (dircon.cc:249)
+==27924==    by 0x2E92AB0: dairlib::systems::trajectory_optimization::Dircon<double>::Dircon(dairlib::systems::trajectory_optimization::DirconModeSequence<double> const&) (dircon.cc:29)
+==27924== 
+==27924== Invalid read of size 8
+==27924==    at 0x2E3B152: std::__shared_count<(__gnu_cxx::_Lock_policy)2>::__shared_count(std::__shared_count<(__gnu_cxx::_Lock_policy)2> const&) (shared_ptr_base.h:688)
+==27924==    by 0x2E4E784: std::__shared_ptr<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, (__gnu_cxx::_Lock_policy)2>::__shared_ptr(std::__shared_ptr<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, (__gnu_cxx::_Lock_policy)2> const&) (shared_ptr_base.h:1121)
+==27924==    by 0x2E4E7AA: std::shared_ptr<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const>::shared_ptr(std::shared_ptr<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const> const&) (shared_ptr.h:119)
+==27924==    by 0x2E4E7F4: drake::symbolic::Variable::Variable(drake::symbolic::Variable const&) (symbolic_variable.h:51)
+==27924==    by 0x2E5491A: Eigen::internal::mapbase_evaluator<Eigen::Block<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> const, -1, 1, false>, Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> >::coeff(long) const (CoreEvaluators.h:840)
+==27924==    by 0x2E4C47C: Eigen::DenseCoeffsBase<Eigen::Block<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> const, -1, 1, false>, 0>::coeff(long) const (DenseCoeffsBase.h:144)
+==27924==    by 0x2E4456E: Eigen::DenseCoeffsBase<Eigen::Block<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> const, -1, 1, false>, 0>::operator()(long) const (DenseCoeffsBase.h:181)
+==27924==    by 0x2E992FF: dairlib::systems::trajectory_optimization::Dircon<double>::Dircon(std::unique_ptr<dairlib::systems::trajectory_optimization::DirconModeSequence<double>, std::default_delete<dairlib::systems::trajectory_optimization::DirconModeSequence<double> > >, dairlib::systems::trajectory_optimization::DirconModeSequence<double> const*, drake::multibody::MultibodyPlant<double> const&, int) (dircon.cc:254)
+==27924==    by 0x2E92AB0: dairlib::systems::trajectory_optimization::Dircon<double>::Dircon(dairlib::systems::trajectory_optimization::DirconModeSequence<double> const&) (dircon.cc:29)
+==27924==    by 0x2E317F2: void dairlib::(anonymous namespace)::runSpiritStand<double>(std::unique_ptr<drake::multibody::MultibodyPlant<double>, std::default_delete<drake::multibody::MultibodyPlant<double> > >, drake::multibody::MultibodyPlant<double>*, std::unique_ptr<drake::geometry::SceneGraph<double>, std::default_delete<drake::geometry::SceneGraph<double> > >, double, drake::trajectories::PiecewisePolynomial<double>, drake::trajectories::PiecewisePolynomial<double>, std::vector<drake::trajectories::PiecewisePolynomial<double>, std::allocator<drake::trajectories::PiecewisePolynomial<double> > >, std::vector<drake::trajectories::PiecewisePolynomial<double>, std::allocator<drake::trajectories::PiecewisePolynomial<double> > >, std::vector<drake::trajectories::PiecewisePolynomial<double>, std::allocator<drake::trajectories::PiecewisePolynomial<double> > >) (run_spirit_jump.cc:205)
+==27924==    by 0x2E2B88F: main (run_spirit_jump.cc:554)
+==27924==  Address 0x22ac8878 is 632 bytes inside a block of size 1,184 free'd
+==27924==    at 0x5B8FD3B: free (vg_replace_malloc.c:530)
+==27924==    by 0x2E35E0F: Eigen::internal::aligned_free(void*) (Memory.h:177)
+==27924==    by 0x2E45DD3: void Eigen::internal::conditional_aligned_free<true>(void*) (Memory.h:230)
+==27924==    by 0x2E40A4A: void Eigen::internal::conditional_aligned_delete_auto<drake::symbolic::Variable, true>(drake::symbolic::Variable*, unsigned long) (Memory.h:416)
+==27924==    by 0x2E3C6C2: Eigen::DenseStorage<drake::symbolic::Variable, -1, -1, 1, 0>::~DenseStorage() (DenseStorage.h:542)
+==27924==    by 0x2E39627: Eigen::PlainObjectBase<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> >::~PlainObjectBase() (PlainObjectBase.h:98)
+==27924==    by 0x2E39643: Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1>::~Matrix() (Matrix.h:178)
+==27924==    by 0x2E99282: dairlib::systems::trajectory_optimization::Dircon<double>::Dircon(std::unique_ptr<dairlib::systems::trajectory_optimization::DirconModeSequence<double>, std::default_delete<dairlib::systems::trajectory_optimization::DirconModeSequence<double> > >, dairlib::systems::trajectory_optimization::DirconModeSequence<double> const*, drake::multibody::MultibodyPlant<double> const&, int) (dircon.cc:249)
+==27924==    by 0x2E92AB0: dairlib::systems::trajectory_optimization::Dircon<double>::Dircon(dairlib::systems::trajectory_optimization::DirconModeSequence<double> const&) (dircon.cc:29)
+==27924==    by 0x2E317F2: void dairlib::(anonymous namespace)::runSpiritStand<double>(std::unique_ptr<drake::multibody::MultibodyPlant<double>, std::default_delete<drake::multibody::MultibodyPlant<double> > >, drake::multibody::MultibodyPlant<double>*, std::unique_ptr<drake::geometry::SceneGraph<double>, std::default_delete<drake::geometry::SceneGraph<double> > >, double, drake::trajectories::PiecewisePolynomial<double>, drake::trajectories::PiecewisePolynomial<double>, std::vector<drake::trajectories::PiecewisePolynomial<double>, std::allocator<drake::trajectories::PiecewisePolynomial<double> > >, std::vector<drake::trajectories::PiecewisePolynomial<double>, std::allocator<drake::trajectories::PiecewisePolynomial<double> > >, std::vector<drake::trajectories::PiecewisePolynomial<double>, std::allocator<drake::trajectories::PiecewisePolynomial<double> > >) (run_spirit_jump.cc:205)
+==27924==    by 0x2E2B88F: main (run_spirit_jump.cc:554)
+==27924==  Block was alloc'd at
+==27924==    at 0x5B8EB0F: malloc (vg_replace_malloc.c:299)
+==27924==    by 0x2E35DA8: Eigen::internal::aligned_malloc(unsigned long) (Memory.h:159)
+==27924==    by 0x2E511A9: void* Eigen::internal::conditional_aligned_malloc<true>(unsigned long) (Memory.h:214)
+==27924==    by 0x2E5C366: drake::symbolic::Variable* Eigen::internal::conditional_aligned_new_auto<drake::symbolic::Variable, true>(unsigned long) (Memory.h:374)
+==27924==    by 0x2E51515: Eigen::DenseStorage<drake::symbolic::Variable, -1, -1, 1, 0>::resize(long, long, long) (DenseStorage.h:557)
+==27924==    by 0x2E48285: Eigen::PlainObjectBase<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> >::resize(long, long) (PlainObjectBase.h:293)
+==27924==    by 0x2EB29AB: void Eigen::PlainObjectBase<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> >::resizeLike<Eigen::Block<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> const, -1, 1, false> >(Eigen::EigenBase<Eigen::Block<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> const, -1, 1, false> > const&) (PlainObjectBase.h:375)
+==27924==    by 0x2EADAC2: Eigen::PlainObjectBase<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> >::PlainObjectBase<Eigen::Block<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> const, -1, 1, false> >(Eigen::DenseBase<Eigen::Block<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> const, -1, 1, false> > const&) (PlainObjectBase.h:536)
+==27924==    by 0x2EA7D31: Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1>::Matrix<Eigen::Block<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> const, -1, 1, false> >(Eigen::EigenBase<Eigen::Block<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> const, -1, 1, false> > const&) (Matrix.h:379)
+==27924==    by 0x2E95AC3: dairlib::systems::trajectory_optimization::Dircon<double>::state_vars(int, int) const (dircon.cc:383)
+==27924==    by 0x2E99241: dairlib::systems::trajectory_optimization::Dircon<double>::Dircon(std::unique_ptr<dairlib::systems::trajectory_optimization::DirconModeSequence<double>, std::default_delete<dairlib::systems::trajectory_optimization::DirconModeSequence<double> > >, dairlib::systems::trajectory_optimization::DirconModeSequence<double> const*, drake::multibody::MultibodyPlant<double> const&, int) (dircon.cc:249)
+==27924==    by 0x2E92AB0: dairlib::systems::trajectory_optimization::Dircon<double>::Dircon(dairlib::systems::trajectory_optimization::DirconModeSequence<double> const&) (dircon.cc:29)
+==27924== 
+Line 253-dircon
+==27924== Invalid read of size 8
+==27924==    at 0x2E4E7C2: drake::symbolic::Variable::Variable(drake::symbolic::Variable const&) (symbolic_variable.h:51)
+==27924==    by 0x2EBFB9C: Eigen::internal::mapbase_evaluator<Eigen::Block<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> const, -1, 1, false>, Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> >::coeff(long, long) const (CoreEvaluators.h:834)
+==27924==    by 0x2EBBBBC: Eigen::internal::binary_evaluator<Eigen::CwiseBinaryOp<std::equal_to<void>, Eigen::Block<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> const, -1, 1, false> const, Eigen::CwiseNullaryOp<Eigen::internal::scalar_constant_op<double>, Eigen::Matrix<double, -1, 1, 0, -1, 1> > const>, Eigen::internal::IndexBased, Eigen::internal::IndexBased, drake::symbolic::Variable, double>::coeff(long, long) const (CoreEvaluators.h:713)
+==27924==    by 0x2EB85C5: Eigen::internal::redux_evaluator<Eigen::CwiseBinaryOp<std::equal_to<void>, Eigen::Block<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> const, -1, 1, false> const, Eigen::CwiseNullaryOp<Eigen::internal::scalar_constant_op<double>, Eigen::Matrix<double, -1, 1, 0, -1, 1> > const> >::coeffByOuterInner(long, long) const (Redux.h:381)
+==27924==    by 0x2EB461D: Eigen::internal::redux_impl<drake::symbolic::Formula (drake::symbolic::Formula const&, drake::symbolic::Formula const&), Eigen::internal::redux_evaluator<Eigen::CwiseBinaryOp<std::equal_to<void>, Eigen::Block<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> const, -1, 1, false> const, Eigen::CwiseNullaryOp<Eigen::internal::scalar_constant_op<double>, Eigen::Matrix<double, -1, 1, 0, -1, 1> > const> >, 0, 0>::run(Eigen::internal::redux_evaluator<Eigen::CwiseBinaryOp<std::equal_to<void>, Eigen::Block<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> const, -1, 1, false> const, Eigen::CwiseNullaryOp<Eigen::internal::scalar_constant_op<double>, Eigen::Matrix<double, -1, 1, 0, -1, 1> > const> > const&, drake::symbolic::Formula (&)(drake::symbolic::Formula const&, drake::symbolic::Formula const&)) (Redux.h:194)
+==27924==    by 0x2EAF61D: drake::symbolic::Formula Eigen::DenseBase<Eigen::CwiseBinaryOp<std::equal_to<void>, Eigen::Block<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> const, -1, 1, false> const, Eigen::CwiseNullaryOp<Eigen::internal::scalar_constant_op<double>, Eigen::Matrix<double, -1, 1, 0, -1, 1> > const> >::redux<drake::symbolic::Formula (drake::symbolic::Formula const&, drake::symbolic::Formula const&)>(drake::symbolic::Formula ( const&)(drake::symbolic::Formula const&, drake::symbolic::Formula const&)) const (Redux.h:418)
+==27924==    by 0x2EA98F2: std::enable_if<(std::is_same<Eigen::internal::traits<Eigen::VectorBlock<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> const, -1> >::XprKind, Eigen::MatrixXpr>::value&&std::is_same<Eigen::internal::traits<Eigen::CwiseNullaryOp<Eigen::internal::scalar_constant_op<double>, Eigen::Matrix<double, -1, 1, 0, -1, 1> > >::XprKind, Eigen::MatrixXpr>::value)&&std::is_same<decltype (((Eigen::VectorBlock<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> const, -1>::Scalar)())==((Eigen::CwiseNullaryOp<Eigen::internal::scalar_constant_op<double>, Eigen::Matrix<double, -1, 1, 0, -1, 1> >::Scalar)())), drake::symbolic::Formula>::value, drake::symbolic::Formula>::type drake::symbolic::operator==<Eigen::VectorBlock<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> const, -1>, Eigen::CwiseNullaryOp<Eigen::internal::scalar_constant_op<double>, Eigen::Matrix<double, -1, 1, 0, -1, 1> > >(Eigen::VectorBlock<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> const, -1> const&, Eigen::CwiseNullaryOp<Eigen::internal::scalar_constant_op<double>, Eigen::Matrix<double, -1, 1, 0, -1, 1> > const&) (symbolic_formula.h:955)
+==27924==    by 0x2E993E6: dairlib::systems::trajectory_optimization::Dircon<double>::Dircon(std::unique_ptr<dairlib::systems::trajectory_optimization::DirconModeSequence<double>, std::default_delete<dairlib::systems::trajectory_optimization::DirconModeSequence<double> > >, dairlib::systems::trajectory_optimization::DirconModeSequence<double> const*, drake::multibody::MultibodyPlant<double> const&, int) (dircon.cc:257)
+==27924==    by 0x2E92AB0: dairlib::systems::trajectory_optimization::Dircon<double>::Dircon(dairlib::systems::trajectory_optimization::DirconModeSequence<double> const&) (dircon.cc:29)
+==27924==    by 0x2E317F2: void dairlib::(anonymous namespace)::runSpiritStand<double>(std::unique_ptr<drake::multibody::MultibodyPlant<double>, std::default_delete<drake::multibody::MultibodyPlant<double> > >, drake::multibody::MultibodyPlant<double>*, std::unique_ptr<drake::geometry::SceneGraph<double>, std::default_delete<drake::geometry::SceneGraph<double> > >, double, drake::trajectories::PiecewisePolynomial<double>, drake::trajectories::PiecewisePolynomial<double>, std::vector<drake::trajectories::PiecewisePolynomial<double>, std::allocator<drake::trajectories::PiecewisePolynomial<double> > >, std::vector<drake::trajectories::PiecewisePolynomial<double>, std::allocator<drake::trajectories::PiecewisePolynomial<double> > >, std::vector<drake::trajectories::PiecewisePolynomial<double>, std::allocator<drake::trajectories::PiecewisePolynomial<double> > >) (run_spirit_jump.cc:205)
+==27924==    by 0x2E2B88F: main (run_spirit_jump.cc:554)
+==27924==  Address 0x22ac8860 is 608 bytes inside a block of size 1,184 free'd
+==27924==    at 0x5B8FD3B: free (vg_replace_malloc.c:530)
+==27924==    by 0x2E35E0F: Eigen::internal::aligned_free(void*) (Memory.h:177)
+==27924==    by 0x2E45DD3: void Eigen::internal::conditional_aligned_free<true>(void*) (Memory.h:230)
+==27924==    by 0x2E40A4A: void Eigen::internal::conditional_aligned_delete_auto<drake::symbolic::Variable, true>(drake::symbolic::Variable*, unsigned long) (Memory.h:416)
+==27924==    by 0x2E3C6C2: Eigen::DenseStorage<drake::symbolic::Variable, -1, -1, 1, 0>::~DenseStorage() (DenseStorage.h:542)
+==27924==    by 0x2E39627: Eigen::PlainObjectBase<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> >::~PlainObjectBase() (PlainObjectBase.h:98)
+==27924==    by 0x2E39643: Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1>::~Matrix() (Matrix.h:178)
+==27924==    by 0x2E99282: dairlib::systems::trajectory_optimization::Dircon<double>::Dircon(std::unique_ptr<dairlib::systems::trajectory_optimization::DirconModeSequence<double>, std::default_delete<dairlib::systems::trajectory_optimization::DirconModeSequence<double> > >, dairlib::systems::trajectory_optimization::DirconModeSequence<double> const*, drake::multibody::MultibodyPlant<double> const&, int) (dircon.cc:249)
+==27924==    by 0x2E92AB0: dairlib::systems::trajectory_optimization::Dircon<double>::Dircon(dairlib::systems::trajectory_optimization::DirconModeSequence<double> const&) (dircon.cc:29)
+==27924==    by 0x2E317F2: void dairlib::(anonymous namespace)::runSpiritStand<double>(std::unique_ptr<drake::multibody::MultibodyPlant<double>, std::default_delete<drake::multibody::MultibodyPlant<double> > >, drake::multibody::MultibodyPlant<double>*, std::unique_ptr<drake::geometry::SceneGraph<double>, std::default_delete<drake::geometry::SceneGraph<double> > >, double, drake::trajectories::PiecewisePolynomial<double>, drake::trajectories::PiecewisePolynomial<double>, std::vector<drake::trajectories::PiecewisePolynomial<double>, std::allocator<drake::trajectories::PiecewisePolynomial<double> > >, std::vector<drake::trajectories::PiecewisePolynomial<double>, std::allocator<drake::trajectories::PiecewisePolynomial<double> > >, std::vector<drake::trajectories::PiecewisePolynomial<double>, std::allocator<drake::trajectories::PiecewisePolynomial<double> > >) (run_spirit_jump.cc:205)
+==27924==    by 0x2E2B88F: main (run_spirit_jump.cc:554)
+==27924==  Block was alloc'd at
+==27924==    at 0x5B8EB0F: malloc (vg_replace_malloc.c:299)
+==27924==    by 0x2E35DA8: Eigen::internal::aligned_malloc(unsigned long) (Memory.h:159)
+==27924==    by 0x2E511A9: void* Eigen::internal::conditional_aligned_malloc<true>(unsigned long) (Memory.h:214)
+==27924==    by 0x2E5C366: drake::symbolic::Variable* Eigen::internal::conditional_aligned_new_auto<drake::symbolic::Variable, true>(unsigned long) (Memory.h:374)
+==27924==    by 0x2E51515: Eigen::DenseStorage<drake::symbolic::Variable, -1, -1, 1, 0>::resize(long, long, long) (DenseStorage.h:557)
+==27924==    by 0x2E48285: Eigen::PlainObjectBase<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> >::resize(long, long) (PlainObjectBase.h:293)
+==27924==    by 0x2EB29AB: void Eigen::PlainObjectBase<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> >::resizeLike<Eigen::Block<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> const, -1, 1, false> >(Eigen::EigenBase<Eigen::Block<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> const, -1, 1, false> > const&) (PlainObjectBase.h:375)
+==27924==    by 0x2EADAC2: Eigen::PlainObjectBase<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> >::PlainObjectBase<Eigen::Block<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> const, -1, 1, false> >(Eigen::DenseBase<Eigen::Block<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> const, -1, 1, false> > const&) (PlainObjectBase.h:536)
+==27924==    by 0x2EA7D31: Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1>::Matrix<Eigen::Block<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> const, -1, 1, false> >(Eigen::EigenBase<Eigen::Block<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> const, -1, 1, false> > const&) (Matrix.h:379)
+==27924==    by 0x2E95AC3: dairlib::systems::trajectory_optimization::Dircon<double>::state_vars(int, int) const (dircon.cc:383)
+==27924==    by 0x2E99241: dairlib::systems::trajectory_optimization::Dircon<double>::Dircon(std::unique_ptr<dairlib::systems::trajectory_optimization::DirconModeSequence<double>, std::default_delete<dairlib::systems::trajectory_optimization::DirconModeSequence<double> > >, dairlib::systems::trajectory_optimization::DirconModeSequence<double> const*, drake::multibody::MultibodyPlant<double> const&, int) (dircon.cc:249)
+==27924==    by 0x2E92AB0: dairlib::systems::trajectory_optimization::Dircon<double>::Dircon(dairlib::systems::trajectory_optimization::DirconModeSequence<double> const&) (dircon.cc:29)
+==27924== 
+==27924== Invalid read of size 4
+==27924==    at 0x2E4E7D0: drake::symbolic::Variable::Variable(drake::symbolic::Variable const&) (symbolic_variable.h:51)
+==27924==    by 0x2EBFB9C: Eigen::internal::mapbase_evaluator<Eigen::Block<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> const, -1, 1, false>, Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> >::coeff(long, long) const (CoreEvaluators.h:834)
+==27924==    by 0x2EBBBBC: Eigen::internal::binary_evaluator<Eigen::CwiseBinaryOp<std::equal_to<void>, Eigen::Block<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> const, -1, 1, false> const, Eigen::CwiseNullaryOp<Eigen::internal::scalar_constant_op<double>, Eigen::Matrix<double, -1, 1, 0, -1, 1> > const>, Eigen::internal::IndexBased, Eigen::internal::IndexBased, drake::symbolic::Variable, double>::coeff(long, long) const (CoreEvaluators.h:713)
+==27924==    by 0x2EB85C5: Eigen::internal::redux_evaluator<Eigen::CwiseBinaryOp<std::equal_to<void>, Eigen::Block<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> const, -1, 1, false> const, Eigen::CwiseNullaryOp<Eigen::internal::scalar_constant_op<double>, Eigen::Matrix<double, -1, 1, 0, -1, 1> > const> >::coeffByOuterInner(long, long) const (Redux.h:381)
+==27924==    by 0x2EB461D: Eigen::internal::redux_impl<drake::symbolic::Formula (drake::symbolic::Formula const&, drake::symbolic::Formula const&), Eigen::internal::redux_evaluator<Eigen::CwiseBinaryOp<std::equal_to<void>, Eigen::Block<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> const, -1, 1, false> const, Eigen::CwiseNullaryOp<Eigen::internal::scalar_constant_op<double>, Eigen::Matrix<double, -1, 1, 0, -1, 1> > const> >, 0, 0>::run(Eigen::internal::redux_evaluator<Eigen::CwiseBinaryOp<std::equal_to<void>, Eigen::Block<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> const, -1, 1, false> const, Eigen::CwiseNullaryOp<Eigen::internal::scalar_constant_op<double>, Eigen::Matrix<double, -1, 1, 0, -1, 1> > const> > const&, drake::symbolic::Formula (&)(drake::symbolic::Formula const&, drake::symbolic::Formula const&)) (Redux.h:194)
+==27924==    by 0x2EAF61D: drake::symbolic::Formula Eigen::DenseBase<Eigen::CwiseBinaryOp<std::equal_to<void>, Eigen::Block<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> const, -1, 1, false> const, Eigen::CwiseNullaryOp<Eigen::internal::scalar_constant_op<double>, Eigen::Matrix<double, -1, 1, 0, -1, 1> > const> >::redux<drake::symbolic::Formula (drake::symbolic::Formula const&, drake::symbolic::Formula const&)>(drake::symbolic::Formula ( const&)(drake::symbolic::Formula const&, drake::symbolic::Formula const&)) const (Redux.h:418)
+==27924==    by 0x2EA98F2: std::enable_if<(std::is_same<Eigen::internal::traits<Eigen::VectorBlock<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> const, -1> >::XprKind, Eigen::MatrixXpr>::value&&std::is_same<Eigen::internal::traits<Eigen::CwiseNullaryOp<Eigen::internal::scalar_constant_op<double>, Eigen::Matrix<double, -1, 1, 0, -1, 1> > >::XprKind, Eigen::MatrixXpr>::value)&&std::is_same<decltype (((Eigen::VectorBlock<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> const, -1>::Scalar)())==((Eigen::CwiseNullaryOp<Eigen::internal::scalar_constant_op<double>, Eigen::Matrix<double, -1, 1, 0, -1, 1> >::Scalar)())), drake::symbolic::Formula>::value, drake::symbolic::Formula>::type drake::symbolic::operator==<Eigen::VectorBlock<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> const, -1>, Eigen::CwiseNullaryOp<Eigen::internal::scalar_constant_op<double>, Eigen::Matrix<double, -1, 1, 0, -1, 1> > >(Eigen::VectorBlock<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> const, -1> const&, Eigen::CwiseNullaryOp<Eigen::internal::scalar_constant_op<double>, Eigen::Matrix<double, -1, 1, 0, -1, 1> > const&) (symbolic_formula.h:955)
+==27924==    by 0x2E993E6: dairlib::systems::trajectory_optimization::Dircon<double>::Dircon(std::unique_ptr<dairlib::systems::trajectory_optimization::DirconModeSequence<double>, std::default_delete<dairlib::systems::trajectory_optimization::DirconModeSequence<double> > >, dairlib::systems::trajectory_optimization::DirconModeSequence<double> const*, drake::multibody::MultibodyPlant<double> const&, int) (dircon.cc:257)
+==27924==    by 0x2E92AB0: dairlib::systems::trajectory_optimization::Dircon<double>::Dircon(dairlib::systems::trajectory_optimization::DirconModeSequence<double> const&) (dircon.cc:29)
+==27924==    by 0x2E317F2: void dairlib::(anonymous namespace)::runSpiritStand<double>(std::unique_ptr<drake::multibody::MultibodyPlant<double>, std::default_delete<drake::multibody::MultibodyPlant<double> > >, drake::multibody::MultibodyPlant<double>*, std::unique_ptr<drake::geometry::SceneGraph<double>, std::default_delete<drake::geometry::SceneGraph<double> > >, double, drake::trajectories::PiecewisePolynomial<double>, drake::trajectories::PiecewisePolynomial<double>, std::vector<drake::trajectories::PiecewisePolynomial<double>, std::allocator<drake::trajectories::PiecewisePolynomial<double> > >, std::vector<drake::trajectories::PiecewisePolynomial<double>, std::allocator<drake::trajectories::PiecewisePolynomial<double> > >, std::vector<drake::trajectories::PiecewisePolynomial<double>, std::allocator<drake::trajectories::PiecewisePolynomial<double> > >) (run_spirit_jump.cc:205)
+==27924==    by 0x2E2B88F: main (run_spirit_jump.cc:554)
+==27924==  Address 0x22ac8868 is 616 bytes inside a block of size 1,184 free'd
+==27924==    at 0x5B8FD3B: free (vg_replace_malloc.c:530)
+==27924==    by 0x2E35E0F: Eigen::internal::aligned_free(void*) (Memory.h:177)
+==27924==    by 0x2E45DD3: void Eigen::internal::conditional_aligned_free<true>(void*) (Memory.h:230)
+==27924==    by 0x2E40A4A: void Eigen::internal::conditional_aligned_delete_auto<drake::symbolic::Variable, true>(drake::symbolic::Variable*, unsigned long) (Memory.h:416)
+==27924==    by 0x2E3C6C2: Eigen::DenseStorage<drake::symbolic::Variable, -1, -1, 1, 0>::~DenseStorage() (DenseStorage.h:542)
+==27924==    by 0x2E39627: Eigen::PlainObjectBase<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> >::~PlainObjectBase() (PlainObjectBase.h:98)
+==27924==    by 0x2E39643: Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1>::~Matrix() (Matrix.h:178)
+==27924==    by 0x2E99282: dairlib::systems::trajectory_optimization::Dircon<double>::Dircon(std::unique_ptr<dairlib::systems::trajectory_optimization::DirconModeSequence<double>, std::default_delete<dairlib::systems::trajectory_optimization::DirconModeSequence<double> > >, dairlib::systems::trajectory_optimization::DirconModeSequence<double> const*, drake::multibody::MultibodyPlant<double> const&, int) (dircon.cc:249)
+==27924==    by 0x2E92AB0: dairlib::systems::trajectory_optimization::Dircon<double>::Dircon(dairlib::systems::trajectory_optimization::DirconModeSequence<double> const&) (dircon.cc:29)
+==27924==    by 0x2E317F2: void dairlib::(anonymous namespace)::runSpiritStand<double>(std::unique_ptr<drake::multibody::MultibodyPlant<double>, std::default_delete<drake::multibody::MultibodyPlant<double> > >, drake::multibody::MultibodyPlant<double>*, std::unique_ptr<drake::geometry::SceneGraph<double>, std::default_delete<drake::geometry::SceneGraph<double> > >, double, drake::trajectories::PiecewisePolynomial<double>, drake::trajectories::PiecewisePolynomial<double>, std::vector<drake::trajectories::PiecewisePolynomial<double>, std::allocator<drake::trajectories::PiecewisePolynomial<double> > >, std::vector<drake::trajectories::PiecewisePolynomial<double>, std::allocator<drake::trajectories::PiecewisePolynomial<double> > >, std::vector<drake::trajectories::PiecewisePolynomial<double>, std::allocator<drake::trajectories::PiecewisePolynomial<double> > >) (run_spirit_jump.cc:205)
+==27924==    by 0x2E2B88F: main (run_spirit_jump.cc:554)
+==27924==  Block was alloc'd at
+==27924==    at 0x5B8EB0F: malloc (vg_replace_malloc.c:299)
+==27924==    by 0x2E35DA8: Eigen::internal::aligned_malloc(unsigned long) (Memory.h:159)
+==27924==    by 0x2E511A9: void* Eigen::internal::conditional_aligned_malloc<true>(unsigned long) (Memory.h:214)
+==27924==    by 0x2E5C366: drake::symbolic::Variable* Eigen::internal::conditional_aligned_new_auto<drake::symbolic::Variable, true>(unsigned long) (Memory.h:374)
+==27924==    by 0x2E51515: Eigen::DenseStorage<drake::symbolic::Variable, -1, -1, 1, 0>::resize(long, long, long) (DenseStorage.h:557)
+==27924==    by 0x2E48285: Eigen::PlainObjectBase<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> >::resize(long, long) (PlainObjectBase.h:293)
+==27924==    by 0x2EB29AB: void Eigen::PlainObjectBase<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> >::resizeLike<Eigen::Block<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> const, -1, 1, false> >(Eigen::EigenBase<Eigen::Block<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> const, -1, 1, false> > const&) (PlainObjectBase.h:375)
+==27924==    by 0x2EADAC2: Eigen::PlainObjectBase<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> >::PlainObjectBase<Eigen::Block<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> const, -1, 1, false> >(Eigen::DenseBase<Eigen::Block<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> const, -1, 1, false> > const&) (PlainObjectBase.h:536)
+==27924==    by 0x2EA7D31: Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1>::Matrix<Eigen::Block<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> const, -1, 1, false> >(Eigen::EigenBase<Eigen::Block<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> const, -1, 1, false> > const&) (Matrix.h:379)
+==27924==    by 0x2E95AC3: dairlib::systems::trajectory_optimization::Dircon<double>::state_vars(int, int) const (dircon.cc:383)
+==27924==    by 0x2E99241: dairlib::systems::trajectory_optimization::Dircon<double>::Dircon(std::unique_ptr<dairlib::systems::trajectory_optimization::DirconModeSequence<double>, std::default_delete<dairlib::systems::trajectory_optimization::DirconModeSequence<double> > >, dairlib::systems::trajectory_optimization::DirconModeSequence<double> const*, drake::multibody::MultibodyPlant<double> const&, int) (dircon.cc:249)
+==27924==    by 0x2E92AB0: dairlib::systems::trajectory_optimization::Dircon<double>::Dircon(dairlib::systems::trajectory_optimization::DirconModeSequence<double> const&) (dircon.cc:29)
+==27924== 
+==27924== Invalid read of size 8
+==27924==    at 0x2E4E760: std::__shared_ptr<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, (__gnu_cxx::_Lock_policy)2>::__shared_ptr(std::__shared_ptr<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const, (__gnu_cxx::_Lock_policy)2> const&) (shared_ptr_base.h:1121)
+==27924==    by 0x2E4E7AA: std::shared_ptr<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const>::shared_ptr(std::shared_ptr<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const> const&) (shared_ptr.h:119)
+==27924==    by 0x2E4E7F4: drake::symbolic::Variable::Variable(drake::symbolic::Variable const&) (symbolic_variable.h:51)
+==27924==    by 0x2EBFB9C: Eigen::internal::mapbase_evaluator<Eigen::Block<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> const, -1, 1, false>, Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> >::coeff(long, long) const (CoreEvaluators.h:834)
+==27924==    by 0x2EBBBBC: Eigen::internal::binary_evaluator<Eigen::CwiseBinaryOp<std::equal_to<void>, Eigen::Block<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> const, -1, 1, false> const, Eigen::CwiseNullaryOp<Eigen::internal::scalar_constant_op<double>, Eigen::Matrix<double, -1, 1, 0, -1, 1> > const>, Eigen::internal::IndexBased, Eigen::internal::IndexBased, drake::symbolic::Variable, double>::coeff(long, long) const (CoreEvaluators.h:713)
+==27924==    by 0x2EB85C5: Eigen::internal::redux_evaluator<Eigen::CwiseBinaryOp<std::equal_to<void>, Eigen::Block<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> const, -1, 1, false> const, Eigen::CwiseNullaryOp<Eigen::internal::scalar_constant_op<double>, Eigen::Matrix<double, -1, 1, 0, -1, 1> > const> >::coeffByOuterInner(long, long) const (Redux.h:381)
+==27924==    by 0x2EB461D: Eigen::internal::redux_impl<drake::symbolic::Formula (drake::symbolic::Formula const&, drake::symbolic::Formula const&), Eigen::internal::redux_evaluator<Eigen::CwiseBinaryOp<std::equal_to<void>, Eigen::Block<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> const, -1, 1, false> const, Eigen::CwiseNullaryOp<Eigen::internal::scalar_constant_op<double>, Eigen::Matrix<double, -1, 1, 0, -1, 1> > const> >, 0, 0>::run(Eigen::internal::redux_evaluator<Eigen::CwiseBinaryOp<std::equal_to<void>, Eigen::Block<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> const, -1, 1, false> const, Eigen::CwiseNullaryOp<Eigen::internal::scalar_constant_op<double>, Eigen::Matrix<double, -1, 1, 0, -1, 1> > const> > const&, drake::symbolic::Formula (&)(drake::symbolic::Formula const&, drake::symbolic::Formula const&)) (Redux.h:194)
+==27924==    by 0x2EAF61D: drake::symbolic::Formula Eigen::DenseBase<Eigen::CwiseBinaryOp<std::equal_to<void>, Eigen::Block<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> const, -1, 1, false> const, Eigen::CwiseNullaryOp<Eigen::internal::scalar_constant_op<double>, Eigen::Matrix<double, -1, 1, 0, -1, 1> > const> >::redux<drake::symbolic::Formula (drake::symbolic::Formula const&, drake::symbolic::Formula const&)>(drake::symbolic::Formula ( const&)(drake::symbolic::Formula const&, drake::symbolic::Formula const&)) const (Redux.h:418)
+==27924==    by 0x2EA98F2: std::enable_if<(std::is_same<Eigen::internal::traits<Eigen::VectorBlock<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> const, -1> >::XprKind, Eigen::MatrixXpr>::value&&std::is_same<Eigen::internal::traits<Eigen::CwiseNullaryOp<Eigen::internal::scalar_constant_op<double>, Eigen::Matrix<double, -1, 1, 0, -1, 1> > >::XprKind, Eigen::MatrixXpr>::value)&&std::is_same<decltype (((Eigen::VectorBlock<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> const, -1>::Scalar)())==((Eigen::CwiseNullaryOp<Eigen::internal::scalar_constant_op<double>, Eigen::Matrix<double, -1, 1, 0, -1, 1> >::Scalar)())), drake::symbolic::Formula>::value, drake::symbolic::Formula>::type drake::symbolic::operator==<Eigen::VectorBlock<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> const, -1>, Eigen::CwiseNullaryOp<Eigen::internal::scalar_constant_op<double>, Eigen::Matrix<double, -1, 1, 0, -1, 1> > >(Eigen::VectorBlock<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> const, -1> const&, Eigen::CwiseNullaryOp<Eigen::internal::scalar_constant_op<double>, Eigen::Matrix<double, -1, 1, 0, -1, 1> > const&) (symbolic_formula.h:955)
+==27924==    by 0x2E993E6: dairlib::systems::trajectory_optimization::Dircon<double>::Dircon(std::unique_ptr<dairlib::systems::trajectory_optimization::DirconModeSequence<double>, std::default_delete<dairlib::systems::trajectory_optimization::DirconModeSequence<double> > >, dairlib::systems::trajectory_optimization::DirconModeSequence<double> const*, drake::multibody::MultibodyPlant<double> const&, int) (dircon.cc:257)
+==27924==    by 0x2E92AB0: dairlib::systems::trajectory_optimization::Dircon<double>::Dircon(dairlib::systems::trajectory_optimization::DirconModeSequence<double> const&) (dircon.cc:29)
+==27924==    by 0x2E317F2: void dairlib::(anonymous namespace)::runSpiritStand<double>(std::unique_ptr<drake::multibody::MultibodyPlant<double>, std::default_delete<drake::multibody::MultibodyPlant<double> > >, drake::multibody::MultibodyPlant<double>*, std::unique_ptr<drake::geometry::SceneGraph<double>, std::default_delete<drake::geometry::SceneGraph<double> > >, double, drake::trajectories::PiecewisePolynomial<double>, drake::trajectories::PiecewisePolynomial<double>, std::vector<drake::trajectories::PiecewisePolynomial<double>, std::allocator<drake::trajectories::PiecewisePolynomial<double> > >, std::vector<drake::trajectories::PiecewisePolynomial<double>, std::allocator<drake::trajectories::PiecewisePolynomial<double> > >, std::vector<drake::trajectories::PiecewisePolynomial<double>, std::allocator<drake::trajectories::PiecewisePolynomial<double> > >) (run_spirit_jump.cc:205)
+==27924==  Address 0x22ac8870 is 624 bytes inside a block of size 1,184 free'd
+==27924==    at 0x5B8FD3B: free (vg_replace_malloc.c:530)
+==27924==    by 0x2E35E0F: Eigen::internal::aligned_free(void*) (Memory.h:177)
+==27924==    by 0x2E45DD3: void Eigen::internal::conditional_aligned_free<true>(void*) (Memory.h:230)
+==27924==    by 0x2E40A4A: void Eigen::internal::conditional_aligned_delete_auto<drake::symbolic::Variable, true>(drake::symbolic::Variable*, unsigned long) (Memory.h:416)
+==27924==    by 0x2E3C6C2: Eigen::DenseStorage<drake::symbolic::Variable, -1, -1, 1, 0>::~DenseStorage() (DenseStorage.h:542)
+==27924==    by 0x2E39627: Eigen::PlainObjectBase<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> >::~PlainObjectBase() (PlainObjectBase.h:98)
+==27924==    by 0x2E39643: Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1>::~Matrix() (Matrix.h:178)
+==27924==    by 0x2E99282: dairlib::systems::trajectory_optimization::Dircon<double>::Dircon(std::unique_ptr<dairlib::systems::trajectory_optimization::DirconModeSequence<double>, std::default_delete<dairlib::systems::trajectory_optimization::DirconModeSequence<double> > >, dairlib::systems::trajectory_optimization::DirconModeSequence<double> const*, drake::multibody::MultibodyPlant<double> const&, int) (dircon.cc:249)
+==27924==    by 0x2E92AB0: dairlib::systems::trajectory_optimization::Dircon<double>::Dircon(dairlib::systems::trajectory_optimization::DirconModeSequence<double> const&) (dircon.cc:29)
+==27924==    by 0x2E317F2: void dairlib::(anonymous namespace)::runSpiritStand<double>(std::unique_ptr<drake::multibody::MultibodyPlant<double>, std::default_delete<drake::multibody::MultibodyPlant<double> > >, drake::multibody::MultibodyPlant<double>*, std::unique_ptr<drake::geometry::SceneGraph<double>, std::default_delete<drake::geometry::SceneGraph<double> > >, double, drake::trajectories::PiecewisePolynomial<double>, drake::trajectories::PiecewisePolynomial<double>, std::vector<drake::trajectories::PiecewisePolynomial<double>, std::allocator<drake::trajectories::PiecewisePolynomial<double> > >, std::vector<drake::trajectories::PiecewisePolynomial<double>, std::allocator<drake::trajectories::PiecewisePolynomial<double> > >, std::vector<drake::trajectories::PiecewisePolynomial<double>, std::allocator<drake::trajectories::PiecewisePolynomial<double> > >) (run_spirit_jump.cc:205)
+==27924==    by 0x2E2B88F: main (run_spirit_jump.cc:554)
+==27924==  Block was alloc'd at
+==27924==    at 0x5B8EB0F: malloc (vg_replace_malloc.c:299)
+==27924==    by 0x2E35DA8: Eigen::internal::aligned_malloc(unsigned long) (Memory.h:159)
+==27924==    by 0x2E511A9: void* Eigen::internal::conditional_aligned_malloc<true>(unsigned long) (Memory.h:214)
+==27924==    by 0x2E5C366: drake::symbolic::Variable* Eigen::internal::conditional_aligned_new_auto<drake::symbolic::Variable, true>(unsigned long) (Memory.h:374)
+==27924==    by 0x2E51515: Eigen::DenseStorage<drake::symbolic::Variable, -1, -1, 1, 0>::resize(long, long, long) (DenseStorage.h:557)
+==27924==    by 0x2E48285: Eigen::PlainObjectBase<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> >::resize(long, long) (PlainObjectBase.h:293)
+==27924==    by 0x2EB29AB: void Eigen::PlainObjectBase<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> >::resizeLike<Eigen::Block<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> const, -1, 1, false> >(Eigen::EigenBase<Eigen::Block<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> const, -1, 1, false> > const&) (PlainObjectBase.h:375)
+==27924==    by 0x2EADAC2: Eigen::PlainObjectBase<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> >::PlainObjectBase<Eigen::Block<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> const, -1, 1, false> >(Eigen::DenseBase<Eigen::Block<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> const, -1, 1, false> > const&) (PlainObjectBase.h:536)
+==27924==    by 0x2EA7D31: Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1>::Matrix<Eigen::Block<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> const, -1, 1, false> >(Eigen::EigenBase<Eigen::Block<Eigen::Matrix<drake::symbolic::Variable, -1, 1, 0, -1, 1> const, -1, 1, false> > const&) (Matrix.h:379)
+==27924==    by 0x2E95AC3: dairlib::systems::trajectory_optimization::Dircon<double>::state_vars(int, int) const (dircon.cc:383)
+==27924==    by 0x2E99241: dairlib::systems::trajectory_optimization::Dircon<double>::Dircon(std::unique_ptr<dairlib::systems::trajectory_optimization::DirconModeSequence<double>, std::default_delete<dairlib::systems::trajectory_optimization::DirconModeSequence<double> > >, dairlib::systems::trajectory_optimization::DirconModeSequence<double> const*, drake::multibody::MultibodyPlant<double> const&, int) (dircon.cc:249)
+==27924==    by 0x2E92AB0: dairlib::systems::trajectory_optimization::Dircon<double>::Dircon(dairlib::systems::trajectory_optimization::DirconModeSequence<double> const&) (dircon.cc:29)
+==27924== 
+Line 256-dricon
+Line225
+run_spirit_jump: external/eigen/include/_usr_include_eigen3/Eigen/src/Core/DenseBase.h:257: void Eigen::DenseBase<Derived>::resize(Eigen::Index, Eigen::Index) [with Derived = Eigen::Block<Eigen::Matrix<double, -1, 1>, -1, 1, false>; Eigen::Index = long int]: Assertion `rows == this->rows() && cols == this->cols() && "DenseBase::resize() does not actually allow one to resize."' failed.
+==27924== 
+==27924== Process terminating with default action of signal 6 (SIGABRT)
+==27924==    at 0x1AEC9FB7: raise (raise.c:51)
+==27924==    by 0x1AECB920: abort (abort.c:79)
+==27924==    by 0x1AEBB489: __assert_fail_base (assert.c:92)
+==27924==    by 0x1AEBB501: __assert_fail (assert.c:101)
+==27924==    by 0x2EC5510: Eigen::DenseBase<Eigen::Block<Eigen::Matrix<double, -1, 1, 0, -1, 1>, -1, 1, false> >::resize(long, long) (DenseBase.h:256)
+==27924==    by 0x2EC2533: void Eigen::internal::resize_if_allowed<Eigen::Block<Eigen::Matrix<double, -1, 1, 0, -1, 1>, -1, 1, false>, Eigen::Matrix<double, -1, -1, 0, -1, -1>, double, double>(Eigen::Block<Eigen::Matrix<double, -1, 1, 0, -1, 1>, -1, 1, false>&, Eigen::Matrix<double, -1, -1, 0, -1, -1> const&, Eigen::internal::assign_op<double, double> const&) (AssignEvaluator.h:720)
+==27924==    by 0x2EBE3B5: void Eigen::internal::call_dense_assignment_loop<Eigen::Block<Eigen::Matrix<double, -1, 1, 0, -1, 1>, -1, 1, false>, Eigen::Matrix<double, -1, -1, 0, -1, -1>, Eigen::internal::assign_op<double, double> >(Eigen::Block<Eigen::Matrix<double, -1, 1, 0, -1, 1>, -1, 1, false>&, Eigen::Matrix<double, -1, -1, 0, -1, -1> const&, Eigen::internal::assign_op<double, double> const&) (AssignEvaluator.h:734)
+==27924==    by 0x2EBA771: Eigen::internal::Assignment<Eigen::Block<Eigen::Matrix<double, -1, 1, 0, -1, 1>, -1, 1, false>, Eigen::Matrix<double, -1, -1, 0, -1, -1>, Eigen::internal::assign_op<double, double>, Eigen::internal::Dense2Dense, void>::run(Eigen::Block<Eigen::Matrix<double, -1, 1, 0, -1, 1>, -1, 1, false>&, Eigen::Matrix<double, -1, -1, 0, -1, -1> const&, Eigen::internal::assign_op<double, double> const&) (AssignEvaluator.h:879)
+==27924==    by 0x2EB7059: void Eigen::internal::call_assignment_no_alias<Eigen::Block<Eigen::Matrix<double, -1, 1, 0, -1, 1>, -1, 1, false>, Eigen::Matrix<double, -1, -1, 0, -1, -1>, Eigen::internal::assign_op<double, double> >(Eigen::Block<Eigen::Matrix<double, -1, 1, 0, -1, 1>, -1, 1, false>&, Eigen::Matrix<double, -1, -1, 0, -1, -1> const&, Eigen::internal::assign_op<double, double> const&) (AssignEvaluator.h:836)
+==27924==    by 0x2EB2816: void Eigen::internal::call_assignment<Eigen::Block<Eigen::Matrix<double, -1, 1, 0, -1, 1>, -1, 1, false>, Eigen::Matrix<double, -1, -1, 0, -1, -1>, Eigen::internal::assign_op<double, double> >(Eigen::Block<Eigen::Matrix<double, -1, 1, 0, -1, 1>, -1, 1, false>&, Eigen::Matrix<double, -1, -1, 0, -1, -1> const&, Eigen::internal::assign_op<double, double> const&, Eigen::internal::enable_if<!Eigen::internal::evaluator_assume_aliasing<Eigen::Matrix<double, -1, -1, 0, -1, -1>, Eigen::internal::evaluator_traits<Eigen::Matrix<double, -1, -1, 0, -1, -1> >::Shape>::value, void*>::type) (AssignEvaluator.h:804)
+==27924==    by 0x2EAD98E: void Eigen::internal::call_assignment<Eigen::Block<Eigen::Matrix<double, -1, 1, 0, -1, 1>, -1, 1, false>, Eigen::Matrix<double, -1, -1, 0, -1, -1> >(Eigen::Block<Eigen::Matrix<double, -1, 1, 0, -1, 1>, -1, 1, false>&, Eigen::Matrix<double, -1, -1, 0, -1, -1> const&) (AssignEvaluator.h:782)
+==27924==    by 0x2EA7B44: Eigen::Block<Eigen::Matrix<double, -1, 1, 0, -1, 1>, -1, 1, false>& Eigen::MatrixBase<Eigen::Block<Eigen::Matrix<double, -1, 1, 0, -1, 1>, -1, 1, false> >::operator=<Eigen::Matrix<double, -1, -1, 0, -1, -1> >(Eigen::DenseBase<Eigen::Matrix<double, -1, -1, 0, -1, -1> > const&) (Assign.h:66)
+==27924== 
+==27924== HEAP SUMMARY:
+==27924==     in use at exit: 9,195,927 bytes in 63,397 blocks
+==27924==   total heap usage: 709,439 allocs, 646,042 frees, 22,055,242 bytes allocated
+==27924== 
+==27924== LEAK SUMMARY:
+==27924==    definitely lost: 0 bytes in 0 blocks
+==27924==    indirectly lost: 0 bytes in 0 blocks
+==27924==      possibly lost: 240 bytes in 3 blocks
+==27924==    still reachable: 9,195,687 bytes in 63,394 blocks
+==27924==         suppressed: 0 bytes in 0 blocks
+==27924== Rerun with --leak-check=full to see details of leaked memory
+==27924== 
+==27924== For counts of detected and suppressed errors, rerun with: -v
+==27924== ERROR SUMMARY: 144 errors from 7 contexts (suppressed: 0 from 0)
