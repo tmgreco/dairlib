@@ -53,7 +53,7 @@ DEFINE_bool(skipInitialOptimization, false, "skip first optimizations?");
 DEFINE_bool(minWork, true, "try to minimize work?");
 DEFINE_bool(ipopt, true, "Use IPOPT as solver instead of SNOPT");
 
-DEFINE_bool(spine, true, "use a spine?");
+DEFINE_bool(spine, false, "use a spine?");
 
 using drake::AutoDiffXd;
 using drake::multibody::MultibodyPlant;
@@ -748,10 +748,10 @@ int main(int argc, char* argv[]) {
           1e-1,
           FLAGS_spine,
           true,
-          FLAGS_data_directory+"simple_jump");
+          FLAGS_data_directory+"simple_jump"+ (FLAGS_spine ? "_spine" : ""));
     }
     else{
-      dairlib::DirconTrajectory old_traj(FLAGS_data_directory+"simple_jump");
+      dairlib::DirconTrajectory old_traj(FLAGS_data_directory+"simple_jump" + (FLAGS_spine ? "_spine" : ""));
       x_traj = old_traj.ReconstructStateTrajectory();
       u_traj = old_traj.ReconstructInputTrajectory();
       l_traj = old_traj.ReconstructLambdaTrajectory();
@@ -783,7 +783,7 @@ int main(int argc, char* argv[]) {
         1e-2,
         FLAGS_spine,
         true,
-        FLAGS_data_directory+"jump_"+distance_name);
+        FLAGS_data_directory+"jump_"+distance_name + (FLAGS_spine ? "_spine" : ""));
   }
   std::cout<<"Running 3rd optimization"<<std::endl;
   // Fewer constraints, and higher tolerences
@@ -809,8 +809,8 @@ int main(int argc, char* argv[]) {
       FLAGS_tol,
       FLAGS_spine,
       false,
-      FLAGS_data_directory+"jump_"+distance_name+"_hq",
-      FLAGS_data_directory+"jump_"+distance_name);
+      FLAGS_data_directory+"jump_"+distance_name+"_hq"+ (FLAGS_spine ? "_spine" : ""),
+      FLAGS_data_directory+"jump_"+distance_name+ (FLAGS_spine ? "_spine" : ""));
 
   if (FLAGS_minWork){
     // Adding in work cost and constraints
@@ -837,7 +837,7 @@ int main(int argc, char* argv[]) {
         FLAGS_tol,
         FLAGS_spine,
         false,
-        FLAGS_data_directory+"jump_"+distance_name+"_hq_work_option3",
-        FLAGS_data_directory+"jump_"+distance_name+"_hq");
+        FLAGS_data_directory+"jump_"+distance_name+"_work"+ (FLAGS_spine ? "_spine" : ""),
+        FLAGS_data_directory+"jump_"+distance_name+"_hq"+ (FLAGS_spine ? "_spine" : ""));
   }
 }
