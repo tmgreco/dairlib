@@ -348,7 +348,7 @@ void addConstraints(MultibodyPlant<T>& plant,
 
   // Apex height
   if(apex_height > 0)
-    trajopt.AddBoundingBoxConstraint(apex_height - eps, apex_height + eps, xapex(positions_map.at("base_z")) );
+    trajopt.AddBoundingBoxConstraint(apex_height, 1, xapex(positions_map.at("base_z")) );
 
   trajopt.AddBoundingBoxConstraint(- eps, + eps, xapex(n_q + velocities_map.at("base_vz")) );
 

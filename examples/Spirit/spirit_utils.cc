@@ -420,7 +420,7 @@ if(spine){
   int N_knotpoints = trajopt.N();
   for(int i = 0; i<N_knotpoints;i++){
     auto xi = trajopt.state(i);
-    trajopt.AddBoundingBoxConstraint(-M_PI,M_PI,xi(positions_map.at("spine")));
+    trajopt.AddBoundingBoxConstraint(-M_PI/4,M_PI/4,xi(positions_map.at("spine")));
   }
 
 }
