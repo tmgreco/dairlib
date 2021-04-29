@@ -63,6 +63,7 @@ void ikSpiritStand(
     double leg_height,
     double roll = 0,
     double pitch = 0,
+    const bool spine = false,
     double eps = 0.01);
 
 /// Adds constraints to a toe for ik problem. If the toe are in contact with the ground they are constrained to be

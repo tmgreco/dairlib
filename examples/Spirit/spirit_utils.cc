@@ -93,8 +93,11 @@ void ikSpiritStand(drake::multibody::MultibodyPlant<double>& plant,
                    double leg_height,
                    double roll,
                    double pitch,
+                   const bool spine,
                    double eps){
   drake::multibody::InverseKinematics ik(plant);
+  auto positions_map = multibody::makeNameToPositionsMap(plant);
+
   const auto& world_frame = plant.world_frame();
   const auto& body_frame  = plant.GetFrameByName("body");
 
@@ -124,6 +127,10 @@ void ikSpiritStand(drake::multibody::MultibodyPlant<double>& plant,
   // Add initial guess and solve
   Eigen::VectorXd initial_guess;
   dairlib::nominalSpiritStand(plant, initial_guess, com_height);
+  if(spine){
+    ik.get_mutable_prog()->AddLinearConstraint(
+        (ik.q())(positions_map.at("spine")) == 0);
+  }
   ik.get_mutable_prog()->SetInitialGuess(ik.q(), initial_guess.head(n_q));
   const auto result = Solve(ik.prog());
   const auto q_sol = result.GetSolution(ik.q());

@@ -278,7 +278,7 @@ void addConstraints(MultibodyPlant<T>& plant,
                     const double max_duration,
                     const double eps,
                     const bool spine,
-                    const bool lock_spline){
+                    const bool lock_spine){
 
   // Get position and velocity dictionaries
   auto positions_map = multibody::makeNameToPositionsMap(plant);
@@ -321,7 +321,7 @@ void addConstraints(MultibodyPlant<T>& plant,
     trajopt.AddBoundingBoxConstraint(initial_height - eps, initial_height + eps, x0(positions_map.at("base_z")));
     trajopt.AddBoundingBoxConstraint(initial_height - eps, initial_height + eps, xf(positions_map.at("base_z")));
   }
-  if(spine and !lock_spline){
+  if(spine and !lock_spine){
     trajopt.AddBoundingBoxConstraint(-eps, eps, x0( positions_map.at("spine")));
     trajopt.AddBoundingBoxConstraint(-eps, eps, xf( positions_map.at("spine")));
     trajopt.AddBoundingBoxConstraint(-eps, eps, xapex( positions_map.at("spine")));
@@ -397,7 +397,7 @@ void addConstraints(MultibodyPlant<T>& plant,
     // Height
     trajopt.AddBoundingBoxConstraint( 0.15, 5, xi( positions_map.at("base_z")));
 
-    if(spine and lock_spline){
+    if(spine and lock_spine){
       trajopt.AddBoundingBoxConstraint(-0, 0, xi( positions_map.at("spine")));
     }
   }
@@ -412,7 +412,8 @@ getModeSequence(
     drake::multibody::MultibodyPlant<T>& plant, // multibodyPlant
     const double mu,
     std::vector<int> num_knot_points,
-    DirconModeSequence<T>& sequence){
+    DirconModeSequence<T>& sequence,
+    const bool spine){
 
   dairlib::ModeSequenceHelper msh;
   msh.addMode( // Stance
@@ -451,8 +452,13 @@ getModeSequence(
       mode->MakeConstraintRelative(i,0);
       mode->MakeConstraintRelative(i,1);
     }
-    mode->SetDynamicsScale(
-        {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17}, 200);
+    if(spine){
+      mode->SetDynamicsScale(
+          {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20}, 200);
+    } else{
+      mode->SetDynamicsScale(
+          {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19}, 200);
+    }
     if (mode->evaluators().num_evaluators() > 0)
     {
       mode->SetKinVelocityScale(
@@ -543,7 +549,7 @@ void runSpiritJump(
 
   // Setup mode sequence
   auto sequence = DirconModeSequence<T>(plant);
-  auto [modeVector, toeEvals, toeEvalSets] = getModeSequence(plant, mu, num_knot_points, sequence);
+  auto [modeVector, toeEvals, toeEvalSets] = getModeSequence(plant, mu, num_knot_points, sequence, spine);
 
   ///Setup trajectory optimization
   auto trajopt = Dircon<T>(sequence);
@@ -616,7 +622,6 @@ void runSpiritJump(
     trajopt.CreateVisualizationCallback(
         dairlib::FindResourceOrThrow("examples/Spirit/spirit_spine_drake.urdf"),
         visualizer_poses, 0.2); // setup which URDF, how many poses, and alpha transparency
-
   }
 
   drake::solvers::SolverId solver_id("");

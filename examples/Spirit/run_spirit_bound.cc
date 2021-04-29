@@ -43,6 +43,7 @@ DEFINE_double(mu, 1, "coefficient of friction");
 DEFINE_string(data_directory, "/home/shane/Drake_ws/dairlib/examples/Spirit/saved_trajectories/",
               "directory to save/read data");
 DEFINE_bool(skipInitialOptimization, true, "skip first optimizations?");
+DEFINE_bool(spine, true, "use a spine?");
 
 using drake::AutoDiffXd;
 using drake::multibody::MultibodyPlant;
@@ -80,7 +81,8 @@ void badInplaceBound(MultibodyPlant<T>& plant,
                     PiecewisePolynomial<double>& u_traj,
                     vector<PiecewisePolynomial<double>>& l_traj,
                     vector<PiecewisePolynomial<double>>& lc_traj,
-                    vector<PiecewisePolynomial<double>>& vc_traj) {
+                    vector<PiecewisePolynomial<double>>& vc_traj,
+                    const bool spine) {
 
   double stand_height = FLAGS_standHeight;
   double pitch_lo = -0.3;
@@ -90,54 +92,54 @@ void badInplaceBound(MultibodyPlant<T>& plant,
   std::vector<MatrixXd> x_points;
   VectorXd x_const;
   //Stance
-  dairlib::ikSpiritStand(plant, x_const, {true, true, true, true}, stand_height, 0.2, 0, 0);
+  dairlib::ikSpiritStand(plant, x_const, {true, true, true, true}, stand_height, 0.2, 0, 0, spine);
   x_points.push_back(x_const);
-  dairlib::ikSpiritStand(plant, x_const, {true, true, true, true}, stand_height+0.02, 0.2, 0, pitch_lo/2.0);
+  dairlib::ikSpiritStand(plant, x_const, {true, true, true, true}, stand_height+0.02, 0.2, 0, pitch_lo/2.0, spine);
   x_points.push_back(x_const);
 
   x_traj.push_back(PiecewisePolynomial<double>::FirstOrderHold({0,duration/3.0},x_points));
   x_points.clear();
 
   //Rear stance
-  dairlib::ikSpiritStand(plant, x_const, {true, true, true, true}, stand_height+0.02, 0.2, 0, pitch_lo/2.0);
+  dairlib::ikSpiritStand(plant, x_const, {true, true, true, true}, stand_height+0.02, 0.2, 0, pitch_lo/2.0, spine);
   x_points.push_back(x_const);
-  dairlib::ikSpiritStand(plant, x_const, {false, true, false, true}, stand_height+0.05, 0.2, 0, pitch_lo);
+  dairlib::ikSpiritStand(plant, x_const, {false, true, false, true}, stand_height+0.05, 0.2, 0, pitch_lo, spine);
   x_points.push_back(x_const);
 
   x_traj.push_back(PiecewisePolynomial<double>::FirstOrderHold({duration/3.0, 2 * duration/3.0},x_points));
   x_points.clear();
 
   //Flight 1
-  dairlib::ikSpiritStand(plant, x_const, {false, true, false, true}, stand_height+0.05, 0.2, 0, pitch_lo);
+  dairlib::ikSpiritStand(plant, x_const, {false, true, false, true}, stand_height+0.05, 0.2, 0, pitch_lo, spine);
   x_points.push_back(x_const);
-  dairlib::ikSpiritStand(plant, x_const, {false, false, false, false}, apex_height, 0.2, 0, 0);
+  dairlib::ikSpiritStand(plant, x_const, {false, false, false, false}, apex_height, 0.2, 0, 0, spine);
   x_points.push_back(x_const);
 
   x_traj.push_back(PiecewisePolynomial<double>::FirstOrderHold({2 * duration/3.0, 3 * duration/3.0},x_points));
   x_points.clear();
 
   //Flight 2
-  dairlib::ikSpiritStand(plant, x_const, {false, false, false, false}, apex_height, 0.2, 0, 0);
+  dairlib::ikSpiritStand(plant, x_const, {false, false, false, false}, apex_height, 0.2, 0, 0, spine);
   x_points.push_back(x_const);
-  dairlib::ikSpiritStand(plant, x_const, {true, false, true, false}, stand_height+0.05, 0.2, 0, -pitch_lo);
+  dairlib::ikSpiritStand(plant, x_const, {true, false, true, false}, stand_height+0.05, 0.2, 0, -pitch_lo, spine);
   x_points.push_back(x_const);
 
   x_traj.push_back(PiecewisePolynomial<double>::FirstOrderHold({3 * duration/3.0, 4 * duration/3.0},x_points));
   x_points.clear();
 
   //Front stance
-  dairlib::ikSpiritStand(plant, x_const, {true, false, true, false}, stand_height+0.05, 0.2, 0, -pitch_lo);
+  dairlib::ikSpiritStand(plant, x_const, {true, false, true, false}, stand_height+0.05, 0.2, 0, -pitch_lo, spine);
   x_points.push_back(x_const);
-  dairlib::ikSpiritStand(plant, x_const, {true, true, true, true}, stand_height+0.02, 0.2, 0, -pitch_lo/2.0);
+  dairlib::ikSpiritStand(plant, x_const, {true, true, true, true}, stand_height+0.02, 0.2, 0, -pitch_lo/2.0, spine);
   x_points.push_back(x_const);
 
   x_traj.push_back(PiecewisePolynomial<double>::FirstOrderHold({4 * duration/3.0, 5 * duration/3.0},x_points));
   x_points.clear();
 
   //stance
-  dairlib::ikSpiritStand(plant, x_const, {true, true, true, true}, stand_height+0.02, 0.2, 0, -pitch_lo/2.0);
+  dairlib::ikSpiritStand(plant, x_const, {true, true, true, true}, stand_height+0.02, 0.2, 0, -pitch_lo/2.0, spine);
   x_points.push_back(x_const);
-  dairlib::ikSpiritStand(plant, x_const, {true, true, true, true}, stand_height, 0.2, 0, 0);
+  dairlib::ikSpiritStand(plant, x_const, {true, true, true, true}, stand_height, 0.2, 0, 0, spine);
   x_points.push_back(x_const);
 
   x_traj.push_back(PiecewisePolynomial<double>::FirstOrderHold({5 * duration/3.0, 6 * duration/3.0},x_points));
@@ -342,7 +344,8 @@ std::vector<drake::solvers::Binding<drake::solvers::Cost>> addCost(MultibodyPlan
              const double cost_velocity_legs_flight,
              const double cost_actuation_legs_flight,
              const double cost_time,
-             const double cost_work){
+             const double cost_work,
+             const bool spine){
   auto u   = trajopt.input();
   auto x   = trajopt.state();
 
@@ -358,7 +361,7 @@ std::vector<drake::solvers::Binding<drake::solvers::Cost>> addCost(MultibodyPlan
   addCostLegs(plant, trajopt, cost_velocity_legs_flight, cost_actuation_legs_flight, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}, 3);
   addCostLegs(plant, trajopt, cost_velocity_legs_flight, cost_actuation_legs_flight, {2, 3, 6, 7, 10, 11}, 4);
 
-  return AddWorkCost(plant, trajopt, cost_work);
+  return AddWorkCost(plant, trajopt, cost_work, spine);
 } // Function
 
 
@@ -372,7 +375,9 @@ void addConstraints(MultibodyPlant<T>& plant,
                     const double pitch_magnitude_lo,
                     const double pitch_magnitude_apex,
                     const double max_duration,
-                    const double eps){
+                    const double eps,
+                    const bool spine,
+                    const bool lock_spine){
 
   // Get position and velocity dictionaries
   auto positions_map = multibody::makeNameToPositionsMap(plant);
@@ -380,8 +385,8 @@ void addConstraints(MultibodyPlant<T>& plant,
 
 
   // General constraints
-  setSpiritJointLimits(plant, trajopt);
-  setSpiritActuationLimits(plant, trajopt);
+  setSpiritJointLimits(plant, trajopt, spine);
+  setSpiritActuationLimits(plant, trajopt, spine);
   trajopt.AddDurationBounds(0, max_duration);
 
   /// Setup all the optimization constraints
@@ -392,7 +397,6 @@ void addConstraints(MultibodyPlant<T>& plant,
   auto xapex  = trajopt.state_vars(3,0) ;
   auto   xtd  =  trajopt.state_vars(4,0);
   auto   xf  = trajopt.final_state();
-
 
   /// Initial constraint
 
@@ -408,6 +412,9 @@ void addConstraints(MultibodyPlant<T>& plant,
   trajopt.AddBoundingBoxConstraint(0, 0 , xf(positions_map.at("base_qz")));
   // Initial  velocity
   trajopt.AddBoundingBoxConstraint(VectorXd::Zero(n_v), VectorXd::Zero(n_v), x0.tail(n_v));
+  if(spine and !lock_spine){
+    trajopt.AddBoundingBoxConstraint(-eps, eps, x0( positions_map.at("spine")));
+  }
 
   /// LO constraints
   // Limit magnitude of pitch
@@ -429,6 +436,11 @@ void addConstraints(MultibodyPlant<T>& plant,
   trajopt.AddBoundingBoxConstraint(-eps, eps, xapex(positions_map.at("base_qx")));
   trajopt.AddBoundingBoxConstraint(-sin(pitch/2.0) , sin(pitch/2.0), xapex(positions_map.at("base_qy")));
   trajopt.AddBoundingBoxConstraint(-eps, eps, xapex(positions_map.at("base_qz")));
+
+  if(spine and !lock_spine){
+    trajopt.AddBoundingBoxConstraint(-eps, eps, xapex( positions_map.at("spine")));
+    trajopt.AddBoundingBoxConstraint(-eps, eps, xapex( n_q + velocities_map.at("spinedot")));
+  }
 
   /// TD constraints
   // Limit magnitude of pitch
@@ -454,6 +466,9 @@ void addConstraints(MultibodyPlant<T>& plant,
   trajopt.AddBoundingBoxConstraint(0, 0, xf(positions_map.at("base_qz")));
   // Zero velocity
   trajopt.AddBoundingBoxConstraint(VectorXd::Zero(n_v), VectorXd::Zero(n_v), xf.tail(n_v));
+  if(spine and !lock_spine){
+    trajopt.AddBoundingBoxConstraint(-eps, eps, xf( positions_map.at("spine")));
+  }
 
   /// Constraints on all points
   for (int i = 0; i < trajopt.N(); i++){
@@ -461,6 +476,10 @@ void addConstraints(MultibodyPlant<T>& plant,
     // Height
     trajopt.AddBoundingBoxConstraint( 0.15, 2, xi( positions_map.at("base_z")));
     trajopt.AddBoundingBoxConstraint( -eps, eps, xi( n_q+velocities_map.at("base_vy")));
+
+    if(spine and lock_spine){
+      trajopt.AddBoundingBoxConstraint(-0, 0, xi( positions_map.at("spine")));
+    }
   }
 
 }
@@ -536,7 +555,8 @@ getModeSequence(
     drake::multibody::MultibodyPlant<T>& plant, // multibodyPlant
     const double mu,
     std::vector<int> num_knot_points,
-    DirconModeSequence<T>& sequence){
+    DirconModeSequence<T>& sequence,
+    const bool spine){
   dairlib::ModeSequenceHelper msh;
 
   getModeSequenceHelper(msh, mu, num_knot_points);
@@ -548,8 +568,13 @@ getModeSequence(
       mode->MakeConstraintRelative(i,0);
       mode->MakeConstraintRelative(i,1);
     }
-    mode->SetDynamicsScale(
-        {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19}, 150.0);
+    if(spine){
+      mode->SetDynamicsScale(
+          {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20}, 200);
+    } else{
+      mode->SetDynamicsScale(
+          {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19}, 200);
+    }
     if (mode->evaluators().num_evaluators() == 4)
     {
       mode->SetKinVelocityScale(
@@ -622,6 +647,8 @@ void runSpiritJump(
     const double mu,
     const double eps,
     const double tol,
+    const bool spine,
+    const bool lock_spine,
     const std::string& file_name_out,
     const std::string& file_name_in= ""
     ) {
@@ -630,8 +657,15 @@ void runSpiritJump(
   auto plant_vis = std::make_unique<MultibodyPlant<double>>(0.0);
   auto scene_graph_ptr = std::make_unique<SceneGraph<double>>();
   Parser parser_vis(plant_vis.get(), scene_graph_ptr.get());
-  std::string full_name =
-      dairlib::FindResourceOrThrow("examples/Spirit/spirit_drake.urdf");
+  std::string full_name;
+  if(!spine){
+    full_name =
+        dairlib::FindResourceOrThrow("examples/Spirit/spirit_drake.urdf");
+  }
+  else{
+    full_name =
+        dairlib::FindResourceOrThrow("examples/Spirit/spirit_spine_drake.urdf");
+  }
   parser_vis.AddModelFromFile(full_name);
   plant_vis->Finalize();
   SceneGraph<double>& scene_graph =
@@ -639,7 +673,7 @@ void runSpiritJump(
 
   // Setup mode sequence
   auto sequence = DirconModeSequence<T>(plant);
-  auto [modeVector, toeEvals, toeEvalSets] =  getModeSequence(plant, mu, num_knot_points, sequence);
+  auto [modeVector, toeEvals, toeEvalSets] =  getModeSequence(plant, mu, num_knot_points, sequence, spine);
 
   ///Setup trajectory optimization
   auto trajopt = Dircon<T>(sequence);
@@ -680,7 +714,9 @@ void runSpiritJump(
   }
 
   // Setting up cost
-  auto work_binding = addCost(plant, trajopt, cost_actuation, cost_velocity, cost_velocity_legs_flight, cost_actuation_legs_flight, cost_time, cost_work);
+  auto work_binding = addCost(plant, trajopt, cost_actuation, cost_velocity,
+                              cost_velocity_legs_flight, cost_actuation_legs_flight,
+                              cost_time, cost_work, spine);
 
 
   // Initialize the trajectory control state and forces
@@ -698,8 +734,8 @@ void runSpiritJump(
     trajopt.SetInitialGuessForAllVariables(loaded_traj.GetDecisionVariables());
   }
 
-  addConstraints(plant, trajopt,
-                 initial_height, apex_height, fore_aft_displacement, pitch_magnitude_lo, pitch_magnitude_apex, max_duration, eps);
+  addConstraints(plant, trajopt, initial_height, apex_height, fore_aft_displacement,
+                 pitch_magnitude_lo, pitch_magnitude_apex, max_duration, eps, spine, lock_spine);
 
   /// Setup the visualization during the optimization
   int num_ghosts = 1;// Number of ghosts in visualization. NOTE: there are limitations on number of ghosts based on modes and knotpoints
@@ -707,10 +743,15 @@ void runSpiritJump(
   for(int i = 0; i < sequence.num_modes(); i++){
       visualizer_poses.push_back(num_ghosts); 
   }
-  trajopt.CreateVisualizationCallback(
-      dairlib::FindResourceOrThrow("examples/Spirit/spirit_drake.urdf"),
-      visualizer_poses, 0.2); // setup which URDF, how many poses, and alpha transparency 
-
+  if(!spine){
+    trajopt.CreateVisualizationCallback(
+        dairlib::FindResourceOrThrow("examples/Spirit/spirit_drake.urdf"),
+        visualizer_poses, 0.2); // setup which URDF, how many poses, and alpha transparency
+  } else {
+    trajopt.CreateVisualizationCallback(
+        dairlib::FindResourceOrThrow("examples/Spirit/spirit_spine_drake.urdf"),
+        visualizer_poses, 0.2); // setup which URDF, how many poses, and alpha transparency
+  }
   drake::solvers::SolverId solver_id("");
   if (ipopt) {
     solver_id = drake::solvers::IpoptSolver().id();
@@ -789,8 +830,15 @@ int main(int argc, char* argv[]) {
   auto scene_graph = std::make_unique<SceneGraph<double>>();
   Parser parser(plant.get());
   Parser parser_vis(plant_vis.get(), scene_graph.get());
-  std::string full_name =
-      dairlib::FindResourceOrThrow("examples/Spirit/spirit_drake.urdf");
+  std::string full_name;
+  if(!FLAGS_spine){
+    full_name =
+        dairlib::FindResourceOrThrow("examples/Spirit/spirit_drake.urdf");
+  }
+  else{
+    full_name =
+        dairlib::FindResourceOrThrow("examples/Spirit/spirit_spine_drake.urdf");
+  }
 
   parser.AddModelFromFile(full_name);
   parser_vis.AddModelFromFile(full_name);
@@ -812,7 +860,7 @@ int main(int argc, char* argv[]) {
   if(!FLAGS_skipInitialOptimization){
     std::cout<<"Running 1st optimization"<<std::endl;
     //Hopping correct distance, but heavily constrained
-    dairlib::badInplaceBound(*plant, x_traj, u_traj, l_traj, lc_traj, vc_traj);
+    dairlib::badInplaceBound(*plant, x_traj, u_traj, l_traj, lc_traj, vc_traj, FLAGS_spine);
     dairlib::runSpiritJump<double>(
         *plant,
         x_traj, u_traj, l_traj,
@@ -835,6 +883,8 @@ int main(int argc, char* argv[]) {
         100,
         1e-3,
         1e-2,
+        FLAGS_spine,
+        true,
         FLAGS_data_directory+"in_place_bound");
   }
 
@@ -862,6 +912,8 @@ int main(int argc, char* argv[]) {
       10,
       1e-3,
       1e0,
+      FLAGS_spine,
+      true,
       FLAGS_data_directory+"bound_"+distance_name,
       FLAGS_data_directory+"in_place_bound");
 
@@ -889,6 +941,8 @@ int main(int argc, char* argv[]) {
       FLAGS_mu,
       1e-3,
       1e0,
+      FLAGS_spine,
+      true,
       FLAGS_data_directory+"bound_"+distance_name+"low_mu",
       FLAGS_data_directory+"bound_"+distance_name);
 
@@ -916,6 +970,8 @@ int main(int argc, char* argv[]) {
       FLAGS_mu,
       FLAGS_eps,
       FLAGS_tol,
+      FLAGS_spine,
+      true,
       FLAGS_data_directory+"bound_"+distance_name+"min_work",
       FLAGS_data_directory+"bound_"+distance_name+"low_mu");
 }
