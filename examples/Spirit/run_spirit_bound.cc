@@ -794,7 +794,7 @@ void runSpiritJump(
     l_traj  = trajopt.ReconstructLambdaTrajectory(result);
   }
   auto x_trajs = trajopt.ReconstructDiscontinuousStateTrajectory(result);
-  std::cout<<"Work = " << dairlib::calcElectricalWork(plant, x_trajs, u_traj) << std::endl;
+  std::cout<<"Work = " << dairlib::calcElectricalWork(plant, x_trajs, u_traj, spine) << std::endl;
 
   if(cost_work > 0){
     double cost_work_val = solvers::EvalCostGivenSolution(
@@ -885,7 +885,7 @@ int main(int argc, char* argv[]) {
         1e-2,
         FLAGS_spine,
         true,
-        FLAGS_data_directory+"in_place_bound");
+        FLAGS_data_directory+"in_place_bound"+ (FLAGS_spine ? "_spine" : ""));
   }
 
   std::cout<<"Running 2nd optimization"<<std::endl;
@@ -914,8 +914,8 @@ int main(int argc, char* argv[]) {
       1e0,
       FLAGS_spine,
       true,
-      FLAGS_data_directory+"bound_"+distance_name,
-      FLAGS_data_directory+"in_place_bound");
+      FLAGS_data_directory+"bound_"+distance_name+ (FLAGS_spine ? "_spine" : ""),
+      FLAGS_data_directory+"in_place_bound"+ (FLAGS_spine ? "_spine" : ""));
 
   std::cout<<"Running 3rd optimization"<<std::endl;
 
@@ -942,9 +942,9 @@ int main(int argc, char* argv[]) {
       1e-3,
       1e0,
       FLAGS_spine,
-      true,
-      FLAGS_data_directory+"bound_"+distance_name+"low_mu",
-      FLAGS_data_directory+"bound_"+distance_name);
+      false,
+      FLAGS_data_directory+"bound_"+distance_name+"low_mu"+ (FLAGS_spine ? "_spine" : ""),
+      FLAGS_data_directory+"bound_"+distance_name+ (FLAGS_spine ? "_spine" : ""));
 
   std::cout<<"Running 4th optimization"<<std::endl;
 
@@ -971,9 +971,9 @@ int main(int argc, char* argv[]) {
       FLAGS_eps,
       FLAGS_tol,
       FLAGS_spine,
-      true,
-      FLAGS_data_directory+"bound_"+distance_name+"min_work",
-      FLAGS_data_directory+"bound_"+distance_name+"low_mu");
+      false,
+      FLAGS_data_directory+"bound_"+distance_name+"min_work"+ (FLAGS_spine ? "_spine" : ""),
+      FLAGS_data_directory+"bound_"+distance_name+"low_mu"+ (FLAGS_spine ? "_spine" : ""));
 }
 
 
