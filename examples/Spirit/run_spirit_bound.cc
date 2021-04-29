@@ -35,14 +35,14 @@
 
 DEFINE_double(standHeight, 0.2, "The standing height.");
 DEFINE_double(foreAftDisplacement, 1.0, "The fore-aft displacement.");
-DEFINE_double(apexGoal, 0.45, "Apex state goal");
+DEFINE_double(apexGoal, 0.35, "Apex state goal");
 DEFINE_double(eps, 1e-2, "The wiggle room.");
 DEFINE_double(tol, 2e-1, "Optimization Tolerance");
 DEFINE_double(mu, 1, "coefficient of friction");
 
 DEFINE_string(data_directory, "/home/shane/Drake_ws/dairlib/examples/Spirit/saved_trajectories/",
               "directory to save/read data");
-DEFINE_bool(skipInitialOptimization, true, "skip first optimizations?");
+DEFINE_bool(skipInitialOptimization, false, "skip first optimizations?");
 DEFINE_bool(spine, true, "use a spine?");
 
 using drake::AutoDiffXd;
@@ -871,7 +871,7 @@ int main(int argc, char* argv[]) {
         FLAGS_standHeight,
         0.6,
         0.1,
-        FLAGS_apexGoal,       // Ignored if small
+        0.45,       // Ignored if small
         0,
         1.8,
         3,
