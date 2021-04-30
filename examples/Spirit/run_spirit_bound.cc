@@ -34,15 +34,15 @@
 #include "examples/Spirit/spirit_utils.h"
 
 DEFINE_double(standHeight, 0.2, "The standing height.");
-DEFINE_double(foreAftDisplacement, 1.0, "The fore-aft displacement.");
+DEFINE_double(foreAftDisplacement, 1.5, "The fore-aft displacement.");
 DEFINE_double(apexGoal, 0.35, "Apex state goal");
 DEFINE_double(eps, 1e-2, "The wiggle room.");
 DEFINE_double(tol, 2e-1, "Optimization Tolerance");
-DEFINE_double(mu, 1, "coefficient of friction");
+DEFINE_double(mu, 1.0, "coefficient of friction");
 
 DEFINE_string(data_directory, "/home/shane/Drake_ws/dairlib/examples/Spirit/saved_trajectories/",
               "directory to save/read data");
-DEFINE_bool(skipInitialOptimization, false, "skip first optimizations?");
+DEFINE_bool(skipInitialOptimization, true, "skip first optimizations?");
 DEFINE_bool(spine, true, "use a spine?");
 
 using drake::AutoDiffXd;
@@ -438,8 +438,10 @@ void addConstraints(MultibodyPlant<T>& plant,
   trajopt.AddBoundingBoxConstraint(-eps, eps, xapex(positions_map.at("base_qz")));
 
   if(spine and !lock_spine){
+
     trajopt.AddBoundingBoxConstraint(-eps, eps, xapex( positions_map.at("spine")));
     trajopt.AddBoundingBoxConstraint(-eps, eps, xapex( n_q + velocities_map.at("spinedot")));
+
   }
 
   /// TD constraints
@@ -937,7 +939,7 @@ int main(int argc, char* argv[]) {
       10/5.0,
       5/5.0,
       1000,
-      0,
+      50,
       FLAGS_mu,
       1e-3,
       1e0,
@@ -965,7 +967,7 @@ int main(int argc, char* argv[]) {
       10/100.0,
       10/5.0,
       5/5.0,
-      0,
+      1000,
       100,
       FLAGS_mu,
       FLAGS_eps,

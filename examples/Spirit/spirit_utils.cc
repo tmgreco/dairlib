@@ -221,7 +221,6 @@ void nominalSpiritStandConstraint(
       trajopt.AddBoundingBoxConstraint(joint_val-eps, joint_val+eps, xi(positions_map.at(joint_string)));
     }
   }
-
 }
 
 template <typename T>
@@ -427,7 +426,7 @@ if(spine){
   int N_knotpoints = trajopt.N();
   for(int i = 0; i<N_knotpoints;i++){
     auto xi = trajopt.state(i);
-    trajopt.AddBoundingBoxConstraint(-M_PI/4,M_PI/4,xi(positions_map.at("spine")));
+    trajopt.AddBoundingBoxConstraint(-M_PI / 3.0,M_PI/3.0,xi(positions_map.at("spine")));
   }
 
 }
@@ -477,8 +476,8 @@ void setSpiritActuationLimits(drake::multibody::MultibodyPlant<T> & plant,
     }
     if(spine){
       trajopt.AddBoundingBoxConstraint(
-          -actuatorLimit,
-          actuatorLimit,
+          -actuatorLimit * gear_spine / 6,
+          actuatorLimit * gear_spine / 6,
           ui(actuators_map.at("motor_spine")));
     }
   }
@@ -689,7 +688,7 @@ double calcElectricalWork(
       }
       if(spine){
         // Spine work
-        Q = Q_not_knee;
+        Q = Q_spine;
         double actuation_low = u_low(actuator_map.at("motor_spine"));
         double actuation_up = u_up(actuator_map.at("motor_spine"));
 
@@ -808,6 +807,8 @@ std::vector<drake::solvers::Binding<drake::solvers::Cost>> AddWorkCost(drake::mu
   for (int joint = 0; joint < (spine ? 13 : 12); joint++) {
     if(joint == 1 or joint == 3 or joint == 5 or joint == 7)
       Q = Q_knee;
+    else if (joint == 12)
+      Q = Q_spine;
     else
       Q = Q_not_knee;
     auto joint_work_cost = std::make_shared<JointWorkCost>(plant,  Q, cost_work_gain,4);

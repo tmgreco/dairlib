@@ -349,7 +349,12 @@ double positivePart(double x);
 double negativePart(double x);
 
 // Gains on resistive losses for knees and for other motors based on resistance, torque constant, and gear ratio
-const double Q_knee = .249;
-const double Q_not_knee = .561;
+const double Q_u8 = 20.196;
+const double gear_not_knee = 6;
+const double gear_spine = gear_not_knee * 3;
+const double gear_knee = gear_not_knee * 1.5;
+const double Q_knee = Q_u8/ pow(gear_knee , 2);
+const double Q_not_knee = Q_u8/ pow(gear_not_knee,2);
+const double Q_spine = Q_u8 / pow(gear_spine,2);
 
 } //namespace dairlib
