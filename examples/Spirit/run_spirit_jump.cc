@@ -36,9 +36,9 @@
 #include "examples/Spirit/spirit_utils.h"
 
 DEFINE_double(duration, 1, "The stand duration");
-DEFINE_double(standHeight, 0.25, "The standing height.");
-DEFINE_double(foreAftDisplacement, 0.75  , "The fore-aft displacement.");
-DEFINE_double(apexGoal, 0.5, "Apex state goal");
+DEFINE_double(standHeight, 0.2, "The standing height.");
+DEFINE_double(foreAftDisplacement, 1.0  , "The fore-aft displacement.");
+DEFINE_double(apexGoal, 0.45, "Apex state goal");
 DEFINE_double(inputCost, 3, "The standing height.");
 DEFINE_double(velocityCost, 10, "The standing height.");
 DEFINE_double(eps, 1e-2, "The wiggle room.");
@@ -47,10 +47,9 @@ DEFINE_double(mu, 1, "coefficient of friction");
 
 DEFINE_string(data_directory, "/home/shane/Drake_ws/dairlib/examples/Spirit/saved_trajectories/",
               "directory to save/read data");
-DEFINE_string(distance_name, "075cm","name to describe distance");
 
 DEFINE_bool(runAllOptimization, true, "rerun earlier optimizations?");
-DEFINE_bool(skipInitialOptimization, true, "skip first optimizations?");
+DEFINE_bool(skipInitialOptimization, false, "skip first optimizations?");
 DEFINE_bool(minWork, true, "try to minimize work?");
 DEFINE_bool(ipopt, true, "Use IPOPT as solver instead of SNOPT");
 
@@ -678,6 +677,8 @@ int main(int argc, char* argv[]) {
   plant->Finalize();
   plant_vis->Finalize();
 
+  std::string distance_name = std::to_string(int(floor(100*FLAGS_foreAftDisplacement)))+"cm";
+
   PiecewisePolynomial<double> x_traj;
   PiecewisePolynomial<double> u_traj;
   std::vector<PiecewisePolynomial<double>> l_traj;
@@ -741,7 +742,7 @@ int main(int argc, char* argv[]) {
         100,
         0,
         1e-2,
-        FLAGS_data_directory+"jump_"+FLAGS_distance_name);
+        FLAGS_data_directory+"jump_"+distance_name);
   }
   std::cout<<"Running 3rd optimization"<<std::endl;
   // Fewer constraints, and higher tolerences
@@ -765,8 +766,8 @@ int main(int argc, char* argv[]) {
       FLAGS_mu,
       FLAGS_eps,
       FLAGS_tol,
-      FLAGS_data_directory+"jump_"+FLAGS_distance_name+"_hq",
-      FLAGS_data_directory+"jump_"+FLAGS_distance_name);
+      FLAGS_data_directory+"jump_"+distance_name+"_hq",
+      FLAGS_data_directory+"jump_"+distance_name);
 
   if (FLAGS_minWork){
     // Adding in work cost and constraints
@@ -791,8 +792,8 @@ int main(int argc, char* argv[]) {
         FLAGS_mu,
         FLAGS_eps,
         FLAGS_tol,
-        FLAGS_data_directory+"jump_"+FLAGS_distance_name+"_hq_work_option3",
-        FLAGS_data_directory+"jump_"+FLAGS_distance_name+"_hq");
+        FLAGS_data_directory+"jump_"+distance_name+"_hq_work_option3",
+        FLAGS_data_directory+"jump_"+distance_name+"_hq");
   }
 }
 

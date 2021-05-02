@@ -1,5 +1,5 @@
 #pragma once
-
+#include "solvers/nonlinear_cost.h"
 namespace dairlib {
 
 class ModeSequenceHelper {

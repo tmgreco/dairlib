@@ -762,9 +762,9 @@ std::vector<drake::solvers::Binding<drake::solvers::Cost>> AddWorkCost(drake::mu
   // Loop through each joint
   for (int joint = 0; joint < 12; joint++) {
     if(joint == 1 or joint == 3 or joint == 5 or joint == 7)
-      Q = 0.249;
+      Q = Q_knee;
     else
-      Q = 0.561;
+      Q = Q_not_knee;
     auto joint_work_cost = std::make_shared<JointWorkCost>(plant,  Q, cost_work_gain,4);
     int act_int = actuator_map.at("motor_" + std::to_string(joint));
     int vel_int = n_q + velocities_map.at("joint_" + std::to_string(joint) +"dot");
