@@ -16,6 +16,7 @@
 #include <drake/multibody/inverse_kinematics/inverse_kinematics.h>
 #include "drake/geometry/geometry_visualization.h"
 #include "drake/solvers/solve.h"
+#include "drake/solvers/decision_variable.h"
 #include "drake/math/orthonormal_basis.h"
 
 #include "common/find_resource.h"
@@ -79,6 +80,45 @@ using std::vector;
 using std::cout;
 using std::endl;
 
+/// Adds an offset constraint which allows the body to be anywhere on the normal vector
+template <typename T>
+void offsetConstraint(
+        MultibodyPlant<T>& plant,
+        dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,
+        const Eigen::Ref<const drake::solvers::VectorXDecisionVariable>& xb,
+        Eigen::Vector3d normal,
+        Eigen::Vector3d offset,
+        double eps = 0.01
+        ){
+  // Get position and velocity dictionaries
+  auto positions_map = multibody::makeNameToPositionsMap(plant);
+  auto velocities_map = multibody::makeNameToVelocitiesMap(plant);
+  Eigen::Vector3d nHat= normal/normal.norm();
+  Eigen::Matrix3d rotMat = dairlib::normal2Rotation(nHat).matrix();
+  std::cout << "Rot:\n" << rotMat << "\nNormal:\n" << nHat <<  "\nOffset:\n" << offset << std::endl;
+  Eigen::Vector3d t1 = rotMat.col(0);
+  Eigen::Vector3d t2 = rotMat.col(1);
+  std::cout << "T1" << t1 <<std::endl;
+  std::cout << "T2" << t2 <<std::endl;
+  std::vector<int> posInds{positions_map.at("base_x"),positions_map.at("base_y"),positions_map.at("base_z")};
+  double t1Toffset = t1.transpose()*offset;
+  double t2Toffset = t2.transpose()*offset;
+  std::cout << "pos1: " <<  posInds[0] <<std::endl;
+  std::cout << "pos2: " <<  posInds[1] <<std::endl;
+  std::cout << "pos3: " <<  posInds[2] <<std::endl;
+  double upper1 = t1Toffset + eps;
+  double lower1 = t1Toffset - eps;
+  std::cout << "t1 offset +: " <<  upper1 << std::endl;
+  std::cout << "t1 offset -: " <<  lower1 << std::endl;
+  
+  
+  
+  trajopt.AddLinearConstraint( t1(0) * xb(posInds[0]) + t1(1) * xb(posInds[1]) + t1(2) * xb(posInds[2])  <=  (t1Toffset));
+  trajopt.AddLinearConstraint( t1(0) * xb(posInds[0]) + t1(1) * xb(posInds[1]) + t1(2) * xb(posInds[2])  >=  (t1Toffset));
+  // trajopt.AddLinearConstraint( t2(0) * (xb(posInds[0])-offset(0)) + t2(1) * (xb(posInds[1])-offset(1)) + t2(2) * (xb(posInds[2])-offset(2))  <=  eps);
+  // trajopt.AddLinearConstraint( t2(0) * (xb(posInds[0])-offset(0)) + t2(1) * (xb(posInds[1])-offset(1)) + t2(2) * (xb(posInds[2])-offset(2))  >= -eps);
+
+}
 /// addCost, adds the cost to the trajopt jump problem. See runSpiritBoxJump for a description of the inputs
 template <typename T>
 void addCost(MultibodyPlant<T>& plant,
@@ -233,7 +273,7 @@ void addConstraints(MultibodyPlant<T>& plant,
           xf.tail(n_v));
   //  ****************************************************
 
-
+  
   for (int iJump=0;iJump<numJumps;iJump++){
     // Apex height
     if(apex_height > 0){
@@ -252,21 +292,33 @@ void addConstraints(MultibodyPlant<T>& plant,
             + eps, 
             xapex(n_q + velocities_map.at("base_vz")) );
     }
-    // if(stop_at_bottom && iJump != 0){
-    //   std::cout << "Zero Velocity Bottoms activated" << std::endl;
-    //   int interiorStanceModeIndex = iJump*3;
-    //   int botKnotpoint = trajopt.mode_length(interiorStanceModeIndex)/2;
-    //   auto xbot = trajopt.state_vars( interiorStanceModeIndex , botKnotpoint);
-      
-    //   trajopt.AddBoundingBoxConstraint(
-    //           standOffsetFinal(0)-eps, 
-    //           standOffsetFinal(0)+eps, 
-    //           xbot(positions_map.at("base_x")));
-    //   trajopt.AddBoundingBoxConstraint(
-    //           VectorXd::Zero(n_v), 
-    //           VectorXd::Zero(n_v), 
-    //           xbot.tail(n_v));
-    // }
+    if(iJump != 0){
+      std::cout << "Zero Velocity Bottoms activated" << std::endl;
+      int interiorStanceModeIndex = iJump*3;
+      int botKnotpoint = trajopt.mode_length(interiorStanceModeIndex)/2;
+      auto xbot = trajopt.state_vars( interiorStanceModeIndex , botKnotpoint);
+      Eigen::Vector3d sNormal;
+      Eigen::Vector3d sOffset;
+      std::tie(sNormal,sOffset,std::ignore) = transitionSurfaces[iJump-1];
+      dairlib::offsetConstraint(
+        plant, 
+        trajopt, 
+        xbot, 
+        sNormal,//Eigen::Vector3d::UnitY()+Eigen::Vector3d::UnitZ(), 
+        sOffset
+        );
+
+      // if(stop_at_bottom){
+      //   trajopt.AddBoundingBoxConstraint(
+      //           standOffsetFinal(0)-eps, 
+      //           standOffsetFinal(0)+eps, 
+      //           xbot(positions_map.at("base_x")));
+      //   trajopt.AddBoundingBoxConstraint(
+      //           VectorXd::Zero(n_v), 
+      //           VectorXd::Zero(n_v), 
+      //           xbot.tail(n_v));
+      // }
+    }
 
   }
   // The "leg angle" = (pi/2 - theta0)
@@ -337,11 +389,6 @@ void addConstraints(MultibodyPlant<T>& plant,
       }
     }
   }
-
-
-
-
-  
 }
 
 
@@ -771,8 +818,8 @@ void runSpiritParkour(
   trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(),
                            "Print file", "../snopt.out");
   trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(),
-                           "Major iterations limit", 100000);
-  trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(), "Iterations limit", 100000);
+                           "Major iterations limit", 200000);
+  trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(), "Iterations limit", 200000);
   trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(),
                            "Major optimality tolerance",
                            tol);  // target optimality
@@ -992,9 +1039,9 @@ int main(int argc, char* argv[]) {
       double apex_height = .5;
       double initial_height = FLAGS_standHeight;
       double cost_actuation = 3;
-      double cost_velocity = 15;
+      double cost_velocity = 10;
       double cost_work = 0;
-      double tol = 1e-2;
+      double tol = 1e-3;
       dairlib::runSpiritParkour(
             *plant,
             x_traj,
@@ -1010,7 +1057,7 @@ int main(int argc, char* argv[]) {
             max_duration,
             animate,
             apex_height,
-            lock_rotation_flight,
+            not lock_rotation_flight,
             lock_legs_apex,
             not force_symmetry,
             use_nominal_stand,
@@ -1020,8 +1067,8 @@ int main(int argc, char* argv[]) {
             FLAGS_eps,
             tol,
             0,
-            FLAGS_data_directory+"simple_parkour_2_2",
-            FLAGS_data_directory+"simple_parkour_2_1"
+            FLAGS_data_directory+"simple_parkour_2_5",
+            FLAGS_data_directory+"simple_parkour_2_4"
 
     );
 
