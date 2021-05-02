@@ -39,12 +39,12 @@ DEFINE_double(foreAftDisplacement, 1.5, "The fore-aft displacement.");
 DEFINE_double(apexGoal, 0.35, "Apex state goal");
 DEFINE_double(eps, 1e-2, "The wiggle room.");
 DEFINE_double(tol, 2e-1, "Optimization Tolerance");
-DEFINE_double(mu, 0.5, "coefficient of friction");
+DEFINE_double(mu, 1.0, "coefficient of friction");
 
 DEFINE_string(data_directory, "/home/shane/Drake_ws/dairlib/examples/Spirit/saved_trajectories/",
               "directory to save/read data");
-DEFINE_bool(skipInitialOptimization, true, "skip first optimizations?");
-DEFINE_bool(spine, true, "use a spine?");
+DEFINE_bool(skipInitialOptimization, false, "skip first optimizations?");
+DEFINE_bool(spine, false, "use a spine?");
 DEFINE_double(spine_stiffness, 0.0, "coefficient of friction");
 
 using drake::AutoDiffXd;
@@ -403,8 +403,10 @@ std::vector<drake::solvers::Binding<drake::solvers::Cost>> addCost(MultibodyPlan
   addCostLegs(plant, trajopt, cost_velocity_legs_flight, cost_actuation_legs_flight, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}, 3);
   addCostLegs(plant, trajopt, cost_velocity_legs_flight, cost_actuation_legs_flight, {2, 3, 6, 7, 10, 11}, 4);
 
-  addCostSpine(plant, trajopt, cost_velocity_legs_flight, cost_actuation_legs_flight,2);
-  addCostSpine(plant, trajopt, cost_velocity_legs_flight, cost_actuation_legs_flight,3);
+  if(spine){
+    addCostSpine(plant, trajopt, cost_velocity_legs_flight, cost_actuation_legs_flight,2);
+    addCostSpine(plant, trajopt, cost_velocity_legs_flight, cost_actuation_legs_flight,3);
+  }
 
   return AddWorkCost(plant, trajopt, cost_work, spine);
 } // Function
