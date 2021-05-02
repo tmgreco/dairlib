@@ -273,7 +273,6 @@ void addConstraints(MultibodyPlant<T>& plant,
                     const double fore_aft_displacement,
                     const bool lock_rotation,
                     const bool lock_legs_apex,
-                    const bool force_symmetry,
                     const bool use_nominal_stand,
                     const double max_duration,
                     const double eps,
@@ -497,7 +496,8 @@ getModeSequence(
 /// \param mu: coefficient of friction
 /// \param eps: the tolerance for position constraints
 /// \param tol: optimization solver constraint and optimality tolerence
-/// \param work_constraint_scale: scale for the constraints for the power calculation
+/// \param spine: true if working with spine
+/// \param lock_spine: true if spine is locked
 /// \param file_name_out: if empty, file is unsaved, if not empty saves the trajectory in the directory
 template <typename T>
 void runSpiritJump(
@@ -514,7 +514,6 @@ void runSpiritJump(
     const double fore_aft_displacement,
     const bool lock_rotation,
     const bool lock_legs_apex,
-    const bool force_symmetry,
     const bool use_nominal_stand,
     const double max_duration,
     const double cost_actuation,
@@ -606,7 +605,7 @@ void runSpiritJump(
   }
 
   addConstraints(plant, trajopt, apex_height, initial_height, fore_aft_displacement, lock_rotation,
-                    lock_legs_apex, force_symmetry, use_nominal_stand, max_duration, eps, spine, lock_spine);
+                    lock_legs_apex, use_nominal_stand, max_duration, eps, spine, lock_spine);
 
   /// Setup the visualization during the optimization
   int num_ghosts = 3;// Number of ghosts in visualization. NOTE: there are limitations on number of ghosts based on modes and knotpoints
@@ -669,9 +668,6 @@ void runSpiritJump(
   }
   auto x_trajs = trajopt.ReconstructDiscontinuousStateTrajectory(result);
   std::cout<<"Work = " << dairlib::calcElectricalWork(plant, x_trajs, u_traj, spine) << std::endl;
-//  double cost_work_acceleration = solvers::EvalCostGivenSolution(
-//      result, cost_joint_work_bindings);
-//  std::cout<<"Cost Work = " << cost_work_acceleration << std::endl;
   /// Run animation of the final trajectory
   const drake::trajectories::PiecewisePolynomial<double> pp_xtraj =
       trajopt.ReconstructStateTrajectory(result);
@@ -742,7 +738,6 @@ int main(int argc, char* argv[]) {
           0,
           true,
           true,
-          false,
           true,
           2,
           3,
@@ -777,7 +772,6 @@ int main(int argc, char* argv[]) {
         FLAGS_foreAftDisplacement,
         true,
         true,
-        false,
         true,
         2,
         3,
@@ -801,7 +795,6 @@ int main(int argc, char* argv[]) {
       FLAGS_apexGoal,
       FLAGS_standHeight,
       FLAGS_foreAftDisplacement,
-      false,
       false,
       false,
       true,
@@ -829,7 +822,6 @@ int main(int argc, char* argv[]) {
         FLAGS_apexGoal,
         FLAGS_standHeight,
         FLAGS_foreAftDisplacement,
-        false,
         false,
         false,
         true,

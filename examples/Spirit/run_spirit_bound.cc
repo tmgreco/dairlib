@@ -337,12 +337,11 @@ void addCostLegs(MultibodyPlant<T>& plant,
   }
 }
 
-/// Add a cost on a specific mode for a specific subset of joints, to be used to add a cost on the legs in flight
+/// Add a cost on a specific mode for the spine to be used to add a cost on the spine in flight
 /// @param plant the plant
 /// @param trajopt the trajectory optimization object
 /// @param cost_actuation a cost on actuation squared
 /// @param cost_velocity a cost on velocity squared
-/// @param joints a vector of joints corresponding to which joints to apply the cost to
 /// @param mode_index the mode to apply the cost to
 template <typename T>
 void addCostSpine(MultibodyPlant<T>& plant,
@@ -483,11 +482,6 @@ void addConstraints(MultibodyPlant<T>& plant,
   trajopt.AddBoundingBoxConstraint(-eps, eps, xapex(positions_map.at("base_qx")));
   trajopt.AddBoundingBoxConstraint(-sin(pitch/2.0) , sin(pitch/2.0), xapex(positions_map.at("base_qy")));
   trajopt.AddBoundingBoxConstraint(-eps, eps, xapex(positions_map.at("base_qz")));
-
-  if(spine and !lock_spine){
-//    trajopt.AddBoundingBoxConstraint(-eps, eps, xapex( positions_map.at("spine")));
-//    trajopt.AddBoundingBoxConstraint(-eps, eps, xapex( n_q + velocities_map.at("spinedot")));
-  }
 
   /// TD constraints
   // Limit magnitude of pitch
@@ -666,7 +660,8 @@ getModeSequence(
 /// \param mu: coefficient of friction
 /// \param eps: the tolerance for position constraints
 /// \param tol: optimization solver constraint and optimality tolerence
-/// \param work_constraint_scale: scale for the constraints for the power calculation
+/// \param spine: true if working with spine
+/// \param lock_spine: true if spine is locked
 /// \param file_name_out: if empty, file is unsaved, if not empty saves the trajectory in the directory
 template <typename T>
 void runSpiritJump(
