@@ -1,5 +1,5 @@
 #pragma once
-
+#include "solvers/nonlinear_cost.h"
 namespace dairlib {
 
 class ModeSequenceHelper {
@@ -42,7 +42,10 @@ class ModeSequenceHelper {
     }
 };
 
+<<<<<<< HEAD
 drake::math::RotationMatrix<double> normal2Rotation(Eigen::Vector3d nHat);
+=======
+>>>>>>> master
 
 /// Outputs a nominal stand state into the xState vector pointer based on the 
 /// height. This is an approximation for use in initial conditions.
@@ -55,6 +58,43 @@ void nominalSpiritStand(
     drake::multibody::MultibodyPlant<T>& plant, 
     Eigen::VectorXd& xState, 
     double height);
+
+/// Solves an IK problem for the spirit stand. If the feet are in contact with the ground they are constrained to be
+/// under the hips in the world frame. If they are not in contact with the ground they are constrained to be under the
+/// hips in the body frame a distance of leg_height.
+///     @param plant, reference to the robot plant
+///     @param xState[out], the state vector from solving the IK problem
+///     @param contactSequence, vector of booleans describing which legs are in contact with the ground
+///     @param com_height, height of the com of spirit
+///     @param leg_height, distance between hip and toe for legs not on the ground
+///     @param roll, roll of body in radians
+///     @param pitch, pitch of body in radians
+///     @param eps, tolerance on legs in contact with ground
+void ikSpiritStand(
+    drake::multibody::MultibodyPlant<double>& plant,
+    Eigen::VectorXd& xState,
+    Eigen::Matrix<bool,1,4> contactSequence,
+    double com_height,
+    double leg_height,
+    double roll = 0,
+    double pitch = 0,
+    double eps = 0.01);
+
+/// Adds constraints to a toe for ik problem. If the toe are in contact with the ground they are constrained to be
+/// under the hips in the world frame. If they are not in contact with the ground they are constrained to be under the
+/// hips in the body frame a distance of leg_height.
+///     @param plant, reference to the robot plant
+///     @param ik, ik problem to add constraints to
+///     @param toe, the number of the toe for which to constraint
+///     @param inContact, true if the toe is in contact with the ground
+///     @param orientation, rotation matrix describing orientation of body in world frame
+///     @param com_height, height of the com of spirit
+///     @param leg_height, distance between hip and toe for legs not on the ground
+///     @param eps, tolerance on legs in contact with ground
+void constrainToe(drake::multibody::MultibodyPlant<double> & plant,
+                  drake::multibody::InverseKinematics &ik,
+                  int toe, bool inContact, drake::math::RotationMatrix<double> orientation,
+                  double com_height, double leg_height, double eps);
 
 /// Constrians j0-j1 so nominal stand is at specified height
 ///   @param[in]  MultibodyPlant
@@ -146,7 +186,7 @@ std::tuple<  std::vector<std::unique_ptr<dairlib::systems::trajectory_optimizati
 ///    @param trajopt a ponter to a Dircon<T> object  
 template <typename T>
 void setSpiritJointLimits(
-                    drake::multibody::MultibodyPlant<T> & plant, 
+                    drake::multibody::MultibodyPlant<T> & plant,
                     dairlib::systems::trajectory_optimization::Dircon<T>& trajopt );
 
 /// This overload sets an individual joint's position limit
@@ -157,8 +197,8 @@ void setSpiritJointLimits(
 ///    @param minVal joint's maximum position
 template <typename T>
 void setSpiritJointLimits(
-                    drake::multibody::MultibodyPlant<T> & plant, 
-                    dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,  
+                    drake::multibody::MultibodyPlant<T> & plant,
+                    dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,
                     int iJoint, 
                     double minVal, 
                     double maxVal  );
@@ -171,8 +211,8 @@ void setSpiritJointLimits(
 ///    @param minVals vector of joints' maximum positions
 template <typename T>
 void setSpiritJointLimits(
-                    drake::multibody::MultibodyPlant<T> & plant, 
-                    dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,  
+                    drake::multibody::MultibodyPlant<T> & plant,
+                    dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,
                     std::vector<int> iJoints, 
                     std::vector<double> minVals, 
                     std::vector<double> maxVals  );
@@ -185,8 +225,8 @@ void setSpiritJointLimits(
 ///    @param minVal joints' maximum position
 template <typename T>
 void setSpiritJointLimits(
-                    drake::multibody::MultibodyPlant<T> & plant, 
-                    dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,  
+                    drake::multibody::MultibodyPlant<T> & plant,
+                    dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,
                     std::vector<int> iJoints, 
                     double minVal, 
                     double maxVal  );
@@ -241,10 +281,22 @@ double calcWork(
 ///     @param x_trajs a vector of the state trajectory for each mode
 ///     @param u_traj the control trajectory
 template <typename T>
-double calcWork(
+double calcMechanicalWork(
     drake::multibody::MultibodyPlant<T> & plant,
     std::vector<drake::trajectories::PiecewisePolynomial<double>>& x_trajs,
     drake::trajectories::PiecewisePolynomial<double>& u_traj);
+
+/// Calculates the electrical work done during trajectory, handles discontinuities
+///     @param plont, a pointer to the robot's model
+///     @param x_trajs a vector of the state trajectory for each mode
+///     @param u_traj the control trajectory
+///     @param efficiency, gain on what percent of negative power is useable by the battery
+template <typename T>
+double calcElectricalWork(
+    drake::multibody::MultibodyPlant<T> & plant,
+    std::vector<drake::trajectories::PiecewisePolynomial<double>>& x_trajs,
+    drake::trajectories::PiecewisePolynomial<double>& u_traj,
+    double efficiency = 0);
 
 /// Calculates the integral of velocities squared
 ///     @param plont, a pointer to the robot's model
@@ -309,5 +361,44 @@ std::vector<Eigen::Matrix<double, -1, 1>> interpolateVectors(
         Eigen::Matrix<double, -1, 1> init,
         Eigen::Matrix<double, -1, 1> final,
         int numSteps);
+/// Adds a cost on the integral of electrical power
+///     @param plant, the robot model
+///     @param trajopt the dircon object
+///     @param cost_work_gain, the gain on the electrical work
+template <typename T>
+std::vector<drake::solvers::Binding<drake::solvers::Cost>> AddWorkCost(drake::multibody::MultibodyPlant<T> & plant,
+                 dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,
+                 double cost_work_gain);
+
+
+/// JointWorkCost object for adding smooth relu without slack variables to cost
+class JointWorkCost : public solvers::NonlinearCost<double> {
+ public:
+  JointWorkCost(const drake::multibody::MultibodyPlant<double>& plant,
+                const double &Q,
+                const double &cost_work,
+                const double &alpha,
+                const std::string &description = "");
+
+ private:
+  /// Smooth relu
+  double relu_smooth(const double x) const;
+  void EvaluateCost(const Eigen::Ref<const drake::VectorX<double>> &x,
+                    drake::VectorX<double> *y) const override;
+  const drake::multibody::MultibodyPlant<double>& plant_;
+  double Q_; /// Gain on actuation squared
+  double cost_work_;
+  double alpha_; /// Gain on smoothing for relu, higher is less smooth
+  int n_q_;
+  int n_v_;
+  int n_u_;
+};
+
+double positivePart(double x);
+double negativePart(double x);
+
+// Gains on resistive losses for knees and for other motors based on resistance, torque constant, and gear ratio
+const double Q_knee = .249;
+const double Q_not_knee = .561;
 
 } //namespace dairlib

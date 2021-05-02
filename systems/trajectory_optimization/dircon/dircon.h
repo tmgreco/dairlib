@@ -1,17 +1,18 @@
 #pragma once
 
 #include <vector>
+
 #include <memory.h>
+
+#include "multibody/multipose_visualizer.h"
+#include "systems/trajectory_optimization/dircon/dircon_mode.h"
+#include "systems/trajectory_optimization/dircon/dynamics_cache.h"
 
 #include "drake/common/drake_copyable.h"
 #include "drake/common/symbolic.h"
 #include "drake/common/trajectories/piecewise_polynomial.h"
 #include "drake/solvers/constraint.h"
 #include "drake/systems/trajectory_optimization/multiple_shooting.h"
-
-#include "systems/trajectory_optimization/dircon/dircon_mode.h"
-#include "systems/trajectory_optimization/dircon/dynamics_cache.h"
-#include "multibody/multipose_visualizer.h"
 
 namespace dairlib {
 namespace systems {
@@ -71,17 +72,17 @@ class Dircon
   /// Get the state samples by mode, as a matrix. Each column corresponds to
   /// a knotpoint.
   Eigen::MatrixXd GetStateSamplesByMode(
-    const drake::solvers::MathematicalProgramResult& result, int mode) const;
+      const drake::solvers::MathematicalProgramResult& result, int mode) const;
 
   /// Get the input samples by mode, as a matrix. Each column corresponds to
   /// a knotpoint.
   Eigen::MatrixXd GetInputSamplesByMode(
-    const drake::solvers::MathematicalProgramResult& result, int mode) const;
+      const drake::solvers::MathematicalProgramResult& result, int mode) const;
 
   /// Get the state samples by mode, as a matrix. Each column corresponds to
   /// a knotpoint.
   Eigen::MatrixXd GetForceSamplesByMode(
-    const drake::solvers::MathematicalProgramResult& result, int mode) const;
+      const drake::solvers::MathematicalProgramResult& result, int mode) const;
 
   /// Adds a visualization callback that will visualize knot points
   /// without transparency. Cannot be called twice
@@ -94,8 +95,9 @@ class Dircon
   /// @param weld_frame_to_world The name of a frame to weld to the world frame
   ///   when parsing the model. Defaults to blank, which will not perform a weld
   void CreateVisualizationCallback(std::string model_file,
-      std::vector<unsigned int> poses_per_mode, double alpha,
-      std::string weld_frame_to_world = "");
+                                   std::vector<unsigned int> poses_per_mode,
+                                   double alpha,
+                                   std::string weld_frame_to_world = "");
 
   /// See CreateVisualizationCallback(std::string model_file,
   ///    std::vector<unsigned int> poses_per_mode,
@@ -106,8 +108,8 @@ class Dircon
   /// of frames in that mode. Since start/end poses per mdoe are required, must
   /// have num_poses >= num_modes + 1
   void CreateVisualizationCallback(std::string model_file,
-      unsigned int num_poses, double alpha,
-      std::string weld_frame_to_world = "");
+                                   unsigned int num_poses, double alpha,
+                                   std::string weld_frame_to_world = "");
 
   /// See CreateVisualizationCallback(std::string model_file,
   ///    unsigned int poses_per_mode,
@@ -115,7 +117,7 @@ class Dircon
   ///
   /// Creates a visualization callback that shows all knot points.
   void CreateVisualizationCallback(std::string model_file, double alpha,
-      std::string weld_frame_to_world = "");
+                                   std::string weld_frame_to_world = "");
 
   /// Set the initial guess for the force variables for a specific mode
   /// @param mode the mode index
@@ -126,7 +128,8 @@ class Dircon
       int mode,
       const drake::trajectories::PiecewisePolynomial<double>& traj_init_l,
       const drake::trajectories::PiecewisePolynomial<double>& traj_init_lc,
-      const drake::trajectories::PiecewisePolynomial<double>& traj_init_vc);
+      const drake::trajectories::PiecewisePolynomial<double>& traj_init_vc,
+      const double start_time = 0);
 
   /// Set the initial guess for the force variables for a specific mode.
   /// Sets both the contact forces lambda and the collocation forces lambda_c
@@ -137,10 +140,23 @@ class Dircon
       int mode,
       const drake::trajectories::PiecewisePolynomial<double>& traj_init_l);
 
+  /// Sets the initial guess for a specific mode's control, state, and time step. It will
+  /// properly set post impact velocity
+  /// @param mode_index the mode index
+  /// @param traj_init_x the state trajectory
+  /// @param traj_init_u the control trajectory
+  /// @param start_time the start time for the mode
+  /// @param end_time the end time for a mode
+  void SetInitialTrajectoryForMode(
+      int mode_index, const drake::trajectories::PiecewisePolynomial<double>& traj_init_x,
+      const drake::trajectories::PiecewisePolynomial<double>& traj_init_u,
+      const double start_time,
+      const double end_time);
+
   /// Get all knotpoint force variables associated with a specific mode and
   /// knotpoint
-  const drake::solvers::VectorXDecisionVariable force_vars(int mode_index,
-      int knotpoint_index) const;
+  const drake::solvers::VectorXDecisionVariable force_vars(
+      int mode_index, int knotpoint_index) const;
 
   /// Get all collocation force variables associated with a specific mode and
   /// collocation point
@@ -180,7 +196,7 @@ class Dircon
       int mode_index, int knotpoint_index) const;
 
   /// Get the input decision variables, given a mode and time index.
-  /// (knotpoint_index is w.r.t that particular mode). 
+  /// (knotpoint_index is w.r.t that particular mode).
   const drake::solvers::VectorXDecisionVariable input_vars(
       int mode_index, int knotpoint_index) const;
 
@@ -188,14 +204,24 @@ class Dircon
       const drake::VectorX<drake::symbolic::Expression>& f,
       int interval_index) const;
 
+  /// Substitute the velocity variables in the expression with
+  /// v_post_impact_vars_ for the corresponding mode
+  /// It is up to the user to make sure this is used only on the first knotpoint
+  drake::symbolic::Expression SubstitutePostImpactVelocityVariables(
+      const drake::symbolic::Expression& e, int mode) const;
+
   using drake::systems::trajectory_optimization::MultipleShooting::N;
   using drake::systems::trajectory_optimization::MultipleShooting::
-      SubstitutePlaceholderVariables;
+  SubstitutePlaceholderVariables;
 
-  int num_modes() const ;
+  int num_modes() const;
 
   /// Get the number of knotpoints in a specified mode
-  int mode_length(int mode_index) const; 
+  int mode_length(int mode_index) const;
+
+  /// Adds cost on sum of velocities squared while properly handling the
+  /// discontinuities from impacts
+  void AddVelocityCost(const double velocityCostGain);
 
   const multibody::KinematicEvaluatorSet<T>& get_evaluator_set(int mode) const {
     return mode_sequence_.mode(mode).evaluators();
@@ -231,9 +257,8 @@ class Dircon
  private:
   // Private constructor to which public constructors funnel
   Dircon(std::unique_ptr<DirconModeSequence<T>> my_sequence,
-      const DirconModeSequence<T>* ext_sequence,
-      const drake::multibody::MultibodyPlant<T>& plant,
-      int num_knotpoints);
+         const DirconModeSequence<T>* ext_sequence,
+         const drake::multibody::MultibodyPlant<T>& plant, int num_knotpoints);
 
   std::unique_ptr<DirconModeSequence<T>> my_sequence_;
   const drake::multibody::MultibodyPlant<T>& plant_;
@@ -251,6 +276,10 @@ class Dircon
   std::vector<drake::solvers::VectorXDecisionVariable> quaternion_slack_vars_;
   std::unique_ptr<multibody::MultiposeVisualizer> callback_visualizer_;
   std::vector<std::unique_ptr<DynamicsCache<T>>> cache_;
+
+  std::vector<std::pair<drake::VectorX<drake::symbolic::Variable>,
+                        drake::VectorX<drake::symbolic::Expression>>>
+      v_post_impact_vars_substitute_;
 };
 
 }  // namespace trajectory_optimization

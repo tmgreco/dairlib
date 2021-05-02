@@ -232,6 +232,7 @@ PiecewisePolynomial<double> DirconTrajectory::ReconstructStateTrajectory()
   PiecewisePolynomial<double> state_traj =
       PiecewisePolynomial<double>::CubicHermite(
           x_[0]->time_vector, x_[0]->datapoints, xdot_[0]->datapoints);
+
   for (int mode = 1; mode < num_modes_; ++mode) {
     // Cannot form trajectory with only a single break
     if (x_[mode]->time_vector.size() < 2) {
@@ -269,7 +270,7 @@ PiecewisePolynomial<double> DirconTrajectory::ReconstructInputTrajectory()
 }
 
 std::vector<PiecewisePolynomial<double>> DirconTrajectory::ReconstructLambdaTrajectory()
-const {
+    const {
   std::vector<PiecewisePolynomial<double>> lambda_traj;
   for(int mode_index = 0; mode_index < num_modes_; mode_index ++){
     if(lambda_[mode_index]->datapoints.size() > 0) {
@@ -277,14 +278,14 @@ const {
                                                                         lambda_[mode_index]->datapoints));
     }else{
       lambda_traj.push_back(PiecewisePolynomial<double>::FirstOrderHold(lambda_[mode_index]->time_vector,
-                                                                        MatrixXd::Zero(1,lambda_[mode_index]->time_vector.size())));
+                            MatrixXd::Zero(1,lambda_[mode_index]->time_vector.size())));
     }
   }
   return lambda_traj;
 }
 
 std::vector<PiecewisePolynomial<double>> DirconTrajectory::ReconstructLambdaCTrajectory()
-const {
+    const {
   std::vector<PiecewisePolynomial<double>> lambda_c_traj;
   for(int mode_index = 0; mode_index < num_modes_; mode_index ++){
     if(lambda_c_[mode_index]->datapoints.size() > 0) {
@@ -292,14 +293,14 @@ const {
                                                                         lambda_c_[mode_index]->datapoints));
     }else{
       lambda_c_traj.push_back(PiecewisePolynomial<double>::FirstOrderHold(lambda_c_[mode_index]->time_vector,
-                                                                        MatrixXd::Zero(1,lambda_c_[mode_index]->time_vector.size())));
+                              MatrixXd::Zero(1,lambda_c_[mode_index]->time_vector.size())));
     }
   }
   return lambda_c_traj;
 }
 
 std::vector<PiecewisePolynomial<double>> DirconTrajectory::ReconstructGammaCTrajectory()
-const {
+    const {
   std::vector<PiecewisePolynomial<double>> gamma_c_traj;
   for(int mode_index = 0; mode_index < num_modes_; mode_index ++){
     if(gamma_c_[mode_index]->datapoints.size() > 0) {
@@ -307,7 +308,7 @@ const {
                                                                          gamma_c_[mode_index]->datapoints));
     }else{
       gamma_c_traj.push_back(PiecewisePolynomial<double>::FirstOrderHold(gamma_c_[mode_index]->time_vector,
-                                                                          MatrixXd::Zero(1,gamma_c_[mode_index]->time_vector.size())));
+                             MatrixXd::Zero(1,gamma_c_[mode_index]->time_vector.size())));
     }
   }
   return gamma_c_traj;

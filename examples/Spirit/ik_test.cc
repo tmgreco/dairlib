@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <gflags/gflags.h>
 #include <string.h>
+#include <drake/multibody/inverse_kinematics/inverse_kinematics.h>
 
 #include "drake/solvers/snopt_solver.h"
 #include "drake/systems/analysis/simulator.h"
@@ -34,12 +35,6 @@ using Eigen::VectorXd;
 using Eigen::Matrix3d;
 using Eigen::MatrixXd;
 
-DEFINE_string(data_directory, "/home/jdcap/dairlib/examples/Spirit/saved_trajectories/",
-              "directory to save/read data");
-
-DEFINE_string(file_name, "/stand_trajectories/optimalStand_22cm","file to read data");
-
-
 int main(int argc, char* argv[]) {
   gflags::ParseCommandLineFlags(&argc, &argv, true);
 
@@ -55,22 +50,22 @@ int main(int argc, char* argv[]) {
   parser_vis.AddModelFromFile(full_name);
  
   plant->Finalize();
-  dairlib::visualizeSurface(plant_vis.get(),
-  (Eigen::Vector3d::UnitZ()+Eigen::Vector3d::UnitY()*.2),
-  Eigen::Vector3d::Zero(),1,1,.1);
   plant_vis->Finalize();
 
-  dairlib::DirconTrajectory old_traj(FLAGS_data_directory+FLAGS_file_name);
-  auto x_trajs = old_traj.ReconstructStateDiscontinuousTrajectory();
-  auto x_traj = old_traj.ReconstructStateTrajectory();
-  auto u_traj = old_traj.ReconstructInputTrajectory();
+  std::vector<MatrixXd> x_points;
+  std::vector<double> time_vec = {0,1,2,3};
+  VectorXd x_const;
+  dairlib::ikSpiritStand(*plant, x_const, {true, true, true, true}, 0.25, 0.15, 0, 0);
+  x_points.push_back(x_const);
+  dairlib::ikSpiritStand(*plant, x_const, {true, true, true, true}, 0.25, 0.2, 0, -0.35);
+  x_points.push_back(x_const);
+  dairlib::ikSpiritStand(*plant, x_const, {false, true, false, true}, 0.3, 0.25, 0, -0.35/2);
+  x_points.push_back(x_const);
+  dairlib::ikSpiritStand(*plant, x_const, {false, false, false, false}, 0.4, 0.25, 0, 0);
+  x_points.push_back(x_const);
 
-  std::cout<<"Electrical Work = " << dairlib::calcElectricalWork(*plant, x_trajs, u_traj) << std::endl;
+  PiecewisePolynomial<double> pp_xtraj = PiecewisePolynomial<double>::FirstOrderHold(time_vec,x_points);
 
-  std::cout<<"Integral of Actuation = " << dairlib::calcTorqueInt(*plant, u_traj) << std::endl;
-
-  std::cout<<"Integral of Velocity = " << dairlib::calcVelocityInt(*plant, x_trajs) << std::endl;
-  std::cout<<"state"<<old_traj.GetStateSamples(0).col(0)<<std::endl;
-  dairlib::runAnimate( std::move(plant), plant_vis.get(), std::move(scene_graph), x_traj,0.25);
+  dairlib::runAnimate( std::move(plant), plant_vis.get(), std::move(scene_graph), pp_xtraj,1.0);
 }
 

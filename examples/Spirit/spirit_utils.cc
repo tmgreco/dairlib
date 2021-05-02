@@ -24,7 +24,7 @@
 #include "multibody/multibody_utils.h"
 #include "multibody/visualization_utils.h"
 #include "multibody/kinematic/kinematic_constraints.h"
-
+#include "solvers/nonlinear_cost.h"
 #include "examples/Spirit/spirit_utils.h"
 
 
@@ -83,6 +83,113 @@ void nominalSpiritStand( MultibodyPlant<T>& plant, Eigen::VectorXd& xState, doub
       mirroredFlag = 1;
     }
     xState(positions_map.at("joint_" + std::to_string(hipInd))) = mirroredFlag * alpha;
+  }
+}
+
+void ikSpiritStand(drake::multibody::MultibodyPlant<double>& plant,
+                   Eigen::VectorXd& xState,
+                   Eigen::Matrix<bool,1,4> contactSequence,
+                   double com_height,
+                   double leg_height,
+                   double roll,
+                   double pitch,
+                   double eps){
+  drake::multibody::InverseKinematics ik(plant);
+  const auto& world_frame = plant.world_frame();
+  const auto& body_frame  = plant.GetFrameByName("body");
+
+  // Position of the com
+  Vector3d pos = {0, 0, com_height};
+  // Orientation of body
+  drake::math::RotationMatrix<double> orientation;
+  orientation = drake::math::RotationMatrix<double>::MakeXRotation(-roll) *
+                drake::math::RotationMatrix<double>::MakeYRotation(-pitch) ;
+
+  const double n_x = plant.num_positions() + plant.num_velocities();
+  const double n_q = plant.num_positions();
+
+
+  // Constrain body location and pose
+  ik.AddPositionConstraint(body_frame, Vector3d(0, 0, 0), world_frame,
+                           pos,
+                           pos);
+  ik.AddOrientationConstraint(body_frame, orientation,
+                              world_frame, drake::math::RotationMatrix<double>(), 0);
+
+  // Constrain toes
+  for(int toe = 0; toe < 4; toe ++){
+    constrainToe(plant, ik, toe, contactSequence[toe], orientation, com_height, leg_height, eps);
+  }
+
+  // Add initial guess and solve
+  Eigen::VectorXd initial_guess;
+  dairlib::nominalSpiritStand(plant, initial_guess, com_height);
+  ik.get_mutable_prog()->SetInitialGuess(ik.q(), initial_guess.head(n_q));
+  const auto result = Solve(ik.prog());
+  const auto q_sol = result.GetSolution(ik.q());
+  std::cout << (result.is_success() ? "IK Success" : "IK Fail") << std::endl;
+
+  // Return
+  VectorXd x_const = VectorXd::Zero(n_x);
+  x_const.head(n_q) = q_sol;
+  xState = x_const;
+}
+
+void constrainToe(drake::multibody::MultibodyPlant<double> & plant,
+                  drake::multibody::InverseKinematics &ik,
+                  int toe, bool inContact, drake::math::RotationMatrix<double> orientation,
+                  double com_height, double leg_height, double eps){
+  // Get frames
+  const auto& toe_frame = dairlib::getSpiritToeFrame(plant, toe);
+  const auto& world_frame = plant.world_frame();
+  const auto& body_frame  = plant.GetFrameByName("body");
+  Vector3d eps_vec = {eps, eps, eps};
+
+  // Chose distance between toe and com
+  const double hip_width = 0.07;
+  const double body_length = 0.2263;
+  Vector3d toe_offset;
+  switch (toe) {
+    case 0:
+      toe_offset = {body_length, hip_width, -abs(leg_height)};
+      break;
+    case 1:
+      toe_offset = {-body_length, hip_width, -abs(leg_height)};
+      break;
+    case 2:
+      toe_offset = {body_length, -hip_width, -abs(leg_height)};
+      break;
+    case 3:
+      toe_offset = {-body_length, -hip_width, -abs(leg_height)};
+      break;
+    default:
+      break;
+  }
+
+  if(inContact){
+    // Toe is in contact with ground
+
+    // Constrain toe to be under hip with distance constraint
+    toe_offset(2) = 0; // vector between body and hip in body frame
+    // Location hip in world frame
+    Vector3d hip_in_world = orientation.transpose() * toe_offset + Vector3d({0, 0, abs(com_height)});
+    // Vector between hip and toe in world frame
+    Vector3d  hip_to_toe_world = {0, 0, -hip_in_world(2)};
+    // Vector between body and toe in body frame
+    Vector3d body_to_toe_body = toe_offset + orientation * hip_to_toe_world;
+    //ik.AddPositionConstraint(body_frame, body_to_toe_body, toe_frame, -eps_vec, eps_vec);
+
+    // Toe is in contact with ground
+    ik.AddPositionConstraint(toe_frame, Vector3d(0, 0, 0), world_frame,
+                             toe_offset,
+                             toe_offset);
+
+  }
+  else{
+    // Toe is under hip in body frame
+    ik.AddPositionConstraint(body_frame, toe_offset, toe_frame,
+                             Vector3d(0, 0, 0),
+                             Vector3d(0, 0, 0));
   }
 }
 
@@ -229,8 +336,8 @@ void setSpiritJointLimits(drake::multibody::MultibodyPlant<T> & plant,
 }
 
 template <typename T> 
-void setSpiritJointLimits(drake::multibody::MultibodyPlant<T> & plant, 
-                          dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,  
+void setSpiritJointLimits(drake::multibody::MultibodyPlant<T> & plant,
+                          dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,
                           std::vector<int> iJoints, 
                           std::vector<double> minVals, 
                           std::vector<double> maxVals  ){
@@ -246,8 +353,8 @@ void setSpiritJointLimits(drake::multibody::MultibodyPlant<T> & plant,
   }
 }
 template <typename T> 
-void setSpiritJointLimits(drake::multibody::MultibodyPlant<T> & plant, 
-                          dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,  
+void setSpiritJointLimits(drake::multibody::MultibodyPlant<T> & plant,
+                          dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,
                           std::vector<int> iJoints, 
                           double minVal, 
                           double maxVal  ){
@@ -510,9 +617,8 @@ double calcWork(
   return work;
 }
 
-
 template <typename T>
-double calcWork(
+double calcMechanicalWork(
     drake::multibody::MultibodyPlant<T> & plant,
     std::vector<drake::trajectories::PiecewisePolynomial<double>>& x_trajs,
     drake::trajectories::PiecewisePolynomial<double>& u_traj){
@@ -544,6 +650,56 @@ double calcWork(
 
         // trapazoidal integration
         work += (knot_points[knot_index + 1] - knot_points[knot_index]) / 2.0 * (pow_low + pow_up);
+      }
+    }
+  }
+  return work;
+}
+
+
+template <typename T>
+double calcElectricalWork(
+    drake::multibody::MultibodyPlant<T> & plant,
+    std::vector<drake::trajectories::PiecewisePolynomial<double>>& x_trajs,
+    drake::trajectories::PiecewisePolynomial<double>& u_traj,
+    double efficiency){
+
+  auto velocities_map = multibody::makeNameToVelocitiesMap(plant);
+  auto actuator_map = multibody::makeNameToActuatorsMap(plant);
+  int n_q = plant.num_positions();
+
+  double work = 0;
+  double Q;
+  for(const auto& x_traj : x_trajs) {
+    std::vector<double> knot_points = x_traj.get_segment_times();
+    for (int knot_index = 0; knot_index < knot_points.size() - 1; knot_index++) {
+      auto u_low = u_traj.value(knot_points[knot_index]);
+      auto u_up = u_traj.value(knot_points[knot_index + 1]);
+      auto x_low = x_traj.value(knot_points[knot_index]);
+      auto x_up = x_traj.value(knot_points[knot_index + 1]);
+
+      for (int joint = 0; joint < 12; joint++) {
+        if(joint == 1 or joint == 3 or joint == 5 or joint == 7){
+          Q = Q_knee;
+        }
+        else{
+          Q = Q_not_knee;
+        }
+
+        double actuation_low = u_low(actuator_map.at("motor_" + std::to_string(joint)));
+        double actuation_up = u_up(actuator_map.at("motor_" + std::to_string(joint)));
+
+        double velocity_low = x_low(n_q + velocities_map.at("joint_" + std::to_string(joint) + "dot"));
+        double velocity_up = x_up(n_q + velocities_map.at("joint_" + std::to_string(joint) + "dot"));
+
+        double pow_low = actuation_low * velocity_low + Q * actuation_low * actuation_low;
+        double pow_up = actuation_up * velocity_up+ Q * actuation_up * actuation_up;
+
+        double battery_pow_low = positivePart(pow_low) + efficiency * negativePart(pow_low);
+        double battery_pow_up = positivePart(pow_up) + efficiency * negativePart(pow_up);
+
+        // trapazoidal integration
+        work += (knot_points[knot_index + 1] - knot_points[knot_index]) / 2.0 * (battery_pow_low + battery_pow_up);
       }
     }
   }
@@ -831,7 +987,99 @@ std::vector<Eigen::Matrix<double, -1, 1>> interpolateVectors(
 // }
 
 
+template <typename T>
+std::vector<drake::solvers::Binding<drake::solvers::Cost>> AddWorkCost(drake::multibody::MultibodyPlant<T> & plant,
+                 dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,
+                 double cost_work_gain){
+  std::vector<drake::solvers::Binding<drake::solvers::Cost>> cost_joint_work_bindings;
+  int n_q = plant.num_positions();
+  auto velocities_map = multibody::makeNameToVelocitiesMap(plant);
+  auto actuator_map = multibody::makeNameToActuatorsMap(plant);
+
+  double Q = 0;
+  // Loop through each joint
+  for (int joint = 0; joint < 12; joint++) {
+    if(joint == 1 or joint == 3 or joint == 5 or joint == 7)
+      Q = Q_knee;
+    else
+      Q = Q_not_knee;
+    auto joint_work_cost = std::make_shared<JointWorkCost>(plant,  Q, cost_work_gain,4);
+    int act_int = actuator_map.at("motor_" + std::to_string(joint));
+    int vel_int = n_q + velocities_map.at("joint_" + std::to_string(joint) +"dot");
+    // Loop through each mode
+    for (int mode_index = 0; mode_index < trajopt.num_modes(); mode_index++) {
+      for (int knot_index = 0; knot_index < trajopt.mode_length(mode_index)-1; knot_index++) {
+        auto u_i = trajopt.input(trajopt.get_mode_start(mode_index) + knot_index)(act_int);
+        auto x_i   = trajopt.state_vars(mode_index, knot_index)(vel_int);
+        auto u_ip = trajopt.input(trajopt.get_mode_start(mode_index) + knot_index+1)(act_int);
+        auto x_ip   = trajopt.state_vars(mode_index, knot_index+1)(vel_int);
+
+        auto hi = trajopt.timestep(trajopt.get_mode_start(mode_index) + knot_index);
+        drake::solvers::VectorXDecisionVariable variables(5);
+        variables(0) = hi[0];
+        variables(1) = u_i;
+        variables(2) = u_ip;
+        variables(3) = x_i;
+        variables(4) = x_ip;
+        cost_joint_work_bindings.push_back(trajopt.AddCost(joint_work_cost, variables));
+      } // knot point loop
+    } // Mode loop
+  } // Joint loop
+  return cost_joint_work_bindings;
+}
+
+JointWorkCost::JointWorkCost(const drake::multibody::MultibodyPlant<double>& plant,
+                             const double &Q,
+                             const double &cost_work,
+                             const double &alpha,
+                             const std::string &description)
+    :solvers::NonlinearCost<double>(5,description), plant_(plant){
+  Q_ = Q;
+  cost_work_ = cost_work;
+  alpha_ = alpha;
+  n_q_ = plant_.num_positions();
+  n_v_ = plant_.num_velocities();
+  n_u_ = plant_.num_actuators();
+  DRAKE_DEMAND(alpha_ > 0);
+}
+
+double JointWorkCost::relu_smooth(const double x) const{
+  return  x>5 ? x : 1/alpha_ * log(1 + exp(alpha_ * x));
+}
+
+void JointWorkCost::EvaluateCost(const Eigen::Ref<const drake::VectorX<double>> &x,
+                  drake::VectorX<double> *y) const{
+
+
+
+double h_i = x(0);
+//auto u_i_all = x.segment(1, n_u_);
+//auto u_ip_all = x.segment(1+n_u_, n_u_);
+//auto x_i_all = x.segment(1+n_u_+n_u_, n_q_+n_v_);
+//auto x_ip_all = x.segment(1+n_u_+n_u_+n_q_+n_v_, n_q_+n_v_);
+
+double u_i = x(1);
+double u_ip = x(2);
+double v_i = x(3);
+double v_ip = x(4);
+double work_low = cost_work_ * relu_smooth(u_i * v_i + Q_ * u_i * u_i);
+double work_up = cost_work_ * relu_smooth(u_ip * v_ip + Q_ * u_ip * u_ip);
+
+drake::VectorX<double> rv(1);
+rv[0] = 1/2.0 * h_i *(work_low + work_up);
+(*y) = rv;
+};
+
+double positivePart(double x){
+  return(std::max(x,0.0));
+}
+
+double negativePart(double x){
+  return(std::min(x,0.0));
+}
+
 /// TEMPLATING 
+
 template void nominalSpiritStand(
     drake::multibody::MultibodyPlant<double>& plant, 
     Eigen::VectorXd& xState, 
@@ -890,15 +1138,15 @@ template void setSpiritJointLimits(
           double maxVal  );//NOLINT
 
 template void setSpiritJointLimits(
-          drake::multibody::MultibodyPlant<double> & plant, 
-          dairlib::systems::trajectory_optimization::Dircon<double>& trajopt,  
+          drake::multibody::MultibodyPlant<double> & plant,
+          dairlib::systems::trajectory_optimization::Dircon<double>& trajopt,
           std::vector<int> iJoints, 
           std::vector<double> minVals, 
           std::vector<double> maxVals  );//NOLINT
 
 template void setSpiritJointLimits(
-          drake::multibody::MultibodyPlant<double> & plant, 
-          dairlib::systems::trajectory_optimization::Dircon<double>& trajopt,  
+          drake::multibody::MultibodyPlant<double> & plant,
+          dairlib::systems::trajectory_optimization::Dircon<double>& trajopt,
           std::vector<int> iJoints, 
           double minVal, 
           double maxVal  );//NOLINT
@@ -928,10 +1176,16 @@ template double calcWork(
     drake::trajectories::PiecewisePolynomial<double>& x_traj,
     drake::trajectories::PiecewisePolynomial<double>& u_traj);//NOLINT
 
-template double calcWork(
+template double calcMechanicalWork(
     drake::multibody::MultibodyPlant<double> & plant,
     std::vector<drake::trajectories::PiecewisePolynomial<double>>& x_traj,
     drake::trajectories::PiecewisePolynomial<double>& u_traj);//NOLINT
+
+template double calcElectricalWork(
+    drake::multibody::MultibodyPlant<double> & plant,
+    std::vector<drake::trajectories::PiecewisePolynomial<double>>& x_traj,
+    drake::trajectories::PiecewisePolynomial<double>& u_traj,
+    double efficiency);
 
 template double calcVelocityInt(
     drake::multibody::MultibodyPlant<double> & plant,
@@ -944,5 +1198,9 @@ template double calcVelocityInt(
 template double calcTorqueInt(
     drake::multibody::MultibodyPlant<double> & plant,
     drake::trajectories::PiecewisePolynomial<double>& u_traj);//NOLINT
+
+template std::vector<drake::solvers::Binding<drake::solvers::Cost>> AddWorkCost(drake::multibody::MultibodyPlant<double> & plant,
+                 dairlib::systems::trajectory_optimization::Dircon<double>& trajopt,
+                 double cost_work_gain);
 
 }//namespace dairlib

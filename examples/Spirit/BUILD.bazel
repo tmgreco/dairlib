@@ -40,6 +40,7 @@ cc_library(
     deps = [
         "//common",
         "//multibody/kinematic",
+        "//solvers:nonlinear_cost",
         "//systems/primitives",
         "//systems/trajectory_optimization/dircon",
         "@drake//:drake_shared_library",
@@ -65,6 +66,23 @@ cc_binary(
 cc_binary(
     name = "process_trajectory",
     srcs = ["process_trajectory.cc"],
+    data = ["spirit_drake.urdf"],
+    deps = [
+        ":animate_spirit",
+        ":spirit_utils",
+        "//common",
+        "//lcm:dircon_trajectory_saver",
+        "//multibody/kinematic",
+        "//systems/primitives",
+        "//systems/trajectory_optimization/dircon",
+        "@drake//:drake_shared_library",
+        "@gflags",
+    ],
+)
+
+cc_binary(
+    name = "ik_test",
+    srcs = ["ik_test.cc"],
     data = ["spirit_drake.urdf"],
     deps = [
         ":animate_spirit",
@@ -147,6 +165,27 @@ cc_binary(
 )
 
 cc_binary(
+    name = "run_spirit_bound",
+    srcs = ["run_spirit_bound.cc"],
+    data = ["spirit_drake.urdf"],
+    deps = [
+        ":animate_spirit",
+        ":spirit_utils",
+        ":spirit_optimal_stand",
+        "//systems/trajectory_optimization/dircon",
+        "//lcm:dircon_trajectory_saver",
+        "//multibody/kinematic",
+        "//common",
+        "//systems/primitives",
+        "@drake//:drake_shared_library",
+        "@gflags",
+    ],
+)
+
+
+
+
+cc_binary(
     name = "run_spirit_parkour",
     srcs = ["run_spirit_parkour.cc"],
     data = ["spirit_drake.urdf"],
@@ -181,7 +220,6 @@ cc_binary(
         "@gflags",
     ],
 )
-
 
 cc_binary(
     name = "run_spirit_best_stand",

@@ -24,9 +24,10 @@ namespace dairlib {
 /// filepath of the previously saved DirconTrajectory object
 
 /// DirconTrajectory by default contains four Trajectory objects: the state
-/// trajectory, the input trajectory, the force trajectory, and the decision
-/// variables. Additional trajectories can be added using the AddTrajectory()
-/// function
+/// trajectory, the input trajectory, the force trajectory, the contact force
+/// trajectory, the collocation force trajectory, the collocation slack trajectory
+/// and the decision variables. Additional trajectories can be added using
+/// the AddTrajectory() function
 
 class DirconTrajectory : public LcmTrajectory {
  public:
@@ -50,12 +51,22 @@ class DirconTrajectory : public LcmTrajectory {
       const;
   std::vector<drake::trajectories::PiecewisePolynomial<double>> ReconstructStateDiscontinuousTrajectory()
   const;
+
+
+  /// Returns a vector of polynomials describing the contact forces for each mode. For use when
+  /// adding knot points to the initial guess
   std::vector<drake::trajectories::PiecewisePolynomial<double>> ReconstructLambdaTrajectory()
-  const;
+      const;
+
+  /// Returns a vector of polynomials describing the collocation forces for each mode. For use
+  /// when adding knot points to the initial guess
   std::vector<drake::trajectories::PiecewisePolynomial<double>> ReconstructLambdaCTrajectory()
-  const;
+      const;
+
+  /// Returns a vector of polynomials describing the collocation slack vars. For use when adding
+  /// knot points to the initial guess
   std::vector<drake::trajectories::PiecewisePolynomial<double>> ReconstructGammaCTrajectory()
-  const;
+      const;
 
   /// Loads the saved state and input trajectory as well as the decision
   /// variables
