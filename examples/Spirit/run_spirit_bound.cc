@@ -35,7 +35,7 @@
 #include "examples/Spirit/spirit_utils.h"
 
 DEFINE_double(standHeight, 0.2, "The standing height.");
-DEFINE_double(foreAftDisplacement, 1., "The fore-aft displacement.");
+DEFINE_double(foreAftDisplacement, 1.5, "The fore-aft displacement.");
 DEFINE_double(apexGoal, 0.35, "Apex state goal");
 DEFINE_double(eps, 1e-2, "The wiggle room.");
 DEFINE_double(tol, 2e-1, "Optimization Tolerance");
@@ -940,34 +940,34 @@ int main(int argc, char* argv[]) {
         FLAGS_data_directory+"in_place_bound"+ (FLAGS_spine ? "_spine" : ""));
   }
 
-//  std::cout<<"Running 2nd optimization"<<std::endl;
-//
-//  dairlib::runSpiritJump<double>(
-//      *plant,
-//      x_traj, u_traj, l_traj,
-//      lc_traj, vc_traj,
-//      false,
-//      true,
-//      {7, 7, 7, 7, 7, 7} ,
-//      FLAGS_standHeight,
-//      1.0,
-//      0.3,
-//      FLAGS_apexGoal,       // Ignored if small
-//      FLAGS_foreAftDisplacement,
-//      1.8,
-//      3,
-//      10,
-//      10/5.0,
-//      5/5.0,
-//      1000,
-//      0,
-//      10,
-//      1e-3,
-//      1e0,
-//      FLAGS_spine,
-//      true,
-//      FLAGS_data_directory+"bound_"+distance_name+ (FLAGS_spine ? "_spine" : ""),
-//      FLAGS_data_directory+"in_place_bound"+ (FLAGS_spine ? "_spine" : ""));
+  std::cout<<"Running 2nd optimization"<<std::endl;
+
+  dairlib::runSpiritJump<double>(
+      *plant,
+      x_traj, u_traj, l_traj,
+      lc_traj, vc_traj,
+      false,
+      true,
+      {7, 7, 7, 7, 7, 7} ,
+      FLAGS_standHeight,
+      1.0,
+      0.3,
+      FLAGS_apexGoal,       // Ignored if small
+      FLAGS_foreAftDisplacement,
+      1.8,
+      3,
+      10,
+      10/5.0,
+      5/5.0,
+      1000,
+      0,
+      10,
+      1e-3,
+      1e0,
+      FLAGS_spine,
+      true,
+      FLAGS_data_directory+"bound_"+distance_name+ (FLAGS_spine ? "_spine" : ""),
+      FLAGS_data_directory+"in_place_bound"+ (FLAGS_spine ? "_spine" : ""));
 
   std::cout<<"Running 3rd optimization"<<std::endl;
 
@@ -1013,12 +1013,12 @@ int main(int argc, char* argv[]) {
       FLAGS_apexGoal,       // Ignored if small
       FLAGS_foreAftDisplacement,
       1.8,
-      3,
-      10,
+      3/5.0,
       10/5.0,
-      5/5.0,
+      10,
+      5,
       1000,
-      70,
+      100,
       FLAGS_mu,
       1e-3,
       1e0,
@@ -1042,14 +1042,14 @@ int main(int argc, char* argv[]) {
       FLAGS_apexGoal,       // Ignored if small
       FLAGS_foreAftDisplacement,
       1.8,
-      3/100.0,
-      10/100.0,
-      10/5.0,
-      5/5.0,
+      3/10.0,
+      10/10.0,
+      10/2.0,
+      5/2.0,
       1000,
       100,
       FLAGS_mu,
-      FLAGS_eps,
+      1e-3,
       FLAGS_tol,
       FLAGS_spine,
       false,
