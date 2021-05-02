@@ -54,6 +54,7 @@ void nominalSpiritStand(
 ///     @param leg_height, distance between hip and toe for legs not on the ground
 ///     @param roll, roll of body in radians
 ///     @param pitch, pitch of body in radians
+///     @param spine, does the robot have a spine?
 ///     @param eps, tolerance on legs in contact with ground
 void ikSpiritStand(
     drake::multibody::MultibodyPlant<double>& plant,
@@ -169,7 +170,8 @@ std::tuple<  std::vector<std::unique_ptr<dairlib::systems::trajectory_optimizati
 
 /// This overload sets all the joints to their nominal limit's
 ///    @param plant a pointer to a multibodyPlant
-///    @param trajopt a ponter to a Dircon<T> object  
+///    @param trajopt a ponter to a Dircon<T> object
+///    @param spine, does the robot have a spine?
 template <typename T>
 void setSpiritJointLimits(
                     drake::multibody::MultibodyPlant<T> & plant,
@@ -223,7 +225,8 @@ void setSpiritJointLimits(
 /// Sets all the joints' actuator limits to the same thing
 ///    @param plant a pointer to a multibodyPlant
 ///    @param trajopt a ponter to a Dircon<T> object  
-///    @param actuatorLimit the (symmetric) effort limit 
+///    @param actuatorLimit the (symmetric) effort limit
+///    @param spine, does the robot have a spine?
 template <typename T> 
 void setSpiritActuationLimits(
           drake::multibody::MultibodyPlant<T> & plant, 
@@ -278,6 +281,7 @@ double calcMechanicalWork(
 ///     @param plont, a pointer to the robot's model
 ///     @param x_trajs a vector of the state trajectory for each mode
 ///     @param u_traj the control trajectory
+///     @param spine, does the robot have a spine?
 ///     @param efficiency, gain on what percent of negative power is useable by the battery
 template <typename T>
 double calcElectricalWork(
@@ -315,6 +319,7 @@ double calcTorqueInt(
 ///     @param plant, the robot model
 ///     @param trajopt the dircon object
 ///     @param cost_work_gain, the gain on the electrical work
+///     @param spine, does the robot have a spine?
 template <typename T>
 std::vector<drake::solvers::Binding<drake::solvers::Cost>> AddWorkCost(drake::multibody::MultibodyPlant<T> & plant,
                  dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,
