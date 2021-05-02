@@ -42,10 +42,7 @@ class ModeSequenceHelper {
     }
 };
 
-<<<<<<< HEAD
 drake::math::RotationMatrix<double> normal2Rotation(Eigen::Vector3d nHat);
-=======
->>>>>>> master
 
 /// Outputs a nominal stand state into the xState vector pointer based on the 
 /// height. This is an approximation for use in initial conditions.
