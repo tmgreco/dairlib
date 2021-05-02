@@ -30,20 +30,22 @@
 #include "common/file_utils.h"
 #include "lcm/dircon_saved_trajectory.h"
 #include "solvers/optimization_utils.h"
+#include "drake/multibody/tree/revolute_spring.h"
 
 #include "examples/Spirit/spirit_utils.h"
 
 DEFINE_double(standHeight, 0.2, "The standing height.");
-DEFINE_double(foreAftDisplacement, 1.5, "The fore-aft displacement.");
+DEFINE_double(foreAftDisplacement, 1., "The fore-aft displacement.");
 DEFINE_double(apexGoal, 0.35, "Apex state goal");
 DEFINE_double(eps, 1e-2, "The wiggle room.");
 DEFINE_double(tol, 2e-1, "Optimization Tolerance");
-DEFINE_double(mu, 1.0, "coefficient of friction");
+DEFINE_double(mu, 0.5, "coefficient of friction");
 
 DEFINE_string(data_directory, "/home/shane/Drake_ws/dairlib/examples/Spirit/saved_trajectories/",
               "directory to save/read data");
 DEFINE_bool(skipInitialOptimization, true, "skip first optimizations?");
 DEFINE_bool(spine, true, "use a spine?");
+DEFINE_double(spine_stiffness, 0.0, "coefficient of friction");
 
 using drake::AutoDiffXd;
 using drake::multibody::MultibodyPlant;
@@ -335,6 +337,46 @@ void addCostLegs(MultibodyPlant<T>& plant,
   }
 }
 
+/// Add a cost on a specific mode for a specific subset of joints, to be used to add a cost on the legs in flight
+/// @param plant the plant
+/// @param trajopt the trajectory optimization object
+/// @param cost_actuation a cost on actuation squared
+/// @param cost_velocity a cost on velocity squared
+/// @param joints a vector of joints corresponding to which joints to apply the cost to
+/// @param mode_index the mode to apply the cost to
+template <typename T>
+void addCostSpine(MultibodyPlant<T>& plant,
+                 dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,
+                 const double cost_actuation,
+                 const double cost_velocity,
+                 const int mode_index){
+  auto velocities_map = multibody::makeNameToVelocitiesMap(plant);
+  auto actuator_map = multibody::makeNameToActuatorsMap(plant);
+  int n_q = plant.num_positions();
+
+  for(int knot_index = 0; knot_index < trajopt.mode_length(mode_index)-1; knot_index++){
+    // Get lower and upper knot velocities
+    auto vel  = trajopt.state_vars(mode_index, knot_index)(n_q + velocities_map.at("spinedot"));
+    auto vel_up = trajopt.state_vars(mode_index, knot_index+1)(n_q + velocities_map.at("spinedot"));
+
+    drake::symbolic::Expression hi = trajopt.timestep(trajopt.get_mode_start(mode_index) + knot_index)[0];
+
+    // Loop through and calculate sum of velocities squared
+    drake::symbolic::Expression vel_sq = vel * vel;
+    drake::symbolic::Expression vel_sq_up = vel_up * vel_up;
+
+    // Add cost
+    trajopt.AddCost(hi/2.0 * cost_velocity * (vel_sq + vel_sq_up));
+
+    auto act  = trajopt.input(trajopt.get_mode_start(mode_index) + knot_index)(actuator_map.at("motor_spine"));
+    auto act_up = trajopt.input(trajopt.get_mode_start(mode_index) + knot_index+1)(actuator_map.at("motor_spine"));
+
+    drake::symbolic::Expression act_sq = act * act;
+    drake::symbolic::Expression act_sq_up = act_up * act_up;
+
+    trajopt.AddCost(hi/2.0 * cost_actuation * (act_sq + act_sq_up));
+  }
+}
 /// addCost, adds the cost to the trajopt jump problem. See runSpiritJump for a description of the inputs
 template <typename T>
 std::vector<drake::solvers::Binding<drake::solvers::Cost>> addCost(MultibodyPlant<T>& plant,
@@ -360,6 +402,9 @@ std::vector<drake::solvers::Binding<drake::solvers::Cost>> addCost(MultibodyPlan
   addCostLegs(plant, trajopt, cost_velocity_legs_flight, cost_actuation_legs_flight, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}, 2);
   addCostLegs(plant, trajopt, cost_velocity_legs_flight, cost_actuation_legs_flight, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}, 3);
   addCostLegs(plant, trajopt, cost_velocity_legs_flight, cost_actuation_legs_flight, {2, 3, 6, 7, 10, 11}, 4);
+
+  addCostSpine(plant, trajopt, cost_velocity_legs_flight, cost_actuation_legs_flight,2);
+  addCostSpine(plant, trajopt, cost_velocity_legs_flight, cost_actuation_legs_flight,3);
 
   return AddWorkCost(plant, trajopt, cost_work, spine);
 } // Function
@@ -438,10 +483,8 @@ void addConstraints(MultibodyPlant<T>& plant,
   trajopt.AddBoundingBoxConstraint(-eps, eps, xapex(positions_map.at("base_qz")));
 
   if(spine and !lock_spine){
-
-    trajopt.AddBoundingBoxConstraint(-eps, eps, xapex( positions_map.at("spine")));
-    trajopt.AddBoundingBoxConstraint(-eps, eps, xapex( n_q + velocities_map.at("spinedot")));
-
+//    trajopt.AddBoundingBoxConstraint(-eps, eps, xapex( positions_map.at("spine")));
+//    trajopt.AddBoundingBoxConstraint(-eps, eps, xapex( n_q + velocities_map.at("spinedot")));
   }
 
   /// TD constraints
@@ -740,7 +783,7 @@ void runSpiritJump(
                  pitch_magnitude_lo, pitch_magnitude_apex, max_duration, eps, spine, lock_spine);
 
   /// Setup the visualization during the optimization
-  int num_ghosts = 1;// Number of ghosts in visualization. NOTE: there are limitations on number of ghosts based on modes and knotpoints
+  int num_ghosts = 3;// Number of ghosts in visualization. NOTE: there are limitations on number of ghosts based on modes and knotpoints
   std::vector<unsigned int> visualizer_poses; // Ghosts for visualizing during optimization
   for(int i = 0; i < sequence.num_modes(); i++){
       visualizer_poses.push_back(num_ghosts); 
@@ -848,6 +891,13 @@ int main(int argc, char* argv[]) {
   plant->mutable_gravity_field().set_gravity_vector(-9.81 *
       Eigen::Vector3d::UnitZ());
 
+  if(FLAGS_spine){
+    plant->AddForceElement<drake::multibody::RevoluteSpring>(
+        dynamic_cast<const drake::multibody::RevoluteJoint<double>&>(
+            plant->GetJointByName("spine")),
+        0, FLAGS_spine_stiffness);
+  }
+
   plant->Finalize();
   plant_vis->Finalize();
 
@@ -890,34 +940,34 @@ int main(int argc, char* argv[]) {
         FLAGS_data_directory+"in_place_bound"+ (FLAGS_spine ? "_spine" : ""));
   }
 
-  std::cout<<"Running 2nd optimization"<<std::endl;
-
-  dairlib::runSpiritJump<double>(
-      *plant,
-      x_traj, u_traj, l_traj,
-      lc_traj, vc_traj,
-      false,
-      true,
-      {7, 7, 7, 7, 7, 7} ,
-      FLAGS_standHeight,
-      1.0,
-      0.3,
-      FLAGS_apexGoal,       // Ignored if small
-      FLAGS_foreAftDisplacement,
-      1.8,
-      3,
-      10,
-      10/5.0,
-      5/5.0,
-      1000,
-      0,
-      10,
-      1e-3,
-      1e0,
-      FLAGS_spine,
-      true,
-      FLAGS_data_directory+"bound_"+distance_name+ (FLAGS_spine ? "_spine" : ""),
-      FLAGS_data_directory+"in_place_bound"+ (FLAGS_spine ? "_spine" : ""));
+//  std::cout<<"Running 2nd optimization"<<std::endl;
+//
+//  dairlib::runSpiritJump<double>(
+//      *plant,
+//      x_traj, u_traj, l_traj,
+//      lc_traj, vc_traj,
+//      false,
+//      true,
+//      {7, 7, 7, 7, 7, 7} ,
+//      FLAGS_standHeight,
+//      1.0,
+//      0.3,
+//      FLAGS_apexGoal,       // Ignored if small
+//      FLAGS_foreAftDisplacement,
+//      1.8,
+//      3,
+//      10,
+//      10/5.0,
+//      5/5.0,
+//      1000,
+//      0,
+//      10,
+//      1e-3,
+//      1e0,
+//      FLAGS_spine,
+//      true,
+//      FLAGS_data_directory+"bound_"+distance_name+ (FLAGS_spine ? "_spine" : ""),
+//      FLAGS_data_directory+"in_place_bound"+ (FLAGS_spine ? "_spine" : ""));
 
   std::cout<<"Running 3rd optimization"<<std::endl;
 
@@ -939,7 +989,7 @@ int main(int argc, char* argv[]) {
       10/5.0,
       5/5.0,
       1000,
-      50,
+      10,
       FLAGS_mu,
       1e-3,
       1e0,
@@ -949,6 +999,35 @@ int main(int argc, char* argv[]) {
       FLAGS_data_directory+"bound_"+distance_name+ (FLAGS_spine ? "_spine" : ""));
 
   std::cout<<"Running 4th optimization"<<std::endl;
+
+  dairlib::runSpiritJump<double>(
+      *plant,
+      x_traj, u_traj, l_traj,
+      lc_traj, vc_traj,
+      false,
+      true,
+      {7, 7, 7, 7, 7, 7} ,
+      FLAGS_standHeight,
+      1.0,
+      0.3,
+      FLAGS_apexGoal,       // Ignored if small
+      FLAGS_foreAftDisplacement,
+      1.8,
+      3,
+      10,
+      10/5.0,
+      5/5.0,
+      1000,
+      70,
+      FLAGS_mu,
+      1e-3,
+      1e0,
+      FLAGS_spine,
+      false,
+      FLAGS_data_directory+"bound_"+distance_name+"low_mu_some_work"+ (FLAGS_spine ? "_spine" : ""),
+      FLAGS_data_directory+"bound_"+distance_name+"low_mu"+ (FLAGS_spine ? "_spine" : ""));
+
+  std::cout<<"Running 5th optimization"<<std::endl;
 
   dairlib::runSpiritJump<double>(
       *plant,
@@ -975,7 +1054,7 @@ int main(int argc, char* argv[]) {
       FLAGS_spine,
       false,
       FLAGS_data_directory+"bound_"+distance_name+"min_work"+ (FLAGS_spine ? "_spine" : ""),
-      FLAGS_data_directory+"bound_"+distance_name+"low_mu"+ (FLAGS_spine ? "_spine" : ""));
+      FLAGS_data_directory+"bound_"+distance_name+"low_mu_some_work"+ (FLAGS_spine ? "_spine" : ""));
 }
 
 
