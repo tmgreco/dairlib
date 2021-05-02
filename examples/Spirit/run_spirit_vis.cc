@@ -45,7 +45,7 @@ int main(int argc, char* argv[]) {
   Parser parser(plant.get());
   Parser parser_vis(plant_vis.get(), scene_graph.get());
   std::string full_name =
-      dairlib::FindResourceOrThrow("examples/Spirit/spirit_spine_drake.urdf");
+      dairlib::FindResourceOrThrow("examples/Spirit/spirit_drake.urdf");
 
   parser.AddModelFromFile(full_name);
   parser_vis.AddModelFromFile(full_name);
@@ -68,15 +68,6 @@ int main(int argc, char* argv[]) {
   xState = Eigen::VectorXd::Zero(plant->num_positions() + plant->num_velocities());
   auto positions_map = dairlib::multibody::makeNameToPositionsMap(*plant);
   auto velocities_map = dairlib::multibody::makeNameToVelocitiesMap(*plant);
-
-  std::cout<<"**********************Joints***********************"<<std::endl;
-  for (auto const& element : positions_map)
-    std::cout << element.first << " = " << element.second << std::endl;
-  for (auto const& element : velocities_map)
-    std::cout << element.first << " = " << element.second << std::endl;
-  std::cout<<"***************************************************"<<std::endl;
-
-
   int num_joints = 12;
 
   //Intialize the quaternion position of the body
@@ -87,9 +78,9 @@ int main(int argc, char* argv[]) {
 
   //Set Joint Velocities
   for (int j = 0; j < num_joints; j++){   
-    xState(nq + velocities_map.at( "joint_"+std::to_string(j)+"dot" )) = 0.0;
+    xState(nq + velocities_map.at( "joint_"+std::to_string(j)+"dot" )) = 0.2;
   }
-  xState(nq + velocities_map.at( "spinedot" )) = 0.2;
+  
 
   double time = 0;
   for (int i = 0; i < N; i++) {
@@ -100,8 +91,7 @@ int main(int argc, char* argv[]) {
     for (int j =0; j < num_joints; j++){
         xState(positions_map.at("joint_"+std::to_string(j))) = xState(nq + velocities_map.at("joint_" + std::to_string(j)+"dot" )) * time;
     }
-    xState( positions_map.at( "spine" )) = xState(nq + velocities_map.at( "spinedot" ))* time;
-
+    
     //Add to knotpoint state matrix
     init_x.push_back(xState);
   }
