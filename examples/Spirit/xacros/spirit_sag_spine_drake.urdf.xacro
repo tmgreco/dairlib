@@ -151,7 +151,7 @@ SOFTWARE.
 		</collision>
 	</link>
 
-	<joint name="spine" type="revolute">
+	<joint name="sag_spine" type="revolute">
 		<parent link="body"/>
 		<child link="body_front"/>
 		<axis xyz="0 1 0"/>
@@ -162,10 +162,10 @@ SOFTWARE.
 	<!-- Transmission elements required for Gazebo -->
 	<transmission name="transmission_spine">
 		<type>transmission_interface/SimpleTransmission</type>
-		<joint name="spine">
+		<joint name="sag_spine">
 			<!-- <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface> -->
 		</joint>
-		<actuator name="motor_spine">
+		<actuator name="motor_sag_spine">
 			<!-- <hardwareInterface>EffortJointInterface</hardwareInterface> -->
 			<mechanicalReduction>1</mechanicalReduction>
 		</actuator>

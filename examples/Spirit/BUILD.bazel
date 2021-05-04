@@ -141,8 +141,9 @@ cc_binary(
     name = "run_spirit_bound",
     srcs = ["run_spirit_bound.cc"],
     data = [
+        "spirit_cor_spine_drake.urdf",
         "spirit_drake.urdf",
-        "spirit_spine_drake.urdf",
+        "spirit_sag_spine_drake.urdf",
     ],
     deps = [
         ":animate_spirit",
