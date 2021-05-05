@@ -39,13 +39,13 @@ DEFINE_double(foreAftDisplacement, 1.5, "The fore-aft displacement.");
 DEFINE_double(apexGoal, 0.35, "Apex state goal");
 DEFINE_double(eps, 1e-2, "The wiggle room.");
 DEFINE_double(tol, 2e-1, "Optimization Tolerance");
-DEFINE_double(mu, 1.0, "coefficient of friction");
+DEFINE_double(mu, 0.5, "coefficient of friction");
 
 DEFINE_string(data_directory, "/home/shane/Drake_ws/dairlib/examples/Spirit/saved_trajectories/",
               "directory to save/read data");
-DEFINE_bool(skipInitialOptimization, false, "skip first optimizations?");
+DEFINE_bool(skipInitialOptimization, true, "skip first optimizations?");
 DEFINE_bool(cor_spine, true, "use a spine?");
-DEFINE_bool(sag_spine, false, "use a spine?");
+DEFINE_bool(sag_spine, true, "use a spine?");
 
 using drake::AutoDiffXd;
 using drake::multibody::MultibodyPlant;
@@ -495,9 +495,9 @@ void addConstraints(MultibodyPlant<T>& plant,
   // Limit magnitude of pitch
   double pitch = abs(pitch_magnitude_lo);
   trajopt.AddBoundingBoxConstraint(cos(pitch/2.0), 1, xtd(positions_map.at("base_qw")));
-  trajopt.AddBoundingBoxConstraint(-eps, eps, xtd(positions_map.at("base_qx")));
+  trajopt.AddBoundingBoxConstraint(-eps*10, eps*10, xtd(positions_map.at("base_qx")));
   trajopt.AddBoundingBoxConstraint(-sin(pitch/2.0) , sin(pitch/2.0), xtd(positions_map.at("base_qy")));
-  trajopt.AddBoundingBoxConstraint(-eps, eps, xtd(positions_map.at("base_qz")));
+  trajopt.AddBoundingBoxConstraint(-eps*10, eps*10, xtd(positions_map.at("base_qz")));
 
   /// Apex Flight constraints
   // Velocity
@@ -508,17 +508,17 @@ void addConstraints(MultibodyPlant<T>& plant,
   // Limit magnitude of pitch
   pitch = abs(pitch_magnitude_apex);
   trajopt.AddBoundingBoxConstraint(cos(pitch/2.0), 1, xapex(positions_map.at("base_qw")));
-  trajopt.AddBoundingBoxConstraint(-eps, eps, xapex(positions_map.at("base_qx")));
+  trajopt.AddBoundingBoxConstraint(-eps*10, eps*10, xapex(positions_map.at("base_qx")));
   trajopt.AddBoundingBoxConstraint(-sin(pitch/2.0) , sin(pitch/2.0), xapex(positions_map.at("base_qy")));
-  trajopt.AddBoundingBoxConstraint(-eps, eps, xapex(positions_map.at("base_qz")));
+  trajopt.AddBoundingBoxConstraint(-eps*10, eps*10, xapex(positions_map.at("base_qz")));
 
   /// TD constraints
   // Limit magnitude of pitch
   pitch = abs(pitch_magnitude_lo);
   trajopt.AddBoundingBoxConstraint(cos(pitch/2.0), 1, xtd(positions_map.at("base_qw")));
-  trajopt.AddBoundingBoxConstraint(-eps, eps, xtd(positions_map.at("base_qx")));
+  trajopt.AddBoundingBoxConstraint(-eps*10, eps*10, xtd(positions_map.at("base_qx")));
   trajopt.AddBoundingBoxConstraint(-sin(pitch/2.0) , sin(pitch/2.0), xtd(positions_map.at("base_qy")));
-  trajopt.AddBoundingBoxConstraint(-eps, eps, xtd(positions_map.at("base_qz")));
+  trajopt.AddBoundingBoxConstraint(-eps*10, eps*10, xtd(positions_map.at("base_qz")));
 
 
   /// Final constraints
@@ -740,7 +740,8 @@ void runSpiritJump(
   Parser parser_vis(plant_vis.get(), scene_graph_ptr.get());
   std::string full_name;
   if(cor_spine && sag_spine){
-    //TODO{handle 2 dof spine}
+    full_name =
+        dairlib::FindResourceOrThrow("examples/Spirit/spirit_sag_cor_spine_drake.urdf");
   }else if(FLAGS_sag_spine){
     full_name =
         dairlib::FindResourceOrThrow("examples/Spirit/spirit_sag_spine_drake.urdf");
@@ -830,7 +831,9 @@ void runSpiritJump(
   }
 
   if(cor_spine && sag_spine){
-    //TODO{handle 2 dof spine}
+    trajopt.CreateVisualizationCallback(
+        dairlib::FindResourceOrThrow("examples/Spirit/spirit_sag_cor_spine_drake.urdf"),
+        visualizer_poses, 0.2); // setup which URDF, how many poses, and alpha transparency
   }else if(FLAGS_sag_spine){
     trajopt.CreateVisualizationCallback(
         dairlib::FindResourceOrThrow("examples/Spirit/spirit_sag_spine_drake.urdf"),
@@ -925,7 +928,8 @@ int main(int argc, char* argv[]) {
   Parser parser_vis(plant_vis.get(), scene_graph.get());
   std::string full_name;
   if(FLAGS_cor_spine && FLAGS_sag_spine){
-  //TODO{handle 2 dof spine}
+    full_name =
+        dairlib::FindResourceOrThrow("examples/Spirit/spirit_sag_cor_spine_drake.urdf");
   }else if(FLAGS_sag_spine){
     full_name =
         dairlib::FindResourceOrThrow("examples/Spirit/spirit_sag_spine_drake.urdf");
@@ -1077,7 +1081,7 @@ int main(int argc, char* argv[]) {
       10,
       5,
       1000,
-      100,
+      70,
       FLAGS_mu,
       1e-3,
       1e0,

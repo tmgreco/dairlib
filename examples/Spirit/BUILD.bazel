@@ -143,6 +143,7 @@ cc_binary(
     data = [
         "spirit_cor_spine_drake.urdf",
         "spirit_drake.urdf",
+        "spirit_sag_cor_spine_drake.urdf",
         "spirit_sag_spine_drake.urdf",
     ],
     deps = [
