@@ -35,7 +35,7 @@
 #include "examples/Spirit/spirit_utils.h"
 
 DEFINE_double(standHeight, 0.2, "The standing height.");
-DEFINE_double(foreAftDisplacement, 1.5, "The fore-aft displacement.");
+DEFINE_double(foreAftDisplacement, 1.0, "The fore-aft displacement.");
 DEFINE_double(apexGoal, 0.35, "Apex state goal");
 DEFINE_double(eps, 1e-2, "The wiggle room.");
 DEFINE_double(tol, 2e-1, "Optimization Tolerance");
@@ -44,7 +44,7 @@ DEFINE_double(mu, 0.5, "coefficient of friction");
 DEFINE_string(data_directory, "/home/shane/Drake_ws/dairlib/examples/Spirit/saved_trajectories/",
               "directory to save/read data");
 DEFINE_bool(skipInitialOptimization, true, "skip first optimizations?");
-DEFINE_bool(cor_spine, true, "use a spine?");
+DEFINE_bool(cor_spine, false, "use a spine?");
 DEFINE_bool(sag_spine, true, "use a spine?");
 
 using drake::AutoDiffXd;
@@ -424,14 +424,12 @@ std::vector<drake::solvers::Binding<drake::solvers::Cost>> addCost(MultibodyPlan
   trajopt.AddRunningCost(cost_time);
 
   // Hard code which joints are in flight for which mode
-  addCostLegs(plant, trajopt, cost_velocity_legs_flight, cost_actuation_legs_flight, {0, 1, 4, 5, 8, 10}, 1);
   addCostLegs(plant, trajopt, cost_velocity_legs_flight, cost_actuation_legs_flight, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}, 2);
   addCostLegs(plant, trajopt, cost_velocity_legs_flight, cost_actuation_legs_flight, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}, 3);
-  addCostLegs(plant, trajopt, cost_velocity_legs_flight, cost_actuation_legs_flight, {2, 3, 6, 7, 10, 11}, 4);
 
   if(sag_spine || cor_spine){
-    addCostSpine(plant, trajopt, cost_velocity_legs_flight, cost_actuation_legs_flight, sag_spine, cor_spine, 2);
-    addCostSpine(plant, trajopt, cost_velocity_legs_flight, cost_actuation_legs_flight, sag_spine, cor_spine, 3);
+    addCostSpine(plant, trajopt, cost_velocity_legs_flight, 0, sag_spine, cor_spine, 2);
+    addCostSpine(plant, trajopt, cost_velocity_legs_flight, 0, sag_spine, cor_spine, 3);
   }
 
   return AddWorkCost(plant, trajopt, cost_work, sag_spine, cor_spine);
@@ -495,9 +493,6 @@ void addConstraints(MultibodyPlant<T>& plant,
   // Limit magnitude of pitch
   double pitch = abs(pitch_magnitude_lo);
   trajopt.AddBoundingBoxConstraint(cos(pitch/2.0), 1, xtd(positions_map.at("base_qw")));
-  trajopt.AddBoundingBoxConstraint(-eps*10, eps*10, xtd(positions_map.at("base_qx")));
-  trajopt.AddBoundingBoxConstraint(-sin(pitch/2.0) , sin(pitch/2.0), xtd(positions_map.at("base_qy")));
-  trajopt.AddBoundingBoxConstraint(-eps*10, eps*10, xtd(positions_map.at("base_qz")));
 
   /// Apex Flight constraints
   // Velocity
@@ -508,17 +503,11 @@ void addConstraints(MultibodyPlant<T>& plant,
   // Limit magnitude of pitch
   pitch = abs(pitch_magnitude_apex);
   trajopt.AddBoundingBoxConstraint(cos(pitch/2.0), 1, xapex(positions_map.at("base_qw")));
-  trajopt.AddBoundingBoxConstraint(-eps*10, eps*10, xapex(positions_map.at("base_qx")));
-  trajopt.AddBoundingBoxConstraint(-sin(pitch/2.0) , sin(pitch/2.0), xapex(positions_map.at("base_qy")));
-  trajopt.AddBoundingBoxConstraint(-eps*10, eps*10, xapex(positions_map.at("base_qz")));
 
   /// TD constraints
   // Limit magnitude of pitch
   pitch = abs(pitch_magnitude_lo);
   trajopt.AddBoundingBoxConstraint(cos(pitch/2.0), 1, xtd(positions_map.at("base_qw")));
-  trajopt.AddBoundingBoxConstraint(-eps*10, eps*10, xtd(positions_map.at("base_qx")));
-  trajopt.AddBoundingBoxConstraint(-sin(pitch/2.0) , sin(pitch/2.0), xtd(positions_map.at("base_qy")));
-  trajopt.AddBoundingBoxConstraint(-eps*10, eps*10, xtd(positions_map.at("base_qz")));
 
 
   /// Final constraints
@@ -547,7 +536,7 @@ void addConstraints(MultibodyPlant<T>& plant,
   for (int i = 0; i < trajopt.N(); i++){
     auto xi = trajopt.state(i);
     // Height
-    trajopt.AddBoundingBoxConstraint( 0.15, 2, xi( positions_map.at("base_z")));
+    trajopt.AddBoundingBoxConstraint( 0.15, 1.5, xi( positions_map.at("base_z")));
     trajopt.AddBoundingBoxConstraint( -eps, eps, xi( n_q+velocities_map.at("base_vy")));
 
     if(sag_spine and lock_spine){
@@ -1001,36 +990,36 @@ int main(int argc, char* argv[]) {
         FLAGS_data_directory+"in_place_bound"+ spine_name);
   }
 
-  std::cout<<"Running 2nd optimization"<<std::endl;
-
-  dairlib::runSpiritJump<double>(
-      *plant,
-      x_traj, u_traj, l_traj,
-      lc_traj, vc_traj,
-      false,
-      true,
-      {7, 7, 7, 7, 7, 7} ,
-      FLAGS_standHeight,
-      1.0,
-      0.3,
-      FLAGS_apexGoal,       // Ignored if small
-      FLAGS_foreAftDisplacement,
-      1.8,
-      3,
-      10,
-      10/5.0,
-      5/5.0,
-      1000,
-      0,
-      10,
-      1e-3,
-      1e0,
-      FLAGS_sag_spine,
-      FLAGS_cor_spine,
-      true,
-      FLAGS_data_directory+"bound_"+distance_name+ spine_name,
-      FLAGS_data_directory+"in_place_bound"+ spine_name);
-
+//  std::cout<<"Running 2nd optimization"<<std::endl;
+//
+//  dairlib::runSpiritJump<double>(
+//      *plant,
+//      x_traj, u_traj, l_traj,
+//      lc_traj, vc_traj,
+//      false,
+//      true,
+//      {7, 7, 7, 7, 7, 7} ,
+//      FLAGS_standHeight,
+//      1.0,
+//      0.3,
+//      FLAGS_apexGoal,       // Ignored if small
+//      FLAGS_foreAftDisplacement,
+//      1.8,
+//      3,
+//      10,
+//      10/5.0,
+//      5/5.0,
+//      1000,
+//      0,
+//      10,
+//      1e-3,
+//      1e0,
+//      FLAGS_sag_spine,
+//      FLAGS_cor_spine,
+//      true,
+//      FLAGS_data_directory+"bound_"+distance_name+ spine_name,
+//      FLAGS_data_directory+"in_place_bound"+ spine_name);
+//
   std::cout<<"Running 3rd optimization"<<std::endl;
 
   dairlib::runSpiritJump<double>(
@@ -1048,13 +1037,13 @@ int main(int argc, char* argv[]) {
       1.8,
       3,
       10,
-      10/5.0,
-      5/5.0,
+      100,
+      5,
       1000,
-      10,
+      20,
       FLAGS_mu,
       1e-3,
-      1e0,
+      1e-1,
       FLAGS_sag_spine,
       FLAGS_cor_spine,
       false,
@@ -1067,7 +1056,7 @@ int main(int argc, char* argv[]) {
       *plant,
       x_traj, u_traj, l_traj,
       lc_traj, vc_traj,
-      false,
+      true,
       true,
       {7, 7, 7, 7, 7, 7} ,
       FLAGS_standHeight,
@@ -1076,15 +1065,15 @@ int main(int argc, char* argv[]) {
       FLAGS_apexGoal,       // Ignored if small
       FLAGS_foreAftDisplacement,
       1.8,
-      3/5.0,
-      10/5.0,
-      10,
-      5,
-      1000,
+      3/2.0,
+      10/2.0,
       70,
+      3,
+      1000,
+      50,
       FLAGS_mu,
       1e-3,
-      1e0,
+      FLAGS_tol,
       FLAGS_sag_spine,
       FLAGS_cor_spine,
       false,
@@ -1106,12 +1095,12 @@ int main(int argc, char* argv[]) {
       FLAGS_apexGoal,       // Ignored if small
       FLAGS_foreAftDisplacement,
       1.8,
-      3/10.0,
-      10/10.0,
-      10/2.0,
-      5/2.0,
-      1000,
-      100,
+      3/3.0/10.0/200.0,
+      10/3.0/10.0/200.0,
+      4/200.0,
+      0/200.0,
+      100/200.0,
+      10/200.0,
       FLAGS_mu,
       1e-3,
       FLAGS_tol,

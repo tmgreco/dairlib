@@ -851,7 +851,7 @@ std::vector<drake::solvers::Binding<drake::solvers::Cost>> AddWorkCost(drake::mu
           Q = Q_knee;
         else
           Q = Q_not_knee;
-        auto joint_work_cost = std::make_shared<JointWorkCost>(plant,  Q, cost_work_gain,4);
+        auto joint_work_cost = std::make_shared<JointWorkCost>(plant,  Q, cost_work_gain,2);
         int act_int = actuator_map.at("motor_" + std::to_string(joint));
         int vel_int =  n_q + velocities_map.at("joint_" + std::to_string(joint) +"dot");
 
