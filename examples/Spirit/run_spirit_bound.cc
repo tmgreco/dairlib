@@ -35,7 +35,7 @@
 #include "examples/Spirit/spirit_utils.h"
 
 DEFINE_double(standHeight, 0.2, "The standing height.");
-DEFINE_double(foreAftDisplacement, 1.0, "The fore-aft displacement.");
+DEFINE_double(foreAftDisplacement, 1.5, "The fore-aft displacement.");
 DEFINE_double(apexGoal, 0.35, "Apex state goal");
 DEFINE_double(eps, 1e-2, "The wiggle room.");
 DEFINE_double(tol, 2e-1, "Optimization Tolerance");
@@ -537,7 +537,6 @@ void addConstraints(MultibodyPlant<T>& plant,
     auto xi = trajopt.state(i);
     // Height
     trajopt.AddBoundingBoxConstraint( 0.15, 1.5, xi( positions_map.at("base_z")));
-    trajopt.AddBoundingBoxConstraint( -eps, eps, xi( n_q+velocities_map.at("base_vy")));
 
     if(sag_spine and lock_spine){
       trajopt.AddBoundingBoxConstraint(-0, 0, xi( positions_map.at("sag_spine")));
@@ -970,7 +969,7 @@ int main(int argc, char* argv[]) {
         true,
         {7, 7, 7, 7, 7, 7} ,
         FLAGS_standHeight,
-        0.6,
+        0.3,
         0.1,
         0.45,       // Ignored if small
         0,
@@ -990,37 +989,7 @@ int main(int argc, char* argv[]) {
         FLAGS_data_directory+"in_place_bound"+ spine_name);
   }
 
-//  std::cout<<"Running 2nd optimization"<<std::endl;
-//
-//  dairlib::runSpiritJump<double>(
-//      *plant,
-//      x_traj, u_traj, l_traj,
-//      lc_traj, vc_traj,
-//      false,
-//      true,
-//      {7, 7, 7, 7, 7, 7} ,
-//      FLAGS_standHeight,
-//      1.0,
-//      0.3,
-//      FLAGS_apexGoal,       // Ignored if small
-//      FLAGS_foreAftDisplacement,
-//      1.8,
-//      3,
-//      10,
-//      10/5.0,
-//      5/5.0,
-//      1000,
-//      0,
-//      10,
-//      1e-3,
-//      1e0,
-//      FLAGS_sag_spine,
-//      FLAGS_cor_spine,
-//      true,
-//      FLAGS_data_directory+"bound_"+distance_name+ spine_name,
-//      FLAGS_data_directory+"in_place_bound"+ spine_name);
-//
-  std::cout<<"Running 3rd optimization"<<std::endl;
+  std::cout<<"Running 2nd optimization"<<std::endl;
 
   dairlib::runSpiritJump<double>(
       *plant,
@@ -1037,16 +1006,46 @@ int main(int argc, char* argv[]) {
       1.8,
       3,
       10,
-      100,
-      5,
+      10/5.0,
+      5/5.0,
       1000,
-      20,
-      FLAGS_mu,
+      0,
+      10,
       1e-3,
-      1e-1,
+      1e0,
       FLAGS_sag_spine,
       FLAGS_cor_spine,
+      true,
+      FLAGS_data_directory+"bound_"+distance_name+ spine_name,
+      FLAGS_data_directory+"in_place_bound"+ spine_name);
+
+  std::cout<<"Running 3rd optimization"<<std::endl;
+
+  dairlib::runSpiritJump<double>(
+      *plant,
+      x_traj, u_traj, l_traj,
+      lc_traj, vc_traj,
       false,
+      true,
+      {7, 7, 7, 7, 7, 7} ,
+      FLAGS_standHeight,
+      1.0,
+      0.3,
+      FLAGS_apexGoal,       // Ignored if small
+      FLAGS_foreAftDisplacement,
+      1.8,
+      3/10.0,
+      10/10.0,
+      100/10.0,
+      5/10.0,
+      1000/10.0,
+      10/10.0,
+      FLAGS_mu,
+      1e-3,
+      3e-1,
+      FLAGS_sag_spine,
+      FLAGS_cor_spine,
+      true,
       FLAGS_data_directory+"bound_"+distance_name+"low_mu"+ spine_name,
       FLAGS_data_directory+"bound_"+distance_name+ spine_name);
 
@@ -1065,9 +1064,9 @@ int main(int argc, char* argv[]) {
       FLAGS_apexGoal,       // Ignored if small
       FLAGS_foreAftDisplacement,
       1.8,
-      3/2.0,
-      10/2.0,
-      70,
+      3/3.0,
+      10/3.0,
+      100,
       3,
       1000,
       50,
