@@ -43,8 +43,8 @@ DEFINE_double(mu, 0.5, "coefficient of friction");
 
 DEFINE_string(data_directory, "/home/shane/Drake_ws/dairlib/examples/Spirit/saved_trajectories/",
               "directory to save/read data");
-DEFINE_bool(skipInitialOptimization, true, "skip first optimizations?");
-DEFINE_bool(cor_spine, false, "use a spine?");
+DEFINE_bool(skipInitialOptimization, false, "skip first optimizations?");
+DEFINE_bool(cor_spine, true, "use a spine?");
 DEFINE_bool(sag_spine, true, "use a spine?");
 
 using drake::AutoDiffXd;
@@ -1055,7 +1055,7 @@ int main(int argc, char* argv[]) {
       *plant,
       x_traj, u_traj, l_traj,
       lc_traj, vc_traj,
-      true,
+      false,
       true,
       {7, 7, 7, 7, 7, 7} ,
       FLAGS_standHeight,
@@ -1075,7 +1075,7 @@ int main(int argc, char* argv[]) {
       FLAGS_tol,
       FLAGS_sag_spine,
       FLAGS_cor_spine,
-      false,
+      true,
       FLAGS_data_directory+"bound_"+distance_name+"low_mu_some_work"+ spine_name,
       FLAGS_data_directory+"bound_"+distance_name+"low_mu"+ spine_name);
 
@@ -1094,12 +1094,12 @@ int main(int argc, char* argv[]) {
       FLAGS_apexGoal,       // Ignored if small
       FLAGS_foreAftDisplacement,
       1.8,
-      3/3.0/10.0/200.0,
-      10/3.0/10.0/200.0,
-      4/200.0,
-      0/200.0,
-      100/200.0,
-      10/200.0,
+      3/3.0/100.0,
+      10/3.0/100.0,
+      120/100.0,
+      3/100.0,
+      0000,
+      50/100.0,
       FLAGS_mu,
       1e-3,
       FLAGS_tol,
