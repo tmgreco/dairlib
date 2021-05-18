@@ -39,13 +39,13 @@ DEFINE_double(foreAftDisplacement, 1.5, "The fore-aft displacement.");
 DEFINE_double(apexGoal, 0.35, "Apex state goal");
 DEFINE_double(eps, 1e-2, "The wiggle room.");
 DEFINE_double(tol, 2e-1, "Optimization Tolerance");
-DEFINE_double(mu, 0.5, "coefficient of friction");
+DEFINE_double(mu, 1.5, "coefficient of friction");
 
 DEFINE_string(data_directory, "/home/shane/Drake_ws/dairlib/examples/Spirit/saved_trajectories/",
               "directory to save/read data");
-DEFINE_bool(skipInitialOptimization, false, "skip first optimizations?");
-DEFINE_bool(cor_spine, true, "use a spine?");
-DEFINE_bool(sag_spine, true, "use a spine?");
+DEFINE_bool(skipInitialOptimization, true, "skip first optimizations?");
+DEFINE_bool(cor_spine, false, "use a spine?");
+DEFINE_bool(sag_spine, false, "use a spine?");
 
 using drake::AutoDiffXd;
 using drake::multibody::MultibodyPlant;
@@ -473,7 +473,7 @@ void addConstraints(MultibodyPlant<T>& plant,
 
   // xy position
   trajopt.AddBoundingBoxConstraint(0, 0, x0(positions_map.at("base_x"))); // Give the initial condition room to choose the x_init position
-  trajopt.AddBoundingBoxConstraint( -eps, eps, x0( positions_map.at("base_y")));
+  trajopt.AddBoundingBoxConstraint( 0, 0, x0( positions_map.at("base_y")));
   // Nominal stand
   nominalSpiritStandConstraint(plant,trajopt,initial_height, {0}, eps);
   // Body pose constraints (keep the body flat) at initial state
@@ -1098,7 +1098,7 @@ int main(int argc, char* argv[]) {
       10/3.0/100.0,
       120/100.0,
       3/100.0,
-      0000,
+      70,
       50/100.0,
       FLAGS_mu,
       1e-3,
