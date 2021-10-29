@@ -54,11 +54,21 @@ class Dircon
   drake::trajectories::PiecewisePolynomial<double> ReconstructInputTrajectory(
       const drake::solvers::MathematicalProgramResult& result) const override;
 
+  /// Get the contact force trajectory at the solution as a
+  /// %drake::trajectories::PiecewisePolynomialTrajectory%.
+  std::vector<drake::trajectories::PiecewisePolynomial<double>> ReconstructLambdaTrajectory(
+      const drake::solvers::MathematicalProgramResult& result) const;
+      
   /// Get the state trajectory at the solution as a
   /// %drake::trajectories::PiecewisePolynomialTrajectory%.
   drake::trajectories::PiecewisePolynomial<double> ReconstructStateTrajectory(
       const drake::solvers::MathematicalProgramResult& result) const override;
-
+   
+  /// Get the state trajectory at the solution as a
+  /// %drake::trajectories::PiecewisePolynomialTrajectory%.
+  std::vector<drake::trajectories::PiecewisePolynomial<double>> ReconstructDiscontinuousStateTrajectory(
+      const drake::solvers::MathematicalProgramResult& result) const;
+      
   /// Get the state samples by mode, as a matrix. Each column corresponds to
   /// a knotpoint.
   Eigen::MatrixXd GetStateSamplesByMode(
@@ -118,7 +128,8 @@ class Dircon
       int mode,
       const drake::trajectories::PiecewisePolynomial<double>& traj_init_l,
       const drake::trajectories::PiecewisePolynomial<double>& traj_init_lc,
-      const drake::trajectories::PiecewisePolynomial<double>& traj_init_vc);
+      const drake::trajectories::PiecewisePolynomial<double>& traj_init_vc,
+      const double start_time = 0);
 
   /// Set the initial guess for the force variables for a specific mode.
   /// Sets both the contact forces lambda and the collocation forces lambda_c
@@ -129,6 +140,19 @@ class Dircon
       int mode,
       const drake::trajectories::PiecewisePolynomial<double>& traj_init_l);
 
+  /// Sets the initial guess for a specific mode's control, state, and time step. It will
+  /// properly set post impact velocity
+  /// @param mode_index the mode index
+  /// @param traj_init_x the state trajectory
+  /// @param traj_init_u the control trajectory
+  /// @param start_time the start time for the mode
+  /// @param end_time the end time for a mode
+  void SetInitialTrajectoryForMode(
+      int mode_index, const drake::trajectories::PiecewisePolynomial<double>& traj_init_x,
+      const drake::trajectories::PiecewisePolynomial<double>& traj_init_u,
+      const double start_time,
+      const double end_time);
+      
   /// Get all knotpoint force variables associated with a specific mode and
   /// knotpoint
   const drake::solvers::VectorXDecisionVariable force_vars(
@@ -221,7 +245,13 @@ class Dircon
   void ScaleImpulseVariables(int mode, std::vector<int> idx_list, double scale);
   void ScaleKinConstraintSlackVariables(int mode, std::vector<int> idx_list,
                                         double scale);
-
+  //Add by Zeyuan
+  void AddVelocityCost(const double velocityCostGain);
+  const int get_mode_start(int index){
+    return mode_start_[index];
+  }
+  //Add by Zeyuan
+  
  private:
   // Private constructor to which public constructors funnel
   Dircon(std::unique_ptr<DirconModeSequence<T>> my_sequence,

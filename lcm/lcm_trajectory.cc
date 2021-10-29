@@ -106,7 +106,6 @@ lcmt_saved_traj LcmTrajectory::GenerateLcmObject() const {
       memcpy(traj_block.datapoints[i].data(), tempRow.data(),
              sizeof(double) * traj_block.num_points);
     }
-
     traj.trajectories.push_back(traj_block);
     traj.trajectory_names.push_back(traj_el.first);
   }

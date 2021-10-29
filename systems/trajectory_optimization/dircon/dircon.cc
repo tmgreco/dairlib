@@ -606,6 +606,36 @@ void Dircon<T>::DoAddRunningCost(const drake::symbolic::Expression& g) {
   }
 }
 
+template<typename T>
+void Dircon<T>::AddVelocityCost(const double velocityCostGain){
+  double n_v = plant_.num_velocities();
+
+  // Add velocity cost handling discontinuities
+  // Loop through each mode and each knot point and use trapezoidal integration
+  for(int mode_index = 0; mode_index < num_modes(); mode_index++){
+    for(int knot_index = 0; knot_index < mode_length(mode_index)-1; knot_index++){
+
+      // Get lower and upper knot velocities
+      drake::solvers::VectorXDecisionVariable vel  = state_vars(mode_index, knot_index).tail(n_v);
+      drake::solvers::VectorXDecisionVariable vel_up = state_vars(mode_index, knot_index+1).tail(n_v);
+
+      drake::symbolic::Expression hi = timestep(mode_start_[mode_index] + knot_index)[0];
+
+      // Loop through and calculate sum of velocities squared
+      drake::symbolic::Expression vel_sq = 0;
+      drake::symbolic::Expression vel_sq_up = 0;
+      for(int i = 0; i< n_v; i++){
+        vel_sq += vel[i] * vel[i];
+        vel_sq_up += vel_up[i] * vel_up[i];
+      }
+
+      // Add cost
+      AddCost(hi/2.0 * velocityCostGain * (vel_sq + vel_sq_up));
+    }
+  }
+
+}
+
 template <typename T>
 void Dircon<T>::GetStateAndDerivativeSamples(
     const drake::solvers::MathematicalProgramResult& result,
@@ -649,6 +679,26 @@ PiecewisePolynomial<double> Dircon<T>::ReconstructInputTrajectory(
 }
 
 template <typename T>
+std::vector<PiecewisePolynomial<double>> Dircon<T>::ReconstructLambdaTrajectory(const MathematicalProgramResult& result)
+const {
+  std::vector<Eigen::MatrixXd> x;
+  std::vector<Eigen::MatrixXd> xdot;
+  std::vector<Eigen::VectorXd> state_breaks;
+  GetStateAndDerivativeSamples(result, &x, &xdot, &state_breaks);
+  std::vector<PiecewisePolynomial<double>> lambda_traj;
+  for(int mode_index = 0; mode_index < num_modes(); mode_index ++){
+    if(get_mode(mode_index).evaluators().count_full() > 0) {
+      lambda_traj.push_back(PiecewisePolynomial<double>::FirstOrderHold(state_breaks[mode_index],
+                                                                        GetForceSamplesByMode(result, mode_index)));
+    }else{
+      lambda_traj.push_back(PiecewisePolynomial<double>::FirstOrderHold(state_breaks[mode_index],
+                                                                        MatrixXd::Zero(1,state_breaks[mode_index].size())));
+    }
+  }
+  return lambda_traj;
+}
+
+template <typename T>
 PiecewisePolynomial<double> Dircon<T>::ReconstructStateTrajectory(
     const MathematicalProgramResult& result) const {
   std::vector<MatrixXd> states;
@@ -670,15 +720,36 @@ PiecewisePolynomial<double> Dircon<T>::ReconstructStateTrajectory(
 }
 
 template <typename T>
+std::vector<PiecewisePolynomial<double>> Dircon<T>::ReconstructDiscontinuousStateTrajectory(
+    const MathematicalProgramResult& result) const {
+  std::vector<MatrixXd> states;
+  std::vector<MatrixXd> derivatives;
+  std::vector<VectorXd> times;
+  GetStateAndDerivativeSamples(result, &states, &derivatives, &times);
+  std::vector<PiecewisePolynomial<double>> state_trajs;
+  state_trajs.push_back(PiecewisePolynomial<double>::CubicHermite(times[0], states[0],
+                                                                  derivatives[0]));
+  for (int mode = 1; mode < num_modes(); ++mode) {
+    // Cannot form trajectory with only a single break
+    if (mode_length(mode) < 2) {
+      continue;
+    }
+    state_trajs.push_back(PiecewisePolynomial<double>::CubicHermite(
+        times[mode], states[mode], derivatives[mode]));
+  }
+  return state_trajs;
+}
+
+template <typename T>
 void Dircon<T>::SetInitialForceTrajectory(
     int mode_index, const PiecewisePolynomial<double>& traj_init_l,
     const PiecewisePolynomial<double>& traj_init_lc,
-    const PiecewisePolynomial<double>& traj_init_vc) {
+    const PiecewisePolynomial<double>& traj_init_vc,
+    const double start_time) {
   const auto& mode = get_mode(mode_index);
-  double start_time = 0;
   double h;
   if (timesteps_are_decision_variables())
-    h = GetInitialGuess(h_vars()[0]);
+    h = GetInitialGuess(h_vars()[get_mode_start(mode_index)]);
   else
     h = fixed_timestep();
 
@@ -753,6 +824,38 @@ void Dircon<T>::SetInitialForceTrajectory(
   SetInitialGuess(collocation_force_vars_[mode_index], guess_collocation_force);
 }
 
+
+template <typename T>
+void Dircon<T>::SetInitialTrajectoryForMode(
+    int mode_index, const PiecewisePolynomial<double>& traj_init_x,
+    const PiecewisePolynomial<double>& traj_init_u,
+    const double start_time,
+    const double end_time) {
+  const auto& mode = get_mode(mode_index);
+  double h = (end_time - start_time) /(mode.num_knotpoints() - 1);
+
+  for (int i = 0; i < mode.num_knotpoints(); ++i) {
+    // State
+    VectorXd guess_state(state_vars(mode_index,i).size());
+    guess_state = traj_init_x.value(start_time + i * h);
+    SetInitialGuess(state_vars(mode_index,i), guess_state);
+
+    // Control
+    VectorXd guess_control(input_vars(mode_index, i).size());
+    guess_control = traj_init_u.value(start_time + i * h);
+    SetInitialGuess(input_vars(mode_index, i), guess_control);
+
+  }
+
+  for (int i = 0; i < mode.num_knotpoints()-1; ++i) {
+    // Time steps
+    VectorXd guess_time(1);
+    guess_time[0] = h;
+    SetInitialGuess(timestep(get_mode_start(mode_index)+i), guess_time);
+
+  }
+  }
+  
 template <typename T>
 int Dircon<T>::num_modes() const {
   return mode_sequence_.num_modes();
@@ -922,6 +1025,7 @@ Eigen::MatrixXd Dircon<T>::GetForceSamplesByMode(
                          mode_length(mode));
   for (int i = 0; i < mode_length(mode); i++) {
     forces.col(i) = result.GetSolution(force_vars(mode, i));
+    
   }
   return forces;
 }
