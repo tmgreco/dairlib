@@ -26,14 +26,14 @@
 #include "multibody/visualization_utils.h"
 #include "multibody/kinematic/kinematic_constraints.h"
 
-#include "examples/Spirit/animate_spirit.h"
+#include "examples/Spirit_v0/animate_spirit.h"
 #include "common/file_utils.h"
 #include "lcm/dircon_saved_trajectory.h"
 #include "solvers/optimization_utils.h"
 #include "solvers/nonlinear_cost.h"
 
 
-#include "examples/Spirit/spirit_utils.h"
+#include "examples/Spirit_v0/spirit_utils.h"
 
 DEFINE_double(duration, 1, "The stand duration");
 DEFINE_double(standHeight, 0.2, "The standing height.");
@@ -45,7 +45,7 @@ DEFINE_double(eps, 1e-2, "The wiggle room.");
 DEFINE_double(tol, 1e-3, "Optimization Tolerance");
 DEFINE_double(mu, 1, "coefficient of friction");
 
-DEFINE_string(data_directory, "/home/feng/Downloads/dairlib/examples/Spirit/saved_trajectories/",
+DEFINE_string(data_directory, "/home/feng/Downloads/dairlib/examples/Spirit_v0/saved_trajectories/",
               "directory to save/read data");
 
 DEFINE_bool(runAllOptimization, true, "rerun earlier optimizations?");
@@ -65,6 +65,7 @@ using Eigen::Matrix3d;
 using Eigen::MatrixXd;
 
 namespace dairlib {
+namespace {
 
 using systems::trajectory_optimization::DirconModeSequence;
 using systems::trajectory_optimization::DirconMode;
@@ -511,7 +512,7 @@ void runSpiritJump(
   auto scene_graph_ptr = std::make_unique<SceneGraph<double>>();
   Parser parser_vis(plant_vis.get(), scene_graph_ptr.get());
   std::string full_name =
-      dairlib::FindResourceOrThrow("examples/Spirit/spirit_drake.urdf");
+      dairlib::FindResourceOrThrow("examples/Spirit_v0/spirit_drake.urdf");
   parser_vis.AddModelFromFile(full_name);
   plant_vis->Finalize();
   SceneGraph<double>& scene_graph =
@@ -585,7 +586,7 @@ void runSpiritJump(
       visualizer_poses.push_back(num_ghosts); 
   }
   trajopt.CreateVisualizationCallback(
-      dairlib::FindResourceOrThrow("examples/Spirit/spirit_drake.urdf"),
+      dairlib::FindResourceOrThrow("examples/Spirit_v0/spirit_drake.urdf"),
       visualizer_poses, 0.2); // setup which URDF, how many poses, and alpha transparency 
 
   drake::solvers::SolverId solver_id("");
@@ -661,6 +662,7 @@ void runSpiritJump(
     sleep(2);
   }
 }
+}  // namespace
 }  // namespace dairlib
 
 
@@ -674,7 +676,7 @@ int main(int argc, char* argv[]) {
   Parser parser(plant.get());
   Parser parser_vis(plant_vis.get(), scene_graph.get());
   std::string full_name =
-      dairlib::FindResourceOrThrow("examples/Spirit/spirit_drake.urdf");
+      dairlib::FindResourceOrThrow("examples/Spirit_v0/spirit_drake.urdf");
 
   parser.AddModelFromFile(full_name);
   parser_vis.AddModelFromFile(full_name);

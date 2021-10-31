@@ -60,17 +60,7 @@ DirconTrajectory::DirconTrajectory(
     force_traj.datapoints =
         Eigen::Map<MatrixXd>(dircon.GetForceSamplesByMode(result, mode).data(),
                              num_forces, force_traj.time_vector.size());
-    // std::cout<<"force samples"<<dircon.GetForceSamplesByMode(result, mode)<<std::endl;
-    if (force_traj.datapoints.size()==0){
-      Eigen::MatrixXd mat1(12, 7);
-      mat1.topLeftCorner(12, 7)= Eigen::MatrixXd::Zero(12, 7);
-      force_traj.datapoints=Eigen::Map<MatrixXd>(mat1.data(),
-                                12, 7);
-      // std::cout<<"data_point_size_loop"<<mat1<<std::endl<<"a"<<force_traj.datapoints.size()<<std::endl;
-    }
     
-    
-    // std::cout<<"force_traj_time_vector"<<force_traj.time_vector.size()<<std::endl;
     // Collocation force vars
     if (state_breaks[mode].size() > 1) {
       LcmTrajectory::Trajectory collocation_force_traj;
@@ -113,7 +103,6 @@ DirconTrajectory::DirconTrajectory(
     
     x_.push_back(&state_traj);
     xdot_.push_back(&state_derivative_traj);
-    std::cout<<"forces in saved traj"<<mode<<std::endl<<force_traj.datapoints<<std::endl;
     lambda_.push_back(&force_traj);
   }
 

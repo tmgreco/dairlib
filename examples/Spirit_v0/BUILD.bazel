@@ -33,40 +33,6 @@ cc_library(
     ],
 )
 
-cc_library(
-    name = "spirit_jump",
-    srcs = ["spirit_jump.cc"],
-    hdrs = ["spirit_jump.h"],
-    data = ["spirit_drake.urdf"],
-    deps = [
-        ":animate_spirit",
-        ":spirit_utils",
-        "//common",
-        "//lcm:dircon_trajectory_saver",
-        "//multibody/kinematic",
-        "//systems/primitives",
-        "//systems/trajectory_optimization/dircon",
-        "@drake//:drake_shared_library",
-        "@gflags",
-    ],
-)
-
-cc_binary(
-    name = "spirit_test",
-    srcs = ["spiritTest.cc"],
-    deps = [
-        ":animate_spirit",
-        ":spirit_jump",
-        "//common",
-        "//lcm:dircon_trajectory_saver",
-        "//multibody/kinematic",
-        "//systems/primitives",
-        "//systems/trajectory_optimization/dircon",
-        "@drake//:drake_shared_library",
-        "@gflags",
-    ],
-)
-
 cc_binary(
     name = "run_spirit_vis",
     srcs = ["run_spirit_vis.cc"],
