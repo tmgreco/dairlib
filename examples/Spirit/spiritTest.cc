@@ -43,6 +43,7 @@ int main(int argc, char* argv[]) {
   std::string distance_name = std::to_string(int(floor(100*FLAGS_foreAftDisplacement)))+"cm";
 
   dairlib::SpiritJump<double> jump_helper(FLAGS_apexGoal,FLAGS_duration,FLAGS_ipopt);
+  // dairlib::SpiritJump<double> jump_helper;
 
   if (FLAGS_runAllOptimization){
     if(! FLAGS_skipInitialOptimization){

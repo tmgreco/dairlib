@@ -61,11 +61,10 @@ class SpiritJump {
 
 public:
 
-    // SpiritJump();
-    SpiritJump(
-                double apex_goal_in, 
-                double duration_in, 
-                bool ipopt_in);
+    SpiritJump();
+    SpiritJump( double apex_goal, 
+                double duration, 
+                bool ipopt);
    
     /// badSpiritJump, generates a bad initial guess for the spirit jump traj opt
     void badSpiritJump(MultibodyPlant<Y>& plant);

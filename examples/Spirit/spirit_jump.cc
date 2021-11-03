@@ -23,44 +23,21 @@ using std::vector;
 using std::cout;
 using std::endl;
 
-// template <class Y>
-// SpiritJump<Y>::SpiritJump(){
-//   // MatrixXd empty_data(0, 0);
-//   // x_traj=PiecewisePolynomial<Y>(empty_data); /// initial and solution state trajectory
-//   // u_traj=PiecewisePolynomial<Y>(empty_data); /// initial and solution control trajectory
-//   // l_traj=PiecewisePolynomial<Y>>(empty_data); /// initial and solution contact force trajectory
-//   // lc_traj=PiecewisePolynomial<Y>>(empty_data); /// initial and solution contact force slack variable trajectory
-//   // vc_traj=PiecewisePolynomial<Y>>(empty_data); /// initial and solution contact velocity slack variable trajectory
-//   apex_goal= 0.45;
-//   duration=1;
-//   ipopt=true;
-//   std::srand(time(0));  // Initialize random number generator.
-//   plant = std::make_unique<MultibodyPlant<Y>>(0.0);
-//   auto plant_vis1 = std::make_unique<MultibodyPlant<double>>(0.0);
-//   auto scene_graph1 = std::make_unique<SceneGraph<double>>();
-//   Parser parser(plant.get());
-//   Parser parser_vis(plant_vis1.get(), scene_graph1.get());
-//   std::string full_name =
-//       dairlib::FindResourceOrThrow("examples/Spirit/spirit_drake.urdf");
+template <class Y>
+SpiritJump<Y>::SpiritJump(){
+  this->apex_goal= 0.45;
+  this->duration=1;
+  this->ipopt=true;
+}
 
-//   parser.AddModelFromFile(full_name);
-//   parser_vis.AddModelFromFile(full_name);
-
-//   plant->mutable_gravity_field().set_gravity_vector(-9.81 *
-//       Eigen::Vector3d::UnitZ());
-
-//   plant->Finalize();
-//   plant_vis1->Finalize();
-// }
 
 template <class Y>
-SpiritJump<Y>::SpiritJump(
-                          double apex_goal_in, 
-                          double duration_in, 
-                          bool ipopt_in){
-  apex_goal= apex_goal_in;
-  duration=duration_in;
-  ipopt=ipopt_in;
+SpiritJump<Y>::SpiritJump(double apex_goal, 
+                          double duration, 
+                          bool ipopt){
+  this->apex_goal= apex_goal;
+  this->duration=duration;
+  this->ipopt=ipopt;
 }
 
 template <class Y>
