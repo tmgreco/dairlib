@@ -1,34 +1,282 @@
 # -*- mode: python -*-
 # vi: set ft=python :
 
-# Copyright (c) 2019, Toyota Research Institute.
-# All rights reserved.
-#
-# Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions are met:
-#
-# * Redistributions of source code must retain the above copyright notice, this
-#   list of conditions and the following disclaimer.
-#
-# * Redistributions in binary form must reproduce the above copyright notice,
-#   this list of conditions and the following disclaimer in the documentation
-#   and/or other materials provided with the distribution.
-#
-# * Neither the name of the copyright holder nor the names of its contributors
-#   may be used to endorse or promote products derived from this software
-#   without specific prior written permission.
-#
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-# ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-# LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-# SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-# CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-# POSSIBILITY OF SUCH DAMAGE.
+package(default_visibility = ["//visibility:public"])
 
-# This is an empty BUILD file, to ensure that the project's root directory is a
-# bazel package.
+cc_library(
+    name = "animate_spirit",
+    srcs = ["animate_spirit.cc"],
+    hdrs = ["animate_spirit.h"],
+    deps = [
+        "//common",
+        "//multibody:visualization_utils",
+        "//systems/primitives",
+        "//systems/trajectory_optimization/dircon",
+        "@drake//:drake_shared_library",
+        "@gflags",
+    ],
+)
+
+cc_library(
+    name = "spirit_utils",
+    srcs = ["spirit_utils.cc"],
+    hdrs = ["spirit_utils.h"],
+    deps = [
+        "//common",
+        "//multibody/kinematic",
+        "//multibody:visualization_utils",
+        "//solvers:nonlinear_cost",
+        "//systems/primitives",
+        "//systems/trajectory_optimization/dircon",
+        "@drake//:drake_shared_library",
+        "@gflags",
+    ],
+)
+
+cc_library(
+    name = "spirit_jump",
+    srcs = ["spirit_jump.cc"],
+    hdrs = ["spirit_jump.h"],
+    data = ["spirit_drake.urdf"],
+    deps = [
+        ":animate_spirit",
+        ":spirit_utils",
+        ":behavior_configuration",
+        "//common",
+        "//lcm:dircon_trajectory_saver",
+        "//multibody/kinematic",
+        "//systems/primitives",
+        "//systems/trajectory_optimization/dircon",
+        "@drake//:drake_shared_library",
+        "@gflags",
+    ],
+)
+
+cc_library(
+    name = "Spirit",
+    srcs = ["Spirit.cc"],
+    hdrs = ["Spirit.h"],
+    data = ["spirit_drake.urdf"],
+    deps = [
+        ":animate_spirit",
+        ":spirit_jump",
+        ":spirit_utils",
+        "//common",
+        "//lcm:dircon_trajectory_saver",
+        "//multibody/kinematic",
+        "//systems/primitives",
+        "//systems/trajectory_optimization/dircon",
+        "@drake//:drake_shared_library",
+        "@gflags",
+    ],
+)
+
+cc_library(
+    name = "behavior_configuration",
+    hdrs = ["behavior_configuration.h"],
+)
+
+# cc_binary(
+#     name = "spirit_test",
+#     srcs = ["spiritTest.cc"],
+#     deps = [
+#         ":animate_spirit",
+#         ":spirit_jump",
+#         "//common",
+#         "//lcm:dircon_trajectory_saver",
+#         "//multibody/kinematic",
+#         "//systems/primitives",
+#         "//systems/trajectory_optimization/dircon",
+#         "@drake//:drake_shared_library",
+#         "@gflags",
+#     ],
+# )
+
+
+cc_binary(
+    name = "spirit_test2",
+    srcs = ["SpiritTest2.cc"],
+    deps = [
+        ":animate_spirit",
+        ":spirit_jump",
+        ":Spirit",
+        "//common",
+        "//lcm:dircon_trajectory_saver",
+        "//multibody/kinematic",
+        "//systems/primitives",
+        "//systems/trajectory_optimization/dircon",
+        "@drake//:drake_shared_library",
+        "@gflags",
+    ],
+)
+
+cc_binary(
+    name = "run_spirit_vis",
+    srcs = ["run_spirit_vis.cc"],
+    data = ["spirit_drake.urdf"],
+    deps = [
+        ":animate_spirit",
+        "//common",
+        "//systems/primitives",
+        "//systems/trajectory_optimization/dircon",
+        "@drake//:drake_shared_library",
+        "@gflags",
+    ],
+)
+
+cc_binary(
+    name = "process_trajectory",
+    srcs = ["process_trajectory.cc"],
+    data = ["spirit_drake.urdf"],
+    deps = [
+        ":animate_spirit",
+        ":spirit_utils",
+        "//common",
+        "//lcm:dircon_trajectory_saver",
+        "//multibody/kinematic",
+        "//systems/primitives",
+        "//systems/trajectory_optimization/dircon",
+        "@drake//:drake_shared_library",
+        "@gflags",
+    ],
+)
+
+cc_binary(
+    name = "ik_test",
+    srcs = ["ik_test.cc"],
+    data = ["spirit_drake.urdf"],
+    deps = [
+        ":animate_spirit",
+        ":spirit_utils",
+        "//common",
+        "//lcm:dircon_trajectory_saver",
+        "//multibody/kinematic",
+        "//systems/primitives",
+        "//systems/trajectory_optimization/dircon",
+        "@drake//:drake_shared_library",
+        "@gflags",
+    ],
+)
+
+cc_binary(
+    name = "run_spirit_stand",
+    srcs = ["run_spirit_stand.cc"],
+    data = ["spirit_drake.urdf"],
+    deps = [
+        ":animate_spirit",
+        ":spirit_utils",
+        "//common",
+        "//multibody/kinematic",
+        "//systems/primitives",
+        "//systems/trajectory_optimization/dircon",
+        "@drake//:drake_shared_library",
+        "@gflags",
+    ],
+)
+
+cc_binary(
+    name = "run_spirit_squat",
+    srcs = ["run_spirit_squat.cc"],
+    data = ["spirit_drake.urdf"],
+    deps = [
+        ":animate_spirit",
+        ":spirit_utils",
+        "//common",
+        "//multibody/kinematic",
+        "//systems/primitives",
+        "//systems/trajectory_optimization/dircon",
+        "@drake//:drake_shared_library",
+        "@gflags",
+    ],
+)
+
+cc_binary(
+    name = "run_spirit_jump",
+    srcs = ["run_spirit_jump.cc"],
+    data = ["spirit_drake.urdf"],
+    deps = [
+        ":animate_spirit",
+        ":spirit_utils",
+        "//common",
+        "//lcm:dircon_trajectory_saver",
+        "//multibody/kinematic",
+        "//systems/primitives",
+        "//systems/trajectory_optimization/dircon",
+        "@drake//:drake_shared_library",
+        "@gflags",
+    ],
+)
+
+cc_binary(
+    name = "run_spirit_bound",
+    srcs = ["run_spirit_bound.cc"],
+    data = ["spirit_drake.urdf"],
+    deps = [
+        ":animate_spirit",
+        ":spirit_utils",
+        "//common",
+        "//lcm:dircon_trajectory_saver",
+        "//multibody/kinematic",
+        "//systems/primitives",
+        "//systems/trajectory_optimization/dircon",
+        "@drake//:drake_shared_library",
+        "@gflags",
+    ],
+)
+
+cc_binary(
+    name = "run_spirit_best_stand",
+    srcs = ["run_spirit_best_stand.cc"],
+    data = ["spirit_drake.urdf"],
+    deps = [
+        ":animate_spirit",
+        "//common",
+        "//multibody/kinematic",
+        "//systems/primitives",
+        "//systems/trajectory_optimization/dircon",
+        "@drake//:drake_shared_library",
+        "@gflags",
+    ],
+)
+
+cc_library(
+    name = "urdf",
+    data = ["spirit_drake.urdf"],
+)
+
+# package(default_visibility = ["//visibility:public"])
+
+# load(
+#     "@drake//tools/skylark:drake_cc.bzl",
+#     "drake_cc_binary",
+# )
+# load("//tools/install:install_data.bzl", "install_data")
+# ​
+# drake_cc_binary(
+#     name = "run_spirit_vis",
+#     srcs = [
+#         "run_spirit_vis.cc",
+#     ],
+#     data = [
+#         ":models",
+#         "//tools:drake_visualizer",
+#         "spirit_drake.urdf"
+#     ],
+#     deps = [
+#         "//common",
+#         "//systems/primitives",
+#         "@drake//:drake_shared_library",
+#         "@gflags",
+#         # "//common:find_resource",
+#         # "//common:text_logging_gflags",
+#         "//geometry:geometry_visualization",
+#         "//lcm",
+#         "//multibody/parsing",
+#         "//multibody/plant",
+#         "//systems/analysis",
+#         "//systems/framework",
+#         "@sdformat",
+#     ],
+# )
+# ​
+# install_data()
