@@ -50,20 +50,14 @@ Spirit<T>::Spirit() :plant (std::make_unique<MultibodyPlant<T>>(0.0)),
     distance_name = std::to_string(int(floor(100*foreAftDisplacement)))+"cm";
     // jump_behavior(0.45,1,true);
     // jump_behavior(apex_goal,duration,ipopt);
-    std::cout<<"Initialize successfully"<<std::endl;
     }
 
 template <class T>
 void Spirit<T>::jump(){
-    std::cout<<"Going to jump"<<std::endl;
     if (runAllOptimization){
     if(! skipInitialOptimization){
       std::cout<<"Running initial optimization"<<std::endl;
-      jump_behavior.badSpiritJump(*plant);
-      jump_behavior.run(
-          *plant,
-          false,
-          {7, 7, 7, 7},
+      JumpConfiguration jc1={0.45,1,true,false,{7, 7, 7, 7},
           apex_goal,
           standHeight,
           0,
@@ -78,7 +72,11 @@ void Spirit<T>::jump(){
           100,
           eps,
           1e-1,
-          data_directory+"simple_jump");
+          data_directory+"simple_jump"};
+        
+      jump_behavior.config(jc1);
+      jump_behavior.badSpiritJump(*plant);
+      jump_behavior.run(*plant);
     }
     else{
       jump_behavior.loadOldTrajectory(data_directory+"simple_jump");
@@ -87,9 +85,7 @@ void Spirit<T>::jump(){
 
     std::cout<<"Running 2nd optimization"<<std::endl;
     // Hopping correct distance, but heavily constrained
-    jump_behavior.run(
-        *plant,
-        false,
+    JumpConfiguration jc2={0.45,1,true,false,
         {7, 7, 7, 7} ,
         apex_goal,
         standHeight,
@@ -105,13 +101,13 @@ void Spirit<T>::jump(){
         100,
         0,
         1e-2,
-        data_directory+"jump_"+distance_name);
+        data_directory+"jump_"+distance_name};
+    jump_behavior.config(jc2);
+    jump_behavior.run(*plant);
     }
     std::cout<<"Running 3rd optimization"<<std::endl;
     // Fewer constraints, and higher tolerences
-    jump_behavior.run(
-      *plant,
-      !minWork,
+    JumpConfiguration jc3={0.45,1,true,!minWork,
       {7, 7, 7, 7} ,
       apex_goal,
       standHeight,
@@ -128,14 +124,14 @@ void Spirit<T>::jump(){
       eps,
       tol,
       data_directory+"jump_"+distance_name+"_hq",
-      data_directory+"jump_"+distance_name);
+      data_directory+"jump_"+distance_name};
+    jump_behavior.config(jc3);
+    jump_behavior.run(*plant);
 
   if (minWork){
     // Adding in work cost and constraints
     std::cout<<"Running 4th optimization"<<std::endl;
-    jump_behavior.run(
-        *plant,
-        true,
+    JumpConfiguration jc4={0.45,1,true,true,
         {7, 7, 7, 7} ,
         apex_goal,
         standHeight,
@@ -152,7 +148,9 @@ void Spirit<T>::jump(){
         eps,
         tol,
         data_directory+"jump_"+distance_name+"_hq_work_option3",
-        data_directory+"jump_"+distance_name+"_hq");
+        data_directory+"jump_"+distance_name+"_hq"};
+    jump_behavior.config(jc4);
+    jump_behavior.run(*plant);
   }
   
 }

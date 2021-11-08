@@ -35,6 +35,7 @@
 #include "solvers/optimization_utils.h"
 #include "solvers/nonlinear_cost.h"
 #include "examples/Spirit/spirit_jump.h"
+#include "examples/Spirit/behavior_configuration.h"
 using drake::multibody::MultibodyPlant;
 using drake::trajectories::PiecewisePolynomial;
 using drake::geometry::SceneGraph;
@@ -82,7 +83,7 @@ private:
     std::unique_ptr<MultibodyPlant<T>> plant;
     std::unique_ptr<MultibodyPlant<T>> plant_vis;
     std::unique_ptr<SceneGraph<T>> scene_graph;
-    dairlib::SpiritJump<T> jump_behavior;
+    dairlib::SpiritJump<JumpConfiguration,T> jump_behavior;
 
 };
 }

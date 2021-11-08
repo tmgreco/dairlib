@@ -43,8 +43,8 @@
 #include "solvers/nonlinear_cost.h"
 
 #include "examples/Spirit/spirit_utils.h"
-
-
+#include "examples/Spirit/behavior_configuration.h"
+#include "examples/Spirit/behavior.h"
 
 using drake::multibody::MultibodyPlant;
 using drake::trajectories::PiecewisePolynomial;
@@ -56,89 +56,66 @@ namespace dairlib {
     using systems::trajectory_optimization::Dircon;
     using std::vector;
 
-template <class Y>
-class SpiritJump {
-
+template <typename C,class Y>  // C behavior type e.g. JumpConfiguration
+class SpiritJump : public Behavior<C,Y> {
 public:
 
     SpiritJump();
     SpiritJump( double apex_goal, 
                 double duration, 
                 bool ipopt);
-   
+    void config(C input_configuration);
     /// badSpiritJump, generates a bad initial guess for the spirit jump traj opt
     void badSpiritJump(MultibodyPlant<Y>& plant);
     /// addCost, adds the cost to the trajopt jump problem. See runSpiritJump for a description of the inputs
 
     void addCost(
                 MultibodyPlant<Y>& plant, 
-                dairlib::systems::trajectory_optimization::Dircon<Y>& trajopt,
-                const double cost_actuation,
-                const double cost_velocity,
-                const double cost_work);
+                dairlib::systems::trajectory_optimization::Dircon<Y>& trajopt);
 
     // addConstraints, adds constraints to the trajopt jump problem. See runSpiritJump for a description of the inputs
     
-    void addConstraints(
-                        MultibodyPlant<Y>& plant, 
-                        dairlib::systems::trajectory_optimization::Dircon<Y>& trajopt,
-                        const double apex_height,
-                        const double initial_height,
-                        const double fore_aft_displacement,
-                        const bool lock_rotation,
-                        const bool lock_legs_apex,
-                        const bool force_symmetry,
-                        const bool use_nominal_stand,
-                        const double max_duration,
-                        const double eps);
+    void addConstraints(MultibodyPlant<Y>& plant, 
+                        dairlib::systems::trajectory_optimization::Dircon<Y>& trajopt
+                        );
 
-    /// getModeSequence, initializes the trajopt mode seqence for jump, see runSpiritJump for a def of inputs
-
-    std::tuple<  std::vector<std::unique_ptr<dairlib::systems::trajectory_optimization::DirconMode<Y>>>,
-                std::vector<std::unique_ptr<multibody::WorldPointEvaluator<Y>>> ,
-                std::vector<std::unique_ptr<multibody::KinematicEvaluatorSet<Y>>>>
-    getModeSequence(
-        MultibodyPlant<Y>& plant, 
-        const double mu,
-        std::vector<int> num_knot_points,
-        DirconModeSequence<Y>& sequence);
 
     void loadOldTrajectory(std::string traj_dir);
 
     /// runSpiritJump, runs a trajectory optimization problem for spirit jumping on flat ground
-    void run(MultibodyPlant<Y>& plant,
-        const bool animate,
-        std::vector<int> num_knot_points,
-        const double apex_height,
-        const double initial_height,
-        const double fore_aft_displacement,
-        const bool lock_rotation,
-        const bool lock_legs_apex,
-        const bool force_symmetry,
-        const bool use_nominal_stand,
-        const double max_duration,
-        const double cost_actuation,
-        const double cost_velocity,
-        const double cost_work,
-        const double mu,
-        const double eps,
-        const double tol,
-        const std::string& file_name_out,
-        const std::string& file_name_in= ""
-        );
+    void run(MultibodyPlant<Y>& plant);
 
 
 private:
-    double apex_goal;
+    double apex_goal; //for bad spirit jump
     double duration;
     bool ipopt;
+    bool animate;
+    
+    double apex_height;
+    double initial_height;
+    double fore_aft_displacement;
+    bool lock_rotation;
+    bool lock_legs_apex;
+    bool force_symmetry;
+    bool use_nominal_stand;
+    double max_duration;
+    double cost_actuation;
+    double cost_velocity;
+    double cost_work;
+
+    double eps;
+    double tol;
+
+    std::string file_name_out;
+    std::string file_name_in= "";
 
     
-    PiecewisePolynomial<Y> x_traj; /// initial and solution state trajectory
-    PiecewisePolynomial<Y> u_traj; /// initial and solution control trajectory
-    vector<PiecewisePolynomial<Y>> l_traj; /// initial and solution contact force trajectory
-    vector<PiecewisePolynomial<Y>> lc_traj; /// initial and solution contact force slack variable trajectory
-    vector<PiecewisePolynomial<Y>> vc_traj; /// initial and solution contact velocity slack variable trajectory
+    // PiecewisePolynomial<Y> x_traj; /// initial and solution state trajectory
+    // PiecewisePolynomial<Y> u_traj; /// initial and solution control trajectory
+    // vector<PiecewisePolynomial<Y>> l_traj; /// initial and solution contact force trajectory
+    // vector<PiecewisePolynomial<Y>> lc_traj; /// initial and solution contact force slack variable trajectory
+    // vector<PiecewisePolynomial<Y>> vc_traj; /// initial and solution contact velocity slack variable trajectory
 
 
 };

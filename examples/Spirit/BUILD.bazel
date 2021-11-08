@@ -41,6 +41,8 @@ cc_library(
     deps = [
         ":animate_spirit",
         ":spirit_utils",
+        ":spirit_behavior",
+        ":behavior_configuration",
         "//common",
         "//lcm:dircon_trajectory_saver",
         "//multibody/kinematic",
@@ -70,21 +72,32 @@ cc_library(
     ],
 )
 
-cc_binary(
-    name = "spirit_test",
-    srcs = ["spiritTest.cc"],
-    deps = [
-        ":animate_spirit",
-        ":spirit_jump",
-        "//common",
-        "//lcm:dircon_trajectory_saver",
-        "//multibody/kinematic",
-        "//systems/primitives",
-        "//systems/trajectory_optimization/dircon",
-        "@drake//:drake_shared_library",
-        "@gflags",
-    ],
+cc_library(
+    name = "behavior_configuration",
+    hdrs = ["behavior_configuration.h"],
 )
+
+cc_library(
+    name = "spirit_behavior",
+    hdrs = ["behavior.h"],
+)
+
+# cc_binary(
+#     name = "spirit_test",
+#     srcs = ["spiritTest.cc"],
+#     deps = [
+#         ":animate_spirit",
+#         ":spirit_jump",
+#         "//common",
+#         "//lcm:dircon_trajectory_saver",
+#         "//multibody/kinematic",
+#         "//systems/primitives",
+#         "//systems/trajectory_optimization/dircon",
+#         "@drake//:drake_shared_library",
+#         "@gflags",
+#     ],
+# )
+
 
 cc_binary(
     name = "spirit_test2",
