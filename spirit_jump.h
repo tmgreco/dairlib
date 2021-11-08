@@ -44,7 +44,7 @@
 
 #include "examples/Spirit/spirit_utils.h"
 #include "examples/Spirit/behavior_configuration.h"
-
+#include "examples/Spirit/behavior.h"
 
 using drake::multibody::MultibodyPlant;
 using drake::trajectories::PiecewisePolynomial;
@@ -57,8 +57,7 @@ namespace dairlib {
     using std::vector;
 
 template <typename C,class Y>  // C behavior type e.g. JumpConfiguration
-class SpiritJump {
-
+class SpiritJump : public Behavior<C,Y> {
 public:
 
     SpiritJump();
@@ -80,13 +79,6 @@ public:
                         dairlib::systems::trajectory_optimization::Dircon<Y>& trajopt
                         );
 
-    /// getModeSequence, initializes the trajopt mode seqence for jump, see runSpiritJump for a def of inputs
-
-    std::tuple<  std::vector<std::unique_ptr<dairlib::systems::trajectory_optimization::DirconMode<Y>>>,
-                std::vector<std::unique_ptr<multibody::WorldPointEvaluator<Y>>> ,
-                std::vector<std::unique_ptr<multibody::KinematicEvaluatorSet<Y>>>>
-    getModeSequence(MultibodyPlant<Y>& plant, 
-                    DirconModeSequence<Y>& sequence);
 
     void loadOldTrajectory(std::string traj_dir);
 
@@ -99,7 +91,7 @@ private:
     double duration;
     bool ipopt;
     bool animate;
-    std::vector<int> num_knot_points;
+    
     double apex_height;
     double initial_height;
     double fore_aft_displacement;
@@ -111,7 +103,7 @@ private:
     double cost_actuation;
     double cost_velocity;
     double cost_work;
-    double mu;
+
     double eps;
     double tol;
 
@@ -119,11 +111,11 @@ private:
     std::string file_name_in= "";
 
     
-    PiecewisePolynomial<Y> x_traj; /// initial and solution state trajectory
-    PiecewisePolynomial<Y> u_traj; /// initial and solution control trajectory
-    vector<PiecewisePolynomial<Y>> l_traj; /// initial and solution contact force trajectory
-    vector<PiecewisePolynomial<Y>> lc_traj; /// initial and solution contact force slack variable trajectory
-    vector<PiecewisePolynomial<Y>> vc_traj; /// initial and solution contact velocity slack variable trajectory
+    // PiecewisePolynomial<Y> x_traj; /// initial and solution state trajectory
+    // PiecewisePolynomial<Y> u_traj; /// initial and solution control trajectory
+    // vector<PiecewisePolynomial<Y>> l_traj; /// initial and solution contact force trajectory
+    // vector<PiecewisePolynomial<Y>> lc_traj; /// initial and solution contact force slack variable trajectory
+    // vector<PiecewisePolynomial<Y>> vc_traj; /// initial and solution contact velocity slack variable trajectory
 
 
 };

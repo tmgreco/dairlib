@@ -9,24 +9,24 @@ struct JumpConfiguration
     double apex_goal; //for bad spirit jump
     double duration;
     bool ipopt;
-    const bool animate;
+    bool animate;
     std::vector<int> num_knot_points;
-    const double apex_height;
-    const double initial_height;
-    const double fore_aft_displacement;
-    const bool lock_rotation;
-    const bool lock_legs_apex;
-    const bool force_symmetry;
-    const bool use_nominal_stand;
-    const double max_duration;
-    const double cost_actuation;
-    const double cost_velocity;
-    const double cost_work;
-    const double mu;
-    const double eps;
-    const double tol;
-    const std::string file_name_out;
-    const std::string file_name_in="";
+    double apex_height;
+    double initial_height;
+    double fore_aft_displacement;
+    bool lock_rotation;
+    bool lock_legs_apex;
+    bool force_symmetry;
+    bool use_nominal_stand;
+    double max_duration;
+    double cost_actuation;
+    double cost_velocity;
+    double cost_work;
+    double mu;
+    double eps;
+    double tol;
+    std::string file_name_out;
+    std::string file_name_in="";
 }  ;
 
 #endif

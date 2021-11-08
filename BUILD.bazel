@@ -41,6 +41,7 @@ cc_library(
     deps = [
         ":animate_spirit",
         ":spirit_utils",
+        ":spirit_behavior",
         ":behavior_configuration",
         "//common",
         "//lcm:dircon_trajectory_saver",
@@ -74,6 +75,11 @@ cc_library(
 cc_library(
     name = "behavior_configuration",
     hdrs = ["behavior_configuration.h"],
+)
+
+cc_library(
+    name = "spirit_behavior",
+    hdrs = ["behavior.h"],
 )
 
 # cc_binary(
