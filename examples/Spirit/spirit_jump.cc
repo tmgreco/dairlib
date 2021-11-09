@@ -63,15 +63,7 @@ void SpiritJump<C,Y>::config(C input_configuration){
   this->file_name_in= input_configuration.file_name_in;
 }
 
-template <typename C,class Y>
-void SpiritJump<C,Y>::loadOldTrajectory(std::string traj_dir){
-  dairlib::DirconTrajectory old_traj(traj_dir);
-  this->x_traj = old_traj.ReconstructStateTrajectory();
-  this->u_traj = old_traj.ReconstructInputTrajectory();
-  this->l_traj = old_traj.ReconstructLambdaTrajectory();
-  this->lc_traj = old_traj.ReconstructLambdaCTrajectory();
-  this->vc_traj = old_traj.ReconstructGammaCTrajectory();
-}
+
 
 /// badSpiritJump, generates a bad initial guess for the spirit jump traj opt
 template <typename C,class Y>
@@ -137,7 +129,7 @@ void SpiritJump<C,Y>::badSpiritJump(MultibodyPlant<Y>& plant){
     if ( i > (N-1)/2 ){
       xState.tail(nv) = -xInit.tail(nv);
     }
-    // Integrate the positions based on constant velocity  for joints and xyz
+    // Integrate the positions based on constant velocity for joints and xyz
     for (int j = 0; j < num_joints; j++){
       xState(positions_map.at("joint_" + std::to_string(j))) =
           xState(positions_map.at("joint_" + std::to_string(j))) + xState(nq + velocities_map.at("joint_" + std::to_string(j)+"dot" )) * dt;
@@ -230,17 +222,7 @@ void SpiritJump<C,Y>::badSpiritJump(MultibodyPlant<Y>& plant){
   this->vc_traj.push_back(init_vc_traj_j);
 }
 
-/// addCost, adds the cost to the trajopt jump problem. See runSpiritJump for a description of the inputs
-template <typename C,class Y>
-void SpiritJump<C,Y>::addCost(
-            MultibodyPlant<Y>& plant,  
-            dairlib::systems::trajectory_optimization::Dircon<Y>& trajopt){
-  auto u   = trajopt.input();
-  // Setup the traditional cost function
-  trajopt.AddRunningCost( u.transpose()*cost_actuation*u);
-  trajopt.AddVelocityCost(cost_velocity);
-  AddWorkCost(plant, trajopt, cost_work);
-} 
+
 
 
 // addConstraints, adds constraints to the trajopt jump problem. See runSpiritJump for a description of the inputs
@@ -416,7 +398,7 @@ void SpiritJump<C,Y>::run(MultibodyPlant<Y>& plant) {
                             0);  // 0
   }
   // Setting up cost
-  addCost(plant,trajopt);
+  this->addCost(plant,trajopt);
 
 // Initialize the trajectory control state and forces
   if (file_name_in.empty()){

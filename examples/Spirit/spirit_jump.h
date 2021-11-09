@@ -67,11 +67,6 @@ public:
     void config(C input_configuration);
     /// badSpiritJump, generates a bad initial guess for the spirit jump traj opt
     void badSpiritJump(MultibodyPlant<Y>& plant);
-    /// addCost, adds the cost to the trajopt jump problem. See runSpiritJump for a description of the inputs
-
-    void addCost(
-                MultibodyPlant<Y>& plant, 
-                dairlib::systems::trajectory_optimization::Dircon<Y>& trajopt);
 
     // addConstraints, adds constraints to the trajopt jump problem. See runSpiritJump for a description of the inputs
     
@@ -80,7 +75,7 @@ public:
                         );
 
 
-    void loadOldTrajectory(std::string traj_dir);
+    
 
     /// runSpiritJump, runs a trajectory optimization problem for spirit jumping on flat ground
     void run(MultibodyPlant<Y>& plant);
@@ -100,24 +95,11 @@ private:
     bool force_symmetry;
     bool use_nominal_stand;
     double max_duration;
-    double cost_actuation;
-    double cost_velocity;
-    double cost_work;
-
     double eps;
     double tol;
 
     std::string file_name_out;
     std::string file_name_in= "";
-
-    
-    // PiecewisePolynomial<Y> x_traj; /// initial and solution state trajectory
-    // PiecewisePolynomial<Y> u_traj; /// initial and solution control trajectory
-    // vector<PiecewisePolynomial<Y>> l_traj; /// initial and solution contact force trajectory
-    // vector<PiecewisePolynomial<Y>> lc_traj; /// initial and solution contact force slack variable trajectory
-    // vector<PiecewisePolynomial<Y>> vc_traj; /// initial and solution contact velocity slack variable trajectory
-
-
 };
 }
 

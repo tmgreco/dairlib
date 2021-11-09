@@ -80,6 +80,7 @@ cc_library(
 cc_library(
     name = "spirit_behavior",
     hdrs = ["behavior.h"],
+    deps = [":spirit_utils",],
 )
 
 # cc_binary(

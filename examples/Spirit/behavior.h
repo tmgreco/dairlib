@@ -18,6 +18,9 @@
 #include "drake/geometry/drake_visualizer.h"
 #include "drake/solvers/solve.h"
 
+#include "systems/trajectory_optimization/dircon/dircon.h"
+#include "examples/Spirit/spirit_utils.h"
+
 using drake::multibody::MultibodyPlant;
 using drake::trajectories::PiecewisePolynomial;
 using drake::geometry::SceneGraph;
@@ -32,9 +35,15 @@ namespace dairlib {
     class Behavior{
         public:
         
-        virtual void addCost(
+        void addCost(
                     MultibodyPlant<Y>& plant, 
-                    dairlib::systems::trajectory_optimization::Dircon<Y>& trajopt)=0;
+                    dairlib::systems::trajectory_optimization::Dircon<Y>& trajopt){
+                        auto u   = trajopt.input();
+                        // Setup the traditional cost function
+                        trajopt.AddRunningCost( u.transpose()*cost_actuation*u);
+                        trajopt.AddVelocityCost(cost_velocity);
+                        AddWorkCost(plant, trajopt, cost_work);
+                    }
 
         // addConstraints, adds constraints to the trajopt jump problem. See runSpiritJump for a description of the inputs
         virtual void config(C input_configuration) = 0; //Maybe it should load configuration directly from the path
@@ -44,12 +53,17 @@ namespace dairlib {
                             ) =0;
 
 
-        virtual void loadOldTrajectory(std::string traj_dir)=0;
-
         /// runSpiritJump, runs a trajectory optimization problem for spirit jumping on flat ground
         virtual void run(MultibodyPlant<Y>& plant) = 0;
 
-        
+        void loadOldTrajectory(std::string traj_dir){
+            dairlib::DirconTrajectory old_traj(traj_dir);
+            this->x_traj = old_traj.ReconstructStateTrajectory();
+            this->u_traj = old_traj.ReconstructInputTrajectory();
+            this->l_traj = old_traj.ReconstructLambdaTrajectory();
+            this->lc_traj = old_traj.ReconstructLambdaCTrajectory();
+            this->vc_traj = old_traj.ReconstructGammaCTrajectory();
+        }
 
 
 
@@ -58,6 +72,9 @@ namespace dairlib {
 
         std::vector<int> num_knot_points;
         double mu;
+        double cost_actuation;
+        double cost_velocity;
+        double cost_work;
 
         PiecewisePolynomial<Y> x_traj; /// initial and solution state trajectory
         PiecewisePolynomial<Y> u_traj; /// initial and solution control trajectory
@@ -131,6 +148,9 @@ namespace dairlib {
         }
         return {std::move(modeVector), std::move(toeEvals), std::move(toeEvalSets)};
         }
+
+    
+    
 
     };
 } 
