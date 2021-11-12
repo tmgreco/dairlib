@@ -54,7 +54,8 @@ namespace dairlib {
 
 
         /// runSpiritJump, runs a trajectory optimization problem for spirit jumping on flat ground
-        virtual void run(MultibodyPlant<Y>& plant) = 0;
+        virtual void run(MultibodyPlant<Y>& plant,
+                        PiecewisePolynomial<Y>* pp_xtraj) = 0;
 
         void loadOldTrajectory(std::string traj_dir){
             dairlib::DirconTrajectory old_traj(traj_dir);
@@ -65,16 +66,21 @@ namespace dairlib {
             this->vc_traj = old_traj.ReconstructGammaCTrajectory();
         }
 
-
+        
 
     protected:
         C configuration;
 
         std::vector<int> num_knot_points;
         double mu;
+        double tol;
+        bool ipopt;
         double cost_actuation;
         double cost_velocity;
         double cost_work;
+
+        std::string file_name_out;
+        std::string file_name_in= "";
 
         PiecewisePolynomial<Y> x_traj; /// initial and solution state trajectory
         PiecewisePolynomial<Y> u_traj; /// initial and solution control trajectory
@@ -103,7 +109,10 @@ namespace dairlib {
         getModeSequence(
                         MultibodyPlant<Y>& plant,
                         DirconModeSequence<Y>& sequence,
-                        std::vector<std::string>& mode_vector){
+                        std::vector<std::string>& mode_vector,
+                        double dynamic_scale,
+                        double velocity_scale,
+                        double position_scale){
         dairlib::ModeSequenceHelper msh;
         int counter=0;
         for (std::string mode_name : mode_vector){
@@ -136,21 +145,100 @@ namespace dairlib {
             mode->MakeConstraintRelative(i,1);
             }
             mode->SetDynamicsScale(
-                {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17}, 200);
+                {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17}, dynamic_scale);
             if (mode->evaluators().num_evaluators() > 0)
             {
             mode->SetKinVelocityScale(
-                {0, 1, 2, 3}, {0, 1, 2}, 1.0);
+                {0, 1, 2, 3}, {0, 1, 2}, velocity_scale);
             mode->SetKinPositionScale(
-                {0, 1, 2, 3}, {0, 1, 2}, 200);
+                {0, 1, 2, 3}, {0, 1, 2}, position_scale);
             }
             sequence.AddMode(mode.get());
         }
         return {std::move(modeVector), std::move(toeEvals), std::move(toeEvalSets)};
         }
 
-    
-    
+        void setSolver(dairlib::systems::trajectory_optimization::Dircon<Y>& trajopt){
+            if (ipopt) {
+                // Ipopt settings adapted from CaSaDi and FROST
+                auto id = drake::solvers::IpoptSolver::id();
+                trajopt.SetSolverOption(id, "tol", tol);
+                trajopt.SetSolverOption(id, "dual_inf_tol", tol);
+                trajopt.SetSolverOption(id, "constr_viol_tol", tol);
+                trajopt.SetSolverOption(id, "compl_inf_tol", tol);
+                trajopt.SetSolverOption(id, "max_iter", 1000000);
+                trajopt.SetSolverOption(id, "nlp_lower_bound_inf", -1e6);
+                trajopt.SetSolverOption(id, "nlp_upper_bound_inf", 1e6);
+                trajopt.SetSolverOption(id, "print_timing_statistics", "yes");
+                trajopt.SetSolverOption(id, "print_level", 5);
+
+                // Set to ignore overall tolerance/dual infeasibility, but terminate when
+                // primal feasible and objective fails to increase over 5 iterations.
+                trajopt.SetSolverOption(id, "acceptable_compl_inf_tol", tol);
+                trajopt.SetSolverOption(id, "acceptable_constr_viol_tol", tol);
+                trajopt.SetSolverOption(id, "acceptable_obj_change_tol", tol);
+                trajopt.SetSolverOption(id, "acceptable_tol", tol);
+                trajopt.SetSolverOption(id, "acceptable_iter", 5);
+            } else {
+                // Set up Trajectory Optimization options
+                trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(),
+                                        "Print file", "../snopt.out");
+                trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(),
+                                        "Major iterations limit", 10000);
+                trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(), "Iterations limit", 1000000);
+                trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(),
+                                        "Major optimality tolerance",
+                                        tol);  // target optimality
+                trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(), "Major feasibility tolerance", tol);
+                trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(), "Verify level",
+                                        0);  // 0
+            }
+        }
+
+    void initTrajectory(dairlib::systems::trajectory_optimization::Dircon<Y>& trajopt,
+                            DirconModeSequence<Y>& sequence){
+            if (file_name_in.empty()){
+                trajopt.drake::systems::trajectory_optimization::MultipleShooting::
+                    SetInitialTrajectory(this->u_traj, this->x_traj);
+                for (int j = 0; j < sequence.num_modes(); j++) {
+                trajopt.SetInitialForceTrajectory(j, this->l_traj[j], this->lc_traj[j],
+                                                    this->vc_traj[j]);
+                }
+            }else{
+                std::cout<<"Loading decision var from file, will fail if num dec vars changed" <<std::endl;
+                dairlib::DirconTrajectory loaded_traj(file_name_in);
+                trajopt.SetInitialGuessForAllVariables(loaded_traj.GetDecisionVariables());
+            }
+        }
+
+    void saveTrajectory(MultibodyPlant<Y>& plant,
+                        dairlib::systems::trajectory_optimization::Dircon<Y>& trajopt,
+                        const drake::solvers::MathematicalProgramResult& result){
+        if(!file_name_out.empty()){
+            dairlib::DirconTrajectory saved_traj(
+                plant, trajopt, result, "Jumping trajectory",
+                "Decision variables and state/input trajectories "
+                "for jumping");
+            saved_traj.WriteToFile(file_name_out);
+            dairlib::DirconTrajectory old_traj(file_name_out);
+            this->x_traj = old_traj.ReconstructStateTrajectory();
+            this->u_traj = old_traj.ReconstructInputTrajectory();
+            this->l_traj = old_traj.ReconstructLambdaTrajectory();
+            this->lc_traj = old_traj.ReconstructLambdaCTrajectory();
+            this->vc_traj = old_traj.ReconstructGammaCTrajectory();
+
+        } else{
+            std::cout << "warning no file name provided, will not be able to return full solution" << std::endl;
+            this->x_traj  = trajopt.ReconstructStateTrajectory(result);
+            this->u_traj  = trajopt.ReconstructInputTrajectory(result);
+            this->l_traj  = trajopt.ReconstructLambdaTrajectory(result);
+        }
+        auto x_trajs = trajopt.ReconstructDiscontinuousStateTrajectory(result);
+        std::cout<<"Work = " << dairlib::calcElectricalWork(plant, x_trajs, this->u_traj) << std::endl;
+        //  double cost_work_acceleration = solvers::EvalCostGivenSolution(
+        //      result, cost_joint_work_bindings);
+        //  std::cout<<"Cost Work = " << cost_work_acceleration << std::endl;
+    }
 
     };
 } 

@@ -341,79 +341,27 @@ void SpiritJump<C,Y>::addConstraints(
 
 /// runSpiritJump, runs a trajectory optimization problem for spirit jumping on flat ground
 template <typename C,class Y>
-void SpiritJump<C,Y>::run(MultibodyPlant<Y>& plant) {
-  drake::systems::DiagramBuilder<double> builder;
-
-  auto plant_vis = std::make_unique<MultibodyPlant<double>>(0.0);
-  auto scene_graph_ptr = std::make_unique<SceneGraph<double>>();
-  Parser parser_vis(plant_vis.get(), scene_graph_ptr.get());
-  std::string full_name =
-      dairlib::FindResourceOrThrow("examples/Spirit/spirit_drake.urdf");
-  parser_vis.AddModelFromFile(full_name);
-  plant_vis->Finalize();
-  SceneGraph<double>& scene_graph =
-      *builder.AddSystem(std::move(scene_graph_ptr));
+void SpiritJump<C,Y>::run(MultibodyPlant<Y>& plant,
+                          PiecewisePolynomial<Y>* pp_xtraj) {
+  
   
   // Setup mode sequence
   auto sequence = DirconModeSequence<Y>(plant);
   
   std::vector<std::string> mode_vector{"stance","flight","flight","stance"};
-  auto [modeVector, toeEvals, toeEvalSets] = this->getModeSequence(plant, sequence,mode_vector);
+  auto [modeVector, toeEvals, toeEvalSets] = this->getModeSequence(plant, sequence,mode_vector,200,1,200);
 
   ///Setup trajectory optimization
   auto trajopt = Dircon<Y>(sequence); 
 
-  if (ipopt) {
-    // Ipopt settings adapted from CaSaDi and FROST
-    auto id = drake::solvers::IpoptSolver::id();
-    trajopt.SetSolverOption(id, "tol", tol);
-    trajopt.SetSolverOption(id, "dual_inf_tol", tol);
-    trajopt.SetSolverOption(id, "constr_viol_tol", tol);
-    trajopt.SetSolverOption(id, "compl_inf_tol", tol);
-    trajopt.SetSolverOption(id, "max_iter", 1000000);
-    trajopt.SetSolverOption(id, "nlp_lower_bound_inf", -1e6);
-    trajopt.SetSolverOption(id, "nlp_upper_bound_inf", 1e6);
-    trajopt.SetSolverOption(id, "print_timing_statistics", "yes");
-    trajopt.SetSolverOption(id, "print_level", 5);
-
-    // Set to ignore overall tolerance/dual infeasibility, but terminate when
-    // primal feasible and objective fails to increase over 5 iterations.
-    trajopt.SetSolverOption(id, "acceptable_compl_inf_tol", tol);
-    trajopt.SetSolverOption(id, "acceptable_constr_viol_tol", tol);
-    trajopt.SetSolverOption(id, "acceptable_obj_change_tol", tol);
-    trajopt.SetSolverOption(id, "acceptable_tol", tol);
-    trajopt.SetSolverOption(id, "acceptable_iter", 5);
-  } else {
-    // Set up Trajectory Optimization options
-    trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(),
-                            "Print file", "../snopt.out");
-    trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(),
-                            "Major iterations limit", 10000);
-    trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(), "Iterations limit", 1000000);
-    trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(),
-                            "Major optimality tolerance",
-                            tol);  // target optimality
-    trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(), "Major feasibility tolerance", tol);
-    trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(), "Verify level",
-                            0);  // 0
-  }
+  this->setSolver(trajopt);
   // Setting up cost
   this->addCost(plant,trajopt);
 
-// Initialize the trajectory control state and forces
-  if (file_name_in.empty()){
-    trajopt.drake::systems::trajectory_optimization::MultipleShooting::
-        SetInitialTrajectory(this->u_traj, this->x_traj);
-    for (int j = 0; j < sequence.num_modes(); j++) {
-      trajopt.SetInitialForceTrajectory(j, this->l_traj[j], this->lc_traj[j],
-                                        this->vc_traj[j]);
-    }
-  }else{
-    std::cout<<"Loading decision var from file, will fail if num dec vars changed" <<std::endl;
-    dairlib::DirconTrajectory loaded_traj(file_name_in);
-    trajopt.SetInitialGuessForAllVariables(loaded_traj.GetDecisionVariables());
-  }
+  // Initialize the trajectory control state and forces
+  this->initTrajectory(trajopt,sequence);
 
+  // Setting constraints
   addConstraints(plant,trajopt);
 
   /// Setup the visualization during the optimization
@@ -426,8 +374,9 @@ void SpiritJump<C,Y>::run(MultibodyPlant<Y>& plant) {
       dairlib::FindResourceOrThrow("examples/Spirit/spirit_drake.urdf"),
       visualizer_poses, 0.2); // setup which URDF, how many poses, and alpha transparency 
 
+  /// Run the optimization using your initial guess
   drake::solvers::SolverId solver_id("");
-  if (ipopt) {
+  if (this->ipopt) {
     solver_id = drake::solvers::IpoptSolver().id();
     cout << "\nChose manually: " << solver_id.name() << endl;
   } else {
@@ -435,7 +384,6 @@ void SpiritJump<C,Y>::run(MultibodyPlant<Y>& plant) {
     cout << "\nChose the best solver: " << solver_id.name() << endl;
   }
 
-  /// Run the optimization using your initial guess
   auto start = std::chrono::high_resolution_clock::now();
   auto solver = drake::solvers::MakeSolver(solver_id);
   drake::solvers::MathematicalProgramResult result;
@@ -448,45 +396,13 @@ void SpiritJump<C,Y>::run(MultibodyPlant<Y>& plant) {
   std::cout << (result.is_success() ? "Optimization Success" : "Optimization Fail") << std::endl;
 
   /// Save trajectory
+  this->saveTrajectory(plant,trajopt,result);
 
-  if(!file_name_out.empty()){
-    dairlib::DirconTrajectory saved_traj(
-        plant, trajopt, result, "Jumping trajectory",
-        "Decision variables and state/input trajectories "
-        "for jumping");
-    saved_traj.WriteToFile(file_name_out);
-    dairlib::DirconTrajectory old_traj(file_name_out);
-    this->x_traj = old_traj.ReconstructStateTrajectory();
-    this->u_traj = old_traj.ReconstructInputTrajectory();
-    this->l_traj = old_traj.ReconstructLambdaTrajectory();
-    this->lc_traj = old_traj.ReconstructLambdaCTrajectory();
-    this->vc_traj = old_traj.ReconstructGammaCTrajectory();
 
-  } else{
-    std::cout << "warning no file name provided, will not be able to return full solution" << std::endl;
-    this->x_traj  = trajopt.ReconstructStateTrajectory(result);
-    this->u_traj  = trajopt.ReconstructInputTrajectory(result);
-    this->l_traj  = trajopt.ReconstructLambdaTrajectory(result);
-  }
-  auto x_trajs = trajopt.ReconstructDiscontinuousStateTrajectory(result);
-  std::cout<<"Work = " << dairlib::calcElectricalWork(plant, x_trajs, this->u_traj) << std::endl;
-//  double cost_work_acceleration = solvers::EvalCostGivenSolution(
-//      result, cost_joint_work_bindings);
-//  std::cout<<"Cost Work = " << cost_work_acceleration << std::endl;
-  /// Run animation of the final trajectory
-  const drake::trajectories::PiecewisePolynomial<double> pp_xtraj =
-      trajopt.ReconstructStateTrajectory(result);
+  /// pass the final trajectory back to spirit for animation
+  *pp_xtraj =trajopt.ReconstructStateTrajectory(result);
 
-  multibody::connectTrajectoryVisualizer(plant_vis.get(),
-      &builder, &scene_graph, pp_xtraj);
-  auto diagram = builder.Build();
-  while (animate) {
-    drake::systems::Simulator<double> simulator(*diagram);
-    simulator.set_target_realtime_rate(0.25);
-    simulator.Initialize();
-    simulator.AdvanceTo(pp_xtraj.end_time());
-    sleep(2);
-  }
+  
 }
 
 template class SpiritJump<JumpConfiguration,double>;

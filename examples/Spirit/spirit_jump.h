@@ -78,15 +78,14 @@ public:
     
 
     /// runSpiritJump, runs a trajectory optimization problem for spirit jumping on flat ground
-    void run(MultibodyPlant<Y>& plant);
+    void run(MultibodyPlant<Y>& plant,
+            PiecewisePolynomial<Y>* pp_xtraj);
 
 
 private:
     double apex_goal; //for bad spirit jump
     double duration;
-    bool ipopt;
     bool animate;
-    
     double apex_height;
     double initial_height;
     double fore_aft_displacement;
@@ -96,10 +95,9 @@ private:
     bool use_nominal_stand;
     double max_duration;
     double eps;
-    double tol;
 
-    std::string file_name_out;
-    std::string file_name_in= "";
+
+
 };
 }
 

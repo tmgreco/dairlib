@@ -50,17 +50,17 @@ template <class T>
 class Spirit {
 
 public:
-
-
     Spirit();
     // Spirit(std::string urdf_path):plant (make_unique<MultibodyPlant<T>>()),
     //             plant_vis (make_unique<MultibodyPlant<T>>()),
     //             scene_graph (make_unique<SceneGraph<T>>());
     
     void jump();
-
+    void animate();
 
 private:
+    
+
     double apex_goal;
     double duration;
     bool ipopt;
@@ -82,8 +82,11 @@ private:
 
     std::unique_ptr<MultibodyPlant<T>> plant;
     std::unique_ptr<MultibodyPlant<T>> plant_vis;
-    std::unique_ptr<SceneGraph<T>> scene_graph;
+    std::unique_ptr<SceneGraph<T>> scene_graph_ptr;
+    drake::systems::DiagramBuilder<double> builder;
+    
     dairlib::SpiritJump<JumpConfiguration,T> jump_behavior;
+    PiecewisePolynomial<T> pp_xtraj; //For animation use
 
 };
 }
