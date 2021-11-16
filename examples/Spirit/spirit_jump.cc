@@ -1,5 +1,5 @@
 #include "examples/Spirit/spirit_jump.h"
-
+#include <yaml-cpp/yaml.h>
 
 using drake::AutoDiffXd;
 using drake::multibody::MultibodyPlant;
@@ -23,51 +23,49 @@ using std::vector;
 using std::cout;
 using std::endl;
 
-template <typename C,class Y> 
-SpiritJump<C,Y>::SpiritJump(){
+template <class Y> 
+SpiritJump<Y>::SpiritJump(){
 }
 
 
-template <typename C,class Y>
-SpiritJump<C,Y>::SpiritJump(double apex_goal, 
-                          double duration, 
+template <class Y>
+SpiritJump<Y>::SpiritJump(double duration, 
                           bool ipopt){
-  this->apex_goal= apex_goal;
   this->duration=duration;
   this->ipopt=ipopt;
 }
 
-template <typename C,class Y>
-void SpiritJump<C,Y>::config(C input_configuration){
-  this->apex_goal =input_configuration.apex_goal; //for bad spirit jump
-  this->duration=input_configuration.duration;
-  this->ipopt=input_configuration.ipopt;
-  this->animate=input_configuration.animate;
-  this->num_knot_points=input_configuration.num_knot_points;
-  this->apex_height=input_configuration.apex_height;
-  this->initial_height=input_configuration.initial_height;
-  this->fore_aft_displacement=input_configuration.fore_aft_displacement;
-  this->lock_rotation=input_configuration.lock_rotation;
-  this->lock_legs_apex=input_configuration.lock_legs_apex;
-  this->force_symmetry=input_configuration.force_symmetry;
-  this->use_nominal_stand=input_configuration.use_nominal_stand;
-  this->max_duration=input_configuration.max_duration;
-  this->cost_actuation=input_configuration.cost_actuation;
-  this->cost_velocity=input_configuration.cost_velocity;
-  this->cost_work=input_configuration.cost_work;
-  this->mu=input_configuration.mu;
-  this->eps=input_configuration.eps;
-  this->tol=input_configuration.tol;
+template <class Y>
+void SpiritJump<Y>::config(std::string yaml_path, int index){
+  YAML::Node config = YAML::LoadFile(yaml_path);
 
-  this->file_name_out=input_configuration.file_name_out;
-  this->file_name_in= input_configuration.file_name_in;
+  this->duration=config[index]["duration"].as<double>();
+  this->ipopt=config[index]["ipopt"].as<bool>();
+  this->num_knot_points=config[index]["num_knot_points"].as<std::vector<int>>();
+  this->apex_height=config[index]["apex_height"].as<double>();
+  this->initial_height=config[index]["initial_height"].as<double>();
+  this->fore_aft_displacement=config[index]["fore_aft_displacement"].as<double>();
+  this->lock_rotation=config[index]["lock_rotation"].as<bool>();
+  this->lock_legs_apex=config[index]["lock_legs_apex"].as<bool>();
+  this->force_symmetry=config[index]["force_symmetry"].as<bool>();
+  this->use_nominal_stand=config[index]["use_nominal_stand"].as<bool>();
+  this->max_duration=config[index]["max_duration"].as<double>();
+  this->cost_actuation=config[index]["cost_actuation"].as<double>();
+  this->cost_velocity=config[index]["cost_velocity"].as<double>();
+  this->cost_work=config[index]["cost_work"].as<double>();
+  this->mu=config[index]["mu"].as<double>();
+  this->eps=config[index]["eps"].as<double>();
+  this->tol=config[index]["tol"].as<double>();
+
+  this->file_name_out=config[index]["file_name_out"].as<std::string>();
+  this->file_name_in= config[index]["file_name_in"].as<std::string>();
 }
 
 
 
 /// badSpiritJump, generates a bad initial guess for the spirit jump traj opt
-template <typename C,class Y>
-void SpiritJump<C,Y>::badSpiritJump(MultibodyPlant<Y>& plant){
+template <class Y>
+void SpiritJump<Y>::badSpiritJump(MultibodyPlant<Y>& plant){
   Eigen::VectorXd x0 = Eigen::VectorXd::Zero(plant.num_positions() +
       plant.num_velocities());
 
@@ -108,7 +106,7 @@ void SpiritJump<C,Y>::badSpiritJump(MultibodyPlant<Y>& plant){
   dairlib::nominalSpiritStand( plant, xInit,  0.16); //Update xInit
   dairlib::nominalSpiritStand( plant, xMid,  0.35); //Update xMid
 
-  xMid(positions_map.at("base_z"))=apex_goal;
+  xMid(positions_map.at("base_z"))=apex_height;
 
   VectorXd deltaX(nx);
   VectorXd averageV(nx);
@@ -226,8 +224,8 @@ void SpiritJump<C,Y>::badSpiritJump(MultibodyPlant<Y>& plant){
 
 
 // addConstraints, adds constraints to the trajopt jump problem. See runSpiritJump for a description of the inputs
-template <typename C,class Y>
-void SpiritJump<C,Y>::addConstraints(
+template <class Y>
+void SpiritJump<Y>::addConstraints(
                     MultibodyPlant<Y>& plant,
                     dairlib::systems::trajectory_optimization::Dircon<Y>& trajopt){
 
@@ -340,8 +338,8 @@ void SpiritJump<C,Y>::addConstraints(
 
 
 /// runSpiritJump, runs a trajectory optimization problem for spirit jumping on flat ground
-template <typename C,class Y>
-void SpiritJump<C,Y>::run(MultibodyPlant<Y>& plant,
+template <class Y>
+void SpiritJump<Y>::run(MultibodyPlant<Y>& plant,
                           PiecewisePolynomial<Y>* pp_xtraj) {
   
   
@@ -405,6 +403,6 @@ void SpiritJump<C,Y>::run(MultibodyPlant<Y>& plant,
   
 }
 
-template class SpiritJump<JumpConfiguration,double>;
+template class SpiritJump<double>;
 }  // namespace dairlib
 

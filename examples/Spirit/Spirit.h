@@ -46,16 +46,16 @@ namespace dairlib {
     using systems::trajectory_optimization::Dircon;
     using std::vector;
 
-template <class T>
+template <template<class> class B,class T>
 class Spirit {
 
 public:
-    Spirit();
+    Spirit(std::string yaml_path);
     // Spirit(std::string urdf_path):plant (make_unique<MultibodyPlant<T>>()),
     //             plant_vis (make_unique<MultibodyPlant<T>>()),
     //             scene_graph (make_unique<SceneGraph<T>>());
     
-    void jump();
+    void run();
     void animate();
 
 private:
@@ -74,7 +74,7 @@ private:
 
     std::string data_directory;
     std::string distance_name;
-    
+    std::string yaml_path;
     bool runAllOptimization;
     bool skipInitialOptimization;
     bool minWork;
@@ -85,7 +85,7 @@ private:
     std::unique_ptr<SceneGraph<T>> scene_graph_ptr;
     drake::systems::DiagramBuilder<double> builder;
     
-    dairlib::SpiritJump<JumpConfiguration,T> jump_behavior;
+    B<T> behavior;
     PiecewisePolynomial<T> pp_xtraj; //For animation use
 
 };

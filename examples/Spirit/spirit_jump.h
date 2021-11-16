@@ -56,15 +56,14 @@ namespace dairlib {
     using systems::trajectory_optimization::Dircon;
     using std::vector;
 
-template <typename C,class Y>  // C behavior type e.g. JumpConfiguration
-class SpiritJump : public Behavior<C,Y> {
+template <class Y>  
+class SpiritJump : public Behavior<Y> {
 public:
 
     SpiritJump();
-    SpiritJump( double apex_goal, 
-                double duration, 
+    SpiritJump(double duration, 
                 bool ipopt);
-    void config(C input_configuration);
+    void config(std::string yaml_path, int index);
     /// badSpiritJump, generates a bad initial guess for the spirit jump traj opt
     void badSpiritJump(MultibodyPlant<Y>& plant);
 
@@ -74,16 +73,12 @@ public:
                         dairlib::systems::trajectory_optimization::Dircon<Y>& trajopt
                         );
 
-
-    
-
     /// runSpiritJump, runs a trajectory optimization problem for spirit jumping on flat ground
     void run(MultibodyPlant<Y>& plant,
             PiecewisePolynomial<Y>* pp_xtraj);
 
 
 private:
-    double apex_goal; //for bad spirit jump
     double duration;
     bool animate;
     double apex_height;
@@ -95,8 +90,6 @@ private:
     bool use_nominal_stand;
     double max_duration;
     double eps;
-
-
 
 };
 }

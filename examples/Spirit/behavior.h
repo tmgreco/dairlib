@@ -31,7 +31,7 @@ namespace dairlib {
     using systems::trajectory_optimization::DirconModeSequence;
     using std::vector;
     using std::map;
-    template <typename C, class Y> // C: confuguration struct
+    template <class Y> 
     class Behavior{
         public:
         
@@ -46,7 +46,7 @@ namespace dairlib {
                     }
 
         // addConstraints, adds constraints to the trajopt jump problem. See runSpiritJump for a description of the inputs
-        virtual void config(C input_configuration) = 0; //Maybe it should load configuration directly from the path
+        virtual void config(std::string yaml_path, int index) = 0; //Maybe it should load configuration directly from the path
         virtual void addConstraints(
                             MultibodyPlant<Y>& plant, 
                             dairlib::systems::trajectory_optimization::Dircon<Y>& trajopt
@@ -69,7 +69,6 @@ namespace dairlib {
         
 
     protected:
-        C configuration;
 
         std::vector<int> num_knot_points;
         double mu;
