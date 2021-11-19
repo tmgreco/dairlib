@@ -8,24 +8,10 @@
 #ifndef _spirit_jump
 #define _spirit_jump
 
-#include <memory>
-#include <chrono>
-#include <unistd.h>
-#include <gflags/gflags.h>
-#include <string.h>
 #include <cmath>
 #include <experimental/filesystem>
+#include <filesystem>
 
-#include "drake/solvers/snopt_solver.h"
-#include "drake/solvers/ipopt_solver.h"
-#include "drake/systems/analysis/simulator.h"
-#include "drake/systems/framework/diagram.h"
-#include "drake/systems/framework/diagram_builder.h"
-#include "drake/multibody/parsing/parser.h"
-#include <drake/multibody/inverse_kinematics/inverse_kinematics.h>
-#include <drake/solvers/choose_best_solver.h>
-#include "drake/geometry/drake_visualizer.h"
-#include "drake/solvers/solve.h"
 
 #include "common/find_resource.h"
 #include "systems/trajectory_optimization/dircon/dircon.h"
@@ -43,7 +29,6 @@
 #include "solvers/nonlinear_cost.h"
 
 #include "examples/Spirit/spirit_utils.h"
-#include "examples/Spirit/behavior_configuration.h"
 #include "examples/Spirit/behavior.h"
 
 using drake::multibody::MultibodyPlant;
@@ -61,11 +46,10 @@ class SpiritJump : public Behavior<Y> {
 public:
 
     SpiritJump();
-    SpiritJump(double duration, 
-                bool ipopt);
-    void config(std::string yaml_path, int index);
-    /// badSpiritJump, generates a bad initial guess for the spirit jump traj opt
-    void badSpiritJump(MultibodyPlant<Y>& plant);
+
+    void config(std::string yaml_path, std::string saved_directory, int index);
+    /// generateInitialGuess, generates a bad initial guess for the spirit jump traj opt
+    void generateInitialGuess(MultibodyPlant<Y>& plant);
 
     // addConstraints, adds constraints to the trajopt jump problem. See runSpiritJump for a description of the inputs
     

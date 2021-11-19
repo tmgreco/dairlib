@@ -28,15 +28,9 @@ SpiritJump<Y>::SpiritJump(){
 }
 
 
-template <class Y>
-SpiritJump<Y>::SpiritJump(double duration, 
-                          bool ipopt){
-  this->duration=duration;
-  this->ipopt=ipopt;
-}
 
 template <class Y>
-void SpiritJump<Y>::config(std::string yaml_path, int index){
+void SpiritJump<Y>::config(std::string yaml_path, std::string saved_directory, int index){
   YAML::Node config = YAML::LoadFile(yaml_path);
 
   this->duration=config[index]["duration"].as<double>();
@@ -57,15 +51,16 @@ void SpiritJump<Y>::config(std::string yaml_path, int index){
   this->eps=config[index]["eps"].as<double>();
   this->tol=config[index]["tol"].as<double>();
 
-  this->file_name_out=config[index]["file_name_out"].as<std::string>();
-  this->file_name_in= config[index]["file_name_in"].as<std::string>();
+  if(!config[index]["file_name_out"].as<std::string>().empty()) this->file_name_out=saved_directory+config[index]["file_name_out"].as<std::string>();
+  if(!config[index]["file_name_in"].as<std::string>().empty()) this->file_name_in= saved_directory+config[index]["file_name_in"].as<std::string>();
+
 }
 
 
 
-/// badSpiritJump, generates a bad initial guess for the spirit jump traj opt
+/// generateInitialGuess, generates a bad initial guess for the spirit jump traj opt
 template <class Y>
-void SpiritJump<Y>::badSpiritJump(MultibodyPlant<Y>& plant){
+void SpiritJump<Y>::generateInitialGuess(MultibodyPlant<Y>& plant){
   Eigen::VectorXd x0 = Eigen::VectorXd::Zero(plant.num_positions() +
       plant.num_velocities());
 

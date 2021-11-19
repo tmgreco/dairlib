@@ -1,6 +1,7 @@
 #include "examples/Spirit/Spirit.h"
 #include "examples/Spirit/spirit_jump.h"
 #include <yaml-cpp/yaml.h>
+#include <fstream>
 using drake::multibody::Parser;
 using drake::multibody::MultibodyPlant;
 using drake::trajectories::PiecewisePolynomial;
@@ -11,16 +12,22 @@ template <template<class> class B,class T>
 Spirit<B,T>::Spirit(std::string yaml_path) :plant (std::make_unique<MultibodyPlant<T>>(0.0)),
                     plant_vis (std::make_unique<MultibodyPlant<T>>(0.0)),
                     scene_graph_ptr (std::make_unique<SceneGraph<T>>()),
-                    apex_goal(0.45),duration(1),ipopt(true),
                     behavior()
     {
-    data_directory= "/home/feng/Downloads/dairlib/examples/Spirit/saved_trajectories/";
     this->yaml_path=yaml_path;
     YAML::Node config = YAML::LoadFile(yaml_path);
-    runAllOptimization=config[0]["runAllOptimization"].as<bool>();
-    skipInitialOptimization=config[0]["skipInitialOptimization"].as<bool>();
-    minWork=config[0]["minWork"].as<bool>();
+    num_optimizations=config[0]["num_optimizations"].as<int>();
+    initial_guess=config[0]["initial_guess"].as<bool>();
 
+    saved_directory=config[0]["saved_directory"].as<std::string>();
+    // Create saved directory if it doesn't exist
+    if (!std::experimental::filesystem::is_directory(saved_directory) || !std::experimental::filesystem::exists(saved_directory)) { 
+        std::experimental::filesystem::create_directory(saved_directory); 
+    }
+    // Copy current yaml to saved directory
+    std::ifstream src("examples/Spirit/config.yaml", std::ios::binary);
+    std::ofstream dest(saved_directory+"config.yaml", std::ios::binary);
+    dest << src.rdbuf();
 
     ///init plant
     Parser parser(plant.get());
@@ -36,10 +43,6 @@ Spirit<B,T>::Spirit(std::string yaml_path) :plant (std::make_unique<MultibodyPla
 
     plant->Finalize();
     plant_vis->Finalize();
-
-    distance_name = std::to_string(int(floor(100*foreAftDisplacement)))+"cm";
-    // behavior(0.45,1,true);
-    // behavior(apex_goal,duration,ipopt);
     }
 
 template <template<class> class B,class T>
@@ -59,38 +62,14 @@ void Spirit<B,T>::animate(){
 
 template <template<class> class B,class T>
 void Spirit<B,T>::run(){
-  
-  if (runAllOptimization){
-    if(! skipInitialOptimization){
-      std::cout<<"Running initial optimization"<<std::endl;   
-      behavior.config(yaml_path,1);
-      behavior.badSpiritJump(*plant);
+  for (int i=1;i<=num_optimizations;i++){
+      std::cout<<"Running optimization "<<i<<std::endl;   
+      behavior.config(yaml_path,saved_directory,i);
+      if (i==1 && initial_guess) behavior.generateInitialGuess(*plant);
       behavior.run(*plant,&pp_xtraj);
-    }
-    else{
-      behavior.loadOldTrajectory(data_directory+"simple_jump");
-    }
-    
-
-    std::cout<<"Running 2nd optimization"<<std::endl;
-    // Hopping correct distance, but heavily constrained
-    behavior.config(yaml_path,2);
-    behavior.run(*plant,&pp_xtraj);
-    }
-  std::cout<<"Running 3rd optimization"<<std::endl;
-  // Fewer constraints, and higher tolerences
-  behavior.config(yaml_path,3);
-  behavior.run(*plant,&pp_xtraj);
-
-  if (minWork){
-    // Adding in work cost and constraints
-    std::cout<<"Running 4th optimization"<<std::endl;
-    behavior.config(yaml_path,4);
-    behavior.run(*plant,&pp_xtraj);
   }
-
-  animate();
   
+  animate();
 }
 template class Spirit<dairlib::SpiritJump,double>;
 }

@@ -42,7 +42,6 @@ cc_library(
         ":animate_spirit",
         ":spirit_utils",
         ":spirit_behavior",
-        ":behavior_configuration",
         "//common",
         "//lcm:dircon_trajectory_saver",
         "//multibody/kinematic",
@@ -55,6 +54,7 @@ cc_library(
 
 cc_library(
     name = "Spirit",
+    linkopts =["-lstdc++fs"],
     srcs = ["Spirit.cc"],
     hdrs = ["Spirit.h"],
     data = ["spirit_drake.urdf"],
@@ -72,10 +72,6 @@ cc_library(
     ],
 )
 
-cc_library(
-    name = "behavior_configuration",
-    hdrs = ["behavior_configuration.h"],
-)
 
 cc_library(
     name = "spirit_behavior",

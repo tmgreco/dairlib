@@ -46,7 +46,7 @@ namespace dairlib {
                     }
 
         // addConstraints, adds constraints to the trajopt jump problem. See runSpiritJump for a description of the inputs
-        virtual void config(std::string yaml_path, int index) = 0; //Maybe it should load configuration directly from the path
+        virtual void config(std::string yaml_path, std::string saved_directory, int index) = 0; //Maybe it should load configuration directly from the path
         virtual void addConstraints(
                             MultibodyPlant<Y>& plant, 
                             dairlib::systems::trajectory_optimization::Dircon<Y>& trajopt

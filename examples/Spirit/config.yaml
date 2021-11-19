@@ -1,10 +1,8 @@
 # YAML spirit jump configuration
 -
   num_optimizations: 4
-  runAllOptimization: true
-  skipInitialOptimization: false
-  minWork: true
-
+  initial_guess: true
+  saved_directory: /home/feng/Downloads/dairlib/examples/Spirit/saved_trajectories/jump_test1/
 
 - 
   name: jump_1
@@ -29,7 +27,7 @@
   mu: 100
   eps: 1e-2
   tol: 1e-1
-  file_name_out: /home/feng/Downloads/dairlib/examples/Spirit/saved_trajectories/simple_jump
+  file_name_out: simple_jump
   file_name_in: ""
   
 -
@@ -55,7 +53,7 @@
   mu: 100
   eps: 0
   tol: 1e-2
-  file_name_out: /home/feng/Downloads/dairlib/examples/Spirit/saved_trajectories/jump_100cm
+  file_name_out: jump_100cm
   file_name_in: ""
  
 -
@@ -81,8 +79,8 @@
   mu: 1
   eps: 1e-2
   tol: 1e-3
-  file_name_out: /home/feng/Downloads/dairlib/examples/Spirit/saved_trajectories/jump_100cm_hq
-  file_name_in: /home/feng/Downloads/dairlib/examples/Spirit/saved_trajectories/jump_100cm
+  file_name_out: jump_100cm_hq
+  file_name_in: jump_100cm
  
 -
   name: jump_4
@@ -107,5 +105,5 @@
   mu: 1
   eps: 1e-2
   tol: 1e-3
-  file_name_out: /home/feng/Downloads/dairlib/examples/Spirit/saved_trajectories/jump_100cm_hq_work_option3
-  file_name_in: /home/feng/Downloads/dairlib/examples/Spirit/saved_trajectories/jump_100cm_hq
+  file_name_out: jump_100cm_hq_work_option3
+  file_name_in: jump_100cm_hq
