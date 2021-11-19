@@ -7,7 +7,6 @@ using drake::multibody::MultibodyPlant;
 using drake::trajectories::PiecewisePolynomial;
 using drake::geometry::SceneGraph;
 namespace dairlib {
-
 template <template<class> class B,class T>
 Spirit<B,T>::Spirit(std::string yaml_path) :plant (std::make_unique<MultibodyPlant<T>>(0.0)),
                     plant_vis (std::make_unique<MultibodyPlant<T>>(0.0)),
@@ -25,9 +24,9 @@ Spirit<B,T>::Spirit(std::string yaml_path) :plant (std::make_unique<MultibodyPla
         std::experimental::filesystem::create_directory(saved_directory); 
     }
     // Copy current yaml to saved directory
-    std::ifstream src("examples/Spirit/config.yaml", std::ios::binary);
-    std::ofstream dest(saved_directory+"config.yaml", std::ios::binary);
-    dest << src.rdbuf();
+    std::ifstream  src(yaml_path, std::ios::binary);
+    std::ofstream  dst(saved_directory+"config.yaml",   std::ios::binary);
+    dst << src.rdbuf();
 
     ///init plant
     Parser parser(plant.get());
@@ -40,7 +39,6 @@ Spirit<B,T>::Spirit(std::string yaml_path) :plant (std::make_unique<MultibodyPla
 
     plant->mutable_gravity_field().set_gravity_vector(-9.81 *
         Eigen::Vector3d::UnitZ());
-
     plant->Finalize();
     plant_vis->Finalize();
     }
