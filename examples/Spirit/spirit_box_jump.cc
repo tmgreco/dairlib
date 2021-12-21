@@ -27,8 +27,31 @@ SpiritBoxJump<Y>::SpiritBoxJump():plant (std::make_unique<MultibodyPlant<Y>>(0.0
 }
 
 template <class Y>
-void SpiritBoxJump<Y>::config(std::string yaml_path, std::string saved_directory, int index){
+void SpiritBoxJump<Y>::config(
+  std::string yaml_path, std::string saved_directory, int index)
+  {
+
   YAML::Node config = YAML::LoadFile(yaml_path);
+  this->num_knot_points =config[index]["num_knot_points"].as<std::vector<int>>();
+  this->apex_height =config[index]["apex_height"].as<double>();
+  this->initial_height = config[index]["initial_height"].as<double>();
+  this->fore_aft_displacement =config[index]["fore_aft_displacement"].as<double>();
+  this->lock_rotation =config[index]["lock_rotation"].as<bool>();
+  this->lock_legs_apex =config[index]["lock_legs_apex"].as<bool>();
+  this->force_symmetry =config[index]["force_symmetry"].as<bool>();
+  this->use_nominal_stand =config[index]["use_nominal_stand"].as<bool>();
+  this->max_duration =config[index]["max_duration"].as<double>();
+  this->cost_actuation =config[index]["cost_actuation"].as<double>();
+  this->cost_velocity =config[index]["cost_velocity"].as<double>();
+  this->cost_work =config[index]["cost_work"].as<double>();
+  this->mu =config[index]["mu"].as<double>();
+  this->eps =config[index]["eps"].as<double>();
+  this->tol =config[index]["tol"].as<double>();
+  this->work_constraint_scale =config[index]["work_constraint_scale"].as<double>();
+  this->animate=config[index]["animate"].as<bool>();
+  if(!config[index]["file_name_out"].as<std::string>().empty()) this->file_name_out=saved_directory+config[index]["file_name_out"].as<std::string>();
+  if(!config[index]["file_name_in"].as<std::string>().empty()) this->file_name_in= saved_directory+config[index]["file_name_in"].as<std::string>();
+  std::cout<<this->file_name_out<<std::endl;
 }
 
 template <class Y>

@@ -28,7 +28,7 @@ namespace dairlib {
 template <template<class> class B,class T>
 class Spirit4Test {
 public:
-    Spirit4Test();
+    Spirit4Test(std::string yaml_path);
     void run();
     void animate();
 

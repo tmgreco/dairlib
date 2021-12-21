@@ -5,7 +5,7 @@ int main(int argc, char* argv[]) {
     // dairlib::Spirit<dairlib::SpiritJump,double> my_spirit("/home/feng/Downloads/dairlib/examples/Spirit/config.yaml");
     // my_spirit.run();
     // my_spirit.animate();
-    dairlib::Spirit4Test<dairlib::SpiritBoxJump,double> my_spirit;
+    dairlib::Spirit4Test<dairlib::SpiritBoxJump,double> my_spirit("/home/feng/Downloads/dairlib/examples/Spirit/box_jump_config.yaml");;
     my_spirit.run();
     my_spirit.animate();
 }

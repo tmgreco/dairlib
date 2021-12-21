@@ -145,8 +145,7 @@ public:
 private:
     std::unique_ptr<MultibodyPlant<Y>> plant;
     
-    dairlib::OptimalSpiritStand initialStand;
-    dairlib::OptimalSpiritStand finalStand;
+    
     double apex_height;
     double initial_height;
     double fore_aft_displacement;
@@ -158,6 +157,10 @@ private:
     double eps;  
     double work_constraint_scale;
     double animate;
+
+public:
+    dairlib::OptimalSpiritStand initialStand;
+    dairlib::OptimalSpiritStand finalStand;
 };
 }
 

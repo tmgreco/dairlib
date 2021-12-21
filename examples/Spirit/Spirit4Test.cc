@@ -1,6 +1,6 @@
 #include "examples/Spirit/Spirit4Test.h"
 #include "examples/Spirit/spirit_box_jump.h"
-
+#include <yaml-cpp/yaml.h>
 #include <fstream>
 #include <gflags/gflags.h>
 
@@ -32,11 +32,25 @@ using drake::trajectories::PiecewisePolynomial;
 using drake::geometry::SceneGraph;
 namespace dairlib {
 template <template<class> class B,class T>
-Spirit4Test<B,T>::Spirit4Test() :plant (std::make_unique<MultibodyPlant<T>>(0.0)),
+Spirit4Test<B,T>::Spirit4Test(std::string yaml_path) :plant (std::make_unique<MultibodyPlant<T>>(0.0)),
                     plant_vis (std::make_unique<MultibodyPlant<T>>(0.0)),
                     scene_graph_ptr (std::make_unique<SceneGraph<T>>()),
                     behavior()
     {
+    this->yaml_path=yaml_path;
+    YAML::Node config = YAML::LoadFile(yaml_path);
+    num_optimizations=config[0]["num_optimizations"].as<int>();
+    initial_guess=config[0]["initial_guess"].as<std::string>();
+
+    saved_directory=config[0]["saved_directory"].as<std::string>();
+    // Create saved directory if it doesn't exist
+    if (!std::experimental::filesystem::is_directory(saved_directory) || !std::experimental::filesystem::exists(saved_directory)) { 
+        std::experimental::filesystem::create_directory(saved_directory); 
+    }
+    // Copy current yaml to saved directory
+    std::ifstream  src(yaml_path, std::ios::binary);
+    std::ofstream  dst(saved_directory+"config.yaml",   std::ios::binary);
+    dst << src.rdbuf();
     ///init plant
     Parser parser(plant.get());
     Parser parser_vis(plant_vis.get(), scene_graph_ptr.get());
@@ -106,7 +120,6 @@ void Spirit4Test<B,T>::run(){
     // Debug prints
     // std::cout<<"DotProd: "<<normal.dot(Eigen::Vector3d::UnitZ())<<std::endl;
     double angle = acos(normal.dot(Eigen::Vector3d::UnitZ()))*(180/M_PI);
-    std::cout<<"!!!!!!!!!!!!!!!"<<angle<<std::endl;
     if (!(angle<1e-4)){
       Eigen::Vector3d axis =  normal.cross(Eigen::Vector3d::UnitZ());
       axis = axis/axis.norm();
@@ -132,92 +145,32 @@ void Spirit4Test<B,T>::run(){
   stands.push_back(finalStand);
 
 
-  if (FLAGS_runAllOptimization){
-    if(! FLAGS_skipInitialOptimization){
-      std::cout<<"Running initial optimization"<<std::endl;
-      behavior.generateInitialGuess(*plant);
-      behavior.config2(initialStand,
-          finalStand,
-          {7, 7, 7, 7},
-          FLAGS_apexGoal,
-          FLAGS_standHeight,
-          0,
-          true,
-          true,
-          false,
-          true,
-          2,
-          3,
-          10,
-          0,
-          100,
-          FLAGS_eps,
-          1e-1,
-          0,
-          FLAGS_data_directory+"simple_boxjump");
-      behavior.run(*plant,&pp_xtraj,&surface_vector);
-    }
+  std::cout<<"Running initial optimization"<<std::endl;
+  behavior.generateInitialGuess(*plant);
+  behavior.initialStand=initialStand;
+  behavior.finalStand=finalStand;
+  behavior.config(yaml_path,saved_directory,1);
+  behavior.run(*plant,&pp_xtraj,&surface_vector);
 
 
-    /// Get a finalFlatStand for getting a feasible leap and trajectory
-    dairlib::OptimalSpiritStand   finalFlatStand(plant.get(), FLAGS_standHeight, initialNormal, offset, true);
-    std::cout<<"Running 2nd optimization"<<std::endl;
-    // Hopping correct distance, but heavily constrained
+/// Get a finalFlatStand for getting a feasible leap and trajectory
+dairlib::OptimalSpiritStand   finalFlatStand(plant.get(), FLAGS_standHeight, initialNormal, offset, true);
+std::cout<<"Running 2nd optimization"<<std::endl;
+// Hopping correct distance, but heavily constrained
+behavior.initialStand=initialStand;
+behavior.finalStand=finalFlatStand;
+behavior.config(yaml_path,saved_directory,2);
+behavior.run(*plant,&pp_xtraj,&surface_vector);
 
-    behavior.config2(initialStand,
-        finalFlatStand,
-        {7, 7, 7, 7} ,
-        FLAGS_apexGoal,
-        FLAGS_standHeight,
-        FLAGS_foreAftDisplacement,
-        true,
-        true,
-        false,
-        true,
-        2,
-        3,
-        10,
-        0,
-        100,
-        0,
-        1e-2,
-        0,
-        FLAGS_data_directory+"boxjump_"+FLAGS_distance_name + "_" + std::to_string(0));
-    behavior.run(*plant,&pp_xtraj,&surface_vector);
-  }
   
   /// Run all the the steps to feed a higher angle
   for (int iStep = 0; iStep<numSteps;iStep++){
     std::cout<<" Running hq optimization step: " << iStep +1 <<" of "<< numSteps <<std::endl;
-    
-    // Debug print
-    // std::cout<<" Normal for the iSurface " << stands[iStep].normal() << std::endl;
-    bool animate;
-    if (iStep==numSteps-1) animate=true;
-    else animate=false;
+  
     // Fewer constraints, and higher tolerences
-    behavior.config2(initialStand,
-        stands[iStep+1],
-        {7, 7, 7, 7} ,
-        FLAGS_apexGoal,
-        FLAGS_standHeight,
-        FLAGS_foreAftDisplacement,
-        false,
-        false,
-        false,
-        true,
-        2,
-        3,
-        10,
-        0,
-        FLAGS_mu,
-        FLAGS_eps,
-        FLAGS_tol,
-        0,
-        FLAGS_data_directory+"boxjump_"+FLAGS_distance_name + "_" + std::to_string(iStep+1),
-        FLAGS_data_directory+"boxjump_"+FLAGS_distance_name + "_" + std::to_string(iStep),
-        animate
-        );
+    behavior.initialStand=initialStand;
+    behavior.finalStand=stands[iStep+1];
+    behavior.config(yaml_path,saved_directory,3+iStep);
     behavior.run(*plant,&pp_xtraj,&surface_vector);
   }
 
