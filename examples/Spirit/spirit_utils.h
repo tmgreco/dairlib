@@ -30,6 +30,7 @@ class ModeSequenceHelper {
     }
 };
 
+drake::math::RotationMatrix<double> normal2Rotation(Eigen::Vector3d nHat);
 
 /// Outputs a nominal stand state into the xState vector pointer based on the 
 /// height. This is an approximation for use in initial conditions.
@@ -305,6 +306,23 @@ template <typename T>
 double calcTorqueInt(
     drake::multibody::MultibodyPlant<T> & plant,
     drake::trajectories::PiecewisePolynomial<double>& u_traj);
+
+void visualizeSurface(drake::multibody::MultibodyPlant<double>* plant_vis, 
+  Eigen::Vector3d surface_normal,
+  Eigen::Vector3d surface_offset,
+  double length_surf, 
+  double width_surf,
+  double thickness_surf,
+  const drake::Vector4<double> color
+  );
+
+void visualizeSurface(drake::multibody::MultibodyPlant<double>* plant_vis, 
+  Eigen::Vector3d surface_normal = -Eigen::Vector3d::UnitY(),
+  Eigen::Vector3d surface_offset = Eigen::Vector3d::UnitY()*.5,
+  double length_surf = 0.5, 
+  double width_surf = 0.5,
+  double thickness_surf = 0.05
+  );
 
 /// Adds a cost on the integral of electrical power
 ///     @param plant, the robot model

@@ -1,5 +1,5 @@
-#ifndef _spirit
-#define _spirit
+#ifndef _spirit4test
+#define _spirit4test
 
 #include <cmath>
 #include <experimental/filesystem>
@@ -16,18 +16,19 @@
 #include "examples/Spirit/animate_spirit.h"
 #include "common/file_utils.h"
 #include "lcm/dircon_saved_trajectory.h"
-#include "examples/Spirit/spirit_jump.h"
-#include "examples/Spirit/spirit_bound.h"
+#include "examples/Spirit/spirit_box_jump.h"
+#include "examples/Spirit/surface_conf.h"
+
+
 using drake::multibody::MultibodyPlant;
 using drake::trajectories::PiecewisePolynomial;
 using drake::geometry::SceneGraph;
 
 namespace dairlib {
 template <template<class> class B,class T>
-class Spirit {
-
+class Spirit4Test {
 public:
-    Spirit(std::string yaml_path);
+    Spirit4Test();
     void run();
     void animate();
 

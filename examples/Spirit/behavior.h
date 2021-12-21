@@ -20,7 +20,7 @@
 
 #include "systems/trajectory_optimization/dircon/dircon.h"
 #include "examples/Spirit/spirit_utils.h"
-
+#include "examples/Spirit/surface_conf.h"
 using drake::multibody::MultibodyPlant;
 using drake::trajectories::PiecewisePolynomial;
 using drake::geometry::SceneGraph;
@@ -52,10 +52,10 @@ namespace dairlib {
                             dairlib::systems::trajectory_optimization::Dircon<Y>& trajopt
                             ) =0;
 
-
         /// runSpiritJump, runs a trajectory optimization problem for spirit jumping on flat ground
         virtual void run(MultibodyPlant<Y>& plant,
-                        PiecewisePolynomial<Y>* pp_xtraj) = 0;
+                        PiecewisePolynomial<Y>* pp_xtraj,
+                        std::vector<SurfaceConf>* surface_vector) = 0;
 
         void loadOldTrajectory(std::string traj_dir){
             dairlib::DirconTrajectory old_traj(traj_dir);
@@ -66,10 +66,7 @@ namespace dairlib {
             this->vc_traj = old_traj.ReconstructGammaCTrajectory();
         }
 
-        
-
     protected:
-
         std::vector<int> num_knot_points;
         double mu;
         double tol;
@@ -77,6 +74,9 @@ namespace dairlib {
         double cost_actuation;
         double cost_velocity;
         double cost_work;
+        double cost_velocity_legs_flight;
+        double cost_actuation_legs_flight;
+        double cost_time;
 
         std::string file_name_out;
         std::string file_name_in= "";
@@ -100,62 +100,76 @@ namespace dairlib {
             trajopt.AddBoundingBoxConstraint(qy - tolerance, qy + tolerance, var(name_map.at("base_qy")));
             trajopt.AddBoundingBoxConstraint(qz - tolerance, qz + tolerance, var(name_map.at("base_qz")));
         }
-        
+
+
+        void getModeSequenceHelper(
+            dairlib::ModeSequenceHelper& msh,
+            std::vector<std::string>& mode_vector,
+            std::vector<double>& minT_vector,
+            std::vector<double>& maxT_vector){
+                int counter=0;
+                for (std::string mode_name : mode_vector){
+                    if (mode_name=="stance"){
+                    msh.addMode( // Stance
+                        (Eigen::Matrix<bool,1,4>() << true,  true,  true,  true).finished(), // contact bools
+                        num_knot_points[counter],  // number of knot points in the collocation
+                        Eigen::Vector3d::UnitZ(), // normal
+                        Eigen::Vector3d::Zero(),  // world offset
+                        mu, //friction
+                        minT_vector[counter],
+                        maxT_vector[counter]
+                        );
+                    }
+                    else if(mode_name=="flight"){
+                    msh.addMode( // Flight
+                        (Eigen::Matrix<bool,1,4>() << false, false, false, false).finished(), // contact bools
+                        num_knot_points[counter],  // number of knot points in the collocation
+                        Eigen::Vector3d::UnitZ(), // normal
+                        Eigen::Vector3d::Zero(),  // world offset
+                        mu, //friction
+                        minT_vector[counter],
+                        maxT_vector[counter]
+                        );
+                    }
+                    else if (mode_name=="rear_stance"){
+                    msh.addMode( // Rear stance
+                        (Eigen::Matrix<bool,1,4>() << false, true, false, true).finished(), // contact bools
+                        num_knot_points[counter],  // number of knot points in the collocation
+                        Eigen::Vector3d::UnitZ(), // normal
+                        Eigen::Vector3d::Zero(),  // world offset
+                        mu, //friction
+                        minT_vector[counter],
+                        maxT_vector[counter]
+                        );
+                    }
+                    else if (mode_name=="front_stance"){
+                    msh.addMode( // Rear stance
+                        (Eigen::Matrix<bool,1,4>() <<  true, false, true ,false).finished(), // contact bools
+                        num_knot_points[counter],  // number of knot points in the collocation
+                        Eigen::Vector3d::UnitZ(), // normal
+                        Eigen::Vector3d::Zero(),  // world offset
+                        mu, //friction
+                        minT_vector[counter],
+                        maxT_vector[counter]
+                        );
+                    }
+                    else{
+                        std::cout<<"Wrong mode!"<<std::endl;
+                    }
+                    counter++;
+                }
+            }                   
+
         /// getModeSequence, initializes the trajopt mode seqence for jump, see runSpiritJump for a def of inputs
-        std::tuple<  std::vector<std::unique_ptr<dairlib::systems::trajectory_optimization::DirconMode<Y>>>,
+        virtual std::tuple<  std::vector<std::unique_ptr<dairlib::systems::trajectory_optimization::DirconMode<Y>>>,
                     std::vector<std::unique_ptr<multibody::WorldPointEvaluator<Y>>> ,
                     std::vector<std::unique_ptr<multibody::KinematicEvaluatorSet<Y>>>>
         getModeSequence(
                         MultibodyPlant<Y>& plant,
                         DirconModeSequence<Y>& sequence,
                         std::vector<std::string>& mode_vector,
-                        double dynamic_scale,
-                        double velocity_scale,
-                        double position_scale){
-        dairlib::ModeSequenceHelper msh;
-        int counter=0;
-        for (std::string mode_name : mode_vector){
-            if (mode_name=="stance"){
-            msh.addMode( // Stance
-                (Eigen::Matrix<bool,1,4>() << true,  true,  true,  true).finished(), // contact bools
-                num_knot_points[counter],  // number of knot points in the collocation
-                Eigen::Vector3d::UnitZ(), // normal
-                Eigen::Vector3d::Zero(),  // world offset
-                mu //friction
-            );
-            }
-            else if(mode_name=="flight"){
-            msh.addMode( // Flight
-            (Eigen::Matrix<bool,1,4>() << false, false, false, false).finished(), // contact bools
-            num_knot_points[counter],  // number of knot points in the collocation
-            Eigen::Vector3d::UnitZ(), // normal
-            Eigen::Vector3d::Zero(),  // world offset
-            mu //friction
-            );
-            }
-            counter++;
-        }
-        
-        auto [modeVector, toeEvals, toeEvalSets] = createSpiritModeSequence(plant, msh);
-
-        for (auto& mode : modeVector){
-            for (int i = 0; i < mode->evaluators().num_evaluators(); i++ ){
-            mode->MakeConstraintRelative(i,0);
-            mode->MakeConstraintRelative(i,1);
-            }
-            mode->SetDynamicsScale(
-                {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17}, dynamic_scale);
-            if (mode->evaluators().num_evaluators() > 0)
-            {
-            mode->SetKinVelocityScale(
-                {0, 1, 2, 3}, {0, 1, 2}, velocity_scale);
-            mode->SetKinPositionScale(
-                {0, 1, 2, 3}, {0, 1, 2}, position_scale);
-            }
-            sequence.AddMode(mode.get());
-        }
-        return {std::move(modeVector), std::move(toeEvals), std::move(toeEvalSets)};
-        }
+                        std::vector<double>& minT_vector,
+                        std::vector<double>& maxT_vector)=0;
 
         void setSolver(dairlib::systems::trajectory_optimization::Dircon<Y>& trajopt){
             if (ipopt) {
@@ -238,7 +252,6 @@ namespace dairlib {
         //      result, cost_joint_work_bindings);
         //  std::cout<<"Cost Work = " << cost_work_acceleration << std::endl;
     }
-
     };
 } 
 

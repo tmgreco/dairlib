@@ -1,34 +1,24 @@
 #include "examples/Spirit/spirit_jump.h"
 #include <yaml-cpp/yaml.h>
 
-using drake::AutoDiffXd;
-using drake::multibody::MultibodyPlant;
-using drake::geometry::SceneGraph;
-using drake::multibody::Parser;
-using drake::trajectories::PiecewisePolynomial;
 
-using Eigen::Vector3d;
+using drake::multibody::MultibodyPlant;
+using drake::trajectories::PiecewisePolynomial;
 using Eigen::VectorXd;
-using Eigen::Matrix3d;
 using Eigen::MatrixXd;
 
 namespace dairlib {
-
 using systems::trajectory_optimization::DirconModeSequence;
-using systems::trajectory_optimization::DirconMode;
 using systems::trajectory_optimization::Dircon;
-using systems::trajectory_optimization::KinematicConstraintType;
-
-using std::vector;
-using std::cout;
-using std::endl;
 
 template <class Y> 
 SpiritJump<Y>::SpiritJump(){
 }
 
-
-
+//Configuration for the next optimization (jump)
+/// \param yaml_path: path of yaml file
+/// \param saved_directory: directory to save trajectories and yaml duplication
+/// \param index: which configuration to load
 template <class Y>
 void SpiritJump<Y>::config(std::string yaml_path, std::string saved_directory, int index){
   YAML::Node config = YAML::LoadFile(yaml_path);
@@ -57,8 +47,8 @@ void SpiritJump<Y>::config(std::string yaml_path, std::string saved_directory, i
 }
 
 
-
 /// generateInitialGuess, generates a bad initial guess for the spirit jump traj opt
+/// \param plant: robot model
 template <class Y>
 void SpiritJump<Y>::generateInitialGuess(MultibodyPlant<Y>& plant){
   Eigen::VectorXd x0 = Eigen::VectorXd::Zero(plant.num_positions() +
@@ -216,9 +206,9 @@ void SpiritJump<Y>::generateInitialGuess(MultibodyPlant<Y>& plant){
 }
 
 
-
-
 // addConstraints, adds constraints to the trajopt jump problem. See runSpiritJump for a description of the inputs
+/// \param plant: robot model
+/// \param trajopt: trajectory to be optimized
 template <class Y>
 void SpiritJump<Y>::addConstraints(
                     MultibodyPlant<Y>& plant,
@@ -333,16 +323,20 @@ void SpiritJump<Y>::addConstraints(
 
 
 /// runSpiritJump, runs a trajectory optimization problem for spirit jumping on flat ground
+/// \param plant: robot model
+/// \param pp_xtraj: trajectory passed by pointer for spirit animation
 template <class Y>
 void SpiritJump<Y>::run(MultibodyPlant<Y>& plant,
-                          PiecewisePolynomial<Y>* pp_xtraj) {
-  
-  
+                          PiecewisePolynomial<Y>* pp_xtraj,
+                          std::vector<SurfaceConf>* surface_vector) {
   // Setup mode sequence
   auto sequence = DirconModeSequence<Y>(plant);
   
   std::vector<std::string> mode_vector{"stance","flight","flight","stance"};
-  auto [modeVector, toeEvals, toeEvalSets] = this->getModeSequence(plant, sequence,mode_vector,200,1,200);
+  std::vector<double> minT_vector{0,0,0,0};
+  double inf=std::numeric_limits<double>::infinity();
+  std::vector<double> maxT_vector{inf,inf,inf,inf};
+  auto [modeVector, toeEvals, toeEvalSets] = this->getModeSequence(plant, sequence,mode_vector,minT_vector,maxT_vector);
 
   ///Setup trajectory optimization
   auto trajopt = Dircon<Y>(sequence); 
@@ -371,10 +365,10 @@ void SpiritJump<Y>::run(MultibodyPlant<Y>& plant,
   drake::solvers::SolverId solver_id("");
   if (this->ipopt) {
     solver_id = drake::solvers::IpoptSolver().id();
-    cout << "\nChose manually: " << solver_id.name() << endl;
+    std::cout << "\nChose manually: " << solver_id.name() << std::endl;
   } else {
     solver_id = drake::solvers::ChooseBestSolver(trajopt);
-    cout << "\nChose the best solver: " << solver_id.name() << endl;
+    std::cout << "\nChose the best solver: " << solver_id.name() << std::endl;
   }
 
   auto start = std::chrono::high_resolution_clock::now();
@@ -391,11 +385,8 @@ void SpiritJump<Y>::run(MultibodyPlant<Y>& plant,
   /// Save trajectory
   this->saveTrajectory(plant,trajopt,result);
 
-
   /// pass the final trajectory back to spirit for animation
   *pp_xtraj =trajopt.ReconstructStateTrajectory(result);
-
-  
 }
 
 template class SpiritJump<double>;

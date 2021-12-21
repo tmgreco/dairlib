@@ -353,10 +353,10 @@ std::vector<drake::solvers::Binding<drake::solvers::Cost>> addCost(MultibodyPlan
   trajopt.AddRunningCost(cost_time);
 
   // Hard code which joints are in flight for which mode
-  addCostLegs(plant, trajopt, cost_velocity_legs_flight, cost_actuation_legs_flight, {0, 1, 4, 5, 8, 10}, 1);
-  addCostLegs(plant, trajopt, cost_velocity_legs_flight, cost_actuation_legs_flight, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}, 2);
-  addCostLegs(plant, trajopt, cost_velocity_legs_flight, cost_actuation_legs_flight, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}, 3);
-  addCostLegs(plant, trajopt, cost_velocity_legs_flight, cost_actuation_legs_flight, {2, 3, 6, 7, 10, 11}, 4);
+  addCostLegs(plant, trajopt, cost_actuation_legs_flight,cost_velocity_legs_flight,  {0, 1, 4, 5, 8, 10}, 1);
+  addCostLegs(plant, trajopt, cost_actuation_legs_flight, cost_velocity_legs_flight, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}, 2);
+  addCostLegs(plant, trajopt, cost_actuation_legs_flight, cost_velocity_legs_flight, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}, 3);
+  addCostLegs(plant, trajopt, cost_actuation_legs_flight, cost_velocity_legs_flight, {2, 3, 6, 7, 10, 11}, 4);
 
   return AddWorkCost(plant, trajopt, cost_work);
 } // Function
@@ -402,10 +402,10 @@ void addConstraints(MultibodyPlant<T>& plant,
   // Nominal stand
   nominalSpiritStandConstraint(plant,trajopt,initial_height, {0}, eps);
   // Body pose constraints (keep the body flat) at initial state
-  trajopt.AddBoundingBoxConstraint(1, 1 , xf(positions_map.at("base_qw")));
-  trajopt.AddBoundingBoxConstraint(0 , 0, xf(positions_map.at("base_qx")));
-  trajopt.AddBoundingBoxConstraint(0, 0, xf(positions_map.at("base_qy")));
-  trajopt.AddBoundingBoxConstraint(0, 0 , xf(positions_map.at("base_qz")));
+  trajopt.AddBoundingBoxConstraint(1, 1 , x0(positions_map.at("base_qw")));
+  trajopt.AddBoundingBoxConstraint(0 , 0, x0(positions_map.at("base_qx")));
+  trajopt.AddBoundingBoxConstraint(0, 0, x0(positions_map.at("base_qy")));
+  trajopt.AddBoundingBoxConstraint(0, 0 , x0(positions_map.at("base_qz")));
   // Initial  velocity
   trajopt.AddBoundingBoxConstraint(VectorXd::Zero(n_v), VectorXd::Zero(n_v), x0.tail(n_v));
 

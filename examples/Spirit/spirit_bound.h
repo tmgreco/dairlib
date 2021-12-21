@@ -1,12 +1,12 @@
 /*
- * File: spirit_jump.h
+ * File: spirit_bound.h
  * ----------------
  * This interface for spirit jumping behaviors.
  * Date: 2021-10-30
  */
 
-#ifndef _spirit_jump
-#define _spirit_jump
+#ifndef _spirit_bound
+#define _spirit_bound
 
 #include <cmath>
 #include <experimental/filesystem>
@@ -38,10 +38,10 @@ namespace dairlib {
 
 
 template <class Y>  
-class SpiritJump : public Behavior<Y> {
+class SpiritBound : public Behavior<Y> {
 public:
 
-    SpiritJump();
+    SpiritBound();
 
     void config(std::string yaml_path, std::string saved_directory, int index);
     /// generateInitialGuess, generates a bad initial guess for the spirit jump traj opt
@@ -58,52 +58,65 @@ public:
             PiecewisePolynomial<Y>* pp_xtraj,
             std::vector<SurfaceConf>* surface_vector);
 
+    void addCostLegs(MultibodyPlant<Y>& plant,
+                dairlib::systems::trajectory_optimization::Dircon<Y>& trajopt,
+                const std::vector<double>& joints,
+                const int mode_index);
+
+    std::vector<drake::solvers::Binding<drake::solvers::Cost>> addCost(
+            MultibodyPlant<Y>& plant,
+            dairlib::systems::trajectory_optimization::Dircon<Y>& trajopt);
+
     std::tuple<  std::vector<std::unique_ptr<dairlib::systems::trajectory_optimization::DirconMode<Y>>>,
     std::vector<std::unique_ptr<multibody::WorldPointEvaluator<Y>>> ,
     std::vector<std::unique_ptr<multibody::KinematicEvaluatorSet<Y>>>>
-    getModeSequence(
-                        MultibodyPlant<Y>& plant,
-                        DirconModeSequence<Y>& sequence,
-                        std::vector<std::string>& mode_vector,
-                        std::vector<double>& minT_vector,
-                        std::vector<double>& maxT_vector){
-        dairlib::ModeSequenceHelper msh;
-        this->getModeSequenceHelper(msh, mode_vector,minT_vector,maxT_vector);
-        
-        auto [modeVector, toeEvals, toeEvalSets] = createSpiritModeSequence(plant, msh);
+    getModeSequence(MultibodyPlant<Y>& plant,
+                    DirconModeSequence<Y>& sequence,
+                    std::vector<std::string>& mode_vector,
+                    std::vector<double>& minT_vector,
+                    std::vector<double>& maxT_vector){
+    dairlib::ModeSequenceHelper msh;
 
-        for (auto& mode : modeVector){
-            for (int i = 0; i < mode->evaluators().num_evaluators(); i++ ){
-            mode->MakeConstraintRelative(i,0);
-            mode->MakeConstraintRelative(i,1);
-            }
-            mode->SetDynamicsScale(
-                {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17}, 200);
-            if (mode->evaluators().num_evaluators() > 0)
-            {
-            mode->SetKinVelocityScale(
-                {0, 1, 2, 3}, {0, 1, 2}, 1);
-            mode->SetKinPositionScale(
-                {0, 1, 2, 3}, {0, 1, 2}, 200);
-            }
-            sequence.AddMode(mode.get());
+    this->getModeSequenceHelper(msh, mode_vector,minT_vector,maxT_vector);
+
+    auto [modeVector, toeEvals, toeEvalSets] = createSpiritModeSequence(plant, msh);
+
+    for (auto& mode : modeVector){
+        for (int i = 0; i < mode->evaluators().num_evaluators(); i++ ){
+        mode->MakeConstraintRelative(i,0);
+        mode->MakeConstraintRelative(i,1);
         }
-        return {std::move(modeVector), std::move(toeEvals), std::move(toeEvalSets)};
+        mode->SetDynamicsScale(
+            {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19}, 150.0);
+        if (mode->evaluators().num_evaluators() == 4)
+        {
+        mode->SetKinVelocityScale(
+            {0, 1, 2, 3}, {0, 1, 2}, 1.0);
+        mode->SetKinPositionScale(
+            {0, 1, 2, 3}, {0, 1, 2}, 150.0);
         }
+        else if (mode->evaluators().num_evaluators() == 2){
+        mode->SetKinVelocityScale(
+            {0, 1}, {0, 1, 2}, 1.0);
+        mode->SetKinPositionScale(
+            {0, 1}, {0, 1, 2}, 150.0);
+        }
+        sequence.AddMode(mode.get());
+    }
+    return {std::move(modeVector), std::move(toeEvals), std::move(toeEvalSets)};
+    }
 
 private:
-    double duration;
-    bool animate;
-    double apex_height;
-    double initial_height;
-    double fore_aft_displacement;
-    bool lock_rotation;
-    bool lock_legs_apex;
-    bool force_symmetry;
-    bool use_nominal_stand;
-    double max_duration;
-    double eps;
+    vector<PiecewisePolynomial<Y>> x_traj; /// initial and solution state trajectory
 
+    double apex_height;
+    double stand_height;
+    double fore_aft_displacement;
+    double eps;
+    double initial_height;
+    double pitch_magnitude_lo;
+    double pitch_magnitude_apex;
+    double max_duration;
 };
 }
 

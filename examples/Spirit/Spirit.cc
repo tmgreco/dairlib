@@ -1,7 +1,12 @@
 #include "examples/Spirit/Spirit.h"
 #include "examples/Spirit/spirit_jump.h"
+#include "examples/Spirit/spirit_bound.h"
 #include <yaml-cpp/yaml.h>
 #include <fstream>
+#include <gflags/gflags.h>
+
+DEFINE_double(skip_to, 1, "skip to ith optimization"); //set it not 1 after running the optimization once
+
 using drake::multibody::Parser;
 using drake::multibody::MultibodyPlant;
 using drake::trajectories::PiecewisePolynomial;
@@ -13,10 +18,11 @@ Spirit<B,T>::Spirit(std::string yaml_path) :plant (std::make_unique<MultibodyPla
                     scene_graph_ptr (std::make_unique<SceneGraph<T>>()),
                     behavior()
     {
+    // Load yaml configurations for spirit
     this->yaml_path=yaml_path;
     YAML::Node config = YAML::LoadFile(yaml_path);
     num_optimizations=config[0]["num_optimizations"].as<int>();
-    initial_guess=config[0]["initial_guess"].as<bool>();
+    initial_guess=config[0]["initial_guess"].as<std::string>();
 
     saved_directory=config[0]["saved_directory"].as<std::string>();
     // Create saved directory if it doesn't exist
@@ -60,14 +66,16 @@ void Spirit<B,T>::animate(){
 
 template <template<class> class B,class T>
 void Spirit<B,T>::run(){
-  for (int i=1;i<=num_optimizations;i++){
+  for (int i=FLAGS_skip_to;i<=num_optimizations;i++){
       std::cout<<"Running optimization "<<i<<std::endl;   
       behavior.config(yaml_path,saved_directory,i);
-      if (i==1 && initial_guess) behavior.generateInitialGuess(*plant);
-      behavior.run(*plant,&pp_xtraj);
+      if (i==FLAGS_skip_to){
+        if(initial_guess=="") behavior.generateInitialGuess(*plant); //If we don't have a file for initial guess, then generate one.
+        else behavior.loadOldTrajectory(initial_guess); //Otherwise, use the trajectory file we have.
+      } 
+      behavior.run(*plant,&pp_xtraj,&surface_vector);
   }
-  
-  animate();
 }
 template class Spirit<dairlib::SpiritJump,double>;
+template class Spirit<dairlib::SpiritBound,double>;
 }

@@ -1,7 +1,7 @@
 # YAML spirit jump configuration
 -
   num_optimizations: 4
-  initial_guess: true
+  initial_guess: ""  #if it is empty, the program will generate initial guess. Otherwise, we use the file given here as the initial guess
   saved_directory: /home/feng/Downloads/dairlib/examples/Spirit/saved_trajectories/jump_test1/
 
 - 
