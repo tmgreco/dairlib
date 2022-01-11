@@ -131,11 +131,6 @@ void Spirit4Test<B,T>::run(){
         Eigen::AngleAxis iRotation(iStep*angle*(M_PI/180)/numSteps,axis);
         Eigen::Vector3d iNormal = (initialFrame*(iRotation.toRotationMatrix()).transpose()).col(2);
 
-        //Debug prints
-        // std::cout<<"Rot Mat: "<< iRotation.toRotationMatrix()<< std::endl;
-        // std::cout<<"iNormal: "<< iNormal << std::endl;
-        
-        //Save the optimal stands, use the file if it exists. 
         bool rerun = false;
         dairlib::OptimalSpiritStand iStand(plant.get(), FLAGS_standHeight, iNormal, offset, rerun);
         stands.push_back(iStand);
@@ -143,7 +138,6 @@ void Spirit4Test<B,T>::run(){
     }
   }
   stands.push_back(finalStand);
-
 
   std::cout<<"Running initial optimization"<<std::endl;
   behavior.generateInitialGuess(*plant);
@@ -162,11 +156,9 @@ behavior.finalStand=finalFlatStand;
 behavior.config(yaml_path,saved_directory,2);
 behavior.run(*plant,&pp_xtraj,&surface_vector);
 
-  
   /// Run all the the steps to feed a higher angle
   for (int iStep = 0; iStep<numSteps;iStep++){
     std::cout<<" Running hq optimization step: " << iStep +1 <<" of "<< numSteps <<std::endl;
-  
     // Fewer constraints, and higher tolerences
     behavior.initialStand=initialStand;
     behavior.finalStand=stands[iStep+1];
