@@ -28,7 +28,7 @@ SpiritBoxJump<Y>::SpiritBoxJump():plant (std::make_unique<MultibodyPlant<Y>>(0.0
 
 template <class Y>
 void SpiritBoxJump<Y>::config(
-  std::string yaml_path, std::string saved_directory, int index)
+  std::string yaml_path, std::string saved_directory, int index,MultibodyPlant<Y>* plant)
   {
 
   YAML::Node config = YAML::LoadFile(yaml_path);
@@ -51,7 +51,26 @@ void SpiritBoxJump<Y>::config(
   this->animate=config[index]["animate"].as<bool>();
   if(!config[index]["file_name_out"].as<std::string>().empty()) this->file_name_out=saved_directory+config[index]["file_name_out"].as<std::string>();
   if(!config[index]["file_name_in"].as<std::string>().empty()) this->file_name_in= saved_directory+config[index]["file_name_in"].as<std::string>();
-  std::cout<<this->file_name_out<<std::endl;
+  std::cout<<config[index]["initial_stand"][0].as<std::string>() <<std::endl;
+  Eigen::Vector3d initial_normal =  config[index]["initial_stand"][0].as<double>() *Eigen::Vector3d::UnitX()+
+                            config[index]["initial_stand"][1].as<double>() *Eigen::Vector3d::UnitY()+
+                            config[index]["initial_stand"][2].as<double>()  *Eigen::Vector3d::UnitZ();
+  initial_normal = initial_normal/initial_normal.norm();
+  Eigen::Vector3d initial_offset = config[index]["initial_stand"][3].as<double>() *Eigen::Vector3d::UnitX()+ 
+                           config[index]["initial_stand"][4].as<double>() *Eigen::Vector3d::UnitY()+
+                           config[index]["initial_stand"][5].as<double>() *Eigen::Vector3d::UnitZ();
+
+  Eigen::Vector3d final_normal =  config[index]["final_stand"][0].as<double>() *Eigen::Vector3d::UnitX()+
+                            config[index]["final_stand"][1].as<double>() *Eigen::Vector3d::UnitY()+
+                            config[index]["final_stand"][2].as<double>()  *Eigen::Vector3d::UnitZ();
+  final_normal = final_normal/final_normal.norm();
+  Eigen::Vector3d final_offset = config[index]["final_stand"][3].as<double>() *Eigen::Vector3d::UnitX()+ 
+                           config[index]["final_stand"][4].as<double>() *Eigen::Vector3d::UnitY()+
+                           config[index]["final_stand"][5].as<double>() *Eigen::Vector3d::UnitZ();
+  this->initialStand.init(plant,config[index]["stand_height"].as<double>(),initial_normal, initial_offset,config[index]["initial_stand"][6].as<bool>());
+  this->finalStand.init(plant, config[index]["stand_height"].as<double>(), final_normal, final_offset, config[index]["final_stand"][6].as<bool>());
+
+
 }
 
 template <class Y>

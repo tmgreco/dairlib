@@ -43,7 +43,7 @@ public:
 
     SpiritBound();
 
-    void config(std::string yaml_path, std::string saved_directory, int index);
+    void config(std::string yaml_path, std::string saved_directory, int index,MultibodyPlant<Y>* plant);
     /// generateInitialGuess, generates a bad initial guess for the spirit jump traj opt
     void generateInitialGuess(MultibodyPlant<Y>& plant);
 

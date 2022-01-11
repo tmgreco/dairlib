@@ -68,7 +68,7 @@ template <template<class> class B,class T>
 void Spirit<B,T>::run(){
   for (int i=FLAGS_skip_to;i<=num_optimizations;i++){
       std::cout<<"Running optimization "<<i<<std::endl;   
-      behavior.config(yaml_path,saved_directory,i);
+      behavior.config(yaml_path,saved_directory,i,plant.get());
       if (i==FLAGS_skip_to){
         if(initial_guess=="") behavior.generateInitialGuess(*plant); //If we don't have a file for initial guess, then generate one.
         else behavior.loadOldTrajectory(initial_guess); //Otherwise, use the trajectory file we have.

@@ -20,7 +20,7 @@ SpiritBound<Y>::SpiritBound(){
 /// \param saved_directory: directory to save trajectories and yaml duplication
 /// \param index: which configuration to load
 template <class Y>
-void SpiritBound<Y>::config(std::string yaml_path, std::string saved_directory, int index){
+void SpiritBound<Y>::config(std::string yaml_path, std::string saved_directory, int index,MultibodyPlant<Y>* plant){
   YAML::Node config = YAML::LoadFile(yaml_path);
 
   this->ipopt=config[index]["ipopt"].as<bool>();

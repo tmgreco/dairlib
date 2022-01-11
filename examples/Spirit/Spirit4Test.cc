@@ -141,9 +141,8 @@ void Spirit4Test<B,T>::run(){
 
   std::cout<<"Running initial optimization"<<std::endl;
   behavior.generateInitialGuess(*plant);
-  behavior.initialStand=initialStand;
-  behavior.finalStand=finalStand;
-  behavior.config(yaml_path,saved_directory,1);
+
+  behavior.config(yaml_path,saved_directory,1,plant.get());
   behavior.run(*plant,&pp_xtraj,&surface_vector);
 
 
@@ -151,9 +150,8 @@ void Spirit4Test<B,T>::run(){
 dairlib::OptimalSpiritStand   finalFlatStand(plant.get(), FLAGS_standHeight, initialNormal, offset, true);
 std::cout<<"Running 2nd optimization"<<std::endl;
 // Hopping correct distance, but heavily constrained
-behavior.initialStand=initialStand;
-behavior.finalStand=finalFlatStand;
-behavior.config(yaml_path,saved_directory,2);
+
+behavior.config(yaml_path,saved_directory,2,plant.get());
 behavior.run(*plant,&pp_xtraj,&surface_vector);
 
   /// Run all the the steps to feed a higher angle
@@ -162,7 +160,7 @@ behavior.run(*plant,&pp_xtraj,&surface_vector);
     // Fewer constraints, and higher tolerences
     behavior.initialStand=initialStand;
     behavior.finalStand=stands[iStep+1];
-    behavior.config(yaml_path,saved_directory,3+iStep);
+    behavior.config(yaml_path,saved_directory,3+iStep,plant.get());
     behavior.run(*plant,&pp_xtraj,&surface_vector);
   }
 

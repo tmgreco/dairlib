@@ -61,7 +61,7 @@ class SpiritBoxJump : public Behavior<Y> {
 public:
 
     SpiritBoxJump();
-    void config(std::string yaml_path, std::string saved_directory, int index);
+    void config(std::string yaml_path, std::string saved_directory, int index,MultibodyPlant<Y>* plant);
     void config2(dairlib::OptimalSpiritStand& initialStand,
       dairlib::OptimalSpiritStand& finalStand,
       std::vector<int> num_knot_points,

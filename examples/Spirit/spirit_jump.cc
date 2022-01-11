@@ -20,7 +20,7 @@ SpiritJump<Y>::SpiritJump(){
 /// \param saved_directory: directory to save trajectories and yaml duplication
 /// \param index: which configuration to load
 template <class Y>
-void SpiritJump<Y>::config(std::string yaml_path, std::string saved_directory, int index){
+void SpiritJump<Y>::config(std::string yaml_path, std::string saved_directory, int index,MultibodyPlant<Y>* plant){
   YAML::Node config = YAML::LoadFile(yaml_path);
 
   this->duration=config[index]["duration"].as<double>();
