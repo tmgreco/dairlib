@@ -3,6 +3,35 @@
   num_optimizations: 4
   initial_guess: ""  #if it is empty, the program will generate initial guess. Otherwise, we use the file given here as the initial guess
   saved_directory: /home/feng/Downloads/dairlib/examples/Spirit/saved_trajectories/box_jump_test1/
+  iterate:
+    name: box_jump_3
+    iteration_variable: final_stand
+    values:
+      - 
+        - 0  #normal x
+        - 0  #normal y
+        - 1  #normal z
+        - 1  #offset x
+        - 0  #offset y
+        - 0.3 #offset z
+        - false #rerun
+      - 
+        - 0  #normal x
+        - 0.1  #normal y
+        - 1  #normal z
+        - 1  #offset x
+        - 0  #offset y
+        - 0.3 #offset z
+        - false #rerun
+      -
+        - 0  #normal x
+        - 0.2  #normal y
+        - 1  #normal z
+        - 1  #offset x
+        - 0  #offset y
+        - 0.3 #offset z
+        - false #rerun
+
 
 - 
   name: box_jump_1
