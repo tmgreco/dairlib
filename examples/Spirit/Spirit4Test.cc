@@ -37,7 +37,6 @@ Spirit4Test<B,T>::Spirit4Test(std::string yaml_path) :plant (std::make_unique<Mu
     YAML::Node OPTIMIZATIONS;
     OPTIMIZATIONS.push_back(Clone(config[0]));
     for (std::size_t i=1;i<config.size();i++){
-      std::cout<<config[i]["name"]<<"    "<<config[0]["iterate"]["name"]<<std::endl;
       if(config[i]["name"].as<std::string>()==config[0]["iterate"]["name"].as<std::string>()){
         std::cout<<"find iterative node: "<< config[i]["name"].as<std::string>()<<std::endl;
         for (std::size_t j =0; j<config[0]["iterate"]["values"].size();j++){

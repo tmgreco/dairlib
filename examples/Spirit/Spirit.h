@@ -18,6 +18,7 @@
 #include "lcm/dircon_saved_trajectory.h"
 #include "examples/Spirit/spirit_jump.h"
 #include "examples/Spirit/spirit_bound.h"
+#include "examples/Spirit/spirit_box_jump.h"
 using drake::multibody::MultibodyPlant;
 using drake::trajectories::PiecewisePolynomial;
 using drake::geometry::SceneGraph;

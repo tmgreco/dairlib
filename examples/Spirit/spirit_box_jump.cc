@@ -314,50 +314,14 @@ void SpiritBoxJump<Y>::addConstraints(
   // Initial body positions
   trajopt.AddBoundingBoxConstraint(0, 0, x0(positions_map.at("base_x"))); // Give the initial condition room to choose the x_init position
   trajopt.AddBoundingBoxConstraint(-eps, eps, x0(positions_map.at("base_y")));
+  // Initial velocity
+  trajopt.AddBoundingBoxConstraint(VectorXd::Zero(n_v), VectorXd::Zero(n_v), x0.tail(n_v));
+
   // Lift off body positions conditions
   trajopt.AddBoundingBoxConstraint(-eps, eps, xlo(positions_map.at("base_y")));
   // Apex body positions conditions
   trajopt.AddBoundingBoxConstraint(-eps, eps, xapex(positions_map.at("base_y")));
-  // Touchdown body positions conditions
-  trajopt.AddBoundingBoxConstraint(-eps, eps, xtd(positions_map.at("base_y")));
-  // Final body positions conditions
-  trajopt.AddBoundingBoxConstraint(fore_aft_displacement - eps, fore_aft_displacement + eps, xf(positions_map.at("base_x"))); // Give the initial condition room to choose the x_init position (helps with positive knee constraint)
-  trajopt.AddBoundingBoxConstraint(-eps, eps, xf(positions_map.at("base_y")));
-
-  // Nominal stand or z and attitude
-  if(use_nominal_stand){
-    // nominalSpiritStandConstraint(plant,trajopt,initial_height, {0,trajopt.N()-1}, eps);
-    VectorXd standJointsInit = initialStand.getJoints();
-    VectorXd standJointsFinal = finalStand.getJoints();
-    VectorXd standQuatInit = initialStand.getQuat();
-    VectorXd standQuatFinal = finalStand.getQuat();
-
-    // std::cout<<"\nInit:\n"<<standJointsInit<<"\nFinal:\n"<< standJointsFinal<<std::endl;
-
-    trajopt.AddBoundingBoxConstraint(standJointsInit,standJointsInit,(x0.head(n_q)).tail(n_q-7));
-    trajopt.AddBoundingBoxConstraint(standJointsFinal,standJointsFinal,(xf.head(n_q)).tail(n_q-7));
-
-     // Body pose constraints (keep the body flat) at initial state
-    trajopt.AddBoundingBoxConstraint(
-          standQuatInit - Eigen::Vector4d::Constant(eps), 
-          standQuatInit + Eigen::Vector4d::Constant(eps), 
-          x0.head(4));
-    // Body pose constraints (keep the body flat) at final state
-    trajopt.AddBoundingBoxConstraint(
-          standQuatFinal - Eigen::Vector4d::Constant(eps), 
-          standQuatFinal + Eigen::Vector4d::Constant(eps), 
-          xf.head(4));
-
-  }else{
-    trajopt.AddBoundingBoxConstraint(initial_height - eps, initial_height + eps, x0(positions_map.at("base_z")));
-    trajopt.AddBoundingBoxConstraint(initial_height - eps, initial_height  + eps, xf(positions_map.at("base_z")));
-  }
-
-  // Initial and final velocity
-  trajopt.AddBoundingBoxConstraint(VectorXd::Zero(n_v), VectorXd::Zero(n_v), x0.tail(n_v));
-  trajopt.AddBoundingBoxConstraint(VectorXd::Zero(n_v), VectorXd::Zero(n_v), xf.tail(n_v));
-
-  // Apex height
+    // Apex height
   if(apex_height > 0)
     trajopt.AddBoundingBoxConstraint(apex_height - eps, apex_height + eps, xapex(positions_map.at("base_z")) );
 
@@ -391,6 +355,45 @@ void SpiritBoxJump<Y>::addConstraints(
     trajopt.AddBoundingBoxConstraint(-0, 0, xapex( n_q + velocities_map.at("joint_10dot")));
     trajopt.AddBoundingBoxConstraint(-0, 0, xapex( n_q + velocities_map.at("joint_11dot")));
   }
+
+
+  // Touchdown body positions conditions
+  trajopt.AddBoundingBoxConstraint(-eps, eps, xtd(positions_map.at("base_y")));
+  // Final body positions conditions
+  trajopt.AddBoundingBoxConstraint(fore_aft_displacement - eps, fore_aft_displacement + eps, xf(positions_map.at("base_x"))); // Give the initial condition room to choose the x_init position (helps with positive knee constraint)
+  trajopt.AddBoundingBoxConstraint(-eps, eps, xf(positions_map.at("base_y")));
+  // Final velocity
+  trajopt.AddBoundingBoxConstraint(VectorXd::Zero(n_v), VectorXd::Zero(n_v), xf.tail(n_v));
+  
+  // Nominal stand or z and attitude
+  if(use_nominal_stand){
+    // nominalSpiritStandConstraint(plant,trajopt,initial_height, {0,trajopt.N()-1}, eps);
+    VectorXd standJointsInit = initialStand.getJoints();
+    VectorXd standJointsFinal = finalStand.getJoints();
+    VectorXd standQuatInit = initialStand.getQuat();
+    VectorXd standQuatFinal = finalStand.getQuat();
+
+    // std::cout<<"\nInit:\n"<<standJointsInit<<"\nFinal:\n"<< standJointsFinal<<std::endl;
+
+    trajopt.AddBoundingBoxConstraint(standJointsInit,standJointsInit,(x0.head(n_q)).tail(n_q-7));
+    trajopt.AddBoundingBoxConstraint(standJointsFinal,standJointsFinal,(xf.head(n_q)).tail(n_q-7));
+
+     // Body pose constraints (keep the body flat) at initial state
+    trajopt.AddBoundingBoxConstraint(
+          standQuatInit - Eigen::Vector4d::Constant(eps), 
+          standQuatInit + Eigen::Vector4d::Constant(eps), 
+          x0.head(4));
+    // Body pose constraints (keep the body flat) at final state
+    trajopt.AddBoundingBoxConstraint(
+          standQuatFinal - Eigen::Vector4d::Constant(eps), 
+          standQuatFinal + Eigen::Vector4d::Constant(eps), 
+          xf.head(4));
+
+  }else{
+    trajopt.AddBoundingBoxConstraint(initial_height - eps, initial_height + eps, x0(positions_map.at("base_z")));
+    trajopt.AddBoundingBoxConstraint(initial_height - eps, initial_height  + eps, xf(positions_map.at("base_z")));
+  }
+
 
   for (int i = 0; i < trajopt.N(); i++){
     auto xi = trajopt.state(i);
@@ -428,8 +431,10 @@ template <class Y>
 void SpiritBoxJump<Y>::run(MultibodyPlant<Y>& plant,
                           PiecewisePolynomial<Y>* pp_xtraj,
                           std::vector<SurfaceConf>* surface_vector) {
-    // Setup mode sequence
+
+  // Setup mode sequence
   auto sequence = DirconModeSequence<Y>(plant);
+
   dairlib::ModeSequenceHelper msh;
   msh.addMode( // Stance
       (Eigen::Matrix<bool,1,4>() << true,  true,  true,  true).finished(), // contact bools
@@ -481,48 +486,21 @@ void SpiritBoxJump<Y>::run(MultibodyPlant<Y>& plant,
 
   ///Setup trajectory optimization
   auto trajopt = Dircon<Y>(sequence);
-  // Set up Trajectory Optimization options
-  trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(),
-                           "Print file", "../snopt.out");
-  trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(),
-                           "Major iterations limit", 100000);
-  trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(), "Iterations limit", 100000);
-  trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(),
-                           "Major optimality tolerance",
-                           this->tol);  // target optimality
-  trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(), "Major feasibility tolerance", this->tol);
-  trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(), "Verify level",
-                           0);  // 0
 
+  // Set up Trajectory Optimization options
+  this->ipopt=false; //using snopt solver
+  this->setSolver(trajopt);
   // Setting up cost
   addCost(plant, trajopt);
   // Setting up constraints
   addConstraints(plant, trajopt);
 
   // Initialize the trajectory control state and forces
-  if (this->file_name_in.empty()){
-    trajopt.drake::systems::trajectory_optimization::MultipleShooting::
-        SetInitialTrajectory(this->u_traj, this->x_traj);
-    for (int j = 0; j < sequence.num_modes(); j++) {
-      trajopt.SetInitialForceTrajectory(j, this->l_traj[j], this->lc_traj[j], this->vc_traj[j]);
-    }
-  }else{
-    std::cout<<"Loading decision var from file." <<std::endl;
-    dairlib::DirconTrajectory loaded_traj(this->file_name_in);
-    trajopt.SetInitialGuessForAllVariables(loaded_traj.GetDecisionVariables());
-  }
+  this->initTrajectory(trajopt,sequence);
 
 
   /// Setup the visualization during the optimization
-  int num_ghosts = 3;// Number of ghosts in visualization. NOTE: there are limitations on number of ghosts based on modes and knotpoints
-  std::vector<unsigned int> visualizer_poses; // Ghosts for visualizing during optimization
-  for(int i = 0; i < sequence.num_modes(); i++){
-      visualizer_poses.push_back(num_ghosts); 
-  }
-  trajopt.CreateVisualizationCallback(
-      dairlib::FindResourceOrThrow("examples/Spirit/spirit_drake.urdf"),
-      visualizer_poses, 0.2); // setup which URDF, how many poses, and alpha transparency 
-
+  this->setupVisualization(trajopt,sequence);
   
   /// Run the optimization using your initial guess
   auto start = std::chrono::high_resolution_clock::now();
@@ -534,30 +512,7 @@ void SpiritBoxJump<Y>::run(MultibodyPlant<Y>& plant,
   std::cout << (result.is_success() ? "Optimization Success" : "Optimization Fail") << std::endl;
 
   /// Save trajectory
-  std::cout << "Outputting trajectories" << std::endl;
-
-
-  if(!this->file_name_out.empty()){
-    dairlib::DirconTrajectory saved_traj(
-        plant, trajopt, result, "Jumping trajectory",
-        "Decision variables and state/input trajectories "
-        "for jumping");
-
-    std::cout << "writing to file" << std::endl;
-    saved_traj.WriteToFile(this->file_name_out);
-
-    dairlib::DirconTrajectory old_traj(this->file_name_out);
-    this->x_traj = old_traj.ReconstructStateTrajectory();
-    this->u_traj = old_traj.ReconstructInputTrajectory();
-    this->l_traj = old_traj.ReconstructLambdaTrajectory();
-    this->lc_traj = old_traj.ReconstructLambdaCTrajectory();
-    this->vc_traj = old_traj.ReconstructGammaCTrajectory();
-  } else{
-    std::cout << "warning no file name provided, will not be able to return full solution" << std::endl;
-    this->x_traj  = trajopt.ReconstructStateTrajectory(result);
-    this->u_traj  = trajopt.ReconstructInputTrajectory(result);
-    this->l_traj  = trajopt.ReconstructLambdaTrajectory(result);
-  }
+  this->saveTrajectory(plant,trajopt,result);
 
   struct SurfaceConf new_surface={finalStand.normal(),finalStand.offset(),0.5,0.5,0.1};
   if (animate) surface_vector->push_back(new_surface);

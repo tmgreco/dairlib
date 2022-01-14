@@ -1,6 +1,7 @@
 #include "examples/Spirit/Spirit.h"
 #include "examples/Spirit/spirit_jump.h"
 #include "examples/Spirit/spirit_bound.h"
+#include "examples/Spirit/spirit_box_jump.h"
 #include <yaml-cpp/yaml.h>
 #include <fstream>
 #include <gflags/gflags.h>
@@ -120,4 +121,5 @@ void Spirit<B,T>::run(){
 }
 template class Spirit<dairlib::SpiritJump,double>;
 template class Spirit<dairlib::SpiritBound,double>;
+template class Spirit<dairlib::SpiritBoxJump,double>;
 }

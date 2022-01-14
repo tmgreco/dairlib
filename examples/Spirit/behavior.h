@@ -171,40 +171,40 @@ namespace dairlib {
                         std::vector<double>& minT_vector,
                         std::vector<double>& maxT_vector)=0;
 
-        void setSolver(dairlib::systems::trajectory_optimization::Dircon<Y>& trajopt){
-            if (ipopt) {
-                // Ipopt settings adapted from CaSaDi and FROST
-                auto id = drake::solvers::IpoptSolver::id();
-                trajopt.SetSolverOption(id, "tol", tol);
-                trajopt.SetSolverOption(id, "dual_inf_tol", tol);
-                trajopt.SetSolverOption(id, "constr_viol_tol", tol);
-                trajopt.SetSolverOption(id, "compl_inf_tol", tol);
-                trajopt.SetSolverOption(id, "max_iter", 1000000);
-                trajopt.SetSolverOption(id, "nlp_lower_bound_inf", -1e6);
-                trajopt.SetSolverOption(id, "nlp_upper_bound_inf", 1e6);
-                trajopt.SetSolverOption(id, "print_timing_statistics", "yes");
-                trajopt.SetSolverOption(id, "print_level", 5);
+    void setSolver(dairlib::systems::trajectory_optimization::Dircon<Y>& trajopt){
+        if (ipopt) {
+            // Ipopt settings adapted from CaSaDi and FROST
+            auto id = drake::solvers::IpoptSolver::id();
+            trajopt.SetSolverOption(id, "tol", tol);
+            trajopt.SetSolverOption(id, "dual_inf_tol", tol);
+            trajopt.SetSolverOption(id, "constr_viol_tol", tol);
+            trajopt.SetSolverOption(id, "compl_inf_tol", tol);
+            trajopt.SetSolverOption(id, "max_iter", 1000000);
+            trajopt.SetSolverOption(id, "nlp_lower_bound_inf", -1e6);
+            trajopt.SetSolverOption(id, "nlp_upper_bound_inf", 1e6);
+            trajopt.SetSolverOption(id, "print_timing_statistics", "yes");
+            trajopt.SetSolverOption(id, "print_level", 5);
 
-                // Set to ignore overall tolerance/dual infeasibility, but terminate when
-                // primal feasible and objective fails to increase over 5 iterations.
-                trajopt.SetSolverOption(id, "acceptable_compl_inf_tol", tol);
-                trajopt.SetSolverOption(id, "acceptable_constr_viol_tol", tol);
-                trajopt.SetSolverOption(id, "acceptable_obj_change_tol", tol);
-                trajopt.SetSolverOption(id, "acceptable_tol", tol);
-                trajopt.SetSolverOption(id, "acceptable_iter", 5);
-            } else {
-                // Set up Trajectory Optimization options
-                trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(),
-                                        "Print file", "../snopt.out");
-                trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(),
-                                        "Major iterations limit", 10000);
-                trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(), "Iterations limit", 1000000);
-                trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(),
-                                        "Major optimality tolerance",
-                                        tol);  // target optimality
-                trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(), "Major feasibility tolerance", tol);
-                trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(), "Verify level",
-                                        0);  // 0
+            // Set to ignore overall tolerance/dual infeasibility, but terminate when
+            // primal feasible and objective fails to increase over 5 iterations.
+            trajopt.SetSolverOption(id, "acceptable_compl_inf_tol", tol);
+            trajopt.SetSolverOption(id, "acceptable_constr_viol_tol", tol);
+            trajopt.SetSolverOption(id, "acceptable_obj_change_tol", tol);
+            trajopt.SetSolverOption(id, "acceptable_tol", tol);
+            trajopt.SetSolverOption(id, "acceptable_iter", 5);
+        } else {
+            // Set up Trajectory Optimization options
+            trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(),
+                                    "Print file", "../snopt.out");
+            trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(),
+                                    "Major iterations limit", 100000);
+            trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(), "Iterations limit", 100000);
+            trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(),
+                                    "Major optimality tolerance",
+                                    tol);  // target optimality
+            trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(), "Major feasibility tolerance", tol);
+            trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(), "Verify level",
+                                    0);  // 0
             }
         }
 
@@ -223,6 +223,18 @@ namespace dairlib {
                 trajopt.SetInitialGuessForAllVariables(loaded_traj.GetDecisionVariables());
             }
         }
+
+    void setupVisualization(dairlib::systems::trajectory_optimization::Dircon<Y>& trajopt,
+                            DirconModeSequence<Y>& sequence){
+        int num_ghosts = 3;// Number of ghosts in visualization. NOTE: there are limitations on number of ghosts based on modes and knotpoints
+        std::vector<unsigned int> visualizer_poses; // Ghosts for visualizing during optimization
+        for(int i = 0; i < sequence.num_modes(); i++){
+            visualizer_poses.push_back(num_ghosts); 
+        }
+        trajopt.CreateVisualizationCallback(
+            dairlib::FindResourceOrThrow("examples/Spirit/spirit_drake.urdf"),
+            visualizer_poses, 0.2); // setup which URDF, how many poses, and alpha transparency 
+    }
 
     void saveTrajectory(MultibodyPlant<Y>& plant,
                         dairlib::systems::trajectory_optimization::Dircon<Y>& trajopt,

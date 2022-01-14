@@ -119,6 +119,7 @@ cc_library(
         ":animate_spirit",
         ":spirit_jump",
         ":spirit_bound",
+        ":spirit_box_jump",
         ":spirit_utils",
         "//common",
         "//lcm:dircon_trajectory_saver",

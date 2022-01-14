@@ -15,22 +15,22 @@
         - 0  #offset y
         - 0.3 #offset z
         - false #rerun
-      - 
-        - 0  #normal x
-        - 0.1  #normal y
-        - 1  #normal z
-        - 1  #offset x
-        - 0  #offset y
-        - 0.3 #offset z
-        - false #rerun
-      -
-        - 0  #normal x
-        - 0.2  #normal y
-        - 1  #normal z
-        - 1  #offset x
-        - 0  #offset y
-        - 0.3 #offset z
-        - false #rerun
+      # - 
+      #   - 0  #normal x
+      #   - 0.1  #normal y
+      #   - 1  #normal z
+      #   - 1  #offset x
+      #   - 0  #offset y
+      #   - 0.3 #offset z
+      #   - false #rerun
+      # -
+      #   - 0  #normal x
+      #   - 0.2  #normal y
+      #   - 1  #normal z
+      #   - 1  #offset x
+      #   - 0  #offset y
+      #   - 0.3 #offset z
+      #   - false #rerun
 
 
 - 
@@ -94,7 +94,7 @@
     - 1  #offset x
     - 0  #offset y
     - 0.3 #offset z
-    - false #rerun
+    - true #rerun
   num_knot_points:
     - 7
     - 7
