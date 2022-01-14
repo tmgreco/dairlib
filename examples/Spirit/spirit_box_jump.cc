@@ -73,50 +73,7 @@ void SpiritBoxJump<Y>::config(
 
 }
 
-template <class Y>
-void SpiritBoxJump<Y>::config2(dairlib::OptimalSpiritStand& initialStand,
-      dairlib::OptimalSpiritStand& finalStand,
-      std::vector<int> num_knot_points,
-      const double apex_height,
-      const double initial_height,
-      const double fore_aft_displacement,
-      const bool lock_rotation,
-      const bool lock_legs_apex,
-      const bool force_symmetry,
-      const bool use_nominal_stand,
-      const double max_duration,
-      const double cost_actuation,
-      const double cost_velocity,
-      const double cost_work,
-      const double mu,
-      const double eps,
-      const double tol,
-      const double work_constraint_scale,
-      const std::string& file_name_out,
-      const std::string& file_name_in,
-      bool animate ){
-  this->initialStand=initialStand;
-  this->finalStand =finalStand;
-  this->num_knot_points =num_knot_points;
-  this->apex_height =apex_height;
-  this->initial_height = initial_height;
-  this->fore_aft_displacement =fore_aft_displacement;
-  this->lock_rotation =lock_rotation;
-  this->lock_legs_apex =lock_legs_apex;
-  this->force_symmetry =force_symmetry;
-  this->use_nominal_stand =use_nominal_stand;
-  this->max_duration =max_duration;
-  this->cost_actuation =cost_actuation;
-  this->cost_velocity =cost_velocity;
-  this->cost_work =cost_work;
-  this->mu =mu;
-  this->eps =eps;
-  this->tol =tol;
-  this->work_constraint_scale =work_constraint_scale;
-  this->file_name_out =file_name_out;
-  this->file_name_in =file_name_in;
-  this->animate=animate;
-}
+
 
 template <class Y>
 void SpiritBoxJump<Y>::generateInitialGuess(MultibodyPlant<Y>& plant){

@@ -18,10 +18,9 @@ Spirit<B,T>::Spirit(std::string yaml_path) :plant (std::make_unique<MultibodyPla
                     scene_graph_ptr (std::make_unique<SceneGraph<T>>()),
                     behavior()
     {
-    // Load yaml configurations for spirit
     this->yaml_path=yaml_path;
     YAML::Node config = YAML::LoadFile(yaml_path);
-    num_optimizations=config[0]["num_optimizations"].as<int>();
+    
     initial_guess=config[0]["initial_guess"].as<std::string>();
 
     saved_directory=config[0]["saved_directory"].as<std::string>();
@@ -33,6 +32,34 @@ Spirit<B,T>::Spirit(std::string yaml_path) :plant (std::make_unique<MultibodyPla
     std::ifstream  src(yaml_path, std::ios::binary);
     std::ofstream  dst(saved_directory+"config.yaml",   std::ios::binary);
     dst << src.rdbuf();
+
+
+    // generate expanded yaml config
+    std::cout<<"Start Generating Expanded Yaml File "<<std::endl;
+    YAML::Node OPTIMIZATIONS;
+    OPTIMIZATIONS.push_back(Clone(config[0]));
+    for (std::size_t i=1;i<config.size();i++){
+      std::cout<<config[i]["name"]<<"    "<<config[0]["iterate"]["name"]<<std::endl;
+      if(config[0]["iterate"]["name"]){
+        if(config[i]["name"].as<std::string>()==config[0]["iterate"]["name"].as<std::string>()){
+          std::cout<<"find iterative node: "<< config[i]["name"].as<std::string>()<<std::endl;
+          for (std::size_t j =0; j<config[0]["iterate"]["values"].size();j++){
+            OPTIMIZATIONS.push_back(Clone(config[i]));
+            OPTIMIZATIONS[OPTIMIZATIONS.size()-1][config[0]["iterate"]["iteration_variable"].as<std::string>()]=config[0]["iterate"]["values"][j];
+            OPTIMIZATIONS[OPTIMIZATIONS.size()-1]["animate"]=false;
+          }
+        }
+        else{
+          OPTIMIZATIONS.push_back(Clone(config[i]));
+        }
+      }
+      else OPTIMIZATIONS.push_back(Clone(config[i]));
+    }
+    OPTIMIZATIONS[OPTIMIZATIONS.size()-1]["animate"]=true;
+    num_optimizations=OPTIMIZATIONS.size()-1;
+    std::ofstream fout(saved_directory+"expanded_config.yaml");
+    fout << OPTIMIZATIONS;
+    this->yaml_path=saved_directory+"expanded_config.yaml";
 
     ///init plant
     Parser parser(plant.get());
@@ -46,11 +73,26 @@ Spirit<B,T>::Spirit(std::string yaml_path) :plant (std::make_unique<MultibodyPla
     plant->mutable_gravity_field().set_gravity_vector(-9.81 *
         Eigen::Vector3d::UnitZ());
     plant->Finalize();
-    plant_vis->Finalize();
+    // plant_vis->Finalize();
     }
 
 template <template<class> class B,class T>
 void Spirit<B,T>::animate(){
+  // Add the box surface to the final animation
+  for(SurfaceConf surface : surface_vector){
+    dairlib::visualizeSurface(
+      plant_vis.get(),
+      surface.surface_normal,
+      surface.surface_offset,
+      surface.length_surf,
+      surface.width_surf,
+      surface.thickness_surf);
+  } 
+
+  
+  plant_vis->Finalize();
+
+
   SceneGraph<double>& scene_graph = *builder.AddSystem(std::move(scene_graph_ptr));
   multibody::connectTrajectoryVisualizer(plant_vis.get(),
       &builder, &scene_graph, pp_xtraj);

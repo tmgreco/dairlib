@@ -5,27 +5,6 @@
 #include <gflags/gflags.h>
 DEFINE_double(skip_to, 1, "skip to ith optimization"); //set it not 1 after running the optimization once
 
-DEFINE_double(duration, 1, "The stand duration");
-DEFINE_double(standHeight, 0.23, "The standing height.");
-DEFINE_double(foreAftDisplacement, 1, "The fore-aft displacement.");
-DEFINE_double(apexGoal, 0.7, "Apex state goal");
-DEFINE_double(inputCost, 5, "input cost scale.");
-DEFINE_double(velocityCost, 10, "velocity cost scale.");
-DEFINE_double(eps, 1e-2, "The wiggle room.");
-DEFINE_double(tol, 1e-6, "Optimization Tolerance");
-DEFINE_double(mu, 1.5, "coefficient of friction");
-DEFINE_double(boxHeight, 0.3, "The height of the landing");
-DEFINE_double(iterationAngResDeg, 5, "Angular Resolution for iterative optimization");
-
-DEFINE_string(data_directory, "/home/feng/Downloads/dairlib/examples/Spirit/saved_trajectories/",
-              "directory to save/read data");
-DEFINE_string(distance_name, "iterativeBox45","name to describe distance");
-
-DEFINE_bool(runAllOptimization, true, "rerun earlier optimizations?");
-DEFINE_bool(skipInitialOptimization, false, "skip first optimizations?");
-DEFINE_bool(minWork, false, "skip try to minimize work?");
-DEFINE_bool(runIterative, true, "for angled runs, run multiple optimizations to approach");
-
 using drake::multibody::Parser;
 using drake::multibody::MultibodyPlant;
 using drake::trajectories::PiecewisePolynomial;
@@ -94,10 +73,6 @@ Spirit4Test<B,T>::Spirit4Test(std::string yaml_path) :plant (std::make_unique<Mu
 
 template <template<class> class B,class T>
 void Spirit4Test<B,T>::animate(){
-
-  Eigen::Vector3d normal = 1 *Eigen::Vector3d::UnitZ() + 0 * Eigen::Vector3d::UnitY();
-  normal = normal/normal.norm();
-  Eigen::Vector3d offset = Eigen::Vector3d::UnitX()*FLAGS_foreAftDisplacement + Eigen::Vector3d::UnitZ()*FLAGS_boxHeight;
   // Add the box surface to the final animation
   for(SurfaceConf surface : surface_vector){
     dairlib::visualizeSurface(
@@ -128,7 +103,6 @@ void Spirit4Test<B,T>::animate(){
 
 template <template<class> class B,class T>
 void Spirit4Test<B,T>::run(){
-  
   // // Set up the iteration
   // int numSteps = 1;
   // stands.push_back(initialStand);

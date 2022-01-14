@@ -62,27 +62,7 @@ public:
 
     SpiritBoxJump();
     void config(std::string yaml_path, std::string saved_directory, int index,MultibodyPlant<Y>* plant);
-    void config2(dairlib::OptimalSpiritStand& initialStand,
-      dairlib::OptimalSpiritStand& finalStand,
-      std::vector<int> num_knot_points,
-      const double apex_height,
-      const double initial_height,
-      const double fore_aft_displacement,
-      const bool lock_rotation,
-      const bool lock_legs_apex,
-      const bool force_symmetry,
-      const bool use_nominal_stand,
-      const double max_duration,
-      const double cost_actuation,
-      const double cost_velocity,
-      const double cost_work,
-      const double mu,
-      const double eps,
-      const double tol,
-      const double work_constraint_scale,
-      const std::string& file_name_out,
-      const std::string& file_name_in= "",
-      bool animate=false);
+    
     /// generateInitialGuess, generates a bad initial guess for the spirit jump traj opt
     void generateInitialGuess(MultibodyPlant<Y>& plant);
 
