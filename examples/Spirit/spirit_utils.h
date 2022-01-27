@@ -28,6 +28,20 @@ class ModeSequenceHelper {
         minTs.push_back(minT);
         maxTs.push_back(maxT);
     }
+
+    void addFlight(
+      int num_knots,
+      double minT = 0,
+      double maxT = std::numeric_limits<double>::infinity() 
+    ){
+      addMode(
+          (Eigen::Matrix<bool,1,4>() << false, false, false, false).finished(),
+          num_knots, 
+          Eigen::Vector3d::UnitZ(), 
+          Eigen::Vector3d::Zero(), 
+          std::numeric_limits<double>::infinity()
+      );
+    }
 };
 
 drake::math::RotationMatrix<double> normal2Rotation(Eigen::Vector3d nHat);
@@ -307,14 +321,25 @@ double calcTorqueInt(
     drake::multibody::MultibodyPlant<T> & plant,
     drake::trajectories::PiecewisePolynomial<double>& u_traj);
 
+// void visualizeSurface(drake::multibody::MultibodyPlant<double>* plant_vis, 
+//   Eigen::Vector3d surface_normal,
+//   Eigen::Vector3d surface_offset,
+//   double length_surf, 
+//   double width_surf,
+//   double thickness_surf,
+//   const drake::Vector4<double> color
+//   );
+
 void visualizeSurface(drake::multibody::MultibodyPlant<double>* plant_vis, 
   Eigen::Vector3d surface_normal,
   Eigen::Vector3d surface_offset,
   double length_surf, 
   double width_surf,
   double thickness_surf,
-  const drake::Vector4<double> color
+  const drake::Vector4<double> color,
+  std::string name="box0"
   );
+
 
 void visualizeSurface(drake::multibody::MultibodyPlant<double>* plant_vis, 
   Eigen::Vector3d surface_normal = -Eigen::Vector3d::UnitY(),

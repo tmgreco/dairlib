@@ -19,6 +19,7 @@
 #include "examples/Spirit/spirit_jump.h"
 #include "examples/Spirit/spirit_bound.h"
 #include "examples/Spirit/spirit_box_jump.h"
+#include "examples/Spirit/spirit_parkour.h"
 using drake::multibody::MultibodyPlant;
 using drake::trajectories::PiecewisePolynomial;
 using drake::geometry::SceneGraph;

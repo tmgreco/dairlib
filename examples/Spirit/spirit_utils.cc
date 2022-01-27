@@ -878,13 +878,39 @@ double negativePart(double x){
   return(std::min(x,0.0));
 }
 
+// void visualizeSurface(drake::multibody::MultibodyPlant<double>* plant_vis, 
+//   Eigen::Vector3d surface_normal,
+//   Eigen::Vector3d surface_offset,
+//   double length_surf, 
+//   double width_surf,
+//   double thickness_surf,
+//   const drake::Vector4<double> color
+//   ){
+//   Eigen::Vector3d unit_normal = surface_normal/surface_normal.norm();
+//   Eigen::Vector3d bodyOffset(0,0,-thickness_surf/2);
+//   drake::math::RotationMatrix<double> rot = normal2Rotation(unit_normal);
+//   drake::math::RigidTransformd bodyToSurfaceTransform(bodyOffset);
+//   drake::math::RigidTransformd worldToBodyTransform(rot,surface_offset);
+  
+//   double lx = length_surf;
+//   double ly = width_surf;
+//   double lz = thickness_surf;
+
+//   // std::cout << rot.matrix() << std::endl;
+//   plant_vis->RegisterVisualGeometry( 
+//     plant_vis->world_body(),
+//     worldToBodyTransform*bodyToSurfaceTransform,     /* Pose X_BG of the geometry frame G in the cylinder body frame B. */
+//     drake::geometry::Box(lx, ly, lz), 
+//     "box", color);
+// }
 void visualizeSurface(drake::multibody::MultibodyPlant<double>* plant_vis, 
   Eigen::Vector3d surface_normal,
   Eigen::Vector3d surface_offset,
   double length_surf, 
   double width_surf,
   double thickness_surf,
-  const drake::Vector4<double> color
+  const drake::Vector4<double> color,
+  std::string name
   ){
   Eigen::Vector3d unit_normal = surface_normal/surface_normal.norm();
   Eigen::Vector3d bodyOffset(0,0,-thickness_surf/2);
@@ -901,8 +927,9 @@ void visualizeSurface(drake::multibody::MultibodyPlant<double>* plant_vis,
     plant_vis->world_body(),
     worldToBodyTransform*bodyToSurfaceTransform,     /* Pose X_BG of the geometry frame G in the cylinder body frame B. */
     drake::geometry::Box(lx, ly, lz), 
-    "box", color);
+    name, color);
 }
+
 void visualizeSurface(drake::multibody::MultibodyPlant<double>* plant_vis, 
   Eigen::Vector3d surface_normal,
   Eigen::Vector3d surface_offset,

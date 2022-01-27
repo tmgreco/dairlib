@@ -2,6 +2,7 @@
 #define surface_conf
 
 #include <Eigen/StdVector>
+#include "drake/geometry/drake_visualizer.h"
 
 struct SurfaceConf
 {
@@ -11,6 +12,7 @@ struct SurfaceConf
     double width_surf;
     double thickness_surf;
     const drake::Vector4<double> color;
+    std::string name;
 };
 
 

@@ -66,6 +66,6 @@ class OptimalSpiritStand {
     Eigen::VectorXd getCOM(){ return (fullstate_.head(7)).tail(3); }
     // Get all the joints (positions that aren't Quat or COM pose)
     Eigen::VectorXd getJoints(){ return (getPosition()).tail(plantPtr_->num_positions()-7); }
-   
+    double height(){return height_;};
 };
 }
