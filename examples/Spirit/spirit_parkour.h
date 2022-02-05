@@ -70,6 +70,20 @@ public:
             MultibodyPlant<Y>& plant,
             dairlib::systems::trajectory_optimization::Dircon<Y>& trajopt);
 
+    void addCostLegs(MultibodyPlant<Y>& plant,
+                 dairlib::systems::trajectory_optimization::Dircon<Y>& trajopt,
+                 const double cost_actuation,
+                 const double cost_velocity,
+                 const std::vector<double>& joints,
+                 const int mode_index);
+
+    void addOffsetConstraint(MultibodyPlant<Y>& plant,
+                dairlib::systems::trajectory_optimization::Dircon<Y>& trajopt,
+                const Eigen::Ref<const drake::solvers::VectorXDecisionVariable>& vars, 
+                Eigen::Vector3d offset,
+                Eigen::Vector3d normal = Eigen::Vector3d::UnitZ(),
+                double dist_along_normal = -1, 
+                double eps = 0.01 );
     std::tuple<  std::vector<std::unique_ptr<dairlib::systems::trajectory_optimization::DirconMode<Y>>>,
     std::vector<std::unique_ptr<multibody::WorldPointEvaluator<Y>>> ,
     std::vector<std::unique_ptr<multibody::KinematicEvaluatorSet<Y>>>>
@@ -79,40 +93,105 @@ public:
                     std::vector<double>& minT_vector,
                     std::vector<double>& maxT_vector){
     dairlib::ModeSequenceHelper msh;
+    this->num_knot_points={7,7,7,7,7,7,7,7,7,7,7};
     msh.addMode( // Stance
         (Eigen::Matrix<bool,1,4>() << true,  true,  true,  true).finished(), // contact bools
-        nKnotpoints_stances,  // number of knot points in the collocation
-        initialStand.normal(), // normal
-        initialStand.offset(),  // world offset
-        1.5  //   initialStand.mu() //friction
+        this->num_knot_points[0],  // number of knot points in the collocation
+        Eigen::Vector3d::UnitZ(), // normal
+        Eigen::Vector3d::Zero(),  // world offset
+        this->mu, //friction
+        0.02,
+        0.5
     );
-    msh.addFlight(nKnotpoints_flight);
-    msh.addFlight(nKnotpoints_flight);
-
-
-    for (auto& surface : transitionSurfaces){
-        Eigen::Vector3d sNormal;
-        Eigen::Vector3d sOffset;
-        double sMu;
-        std::tie(sNormal,sOffset,sMu) = surface;
-        msh.addMode( // Stance
-            (Eigen::Matrix<bool,1,4>() << true,  true,  true,  true).finished(), // contact bools
-            nKnotpoints_stances,  // number of knot points in the collocation
-            sNormal, // normal
-            sOffset,  // world offset
-            sMu //friction
-        );
-        msh.addFlight(nKnotpoints_flight);
-        msh.addFlight(nKnotpoints_flight);
-    }
-
-
+    msh.addMode( // Rear stance
+        (Eigen::Matrix<bool,1,4>() << false,  true,  false,  true).finished(), // contact bools
+        this->num_knot_points[1],  // number of knot points in the collocation
+        Eigen::Vector3d::UnitZ(), // normal
+        Eigen::Vector3d::Zero(),  // world offset
+        this->mu, //friction
+        0.02,
+        1.0
+    );
+    msh.addMode( // Flight
+        (Eigen::Matrix<bool,1,4>() << false,  false,  false,  false).finished(), // contact bools
+        this->num_knot_points[2],  // number of knot points in the collocation
+        Eigen::Vector3d::UnitZ(), // normal
+        Eigen::Vector3d::Zero(),  // world offset
+        this->mu, //friction
+        0.02,
+        1.0
+    );
+    msh.addMode( // Flight
+        (Eigen::Matrix<bool,1,4>() << false,  false,  false,  false).finished(), // contact bools
+        this->num_knot_points[3],  // number of knot points in the collocation
+        Eigen::Vector3d::UnitZ(), // normal
+        Eigen::Vector3d::Zero(),  // world offset
+        this->mu, //friction
+        0.02,
+        1.0
+    );
+    msh.addMode( // Front Stance
+        (Eigen::Matrix<bool,1,4>() << true,  false,  true,  false).finished(), // contact bools
+        this->num_knot_points[4],  // number of knot points in the collocation
+        Eigen::Vector3d::UnitZ(), // normal
+        Eigen::Vector3d::Zero(),  // world offset
+        this->mu, //friction
+        0.02,
+        0.1
+    );
     msh.addMode( // Stance
         (Eigen::Matrix<bool,1,4>() << true,  true,  true,  true).finished(), // contact bools
-        nKnotpoints_stances,  // number of knot points in the collocation
-        finalStand.normal(), // normal
-        finalStand.offset(),  // world offset
-        1.5  //finalStand.mu() //friction
+        this->num_knot_points[5],  // number of knot points in the collocation
+        Eigen::Vector3d::UnitZ(), // normal
+        Eigen::Vector3d::Zero(),  // world offset
+        this->mu, //friction
+        0.02,
+        0.1
+    );
+    msh.addMode( // Rear stance
+        (Eigen::Matrix<bool,1,4>() << false,  true,  false,  true).finished(), // contact bools
+        this->num_knot_points[6],  // number of knot points in the collocation
+        Eigen::Vector3d::UnitZ(), // normal
+        Eigen::Vector3d::Zero(),  // world offset
+        this->mu, //friction
+        0.02,
+        1.0
+    );
+    msh.addMode( // Flight
+        (Eigen::Matrix<bool,1,4>() << false,  false,  false,  false).finished(), // contact bools
+        this->num_knot_points[7],  // number of knot points in the collocation
+        Eigen::Vector3d::UnitZ(), // normal
+        Eigen::Vector3d::Zero(),  // world offset
+        this->mu, //friction
+        0.02,
+        1.0
+    );
+    msh.addMode( // Flight
+        (Eigen::Matrix<bool,1,4>() << false,  false,  false,  false).finished(), // contact bools
+        this->num_knot_points[8],  // number of knot points in the collocation
+        Eigen::Vector3d::UnitZ(), // normal
+        Eigen::Vector3d::Zero(),  // world offset
+        this->mu, //friction
+        0.02,
+        1.0
+    );
+    msh.addMode( // Front Stance
+        (Eigen::Matrix<bool,1,4>() << true,  false,  true,  false).finished(), // contact bools
+        this->num_knot_points[9],  // number of knot points in the collocation
+        Eigen::Vector3d::UnitZ(), // normal
+        Eigen::Vector3d::Zero(),  // world offset
+        this->mu, //friction
+        0.02,
+        0.1
+    );
+    msh.addMode( // Stance
+        (Eigen::Matrix<bool,1,4>() << true,  true,  true,  true).finished(), // contact bools
+        this->num_knot_points[10],  // number of knot points in the collocation
+        Eigen::Vector3d::UnitZ(), // normal
+        Eigen::Vector3d::Zero(),  // world offset
+        this->mu, //friction
+        0.02,
+        0.1
     );
 
     auto [modeVector, toeEvals, toeEvalSets] = createSpiritModeSequence(plant, msh);
@@ -123,27 +202,41 @@ public:
         mode->MakeConstraintRelative(i,1);
         }
         mode->SetDynamicsScale(
-            {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17}, 200);
-        if (mode->evaluators().num_evaluators() > 0)
+            {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19}, 150.0);
+        if (mode->evaluators().num_evaluators() == 4)
         {
         mode->SetKinVelocityScale(
             {0, 1, 2, 3}, {0, 1, 2}, 1.0);
         mode->SetKinPositionScale(
-            {0, 1, 2, 3}, {0, 1, 2}, 200);
+            {0, 1, 2, 3}, {0, 1, 2}, 150.0);
+        }
+        else if (mode->evaluators().num_evaluators() == 2){
+        mode->SetKinVelocityScale(
+            {0, 1}, {0, 1, 2}, 1.0);
+        mode->SetKinPositionScale(
+            {0, 1}, {0, 1, 2}, 150.0);
         }
         sequence.AddMode(mode.get());
     }
-
     return {std::move(modeVector), std::move(toeEvals), std::move(toeEvalSets)};
     }
 
 private:
+    vector<PiecewisePolynomial<Y>> x_traj;
+    vector<PiecewisePolynomial<Y>> l_traj;
+    vector<PiecewisePolynomial<Y>> lc_traj;
+    vector<PiecewisePolynomial<Y>> vc_traj;
+
     std::unique_ptr<MultibodyPlant<Y>> plant;
     std::vector<std::tuple<Eigen::Vector3d,Eigen::Vector3d,double>> transitionSurfaces;
     
-    double nKnotpoints_flight;
-    double nKnotpoints_stances;
+    int nKnotpoints_flight;
+    int nKnotpoints_stances;
 
+    double cost_velocity_legs_flight;
+    double cost_actuation_legs_flight;
+    double pitch_magnitude_lo;
+    double pitch_magnitude_apex;
     double apex_height;
     double initial_height;
     double fore_aft_displacement;
