@@ -77,13 +77,6 @@ public:
                  const std::vector<double>& joints,
                  const int mode_index);
 
-    void addOffsetConstraint(MultibodyPlant<Y>& plant,
-                dairlib::systems::trajectory_optimization::Dircon<Y>& trajopt,
-                const Eigen::Ref<const drake::solvers::VectorXDecisionVariable>& vars, 
-                Eigen::Vector3d offset,
-                Eigen::Vector3d normal = Eigen::Vector3d::UnitZ(),
-                double dist_along_normal = -1, 
-                double eps = 0.01 );
     std::tuple<  std::vector<std::unique_ptr<dairlib::systems::trajectory_optimization::DirconMode<Y>>>,
     std::vector<std::unique_ptr<multibody::WorldPointEvaluator<Y>>> ,
     std::vector<std::unique_ptr<multibody::KinematicEvaluatorSet<Y>>>>
@@ -222,10 +215,8 @@ public:
     }
 
 private:
-    vector<PiecewisePolynomial<Y>> x_traj;
-    vector<PiecewisePolynomial<Y>> l_traj;
-    vector<PiecewisePolynomial<Y>> lc_traj;
-    vector<PiecewisePolynomial<Y>> vc_traj;
+    // vector<PiecewisePolynomial<Y>> x_traj;
+
 
     std::unique_ptr<MultibodyPlant<Y>> plant;
     std::vector<std::tuple<Eigen::Vector3d,Eigen::Vector3d,double>> transitionSurfaces;
@@ -235,9 +226,9 @@ private:
 
     double cost_velocity_legs_flight;
     double cost_actuation_legs_flight;
-    double pitch_magnitude_lo;
-    double pitch_magnitude_apex;
     double apex_height;
+    double max_apex_pitch_magnitude;
+    double max_pitch_magnitude;
     double initial_height;
     double fore_aft_displacement;
     bool lock_rotation;

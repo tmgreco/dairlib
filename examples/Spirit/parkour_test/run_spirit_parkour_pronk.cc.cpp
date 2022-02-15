@@ -615,20 +615,6 @@ void addConstraints(MultibodyPlant<T>& plant,
 
   std::cout<<positions_map.at("base_x")<<positions_map.at("base_y")<<positions_map.at("base_z")<<std::endl;
 
-  /// Middle Constraint
-  // x,y position
-  // trajopt.AddBoundingBoxConstraint(0-eps, 0+eps, xtd_front_1(positions_map.at("base_y")));
-  // if (fore_aft_displacement >= 0){
-  //   trajopt.AddBoundingBoxConstraint(fore_aft_displacement/2-eps, fore_aft_displacement/2+eps, xtd_front_1(positions_map.at("base_x")));
-  // }
-
-  pitch = abs(pitch_magnitude_apex);
-  addOffsetConstraint(plant, trajopt, xtd_rear_1.head(7).tail(3), Eigen::Vector3d::UnitX()*fore_aft_displacement/2,Eigen::Vector3d::UnitZ());
-  trajopt.AddBoundingBoxConstraint( cos(pitch/2.0),              1, xtd_rear_1(positions_map.at("base_qw")));
-  trajopt.AddBoundingBoxConstraint(           -eps,            eps, xtd_rear_1(positions_map.at("base_qx")));
-  trajopt.AddBoundingBoxConstraint(-sin(pitch/2.0), sin(pitch/2.0), xtd_rear_1(positions_map.at("base_qy")));
-  trajopt.AddBoundingBoxConstraint(           -eps,            eps, xtd_rear_1(positions_map.at("base_qz")));
-
 
   /// Final constraints
   // x,y position
@@ -648,6 +634,20 @@ void addConstraints(MultibodyPlant<T>& plant,
 
 
 
+
+  /// Middle Constraint
+  // x,y position
+  // trajopt.AddBoundingBoxConstraint(0-eps, 0+eps, xtd_front_1(positions_map.at("base_y")));
+  // if (fore_aft_displacement >= 0){
+  //   trajopt.AddBoundingBoxConstraint(fore_aft_displacement/2-eps, fore_aft_displacement/2+eps, xtd_front_1(positions_map.at("base_x")));
+  // }
+
+  pitch = abs(pitch_magnitude_apex);
+  addOffsetConstraint(plant, trajopt, xtd_rear_1.head(7).tail(3), Eigen::Vector3d::UnitX()*fore_aft_displacement/2,Eigen::Vector3d::UnitZ());
+  trajopt.AddBoundingBoxConstraint( cos(pitch/2.0),              1, xtd_rear_1(positions_map.at("base_qw")));
+  trajopt.AddBoundingBoxConstraint(           -eps,            eps, xtd_rear_1(positions_map.at("base_qx")));
+  trajopt.AddBoundingBoxConstraint(-sin(pitch/2.0), sin(pitch/2.0), xtd_rear_1(positions_map.at("base_qy")));
+  trajopt.AddBoundingBoxConstraint(           -eps,            eps, xtd_rear_1(positions_map.at("base_qz")));
 
 
   /// First Front Legs LO constraints

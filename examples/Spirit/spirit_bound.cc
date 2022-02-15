@@ -348,7 +348,7 @@ void SpiritBound<Y>::addConstraints(
   // Nominal stand
   nominalSpiritStandConstraint(plant,trajopt,initial_height, {0}, eps);
   // Body pose constraints (keep the body flat) at initial state
-    trajopt.AddBoundingBoxConstraint(1, 1 , x0(positions_map.at("base_qw")));
+  trajopt.AddBoundingBoxConstraint(1, 1 , x0(positions_map.at("base_qw")));
   trajopt.AddBoundingBoxConstraint(0 , 0, x0(positions_map.at("base_qx")));
   trajopt.AddBoundingBoxConstraint(0, 0, x0(positions_map.at("base_qy")));
   trajopt.AddBoundingBoxConstraint(0, 0 , x0(positions_map.at("base_qz")));
