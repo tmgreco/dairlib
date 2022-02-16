@@ -91,7 +91,7 @@ public:
         (Eigen::Matrix<bool,1,4>() << true,  true,  true,  true).finished(), // contact bools
         this->num_knot_points[0],  // number of knot points in the collocation
         Eigen::Vector3d::UnitZ(), // normal
-        Eigen::Vector3d::Zero(),  // world offset
+        initialStand.offset(),  // world offset
         this->mu, //friction
         0.02,
         0.5
@@ -100,7 +100,7 @@ public:
         (Eigen::Matrix<bool,1,4>() << false,  true,  false,  true).finished(), // contact bools
         this->num_knot_points[1],  // number of knot points in the collocation
         Eigen::Vector3d::UnitZ(), // normal
-        Eigen::Vector3d::Zero(),  // world offset
+        initialStand.offset(),  // world offset
         this->mu, //friction
         0.02,
         1.0
@@ -127,7 +127,7 @@ public:
         (Eigen::Matrix<bool,1,4>() << true,  false,  true,  false).finished(), // contact bools
         this->num_knot_points[4],  // number of knot points in the collocation
         Eigen::Vector3d::UnitZ(), // normal
-        Eigen::Vector3d::Zero(),  // world offset
+        std::get<1>(transitionSurfaces[0]),  // world offset
         this->mu, //friction
         0.02,
         0.1
@@ -136,16 +136,17 @@ public:
         (Eigen::Matrix<bool,1,4>() << true,  true,  true,  true).finished(), // contact bools
         this->num_knot_points[5],  // number of knot points in the collocation
         Eigen::Vector3d::UnitZ(), // normal
-        Eigen::Vector3d::Zero(),  // world offset
+        std::get<1>(transitionSurfaces[0]),//std::get<1>(transitionSurfaces[0]),// Eigen::Vector3d::Zero(),  // world offset
         this->mu, //friction
         0.02,
         0.1
     );
+    std::cout<<"world offset"<<std::get<1>(transitionSurfaces[0])<<std::endl;
     msh.addMode( // Rear stance
         (Eigen::Matrix<bool,1,4>() << false,  true,  false,  true).finished(), // contact bools
         this->num_knot_points[6],  // number of knot points in the collocation
         Eigen::Vector3d::UnitZ(), // normal
-        Eigen::Vector3d::Zero(),  // world offset
+        std::get<1>(transitionSurfaces[0]),  // world offset
         this->mu, //friction
         0.02,
         1.0
@@ -172,7 +173,7 @@ public:
         (Eigen::Matrix<bool,1,4>() << true,  false,  true,  false).finished(), // contact bools
         this->num_knot_points[9],  // number of knot points in the collocation
         Eigen::Vector3d::UnitZ(), // normal
-        Eigen::Vector3d::Zero(),  // world offset
+        finalStand.offset(),  // world offset
         this->mu, //friction
         0.02,
         0.1
@@ -181,7 +182,7 @@ public:
         (Eigen::Matrix<bool,1,4>() << true,  true,  true,  true).finished(), // contact bools
         this->num_knot_points[10],  // number of knot points in the collocation
         Eigen::Vector3d::UnitZ(), // normal
-        Eigen::Vector3d::Zero(),  // world offset
+        finalStand.offset(),  // world offset
         this->mu, //friction
         0.02,
         0.1
@@ -240,6 +241,7 @@ private:
     double work_constraint_scale;
     double animate;
     int nJumps;
+    double stand_height;
 public:
     dairlib::OptimalSpiritStand initialStand;
     dairlib::OptimalSpiritStand finalStand;

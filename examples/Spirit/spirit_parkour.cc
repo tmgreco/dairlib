@@ -51,6 +51,7 @@ void SpiritParkourJump<Y>::config(
   this->work_constraint_scale =config[index]["work_constraint_scale"].as<double>();
   this->animate=config[index]["animate"].as<bool>();
   this->nJumps=config[index]["n_jumps"].as<int>();
+  this->stand_height=config[index]["stand_height"].as<double>();
   if(!config[index]["file_name_out"].as<std::string>().empty()) this->file_name_out=saved_directory+config[index]["file_name_out"].as<std::string>();
   if(!config[index]["file_name_in"].as<std::string>().empty()) this->file_name_in= saved_directory+config[index]["file_name_in"].as<std::string>();
   
@@ -74,8 +75,15 @@ void SpiritParkourJump<Y>::config(
   this->finalStand.init(plant, config[index]["stand_height"].as<double>(), final_normal, final_offset, config[index]["final_stand"][6].as<bool>());
   this->initial_height=this->initialStand.height();
 
-  this->transitionSurfaces={std::make_tuple(config[index]["transition_surface"][1].as<double>()*Eigen::Vector3d::UnitZ(),
-                                                    config[index]["transition_surface"][0].as<double>()*Eigen::Vector3d::UnitX(), std::numeric_limits<double>::infinity())};
+  this->transitionSurfaces={std::make_tuple(config[index]["transition_surface"][0].as<double>()*Eigen::Vector3d::UnitX()+
+                                              config[index]["transition_surface"][1].as<double>()*Eigen::Vector3d::UnitY()+
+                                              config[index]["transition_surface"][2].as<double>()*Eigen::Vector3d::UnitZ(),
+                                            config[index]["transition_surface"][3].as<double>()*Eigen::Vector3d::UnitX()+
+                                              config[index]["transition_surface"][4].as<double>()*Eigen::Vector3d::UnitY()+
+                                              config[index]["transition_surface"][5].as<double>()*Eigen::Vector3d::UnitZ(),
+                                            std::numeric_limits<double>::infinity())};
+  
+  
 }
 
 /// Adds an offset constraint which allows the body to be anywhere on the normal vector
@@ -335,9 +343,9 @@ void SpiritParkourJump<Y>::addConstraints(
   nominalSpiritStandConstraint(plant,trajopt,finalStand.height(), {trajopt.N()-1}, eps);
   // Body pose constraints (keep the body flat) at final state
   trajopt.AddBoundingBoxConstraint(1, 1, xf(positions_map.at("base_qw")));
-  trajopt.AddBoundingBoxConstraint(0, 0, xf(positions_map.at("base_qx")));
-  trajopt.AddBoundingBoxConstraint(0, 0, xf(positions_map.at("base_qy")));
-  trajopt.AddBoundingBoxConstraint(0, 0, xf(positions_map.at("base_qz")));
+  trajopt.AddBoundingBoxConstraint(-eps, eps, xf(positions_map.at("base_qx")));
+  trajopt.AddBoundingBoxConstraint(-eps, eps, xf(positions_map.at("base_qy")));
+  trajopt.AddBoundingBoxConstraint(-eps, eps, xf(positions_map.at("base_qz")));
   // Zero velocity
   trajopt.AddBoundingBoxConstraint(VectorXd::Zero(n_v), VectorXd::Zero(n_v), xf.tail(n_v));
  
@@ -352,9 +360,13 @@ void SpiritParkourJump<Y>::addConstraints(
   // trajopt.AddBoundingBoxConstraint(-sin(max_pitch_magnitude/2.0), sin(max_pitch_magnitude/2.0), xlo_front_1(positions_map.at("base_qy")));
   // trajopt.AddBoundingBoxConstraint(           -eps,            eps, xlo_front_1(positions_map.at("base_qz")));
 
+  // trajopt.AddBoundingBoxConstraint( cos(max_pitch_magnitude/2.0),              1, xtd_front_2(positions_map.at("base_qw")));
+  // trajopt.AddBoundingBoxConstraint(           -eps,            eps, xtd_front_2(positions_map.at("base_qx")));
+  // trajopt.AddBoundingBoxConstraint(-sin(max_pitch_magnitude/2.0), sin(max_pitch_magnitude/2.0), xtd_front_2(positions_map.at("base_qy")));
+  // trajopt.AddBoundingBoxConstraint(           -eps,            eps, xtd_front_2(positions_map.at("base_qz")));
   trajopt.AddBoundingBoxConstraint( cos(max_pitch_magnitude/2.0),              1, xtd_front_2(positions_map.at("base_qw")));
   trajopt.AddBoundingBoxConstraint(           -eps,            eps, xtd_front_2(positions_map.at("base_qx")));
-  trajopt.AddBoundingBoxConstraint(-sin(max_pitch_magnitude/2.0), sin(max_pitch_magnitude/2.0), xtd_front_2(positions_map.at("base_qy")));
+  trajopt.AddBoundingBoxConstraint(0, sin(max_pitch_magnitude/2.0), xtd_front_2(positions_map.at("base_qy")));
   trajopt.AddBoundingBoxConstraint(           -eps,            eps, xtd_front_2(positions_map.at("base_qz")));
 
   // trajopt.AddBoundingBoxConstraint( cos(max_pitch_magnitude/2.0),              1, xtd_rear_2(positions_map.at("base_qw")));
@@ -411,6 +423,9 @@ void SpiritParkourJump<Y>::addConstraints(
     }
     if(iJump != 0){
       std::cout << "Zero Velocity Bottoms activated" << std::endl;
+      for (auto const &pair: positions_map) {
+        std::cout << "{" << pair.first << ": " << pair.second << "}\n";
+      }
       int interiorStanceModeIndex = iJump*5;
       int botKnotpoint = trajopt.mode_length(interiorStanceModeIndex)/2;
       auto xbot = trajopt.state_vars( interiorStanceModeIndex , botKnotpoint);
@@ -421,11 +436,11 @@ void SpiritParkourJump<Y>::addConstraints(
       auto xlo_front_s = trajopt.state_vars(interiorStanceModeIndex+1, 0);
       auto xlo_rear_s = trajopt.state_vars(interiorStanceModeIndex+2, 0);
       std::tie(sNormal,sOffset,std::ignore) = transitionSurfaces[iJump-1];
-      this->offsetConstraint(plant, trajopt, xbot, sNormal,sOffset);
-      // trajopt.AddBoundingBoxConstraint(0.2, 0.25, xbot(positions_map.at("base_z"))); 
-      // trajopt.AddBoundingBoxConstraint(sOffset(0), sOffset(0), xbot(positions_map.at("base_x"))); 
-      // trajopt.AddBoundingBoxConstraint(sOffset(1)-eps, sOffset(1)+eps, xbot(positions_map.at("base_y"))); 
 
+      this->offsetConstraint(plant, trajopt, xbot, sNormal,sOffset);
+
+      trajopt.AddBoundingBoxConstraint(- eps, + eps, xbot(n_q + velocities_map.at("base_vz")) );
+      // trajopt.AddBoundingBoxConstraint(0.2, 0.25, xbot(positions_map.at("base_z")) );
       //  front legs touch-down max_pitch_magnitude angle
       trajopt.AddBoundingBoxConstraint( cos(max_pitch_magnitude/2.0),              1, xtd_front_s(positions_map.at("base_qw")));
       trajopt.AddBoundingBoxConstraint(           -eps,            eps, xtd_front_s(positions_map.at("base_qx")));
@@ -498,7 +513,7 @@ void SpiritParkourJump<Y>::run(MultibodyPlant<Y>& plant,
   trajopt.SetSolverOption(id, "dual_inf_tol", this->tol);
   trajopt.SetSolverOption(id, "constr_viol_tol", this->tol);
   trajopt.SetSolverOption(id, "compl_inf_tol", this->tol);
-  trajopt.SetSolverOption(id, "max_iter", 1000);
+  trajopt.SetSolverOption(id, "max_iter", 10000);
   trajopt.SetSolverOption(id, "nlp_lower_bound_inf", -1e6);
   trajopt.SetSolverOption(id, "nlp_upper_bound_inf", 1e6);
   trajopt.SetSolverOption(id, "print_timing_statistics", "yes");
