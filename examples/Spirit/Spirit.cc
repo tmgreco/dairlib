@@ -41,14 +41,16 @@ Spirit<B,T>::Spirit(std::string yaml_path) :plant (std::make_unique<MultibodyPla
     YAML::Node OPTIMIZATIONS;
     OPTIMIZATIONS.push_back(Clone(config[0]));
     for (std::size_t i=1;i<config.size();i++){
-      std::cout<<config[i]["name"]<<"    "<<config[0]["iterate"]["name"]<<std::endl;
       if(config[0]["iterate"]["name"]){
         if(config[i]["name"].as<std::string>()==config[0]["iterate"]["name"].as<std::string>()){
           std::cout<<"find iterative node: "<< config[i]["name"].as<std::string>()<<std::endl;
+          std::string name_in=config[i]["file_name_in"].as<std::string>();
           for (std::size_t j =0; j<config[0]["iterate"]["values"].size();j++){
             OPTIMIZATIONS.push_back(Clone(config[i]));
             OPTIMIZATIONS[OPTIMIZATIONS.size()-1][config[0]["iterate"]["iteration_variable"].as<std::string>()]=config[0]["iterate"]["values"][j];
-            OPTIMIZATIONS[OPTIMIZATIONS.size()-1]["animate"]=false;
+            // Generate correct file name in and out
+            if (j!=0) OPTIMIZATIONS[OPTIMIZATIONS.size()-1]["file_name_in"]= name_in+"_"+std::to_string(j-1);
+            if (j<config[0]["iterate"]["values"].size()-1) OPTIMIZATIONS[OPTIMIZATIONS.size()-1]["file_name_out"]= name_in+"_"+std::to_string(j);
           }
         }
         else{
@@ -57,11 +59,10 @@ Spirit<B,T>::Spirit(std::string yaml_path) :plant (std::make_unique<MultibodyPla
       }
       else OPTIMIZATIONS.push_back(Clone(config[i]));
     }
-    OPTIMIZATIONS[OPTIMIZATIONS.size()-1]["animate"]=true;
     num_optimizations=OPTIMIZATIONS.size()-1;
     std::ofstream fout(saved_directory+"expanded_config.yaml");
     fout << OPTIMIZATIONS;
-    this->yaml_path=saved_directory+"expanded_config.yaml";
+    this->yaml_path=saved_directory+"expanded_config.yaml"; //set yaml path to the new generated one
 
     ///init plant
     Parser parser(plant.get());
@@ -88,7 +89,9 @@ void Spirit<B,T>::animate(){
       surface.surface_offset,
       surface.length_surf,
       surface.width_surf,
-      surface.thickness_surf);
+      surface.thickness_surf,
+      surface.color,
+      surface.name);
   } 
 
   
@@ -111,7 +114,8 @@ void Spirit<B,T>::animate(){
 template <template<class> class B,class T>
 void Spirit<B,T>::run(){
   for (int i=FLAGS_skip_to;i<=num_optimizations;i++){
-      std::cout<<"Running optimization "<<i<<std::endl;   
+      std::cout<<"Running optimization "<<i<<std::endl;
+      if (i==num_optimizations) behavior.get_animate_info=true;   
       behavior.config(yaml_path,saved_directory,i,plant.get());
       if (i==FLAGS_skip_to){
         if(initial_guess=="") behavior.generateInitialGuess(*plant); //If we don't have a file for initial guess, then generate one.

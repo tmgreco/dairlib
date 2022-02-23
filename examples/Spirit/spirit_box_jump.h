@@ -33,23 +33,6 @@
 #include "examples/Spirit/spirit_optimal_stand.h"
 
 
-
-#include <cmath>
-#include <experimental/filesystem>
-
-#include "common/find_resource.h"
-#include "systems/trajectory_optimization/dircon/dircon.h"
-#include "multibody/kinematic/world_point_evaluator.h"
-
-#include "multibody/kinematic/distance_evaluator.h"
-#include "multibody/multibody_utils.h"
-#include "multibody/visualization_utils.h"
-#include "multibody/kinematic/kinematic_constraints.h"
-
-#include "examples/Spirit/animate_spirit.h"
-#include "common/file_utils.h"
-#include "lcm/dircon_saved_trajectory.h"
-
 using drake::multibody::MultibodyPlant;
 using drake::trajectories::PiecewisePolynomial;
 namespace dairlib {
@@ -77,7 +60,8 @@ public:
             std::vector<SurfaceConf>* surface_vector);
 
     
-
+    void setUpModeSequence();
+    
     /// addCost, adds the cost to the trajopt jump problem. See runSpiritBoxJump for a description of the inputs
     void addCost(
             MultibodyPlant<Y>& plant,
@@ -87,13 +71,10 @@ public:
     std::vector<std::unique_ptr<multibody::WorldPointEvaluator<Y>>> ,
     std::vector<std::unique_ptr<multibody::KinematicEvaluatorSet<Y>>>>
     getModeSequence(MultibodyPlant<Y>& plant,
-                    DirconModeSequence<Y>& sequence,
-                    std::vector<std::string>& mode_vector,
-                    std::vector<double>& minT_vector,
-                    std::vector<double>& maxT_vector){
+                    DirconModeSequence<Y>& sequence){
     dairlib::ModeSequenceHelper msh;
 
-    this->getModeSequenceHelper(msh, mode_vector,minT_vector,maxT_vector);
+    this->getModeSequenceHelper(msh);
 
     auto [modeVector, toeEvals, toeEvalSets] = createSpiritModeSequence(plant, msh);
 
@@ -103,22 +84,17 @@ public:
         mode->MakeConstraintRelative(i,1);
         }
         mode->SetDynamicsScale(
-            {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19}, 150.0);
-        if (mode->evaluators().num_evaluators() == 4)
+            {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17}, 200);
+        if (mode->evaluators().num_evaluators() > 0)
         {
         mode->SetKinVelocityScale(
             {0, 1, 2, 3}, {0, 1, 2}, 1.0);
         mode->SetKinPositionScale(
-            {0, 1, 2, 3}, {0, 1, 2}, 150.0);
-        }
-        else if (mode->evaluators().num_evaluators() == 2){
-        mode->SetKinVelocityScale(
-            {0, 1}, {0, 1, 2}, 1.0);
-        mode->SetKinPositionScale(
-            {0, 1}, {0, 1, 2}, 150.0);
+            {0, 1, 2, 3}, {0, 1, 2}, 200);
         }
         sequence.AddMode(mode.get());
     }
+
     return {std::move(modeVector), std::move(toeEvals), std::move(toeEvalSets)};
     }
 
@@ -136,7 +112,6 @@ private:
     double max_duration;
     double eps;  
     double work_constraint_scale;
-    double animate;
 
 public:
     dairlib::OptimalSpiritStand initialStand;

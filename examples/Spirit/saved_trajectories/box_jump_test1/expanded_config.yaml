@@ -1,5 +1,4 @@
-- num_optimizations: 4
-  initial_guess: ""
+- initial_guess: ""
   saved_directory: /home/feng/Downloads/dairlib/examples/Spirit/saved_trajectories/box_jump_test1/
   iterate:
     name: box_jump_3
@@ -8,6 +7,22 @@
       -
         - 0
         - 0
+        - 1
+        - 1
+        - 0
+        - 0.3
+        - false
+      -
+        - 0
+        - 0.1
+        - 1
+        - 1
+        - 0
+        - 0.3
+        - false
+      -
+        - 0
+        - 0.2
         - 1
         - 1
         - 0
@@ -133,6 +148,88 @@
   eps: 1e-2
   tol: 1e-6
   work_constraint_scale: 0
-  file_name_out: boxjump_iterativeBox45_1
+  file_name_out: boxjump_iterativeBox45_0_0
   file_name_in: boxjump_iterativeBox45_0
+  animate: false
+- name: box_jump_3
+  stand_height: 0.23
+  initial_stand:
+    - 0
+    - 0
+    - 1
+    - 0
+    - 0
+    - 0
+    - false
+  final_stand:
+    - 0
+    - 0.1
+    - 1
+    - 1
+    - 0
+    - 0.3
+    - false
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+  apex_height: 0.7
+  initial_height: 0.23
+  fore_aft_displacement: 1
+  lock_rotation: false
+  lock_legs_apex: false
+  force_symmetry: false
+  use_nominal_stand: true
+  max_duration: 2
+  cost_actuation: 3
+  cost_velocity: 10
+  cost_work: 0
+  mu: 1.5
+  eps: 1e-2
+  tol: 1e-6
+  work_constraint_scale: 0
+  file_name_out: boxjump_iterativeBox45_0_1
+  file_name_in: boxjump_iterativeBox45_0_0
+  animate: false
+- name: box_jump_3
+  stand_height: 0.23
+  initial_stand:
+    - 0
+    - 0
+    - 1
+    - 0
+    - 0
+    - 0
+    - false
+  final_stand:
+    - 0
+    - 0.2
+    - 1
+    - 1
+    - 0
+    - 0.3
+    - false
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+  apex_height: 0.7
+  initial_height: 0.23
+  fore_aft_displacement: 1
+  lock_rotation: false
+  lock_legs_apex: false
+  force_symmetry: false
+  use_nominal_stand: true
+  max_duration: 2
+  cost_actuation: 3
+  cost_velocity: 10
+  cost_work: 0
+  mu: 1.5
+  eps: 1e-2
+  tol: 1e-6
+  work_constraint_scale: 0
+  file_name_out: boxjump_iterativeBox45_1
+  file_name_in: boxjump_iterativeBox45_0_1
   animate: true

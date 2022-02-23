@@ -322,6 +322,20 @@ void SpiritJump<Y>::addConstraints(
 }
 
 
+template <class Y>
+void SpiritJump<Y>::setUpModeSequence(){
+  this->mode_vector.clear();
+  this->normal_vector.clear();
+  this->offset_vector.clear();
+  this->minT_vector.clear();
+  this->maxT_vector.clear();
+  //                          mode name   normal                  world offset            minT  maxT
+  this->addModeToSequenceVector("stance",Eigen::Vector3d::UnitZ(),Eigen::Vector3d::Zero(),0,    std::numeric_limits<double>::infinity());
+  this->addModeToSequenceVector("flight",Eigen::Vector3d::UnitZ(),Eigen::Vector3d::Zero(),0,    std::numeric_limits<double>::infinity());
+  this->addModeToSequenceVector("flight",Eigen::Vector3d::UnitZ(),Eigen::Vector3d::Zero(),0,    std::numeric_limits<double>::infinity());
+  this->addModeToSequenceVector("stance",Eigen::Vector3d::UnitZ(),Eigen::Vector3d::Zero(),0,    std::numeric_limits<double>::infinity());
+}
+
 /// runSpiritJump, runs a trajectory optimization problem for spirit jumping on flat ground
 /// \param plant: robot model
 /// \param pp_xtraj: trajectory passed by pointer for spirit animation
@@ -331,12 +345,8 @@ void SpiritJump<Y>::run(MultibodyPlant<Y>& plant,
                           std::vector<SurfaceConf>* surface_vector) {
   // Setup mode sequence
   auto sequence = DirconModeSequence<Y>(plant);
-  
-  std::vector<std::string> mode_vector{"stance","flight","flight","stance"};
-  std::vector<double> minT_vector{0,0,0,0};
-  double inf=std::numeric_limits<double>::infinity();
-  std::vector<double> maxT_vector{inf,inf,inf,inf};
-  auto [modeVector, toeEvals, toeEvalSets] = this->getModeSequence(plant, sequence,mode_vector,minT_vector,maxT_vector);
+  setUpModeSequence();
+  auto [modeVector, toeEvals, toeEvalSets] = getModeSequence(plant, sequence);
 
   ///Setup trajectory optimization
   auto trajopt = Dircon<Y>(sequence); 

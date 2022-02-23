@@ -57,6 +57,8 @@ public:
     void run(MultibodyPlant<Y>& plant,
             PiecewisePolynomial<Y>* pp_xtraj,
             std::vector<SurfaceConf>* surface_vector);
+    
+    void setUpModeSequence();
 
     void addCostLegs(MultibodyPlant<Y>& plant,
                 dairlib::systems::trajectory_optimization::Dircon<Y>& trajopt,
@@ -71,13 +73,10 @@ public:
     std::vector<std::unique_ptr<multibody::WorldPointEvaluator<Y>>> ,
     std::vector<std::unique_ptr<multibody::KinematicEvaluatorSet<Y>>>>
     getModeSequence(MultibodyPlant<Y>& plant,
-                    DirconModeSequence<Y>& sequence,
-                    std::vector<std::string>& mode_vector,
-                    std::vector<double>& minT_vector,
-                    std::vector<double>& maxT_vector){
+                    DirconModeSequence<Y>& sequence){
     dairlib::ModeSequenceHelper msh;
 
-    this->getModeSequenceHelper(msh, mode_vector,minT_vector,maxT_vector);
+    this->getModeSequenceHelper(msh);
 
     auto [modeVector, toeEvals, toeEvalSets] = createSpiritModeSequence(plant, msh);
 

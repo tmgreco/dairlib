@@ -63,7 +63,7 @@ public:
             PiecewisePolynomial<Y>* pp_xtraj,
             std::vector<SurfaceConf>* surface_vector);
 
-    
+    void setUpModeSequence();
 
     /// addCost, adds the cost to the trajopt jump problem. See runSpiritBoxJump for a description of the inputs
     void addCost(
@@ -81,112 +81,14 @@ public:
     std::vector<std::unique_ptr<multibody::WorldPointEvaluator<Y>>> ,
     std::vector<std::unique_ptr<multibody::KinematicEvaluatorSet<Y>>>>
     getModeSequence(MultibodyPlant<Y>& plant,
-                    DirconModeSequence<Y>& sequence,
-                    std::vector<std::string>& mode_vector,
-                    std::vector<double>& minT_vector,
-                    std::vector<double>& maxT_vector){
+                    DirconModeSequence<Y>& sequence){
+    for (int i=0;i<nJumps*5+1;i++){
+        if (i%5==3 || i%5==4) this->num_knot_points.push_back(nKnotpoints_flight);
+        else this->num_knot_points.push_back(nKnotpoints_stances);
+    }
+    
     dairlib::ModeSequenceHelper msh;
-    this->num_knot_points={7,7,7,7,7,7,7,7,7,7,7};
-    msh.addMode( // Stance
-        (Eigen::Matrix<bool,1,4>() << true,  true,  true,  true).finished(), // contact bools
-        this->num_knot_points[0],  // number of knot points in the collocation
-        Eigen::Vector3d::UnitZ(), // normal
-        initialStand.offset(),  // world offset
-        this->mu, //friction
-        0.02,
-        0.5
-    );
-    msh.addMode( // Rear stance
-        (Eigen::Matrix<bool,1,4>() << false,  true,  false,  true).finished(), // contact bools
-        this->num_knot_points[1],  // number of knot points in the collocation
-        Eigen::Vector3d::UnitZ(), // normal
-        initialStand.offset(),  // world offset
-        this->mu, //friction
-        0.02,
-        1.0
-    );
-    msh.addMode( // Flight
-        (Eigen::Matrix<bool,1,4>() << false,  false,  false,  false).finished(), // contact bools
-        this->num_knot_points[2],  // number of knot points in the collocation
-        Eigen::Vector3d::UnitZ(), // normal
-        Eigen::Vector3d::Zero(),  // world offset
-        this->mu, //friction
-        0.02,
-        1.0
-    );
-    msh.addMode( // Flight
-        (Eigen::Matrix<bool,1,4>() << false,  false,  false,  false).finished(), // contact bools
-        this->num_knot_points[3],  // number of knot points in the collocation
-        Eigen::Vector3d::UnitZ(), // normal
-        Eigen::Vector3d::Zero(),  // world offset
-        this->mu, //friction
-        0.02,
-        1.0
-    );
-    msh.addMode( // Front Stance
-        (Eigen::Matrix<bool,1,4>() << true,  false,  true,  false).finished(), // contact bools
-        this->num_knot_points[4],  // number of knot points in the collocation
-        Eigen::Vector3d::UnitZ(), // normal
-        std::get<1>(transitionSurfaces[0]),  // world offset
-        this->mu, //friction
-        0.02,
-        0.1
-    );
-    msh.addMode( // Stance
-        (Eigen::Matrix<bool,1,4>() << true,  true,  true,  true).finished(), // contact bools
-        this->num_knot_points[5],  // number of knot points in the collocation
-        Eigen::Vector3d::UnitZ(), // normal
-        std::get<1>(transitionSurfaces[0]),//std::get<1>(transitionSurfaces[0]),// Eigen::Vector3d::Zero(),  // world offset
-        this->mu, //friction
-        0.02,
-        0.1
-    );
-    std::cout<<"world offset"<<std::get<1>(transitionSurfaces[0])<<std::endl;
-    msh.addMode( // Rear stance
-        (Eigen::Matrix<bool,1,4>() << false,  true,  false,  true).finished(), // contact bools
-        this->num_knot_points[6],  // number of knot points in the collocation
-        Eigen::Vector3d::UnitZ(), // normal
-        std::get<1>(transitionSurfaces[0]),  // world offset
-        this->mu, //friction
-        0.02,
-        1.0
-    );
-    msh.addMode( // Flight
-        (Eigen::Matrix<bool,1,4>() << false,  false,  false,  false).finished(), // contact bools
-        this->num_knot_points[7],  // number of knot points in the collocation
-        Eigen::Vector3d::UnitZ(), // normal
-        Eigen::Vector3d::Zero(),  // world offset
-        this->mu, //friction
-        0.02,
-        1.0
-    );
-    msh.addMode( // Flight
-        (Eigen::Matrix<bool,1,4>() << false,  false,  false,  false).finished(), // contact bools
-        this->num_knot_points[8],  // number of knot points in the collocation
-        Eigen::Vector3d::UnitZ(), // normal
-        Eigen::Vector3d::Zero(),  // world offset
-        this->mu, //friction
-        0.02,
-        1.0
-    );
-    msh.addMode( // Front Stance
-        (Eigen::Matrix<bool,1,4>() << true,  false,  true,  false).finished(), // contact bools
-        this->num_knot_points[9],  // number of knot points in the collocation
-        Eigen::Vector3d::UnitZ(), // normal
-        finalStand.offset(),  // world offset
-        this->mu, //friction
-        0.02,
-        0.1
-    );
-    msh.addMode( // Stance
-        (Eigen::Matrix<bool,1,4>() << true,  true,  true,  true).finished(), // contact bools
-        this->num_knot_points[10],  // number of knot points in the collocation
-        Eigen::Vector3d::UnitZ(), // normal
-        finalStand.offset(),  // world offset
-        this->mu, //friction
-        0.02,
-        0.1
-    );
+    this->getModeSequenceHelper(msh);
 
     auto [modeVector, toeEvals, toeEvalSets] = createSpiritModeSequence(plant, msh);
 
@@ -239,7 +141,6 @@ private:
     double max_duration;
     double eps;  
     double work_constraint_scale;
-    double animate;
     int nJumps;
     double stand_height;
 public:

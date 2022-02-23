@@ -44,12 +44,12 @@ void SpiritParkourJump<Y>::config(
   this->cost_velocity =config[index]["cost_velocity"].as<double>();
   this->cost_actuation_legs_flight =config[index]["cost_actuation_legs_flight"].as<double>();
   this->cost_velocity_legs_flight =config[index]["cost_velocity_legs_flight"].as<double>();
+  this->cost_time=config[index]["cost_time"].as<double>();
   this->cost_work =config[index]["cost_work"].as<double>();
   this->mu =config[index]["mu"].as<double>();
   this->eps =config[index]["eps"].as<double>();
   this->tol =config[index]["tol"].as<double>();
   this->work_constraint_scale =config[index]["work_constraint_scale"].as<double>();
-  this->animate=config[index]["animate"].as<bool>();
   this->nJumps=config[index]["n_jumps"].as<int>();
   this->stand_height=config[index]["stand_height"].as<double>();
   if(!config[index]["file_name_out"].as<std::string>().empty()) this->file_name_out=saved_directory+config[index]["file_name_out"].as<std::string>();
@@ -75,14 +75,17 @@ void SpiritParkourJump<Y>::config(
   this->finalStand.init(plant, config[index]["stand_height"].as<double>(), final_normal, final_offset, config[index]["final_stand"][6].as<bool>());
   this->initial_height=this->initialStand.height();
 
-  this->transitionSurfaces={std::make_tuple(config[index]["transition_surface"][0].as<double>()*Eigen::Vector3d::UnitX()+
-                                              config[index]["transition_surface"][1].as<double>()*Eigen::Vector3d::UnitY()+
-                                              config[index]["transition_surface"][2].as<double>()*Eigen::Vector3d::UnitZ(),
-                                            config[index]["transition_surface"][3].as<double>()*Eigen::Vector3d::UnitX()+
-                                              config[index]["transition_surface"][4].as<double>()*Eigen::Vector3d::UnitY()+
-                                              config[index]["transition_surface"][5].as<double>()*Eigen::Vector3d::UnitZ(),
-                                            std::numeric_limits<double>::infinity())};
+  this->transitionSurfaces.clear();
   
+  for (std::size_t i=0;i<config[index]["transition_surface"].size();i++){
+    this->transitionSurfaces.push_back(std::make_tuple(config[index]["transition_surface"][i][0].as<double>()*Eigen::Vector3d::UnitX()+
+                                              config[index]["transition_surface"][i][1].as<double>()*Eigen::Vector3d::UnitY()+
+                                              config[index]["transition_surface"][i][2].as<double>()*Eigen::Vector3d::UnitZ(),
+                                            config[index]["transition_surface"][i][3].as<double>()*Eigen::Vector3d::UnitX()+
+                                              config[index]["transition_surface"][i][4].as<double>()*Eigen::Vector3d::UnitY()+
+                                              config[index]["transition_surface"][i][5].as<double>()*Eigen::Vector3d::UnitZ(),
+                                            std::numeric_limits<double>::infinity()));
+  }
   
 }
 
@@ -264,7 +267,7 @@ void SpiritParkourJump<Y>::addCost(
   trajopt.AddRunningCost( u.transpose()*this->cost_actuation*u);
   trajopt.AddVelocityCost(this->cost_velocity);
 
-  trajopt.AddRunningCost(1000);
+  trajopt.AddRunningCost(this->cost_time);
 
   // // Hard code which joints are in flight for which mode //FIXME using quad_mod_seq
   addCostLegs(plant, trajopt, cost_velocity_legs_flight, cost_actuation_legs_flight, {0, 1, 4, 5, 8, 10}, 1);
@@ -474,6 +477,32 @@ void SpiritParkourJump<Y>::addConstraints(
  
 }
 
+template <class Y>
+void SpiritParkourJump<Y>::setUpModeSequence(){
+  this->mode_vector.clear();
+  this->normal_vector.clear();
+  this->offset_vector.clear();
+  this->minT_vector.clear();
+  this->maxT_vector.clear();
+  //                          mode name   normal                  world offset            minT  maxT
+  this->addModeToSequenceVector("stance",initialStand.normal(),initialStand.offset(),     0.02, 0.5);
+  this->addModeToSequenceVector("rear_stance",initialStand.normal(),initialStand.offset(),0.02, 1  );
+  this->addModeToSequenceVector("flight",Eigen::Vector3d::UnitZ(),Eigen::Vector3d::Zero(),0.02, 1  );
+
+  for (int i=0;i<transitionSurfaces.size();i++){
+    this->addModeToSequenceVector("flight",Eigen::Vector3d::UnitZ(),Eigen::Vector3d::Zero(),0.02, 1  );
+    this->addModeToSequenceVector("front_stance",std::get<0>(transitionSurfaces[i]),std::get<1>(transitionSurfaces[i]),0.02, 1  );
+    this->addModeToSequenceVector("stance",std::get<0>(transitionSurfaces[i]),std::get<1>(transitionSurfaces[i]),0.02, 1  );
+    this->addModeToSequenceVector("rear_stance",std::get<0>(transitionSurfaces[i]),std::get<1>(transitionSurfaces[i]),0.02, 1  );
+    this->addModeToSequenceVector("flight",Eigen::Vector3d::UnitZ(),Eigen::Vector3d::Zero(),0.02, 1  );
+  }
+
+  this->addModeToSequenceVector("flight",Eigen::Vector3d::UnitZ(),Eigen::Vector3d::Zero(),0.02, 1  );
+  this->addModeToSequenceVector("front_stance",finalStand.normal(),   finalStand.offset(),0.02, 1  );
+  this->addModeToSequenceVector("stance",      finalStand.normal(),   finalStand.offset(),0.02, 1  );
+}
+  
+
 /// runSpiritParkourJump, runs a trajectory optimization problem for spirit jumping on flat ground
 /// \param plant: robot model
 /// \param pp_xtraj: trajectory passed by pointer for spirit animation
@@ -485,12 +514,8 @@ void SpiritParkourJump<Y>::run(MultibodyPlant<Y>& plant,
   
   // Setup mode sequence
   auto sequence = DirconModeSequence<Y>(plant);
-
-  std::vector<std::string> mode_vector{"stance","flight","flight","stance"};
-  std::vector<double> minT_vector{0,0,0,0};
-  double inf=std::numeric_limits<double>::infinity();
-  std::vector<double> maxT_vector{inf,inf,inf,inf};
-  auto [modeVector, toeEvals, toeEvalSets] = this->getModeSequence(plant, sequence,mode_vector,minT_vector,maxT_vector);
+  setUpModeSequence();
+  auto [modeVector, toeEvals, toeEvalSets] = getModeSequence(plant, sequence);
 
 
   auto trajopt = Dircon<Y>(sequence);
@@ -588,8 +613,7 @@ void SpiritParkourJump<Y>::run(MultibodyPlant<Y>& plant,
   this->saveTrajectory(plant,trajopt,result);
 
   const drake::Vector4<double> orange(1.0, 0.55, 0.0, 1.0);
-  struct SurfaceConf new_surface={finalStand.normal(),finalStand.offset(),0.5,0.5,0.1};
-  if (animate) {
+  if (this->get_animate_info) {
     int counter = 0;
     for (auto& surface : transitionSurfaces){
       Eigen::Vector3d sNormal;

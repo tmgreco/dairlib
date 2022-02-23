@@ -48,7 +48,6 @@ void SpiritBoxJump<Y>::config(
   this->eps =config[index]["eps"].as<double>();
   this->tol =config[index]["tol"].as<double>();
   this->work_constraint_scale =config[index]["work_constraint_scale"].as<double>();
-  this->animate=config[index]["animate"].as<bool>();
   if(!config[index]["file_name_out"].as<std::string>().empty()) this->file_name_out=saved_directory+config[index]["file_name_out"].as<std::string>();
   if(!config[index]["file_name_in"].as<std::string>().empty()) this->file_name_in= saved_directory+config[index]["file_name_in"].as<std::string>();
   std::cout<<config[index]["initial_stand"][0].as<std::string>() <<std::endl;
@@ -424,6 +423,23 @@ void SpiritBoxJump<Y>::addConstraints(
   }
 }
 
+
+
+template <class Y>
+void SpiritBoxJump<Y>::setUpModeSequence(){
+  this->mode_vector.clear();
+  this->normal_vector.clear();
+  this->offset_vector.clear();
+  this->minT_vector.clear();
+  this->maxT_vector.clear();       
+  //                          mode name   normal                  world offset            minT  maxT
+  this->addModeToSequenceVector("stance",initialStand.normal(),initialStand.offset(),     0,    std::numeric_limits<double>::infinity());
+  this->addModeToSequenceVector("flight",Eigen::Vector3d::UnitZ(),Eigen::Vector3d::Zero(),0,    std::numeric_limits<double>::infinity());
+  this->addModeToSequenceVector("flight",Eigen::Vector3d::UnitZ(),Eigen::Vector3d::Zero(),0,    std::numeric_limits<double>::infinity());
+  this->addModeToSequenceVector("stance",finalStand.normal(),    finalStand.offset(),     0,    std::numeric_limits<double>::infinity());
+}
+
+
 /// runSpiritBoxJump, runs a trajectory optimization problem for spirit jumping on flat ground
 /// \param plant: robot model
 /// \param pp_xtraj: trajectory passed by pointer for spirit animation
@@ -434,55 +450,8 @@ void SpiritBoxJump<Y>::run(MultibodyPlant<Y>& plant,
 
   // Setup mode sequence
   auto sequence = DirconModeSequence<Y>(plant);
-
-  dairlib::ModeSequenceHelper msh;
-  msh.addMode( // Stance
-      (Eigen::Matrix<bool,1,4>() << true,  true,  true,  true).finished(), // contact bools
-      this->num_knot_points[0],  // number of knot points in the collocation
-      initialStand.normal(), // normal
-      initialStand.offset(),  // world offset
-      this->mu //friction
-  );
-  msh.addMode( // Flight
-      (Eigen::Matrix<bool,1,4>() << false, false, false, false).finished(), // contact bools
-      this->num_knot_points[1],  // number of knot points in the collocation
-      Eigen::Vector3d::UnitZ(), // normal
-      Eigen::Vector3d::Zero(),  // world offset
-      this->mu //friction
-  );
-  msh.addMode( // Flight
-      (Eigen::Matrix<bool,1,4>() << false, false, false, false).finished(), // contact bools
-      this->num_knot_points[2],  // number of knot points in the collocation
-      Eigen::Vector3d::UnitZ(), // normal
-      Eigen::Vector3d::Zero(),  // world offset
-      this->mu //friction
-  );
-  msh.addMode( // Stance
-      (Eigen::Matrix<bool,1,4>() << true,  true,  true,  true).finished(), // contact bools
-      this->num_knot_points[3],  // number of knot points in the collocation
-      finalStand.normal(), // normal
-      finalStand.offset(),  // world offset
-      this->mu //friction
-  );
-
-  auto [modeVector, toeEvals, toeEvalSets] = createSpiritModeSequence(plant, msh);
-
-  for (auto& mode : modeVector){
-    for (int i = 0; i < mode->evaluators().num_evaluators(); i++ ){
-      mode->MakeConstraintRelative(i,0);
-      mode->MakeConstraintRelative(i,1);
-    }
-    mode->SetDynamicsScale(
-        {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17}, 200);
-    if (mode->evaluators().num_evaluators() > 0)
-    {
-      mode->SetKinVelocityScale(
-          {0, 1, 2, 3}, {0, 1, 2}, 1.0);
-      mode->SetKinPositionScale(
-          {0, 1, 2, 3}, {0, 1, 2}, 200);
-    }
-    sequence.AddMode(mode.get());
-  }
+  setUpModeSequence();
+  auto [modeVector, toeEvals, toeEvalSets] = getModeSequence(plant, sequence);
 
   ///Setup trajectory optimization
   auto trajopt = Dircon<Y>(sequence);
@@ -515,9 +484,8 @@ void SpiritBoxJump<Y>::run(MultibodyPlant<Y>& plant,
   this->saveTrajectory(plant,trajopt,result);
 
   struct SurfaceConf new_surface={finalStand.normal(),finalStand.offset(),0.5,0.5,0.1};
-  if (animate) surface_vector->push_back(new_surface);
+  if (this->get_animate_info) surface_vector->push_back(new_surface);
   *pp_xtraj =trajopt.ReconstructStateTrajectory(result);
-
 }
 
 template class SpiritBoxJump<double>;
