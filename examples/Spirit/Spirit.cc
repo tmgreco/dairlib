@@ -3,6 +3,7 @@
 #include "examples/Spirit/spirit_bound.h"
 #include "examples/Spirit/spirit_box_jump.h"
 #include "examples/Spirit/spirit_parkour.h"
+#include "examples/Spirit/spirit_parkour_wall.h"
 #include <yaml-cpp/yaml.h>
 #include <fstream>
 #include <gflags/gflags.h>
@@ -115,7 +116,7 @@ template <template<class> class B,class T>
 void Spirit<B,T>::run(){
   for (int i=FLAGS_skip_to;i<=num_optimizations;i++){
       std::cout<<"Running optimization "<<i<<std::endl;
-      if (i==num_optimizations) behavior.get_animate_info=true;   
+      if (i==num_optimizations) behavior.enable_animate();   
       behavior.config(yaml_path,saved_directory,i,plant.get());
       if (i==FLAGS_skip_to){
         if(initial_guess=="") behavior.generateInitialGuess(*plant); //If we don't have a file for initial guess, then generate one.
@@ -128,4 +129,5 @@ template class Spirit<dairlib::SpiritJump,double>;
 template class Spirit<dairlib::SpiritBound,double>;
 template class Spirit<dairlib::SpiritBoxJump,double>;
 template class Spirit<dairlib::SpiritParkourJump,double>;
+template class Spirit<dairlib::SpiritParkourWallPronk,double>;
 }

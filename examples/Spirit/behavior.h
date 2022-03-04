@@ -68,7 +68,7 @@ namespace dairlib {
 
         virtual void setUpModeSequence()=0;
 
-        bool get_animate_info=false;
+        void enable_animate(){get_animate_info=true;}
     protected:
         std::vector<int> num_knot_points;
         double mu;
@@ -80,7 +80,7 @@ namespace dairlib {
         double cost_velocity_legs_flight;
         double cost_actuation_legs_flight;
         double cost_time;
-        
+        bool get_animate_info=false;
 
         std::string file_name_out;
         std::string file_name_in= "";
@@ -127,9 +127,14 @@ namespace dairlib {
         void getModeSequenceHelper(dairlib::ModeSequenceHelper& msh){
             int counter=0;
             for (std::string mode_name : mode_vector){
-                if (mode_name=="stance"){
+                Eigen::Matrix<bool,1,4> contact_bool;
+                if (mode_name=="stance") contact_bool<< true,  true,  true,  true;
+                else if (mode_name=="flight") contact_bool<< false, false, false, false;
+                else if (mode_name=="rear_stance") contact_bool<<false, true, false, true;
+                else if (mode_name=="front_stance") contact_bool<< true, false, true ,false;
+                else std::cout<<"Wrong mode name!"<<std::endl;
                 msh.addMode( // Stance
-                    (Eigen::Matrix<bool,1,4>() << true,  true,  true,  true).finished(), // contact bools
+                    contact_bool, // contact bools
                     num_knot_points[counter],  // number of knot points in the collocation
                     normal_vector[counter], // normal
                     offset_vector[counter],  // world offset
@@ -137,43 +142,7 @@ namespace dairlib {
                     minT_vector[counter],
                     maxT_vector[counter]
                     );
-                }
-                else if(mode_name=="flight"){
-                msh.addMode( // Flight
-                    (Eigen::Matrix<bool,1,4>() << false, false, false, false).finished(), // contact bools
-                    num_knot_points[counter],  // number of knot points in the collocation
-                    normal_vector[counter], // normal
-                    offset_vector[counter],  // world offset
-                    mu, //friction
-                    minT_vector[counter],
-                    maxT_vector[counter]
-                    );
-                }
-                else if (mode_name=="rear_stance"){
-                msh.addMode( // Rear stance
-                    (Eigen::Matrix<bool,1,4>() << false, true, false, true).finished(), // contact bools
-                    num_knot_points[counter],  // number of knot points in the collocation
-                    normal_vector[counter], // normal
-                    offset_vector[counter],  // world offset
-                    mu, //friction
-                    minT_vector[counter],
-                    maxT_vector[counter]
-                    );
-                }
-                else if (mode_name=="front_stance"){
-                msh.addMode( // Rear stance
-                    (Eigen::Matrix<bool,1,4>() <<  true, false, true ,false).finished(), // contact bools
-                    num_knot_points[counter],  // number of knot points in the collocation
-                    normal_vector[counter], // normal
-                    offset_vector[counter],  // world offset
-                    mu, //friction
-                    minT_vector[counter],
-                    maxT_vector[counter]
-                    );
-                }
-                else{
-                    std::cout<<"Wrong mode name!"<<std::endl;
-                }
+                
                 counter++;
             }
         }                   
