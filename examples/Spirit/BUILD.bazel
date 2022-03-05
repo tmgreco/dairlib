@@ -247,19 +247,7 @@ cc_binary(
     ],
 )
 
-cc_binary(
-    name = "run_spirit_vis",
-    srcs = ["run_spirit_vis.cc"],
-    data = ["spirit_drake.urdf"],
-    deps = [
-        ":animate_spirit",
-        "//common",
-        "//systems/primitives",
-        "//systems/trajectory_optimization/dircon",
-        "@drake//:drake_shared_library",
-        "@gflags",
-    ],
-)
+
 
 cc_binary(
     name = "process_trajectory",
@@ -287,22 +275,6 @@ cc_binary(
         ":spirit_utils",
         "//common",
         "//lcm:dircon_trajectory_saver",
-        "//multibody/kinematic",
-        "//systems/primitives",
-        "//systems/trajectory_optimization/dircon",
-        "@drake//:drake_shared_library",
-        "@gflags",
-    ],
-)
-
-cc_binary(
-    name = "run_spirit_stand",
-    srcs = ["run_spirit_stand.cc"],
-    data = ["spirit_drake.urdf"],
-    deps = [
-        ":animate_spirit",
-        ":spirit_utils",
-        "//common",
         "//multibody/kinematic",
         "//systems/primitives",
         "//systems/trajectory_optimization/dircon",

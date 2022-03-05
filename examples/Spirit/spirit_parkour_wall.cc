@@ -78,9 +78,11 @@ void SpiritParkourWallPronk<Y>::config(
   this->transitionSurfaces.clear();
   
   for (std::size_t i=0;i<config[index]["transition_surface"].size();i++){
-    this->transitionSurfaces.push_back(std::make_tuple(config[index]["transition_surface"][i][0].as<double>()*Eigen::Vector3d::UnitX()+
+    Eigen::Vector3d surface_normal=config[index]["transition_surface"][i][0].as<double>()*Eigen::Vector3d::UnitX()+
                                               config[index]["transition_surface"][i][1].as<double>()*Eigen::Vector3d::UnitY()+
-                                              config[index]["transition_surface"][i][2].as<double>()*Eigen::Vector3d::UnitZ(),
+                                              config[index]["transition_surface"][i][2].as<double>()*Eigen::Vector3d::UnitZ();
+    surface_normal = surface_normal/surface_normal.norm();                                          
+    this->transitionSurfaces.push_back(std::make_tuple(surface_normal,
                                             config[index]["transition_surface"][i][3].as<double>()*Eigen::Vector3d::UnitX()+
                                               config[index]["transition_surface"][i][4].as<double>()*Eigen::Vector3d::UnitY()+
                                               config[index]["transition_surface"][i][5].as<double>()*Eigen::Vector3d::UnitZ(),
@@ -493,7 +495,7 @@ void SpiritParkourWallPronk<Y>::setUpModeSequence(){
   for (int i=0;i<transitionSurfaces.size();i++){
     this->addModeToSequenceVector("flight",Eigen::Vector3d::UnitZ(),Eigen::Vector3d::Zero(),0.02, 1  );
     this->addModeToSequenceVector("front_stance",std::get<0>(transitionSurfaces[i]),std::get<1>(transitionSurfaces[i]),0.02, 1  ); //0.04
-    this->addModeToSequenceVector("stance",std::get<0>(transitionSurfaces[i]),std::get<1>(transitionSurfaces[i]),0.02, 1  );
+    this->addModeToSequenceVector("stance",std::get<0>(transitionSurfaces[i]),std::get<1>(transitionSurfaces[i]),0.2, 1  );
     if (i==0) this->addModeToSequenceVector("rear_stance",std::get<0>(transitionSurfaces[i]),std::get<1>(transitionSurfaces[i]),0.02, 1  ); //0.04
     else this->addModeToSequenceVector("rear_stance",std::get<0>(transitionSurfaces[i]),std::get<1>(transitionSurfaces[i]),0.02, 1  );
     this->addModeToSequenceVector("flight",Eigen::Vector3d::UnitZ(),Eigen::Vector3d::Zero(),0.02, 1  );
