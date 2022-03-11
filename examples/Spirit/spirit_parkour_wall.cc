@@ -33,7 +33,7 @@ void SpiritParkourWallPronk<Y>::config(
   YAML::Node config = YAML::LoadFile(yaml_path);
   this->nKnotpoints_flight =config[index]["nKnotpoints_flight"].as<double>();
   this->nKnotpoints_stances =config[index]["nKnotpoints_stances"].as<double>();
-  this->apex_height =config[index]["apex_height"].as<double>();
+  this->apex_heights =config[index]["apex_heights"].as<std::vector<double>>();
   this->max_pitch_magnitude =config[index]["max_pitch_magnitude"].as<double>();
   this->max_apex_pitch_magnitude =config[index]["max_apex_pitch_magnitude"].as<double>();
   this->lock_rotation =config[index]["lock_rotation"].as<bool>();
@@ -340,11 +340,46 @@ void SpiritParkourWallPronk<Y>::addConstraints(
   // Nominal stand
   nominalSpiritStandConstraint(plant,trajopt,initialStand.height(), {0}, eps);
 
+  // // Body pose constraints (keep the body flat) at initial state
+  // trajopt.AddBoundingBoxConstraint(1, 1,  x0(positions_map.at("base_qw")));
+  // trajopt.AddBoundingBoxConstraint(0, 0,  x0(positions_map.at("base_qx")));
+  // trajopt.AddBoundingBoxConstraint(0, 0,  x0(positions_map.at("base_qy")));
+  // trajopt.AddBoundingBoxConstraint(0, 0,  x0(positions_map.at("base_qz")));
+
+  // // Initial  velocity
+  // trajopt.AddBoundingBoxConstraint(VectorXd::Zero(n_v), VectorXd::Zero(n_v), x0.tail(n_v));
+
+  // // Final Standing XY Pos 
+  // std::cout<<"FINAL Stand OFFSET: "<<standOffsetFinal(0)<<", "<<standOffsetFinal(1)<<std::endl;
+  // trajopt.AddBoundingBoxConstraint(standOffsetFinal(0)-eps, standOffsetFinal(0)+eps, xf(positions_map.at("base_x")));
+  // trajopt.AddBoundingBoxConstraint(standOffsetFinal(1)-eps, standOffsetFinal(1)+eps, xf(positions_map.at("base_y")));
+  // // Nominal stand
+  // nominalSpiritStandConstraint(plant,trajopt,finalStand.height(), {trajopt.N()-1}, eps);
+  // // Body pose constraints (keep the body flat) at final state
+  // trajopt.AddBoundingBoxConstraint(1, 1, xf(positions_map.at("base_qw")));
+  // trajopt.AddBoundingBoxConstraint(-eps, eps, xf(positions_map.at("base_qx")));
+  // trajopt.AddBoundingBoxConstraint(-eps, eps, xf(positions_map.at("base_qy")));
+  // trajopt.AddBoundingBoxConstraint(-eps, eps, xf(positions_map.at("base_qz")));
+  // // Zero velocity
+  // trajopt.AddBoundingBoxConstraint(VectorXd::Zero(n_v), VectorXd::Zero(n_v), xf.tail(n_v));
+ 
+  // //  *********************initial lift off and final touch down *******************************
+  // trajopt.AddBoundingBoxConstraint( cos(max_pitch_magnitude/2.0),              1, xlo_rear_1(positions_map.at("base_qw")));
+  // trajopt.AddBoundingBoxConstraint(           -eps,            eps, xlo_rear_1(positions_map.at("base_qx")));
+  // trajopt.AddBoundingBoxConstraint(-sin(max_pitch_magnitude/2.0), sin(max_pitch_magnitude/2.0), xlo_rear_1(positions_map.at("base_qy")));
+  // trajopt.AddBoundingBoxConstraint(           -eps,            eps, xlo_rear_1(positions_map.at("base_qz")));
+
+
+  // trajopt.AddBoundingBoxConstraint( cos(max_pitch_magnitude/2.0),              1, xtd_front_2(positions_map.at("base_qw")));
+  // trajopt.AddBoundingBoxConstraint(           -eps,            eps, xtd_front_2(positions_map.at("base_qx")));
+  // trajopt.AddBoundingBoxConstraint(0, sin(max_pitch_magnitude/2.0), xtd_front_2(positions_map.at("base_qy")));
+  // trajopt.AddBoundingBoxConstraint(           -eps,            eps, xtd_front_2(positions_map.at("base_qz")));
+
   // Body pose constraints (keep the body flat) at initial state
-  trajopt.AddBoundingBoxConstraint(1, 1,  x0(positions_map.at("base_qw")));
-  trajopt.AddBoundingBoxConstraint(0, 0,  x0(positions_map.at("base_qx")));
+  trajopt.AddBoundingBoxConstraint(0.995, 1,  x0(positions_map.at("base_qw")));
+  trajopt.AddBoundingBoxConstraint(0, 0 , x0(positions_map.at("base_qx")));
   trajopt.AddBoundingBoxConstraint(0, 0,  x0(positions_map.at("base_qy")));
-  trajopt.AddBoundingBoxConstraint(0, 0,  x0(positions_map.at("base_qz")));
+  trajopt.AddBoundingBoxConstraint(-0.1, 0.1,  x0(positions_map.at("base_qz")));
 
   // Initial  velocity
   trajopt.AddBoundingBoxConstraint(VectorXd::Zero(n_v), VectorXd::Zero(n_v), x0.tail(n_v));
@@ -356,32 +391,30 @@ void SpiritParkourWallPronk<Y>::addConstraints(
   // Nominal stand
   nominalSpiritStandConstraint(plant,trajopt,finalStand.height(), {trajopt.N()-1}, eps);
   // Body pose constraints (keep the body flat) at final state
-  trajopt.AddBoundingBoxConstraint(1, 1, xf(positions_map.at("base_qw")));
+  trajopt.AddBoundingBoxConstraint(0.995, 1, xf(positions_map.at("base_qw")));
   trajopt.AddBoundingBoxConstraint(-eps, eps, xf(positions_map.at("base_qx")));
   trajopt.AddBoundingBoxConstraint(-eps, eps, xf(positions_map.at("base_qy")));
-  trajopt.AddBoundingBoxConstraint(-eps, eps, xf(positions_map.at("base_qz")));
+  trajopt.AddBoundingBoxConstraint(-0.1, 0.1, xf(positions_map.at("base_qz")));
   // Zero velocity
   trajopt.AddBoundingBoxConstraint(VectorXd::Zero(n_v), VectorXd::Zero(n_v), xf.tail(n_v));
  
   //  *********************initial lift off and final touch down *******************************
-  trajopt.AddBoundingBoxConstraint( cos(max_pitch_magnitude/2.0),              1, xlo_rear_1(positions_map.at("base_qw")));
-  trajopt.AddBoundingBoxConstraint(           -eps,            eps, xlo_rear_1(positions_map.at("base_qx")));
-  trajopt.AddBoundingBoxConstraint(-sin(max_pitch_magnitude/2.0), sin(max_pitch_magnitude/2.0), xlo_rear_1(positions_map.at("base_qy")));
-  trajopt.AddBoundingBoxConstraint(           -eps,            eps, xlo_rear_1(positions_map.at("base_qz")));
+  trajopt.AddBoundingBoxConstraint( 0.81,              1, xlo_rear_1(positions_map.at("base_qw")));
+  trajopt.AddBoundingBoxConstraint(           -0.14,            0.14, xlo_rear_1(positions_map.at("base_qx")));
+  trajopt.AddBoundingBoxConstraint(-0.56, 0.56, xlo_rear_1(positions_map.at("base_qy")));
+  trajopt.AddBoundingBoxConstraint(           -0.14,            0.14, xlo_rear_1(positions_map.at("base_qz")));
 
 
-  trajopt.AddBoundingBoxConstraint( cos(max_pitch_magnitude/2.0),              1, xtd_front_2(positions_map.at("base_qw")));
-  trajopt.AddBoundingBoxConstraint(           -eps,            eps, xtd_front_2(positions_map.at("base_qx")));
-  trajopt.AddBoundingBoxConstraint(0, sin(max_pitch_magnitude/2.0), xtd_front_2(positions_map.at("base_qy")));
-  trajopt.AddBoundingBoxConstraint(           -eps,            eps, xtd_front_2(positions_map.at("base_qz")));
-
-
+  trajopt.AddBoundingBoxConstraint(  0.81,              1, xtd_front_2(positions_map.at("base_qw")));
+  trajopt.AddBoundingBoxConstraint(            -0.14,            0.14, xtd_front_2(positions_map.at("base_qx")));
+  trajopt.AddBoundingBoxConstraint(-0.56, 0.56,  xtd_front_2(positions_map.at("base_qy")));
+  trajopt.AddBoundingBoxConstraint(           -0.14,            0.14, xtd_front_2(positions_map.at("base_qz")));
   //  ****************************************************
   for (int iJump=0;iJump<numJumps;iJump++){
     // Apex height
-    if(apex_height > 0){
+    if(apex_heights[iJump] > 0){
       auto xapex = trajopt.state_vars(3 + iJump*5 , 0);
-      trajopt.AddBoundingBoxConstraint(apex_height - eps, apex_height + eps, xapex(positions_map.at("base_z")) );
+      trajopt.AddBoundingBoxConstraint(apex_heights[iJump] - eps, apex_heights[iJump] + eps, xapex(positions_map.at("base_z")) );
       // Apex max_pitch_magnitude constraints
       // trajopt.AddBoundingBoxConstraint( cos(max_apex_pitch_magnitude/2.0),              1, xapex(positions_map.at("base_qw")));
       // trajopt.AddBoundingBoxConstraint(           -eps,            eps, xapex(positions_map.at("base_qx")));
@@ -495,7 +528,7 @@ void SpiritParkourWallPronk<Y>::setUpModeSequence(){
   for (int i=0;i<transitionSurfaces.size();i++){
     this->addModeToSequenceVector("flight",Eigen::Vector3d::UnitZ(),Eigen::Vector3d::Zero(),0.02, 1  );
     this->addModeToSequenceVector("front_stance",std::get<0>(transitionSurfaces[i]),std::get<1>(transitionSurfaces[i]),0.02, 1  ); //0.04
-    this->addModeToSequenceVector("stance",std::get<0>(transitionSurfaces[i]),std::get<1>(transitionSurfaces[i]),0.2, 1  );
+    this->addModeToSequenceVector("stance",std::get<0>(transitionSurfaces[i]),std::get<1>(transitionSurfaces[i]),0.02, 1  );
     if (i==0) this->addModeToSequenceVector("rear_stance",std::get<0>(transitionSurfaces[i]),std::get<1>(transitionSurfaces[i]),0.02, 1  ); //0.04
     else this->addModeToSequenceVector("rear_stance",std::get<0>(transitionSurfaces[i]),std::get<1>(transitionSurfaces[i]),0.02, 1  );
     this->addModeToSequenceVector("flight",Eigen::Vector3d::UnitZ(),Eigen::Vector3d::Zero(),0.02, 1  );

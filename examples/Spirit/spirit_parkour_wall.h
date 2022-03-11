@@ -129,7 +129,6 @@ private:
 
     double cost_velocity_legs_flight;
     double cost_actuation_legs_flight;
-    double apex_height;
     double max_apex_pitch_magnitude;
     double max_pitch_magnitude;
     double initial_height;
@@ -143,6 +142,7 @@ private:
     double work_constraint_scale;
     int nJumps;
     double stand_height;
+    std::vector<double> apex_heights;
 public:
     dairlib::OptimalSpiritStand initialStand;
     dairlib::OptimalSpiritStand finalStand;
