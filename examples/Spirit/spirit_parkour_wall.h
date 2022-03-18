@@ -142,6 +142,7 @@ private:
     double work_constraint_scale;
     int nJumps;
     double stand_height;
+    double xtol;
     std::vector<double> apex_heights;
 public:
     dairlib::OptimalSpiritStand initialStand;

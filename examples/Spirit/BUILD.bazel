@@ -175,26 +175,6 @@ cc_library(
     ],
 )
 
-cc_library(
-    name = "Spirit4Test",
-    linkopts =["-lstdc++fs"],
-    srcs = ["Spirit4Test.cc"],
-    hdrs = ["Spirit4Test.h"],
-    data = ["spirit_drake.urdf"],
-    deps = [
-        ":animate_spirit",
-        ":spirit_box_jump",
-        ":spirit_utils",
-        ":surface_conf",
-        "//common",
-        "//lcm:dircon_trajectory_saver",
-        "//multibody/kinematic",
-        "//systems/primitives",
-        "//systems/trajectory_optimization/dircon",
-        "@drake//:drake_shared_library",
-        "@gflags",
-    ],
-)
 
 cc_library(
     name = "surface_conf",
@@ -217,26 +197,6 @@ cc_binary(
         ":spirit_bound",
         ":spirit_parkour_wall_jump",
         ":Spirit",
-        "//common",
-        "//lcm:dircon_trajectory_saver",
-        "//multibody/kinematic",
-        "//systems/primitives",
-        "//systems/trajectory_optimization/dircon",
-        "@drake//:drake_shared_library",
-        "@gflags",
-    ],
-)
-
-
-cc_binary(
-    name = "spirit_test2",
-    srcs = ["SpiritTest2.cc"],
-    deps = [
-        ":animate_spirit",
-        ":spirit_jump",
-        ":spirit_bound",
-        ":Spirit",
-        ":Spirit4Test",
         "//common",
         "//lcm:dircon_trajectory_saver",
         "//multibody/kinematic",

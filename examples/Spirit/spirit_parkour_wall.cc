@@ -49,6 +49,7 @@ void SpiritParkourWallPronk<Y>::config(
   this->mu =config[index]["mu"].as<double>();
   this->eps =config[index]["eps"].as<double>();
   this->tol =config[index]["tol"].as<double>();
+  this->xtol =config[index]["xtol"].as<double>();
   this->work_constraint_scale =config[index]["work_constraint_scale"].as<double>();
   this->nJumps=config[index]["n_jumps"].as<int>();
   this->stand_height=config[index]["stand_height"].as<double>();
@@ -128,8 +129,8 @@ void SpiritParkourWallPronk<Y>::offsetConstraint(
   std::cout << "t1 offset -: " <<  lower1 << std::endl;
   
   
-  trajopt.AddLinearConstraint( t1(0) * xb(posInds[0]) + t1(1) * xb(posInds[1]) + t1(2) * xb(posInds[2])  <=  (t1Toffset));
-  trajopt.AddLinearConstraint( t1(0) * xb(posInds[0]) + t1(1) * xb(posInds[1]) + t1(2) * xb(posInds[2])  >=  (t1Toffset));
+  trajopt.AddLinearConstraint( t1(0) * xb(posInds[0]) + t1(1) * xb(posInds[1]) + t1(2) * xb(posInds[2])  <=  (t1Toffset+xtol));
+  trajopt.AddLinearConstraint( t1(0) * xb(posInds[0]) + t1(1) * xb(posInds[1]) + t1(2) * xb(posInds[2])  >=  (t1Toffset-xtol));
   
   // trajopt.AddLinearConstraint( t3(0) * xb(posInds[0]) + t3(1) * xb(posInds[1]) + t3(2) * xb(posInds[2])  <=  (t3Toffset+0.25));
   // trajopt.AddLinearConstraint( t3(0) * xb(posInds[0]) + t3(1) * xb(posInds[1]) + t3(2) * xb(posInds[2])  >=  (t3Toffset+0.2));
@@ -195,13 +196,13 @@ void SpiritParkourWallPronk<Y>::generateInitialGuess(MultibodyPlant<Y>& plant){
       &builder, &scene_graph, this->x_traj);
   auto diagram = builder.Build();
   std::cout << "animating 1 times." << std::endl;
-  for (int i = 0; i <1; i++ ) {
-    drake::systems::Simulator<double> simulator(*diagram);
-    simulator.set_target_realtime_rate(0.25);
-    simulator.Initialize();
-    simulator.AdvanceTo(this->x_traj.end_time());
-    sleep(2);
-  }
+  // for (int i = 0; i <1; i++ ) {
+  //   drake::systems::Simulator<double> simulator(*diagram);
+  //   simulator.set_target_realtime_rate(0.25);
+  //   simulator.Initialize();
+  //   simulator.AdvanceTo(this->x_traj.end_time());
+  //   sleep(2);
+  // }
 }
 
 template <class Y>
@@ -414,7 +415,8 @@ void SpiritParkourWallPronk<Y>::addConstraints(
     // Apex height
     if(apex_heights[iJump] > 0){
       auto xapex = trajopt.state_vars(3 + iJump*5 , 0);
-      trajopt.AddBoundingBoxConstraint(apex_heights[iJump] - eps, apex_heights[iJump] + eps, xapex(positions_map.at("base_z")) );
+      // trajopt.AddBoundingBoxConstraint(apex_heights[iJump] - eps, apex_heights[iJump] + eps, xapex(positions_map.at("base_z")) );
+      trajopt.AddBoundingBoxConstraint(apex_heights[iJump] - 0.1, apex_heights[iJump] + 0.1, xapex(positions_map.at("base_z")) );
       // Apex max_pitch_magnitude constraints
       // trajopt.AddBoundingBoxConstraint( cos(max_apex_pitch_magnitude/2.0),              1, xapex(positions_map.at("base_qw")));
       // trajopt.AddBoundingBoxConstraint(           -eps,            eps, xapex(positions_map.at("base_qx")));
