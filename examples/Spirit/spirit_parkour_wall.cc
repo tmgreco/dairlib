@@ -530,7 +530,7 @@ void SpiritParkourWallPronk<Y>::setUpModeSequence(){
   for (int i=0;i<transitionSurfaces.size();i++){
     this->addModeToSequenceVector("flight",Eigen::Vector3d::UnitZ(),Eigen::Vector3d::Zero(),0.02, 1  );
     this->addModeToSequenceVector("front_stance",std::get<0>(transitionSurfaces[i]),std::get<1>(transitionSurfaces[i]),0.02, 1  ); //0.04
-    this->addModeToSequenceVector("stance",std::get<0>(transitionSurfaces[i]),std::get<1>(transitionSurfaces[i]),0.02, 1  );
+    this->addModeToSequenceVector("stance",std::get<0>(transitionSurfaces[i]),std::get<1>(transitionSurfaces[i]),0.04, 1  );
     if (i==0) this->addModeToSequenceVector("rear_stance",std::get<0>(transitionSurfaces[i]),std::get<1>(transitionSurfaces[i]),0.02, 1  ); //0.04
     else this->addModeToSequenceVector("rear_stance",std::get<0>(transitionSurfaces[i]),std::get<1>(transitionSurfaces[i]),0.02, 1  );
     this->addModeToSequenceVector("flight",Eigen::Vector3d::UnitZ(),Eigen::Vector3d::Zero(),0.02, 1  );
