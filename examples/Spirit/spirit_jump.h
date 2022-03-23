@@ -43,17 +43,27 @@ public:
 
     SpiritJump();
 
+    /// Assigns values to member variables according to input yaml file
+    /// \param yaml_path path of the yaml file
+    /// \param saved_directory directory for saving the output trajectories (namely for setting file_name_out)
+    /// \param index indicates that we are using the index^th configuration
+    /// \param plant: robot model
     void config(std::string yaml_path, std::string saved_directory, int index,MultibodyPlant<Y>* plant);
-    /// generateInitialGuess, generates a bad initial guess for the spirit jump traj opt
+    
+    /// Generate a bad initial guess for the spirit jump traj opt
     void generateInitialGuess(MultibodyPlant<Y>& plant);
 
-    // addConstraints, adds constraints to the trajopt jump problem. See runSpiritJump for a description of the inputs
-    
+    /// Adds constraints to the trajopt jump problem
+    /// \param plant robot model
+    /// \param trajopt trajectory optimization problem to be solved
     void addConstraints(MultibodyPlant<Y>& plant, 
                         dairlib::systems::trajectory_optimization::Dircon<Y>& trajopt
                         );
 
-    /// runSpiritJump, runs a trajectory optimization problem for spirit jumping on flat ground
+    /// Run a trajectory optimization problem for spirit jump
+    /// \param plant robot model
+    /// \param pp_xtraj state trajectory pointer used for animation
+    /// \param surface_vector vector of surfaces in the scene (for animation)
     void run(MultibodyPlant<Y>& plant,
             PiecewisePolynomial<Y>* pp_xtraj,
             std::vector<SurfaceConf>* surface_vector);
@@ -91,16 +101,16 @@ public:
         }
 
 private:
-    double duration;
+    double duration; //!< maximum duration of the jumping behavior
     double apex_height;
-    double initial_height;
-    double fore_aft_displacement;
+    double initial_height; //!< initial stand height
+    double fore_aft_displacement; //!< how long the robot jump forward
     bool lock_rotation;
-    bool lock_legs_apex;
+    bool lock_legs_apex; //!< reach a specific legs configuration at apex
     bool force_symmetry;
     bool use_nominal_stand;
-    double max_duration;
-    double eps;
+    double max_duration; //!< maximum duration of the jumping behavior
+    double eps; //!< tolerance for the constraints
 
 };
 }

@@ -15,10 +15,11 @@ template <class Y>
 SpiritBound<Y>::SpiritBound(){
 }
 
-//Configuration for the next optimization (jump)
-/// \param yaml_path: path of yaml file
-/// \param saved_directory: directory to save trajectories and yaml duplication
-/// \param index: which configuration to load
+/// Assigns values to member variables according to input yaml file
+/// \param yaml_path path of the yaml file
+/// \param saved_directory directory for saving the output trajectories (namely for setting file_name_out)
+/// \param index indicates that we are using the index^th configuration
+/// \param plant: robot model
 template <class Y>
 void SpiritBound<Y>::config(std::string yaml_path, std::string saved_directory, int index,MultibodyPlant<Y>* plant){
   YAML::Node config = YAML::LoadFile(yaml_path);
@@ -46,7 +47,7 @@ void SpiritBound<Y>::config(std::string yaml_path, std::string saved_directory, 
 }
 
 
-/// generateInitialGuess, generates a bad initial guess for the spirit jump traj opt
+/// Generate a bad initial guess for the spirit bound traj opt
 /// \param plant: robot model
 template <class Y>
 void SpiritBound<Y>::generateInitialGuess(MultibodyPlant<Y>& plant){
@@ -258,6 +259,9 @@ std::vector<MatrixXd> x_points;
 }
 
 
+/// add cost for legs
+/// \param joints add cost for which joint of the legs
+/// \param mode_index add most for which mode 
 template <class Y>
 void SpiritBound<Y>::addCostLegs(MultibodyPlant<Y>& plant,
                  dairlib::systems::trajectory_optimization::Dircon<Y>& trajopt,
@@ -293,6 +297,9 @@ void SpiritBound<Y>::addCostLegs(MultibodyPlant<Y>& plant,
   }
 }
 
+/// Adds cost to the trajopt problem
+/// \param plant robot model
+/// \param trajopt trajectory optimization problem to be solved
 template <class Y>
 std::vector<drake::solvers::Binding<drake::solvers::Cost>> SpiritBound<Y>::addCost(
             MultibodyPlant<Y>& plant,
@@ -313,9 +320,9 @@ std::vector<drake::solvers::Binding<drake::solvers::Cost>> SpiritBound<Y>::addCo
 
   return AddWorkCost(plant, trajopt, this->cost_work);
 }
-// addConstraints, adds constraints to the trajopt jump problem. See runSpiritJump for a description of the inputs
-/// \param plant: robot model
-/// \param trajopt: trajectory to be optimized
+/// Adds constraints to the trajopt bound problem
+/// \param plant robot model
+/// \param trajopt trajectory optimization problem to be solved
 template <class Y>
 void SpiritBound<Y>::addConstraints(
                     MultibodyPlant<Y>& plant,
@@ -430,9 +437,10 @@ void SpiritBound<Y>::setUpModeSequence(){
   this->addModeToSequenceVector("stance",Eigen::Vector3d::UnitZ(),Eigen::Vector3d::Zero(),0.02, 0.1);
 }
 
-/// runSpiritJump, runs a trajectory optimization problem for spirit jumping on flat ground
+/// Runs a trajectory optimization problem for spirit bounding on flat ground
 /// \param plant: robot model
-/// \param pp_xtraj: trajectory passed by pointer for spirit animation
+/// \param pp_xtraj: state trajectory passed by pointer for spirit animation
+/// \param surface_vector vector of surfaces in the scene (for animation)
 template <class Y>
 void SpiritBound<Y>::run(MultibodyPlant<Y>& plant,
                           PiecewisePolynomial<Y>* pp_xtraj,
@@ -544,65 +552,6 @@ void SpiritBound<Y>::run(MultibodyPlant<Y>& plant,
 
   /// Run animation of the final trajectory
   *pp_xtraj =trajopt.ReconstructStateTrajectory(result);
-  // ///Setup trajectory optimization
-  // auto trajopt = Dircon<Y>(sequence); 
-
-  // this->setSolver(trajopt);
-  // // Setting up cost
-  // auto work_binding = this->addCost(plant,trajopt);
-
-  // // Initialize the trajectory control state and forces
-  // this->initTrajectory(trajopt,sequence);
-
-  // // Setting constraints
-  // addConstraints(plant,trajopt);
-
-  // /// Setup the visualization during the optimization
-  // int num_ghosts = 1;// Number of ghosts in visualization. NOTE: there are limitations on number of ghosts based on modes and knotpoints
-  // std::vector<unsigned int> visualizer_poses; // Ghosts for visualizing during optimization
-  // for(int i = 0; i < sequence.num_modes(); i++){
-  //     visualizer_poses.push_back(num_ghosts); 
-  // }
-  // trajopt.CreateVisualizationCallback(
-  //     dairlib::FindResourceOrThrow("examples/Spirit/spirit_drake.urdf"),
-  //     visualizer_poses, 0.2); // setup which URDF, how many poses, and alpha transparency 
-
-  // /// Run the optimization using your initial guess
-  // drake::solvers::SolverId solver_id("");
-  // if (this->ipopt) {
-  //   solver_id = drake::solvers::IpoptSolver().id();
-  //   std::cout << "\nChose manually: " << solver_id.name() << std::endl;
-  // } else {
-  //   solver_id = drake::solvers::ChooseBestSolver(trajopt);
-  //   std::cout << "\nChose the best solver: " << solver_id.name() << std::endl;
-  // }
-
-  // auto start = std::chrono::high_resolution_clock::now();
-  // auto solver = drake::solvers::MakeSolver(solver_id);
-  // drake::solvers::MathematicalProgramResult result;
-  // solver->Solve(trajopt, trajopt.initial_guess(), trajopt.solver_options(),
-  //               &result);
-  // auto finish = std::chrono::high_resolution_clock::now();
-  // std::chrono::duration<double> elapsed = finish - start;
-  // std::cout << "Solve time: " << elapsed.count() <<std::endl;
-  // std::cout << "Cost: " << result.get_optimal_cost() <<std::endl;
-  // std::cout << (result.is_success() ? "Optimization Success" : "Optimization Fail") << std::endl;
-
-  // /// Save trajectory
-  // this->saveTrajectory(plant,trajopt,result);
-
-  // /// pass the final trajectory back to spirit for animation
-  // *pp_xtraj =trajopt.ReconstructStateTrajectory(result);
-
-  // auto x_trajs = trajopt.ReconstructDiscontinuousStateTrajectory(result);
-  // std::cout<<"Work = " << dairlib::calcElectricalWork(plant, x_trajs, this->u_traj) << std::endl;
-
-  // if(this->cost_work > 0){
-  //   double cost_work_val = solvers::EvalCostGivenSolution(
-  //       result, work_binding);
-  //   std::cout<<"ReLu Work = " << cost_work_val/this->cost_work << std::endl;
-  // }
-
 }
 
 template class SpiritBound<double>;

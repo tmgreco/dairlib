@@ -105,4 +105,3 @@
   tol: 2e-1
   file_name_out: bound_100cm_min_work
   file_name_in: bound_100cm_low_mu
-  animate: true
