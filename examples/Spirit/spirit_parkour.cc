@@ -279,14 +279,12 @@ void SpiritParkourJump<Y>::addCost(
   trajopt.AddRunningCost(this->cost_time);
 
   // // Hard code which joints are in flight for which mode //FIXME using quad_mod_seq
-  addCostLegs(plant, trajopt, this->cost_velocity_legs_flight, this->cost_actuation_legs_flight, {0, 1, 4, 5, 8, 10}, 1);
-  addCostLegs(plant, trajopt, this->cost_velocity_legs_flight, this->cost_actuation_legs_flight, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}, 2);
-  addCostLegs(plant, trajopt, this->cost_velocity_legs_flight, this->cost_actuation_legs_flight, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}, 3);
-  addCostLegs(plant, trajopt, this->cost_velocity_legs_flight, this->cost_actuation_legs_flight, {2, 3, 6, 7, 10, 11}, 4);
-  addCostLegs(plant, trajopt, this->cost_velocity_legs_flight, this->cost_actuation_legs_flight, {0, 1, 4, 5, 8, 10}, 6);
-  addCostLegs(plant, trajopt, this->cost_velocity_legs_flight, this->cost_actuation_legs_flight, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}, 7);
-  addCostLegs(plant, trajopt, this->cost_velocity_legs_flight, this->cost_actuation_legs_flight, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}, 8);
-  addCostLegs(plant, trajopt, this->cost_velocity_legs_flight, this->cost_actuation_legs_flight, {2, 3, 6, 7, 10, 11}, 9);
+  for(int iJump = 0; iJump < nJumps; iJump++){
+    addCostLegs(plant, trajopt, this->cost_velocity_legs_flight, this->cost_actuation_legs_flight, {0, 1, 4, 5, 8, 10}, iJump*5+1);
+    addCostLegs(plant, trajopt, this->cost_velocity_legs_flight, this->cost_actuation_legs_flight, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}, iJump*5+2);
+    addCostLegs(plant, trajopt, this->cost_velocity_legs_flight, this->cost_actuation_legs_flight, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}, iJump*5+3);
+    addCostLegs(plant, trajopt, this->cost_velocity_legs_flight, this->cost_actuation_legs_flight, {2, 3, 6, 7, 10, 11}, iJump*5+4);
+  }
 }
 
 // addConstraints, adds constraints to the trajopt jump problem. See runSpiritParkourJump for a description of the inputs
