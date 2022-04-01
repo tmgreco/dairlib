@@ -50,8 +50,11 @@ SOFTWARE.
  	leg suffix="2" hipJointName="4" kneeJointName="5" abductionJointName="10"
  	leg suffix="3" hipJointName="6" kneeJointName="7" abductionJointName="11"
 	-->
-  <!-- First base_link segment-->
+  <!-- First body segment-->
   <link name="base_link">
+	</link>
+  <!-- First body segment-->
+  <link name="body">
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
@@ -73,10 +76,16 @@ SOFTWARE.
       </geometry>
     </collision>
   </link>
-  <!-- Second base_link segment-->
+  <!-- Fixed rear body displacement -->
+  <joint name="fixed_rear" type="fixed">
+    <parent link="base_link"/>
+    <child link="body"/>
+    <origin xyz="-0.08375 0 0"/>
+  </joint>
+  <!-- Second body segment-->
   <link name="second_body_segment">
     <visual>
-      <origin rpy="0 0 0" xyz="0.08375 0 0"/>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
         <box size="0.1675 0.24 0.104"/>
       </geometry>
@@ -96,7 +105,7 @@ SOFTWARE.
       </geometry>
     </collision>
   </link>
-  <!-- base_link twist joint. Joint name: 12 -->
+  <!-- body twist joint. Joint name: 12 -->
   <joint name="joint_12" type="revolute">
     <parent link="base_link"/>
     <child link="second_body_segment"/>
@@ -299,7 +308,7 @@ SOFTWARE.
   </link>
   <!-- Abduction joint. Joint names are: 8 9 10 11 -->
   <joint name="joint_9" type="revolute">
-    <parent link="base_link"/>
+    <parent link="body"/>
     <child link="hip1"/>
     <axis xyz="1 0 0"/>
     <origin xyz="-0.14255 0.07 0"/>
@@ -617,7 +626,7 @@ SOFTWARE.
   </link>
   <!-- Abduction joint. Joint names are: 8 9 10 11 -->
   <joint name="joint_11" type="revolute">
-    <parent link="base_link"/>
+    <parent link="body"/>
     <child link="hip3"/>
     <axis xyz="1 0 0"/>
     <origin xyz="-0.14255 -0.07 0"/>
