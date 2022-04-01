@@ -68,6 +68,9 @@ SOFTWARE.
 	<xacro:property name="abEffortLimit" value="40"/>
 	<xacro:property name="jointSpeedLimit" value="30"/>
 	<xacro:property name="jointEffortLimit" value="40"/>
+	<xacro:property name="spineKinLimit" value="0.707"/>
+	<xacro:property name="spineSpeedLimit" value="30"/>
+	<xacro:property name="spineEffortLimit" value="40"/>
 
 	<xacro:property name="bodyColor" value="darkgray"/>
 	<xacro:property name="hipColor" value="copper"/>
@@ -155,7 +158,7 @@ SOFTWARE.
 			<child link="second_body_segment"/>
 			<axis xyz="1 0 0"/>
 			<origin xyz="${bodyLength/4} 0 0"/>
-			<limit upper="${pi/2}" lower="${-pi/2}" effort="1000" velocity="1000.00"/>
+			<limit upper="${spineKinLimit}" lower="${-spineKinLimit}" effort="${spineEffortLimit}" velocity="${spineSpeedLimit}"/>
 			<dynamics damping="0.0" friction="0.0"/>
 	</joint>
 	

@@ -102,7 +102,7 @@ SOFTWARE.
     <child link="second_body_segment"/>
     <axis xyz="1 0 0"/>
     <origin xyz="0.08375 0 0"/>
-    <limit effort="1000" lower="-1.570796326795" upper="1.570796326795" velocity="1000.00"/>
+    <limit effort="40" lower="-0.707" upper="0.707" velocity="30"/>
     <dynamics damping="0.0" friction="0.0"/>
   </joint>
   <!-- Transmission elements required for Gazebo -->
