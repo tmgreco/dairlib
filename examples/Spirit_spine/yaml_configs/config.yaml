@@ -1,7 +1,11 @@
-- num_optimizations: 4
-  initial_guess: ""
-  saved_directory: /home/feng/Downloads/dairlib/examples/Spirit/saved_trajectories/jump_test1/
-- name: jump_1
+# YAML spirit jump configuration
+-
+  num_optimizations: 4
+  initial_guess: ""  #if it is empty, the program will generate initial guess. Otherwise, we use the file given here as the initial guess
+  saved_directory: /home/feng/Downloads/dairlib/examples/Spirit_spine/saved_trajectories/jump_test1/
+
+- 
+  name: jump_1
   duration: 1
   ipopt: true
   num_knot_points:
@@ -18,14 +22,17 @@
   use_nominal_stand: true
   max_duration: 2
   cost_actuation: 3
-  cost_velocity: 10
-  cost_work: 0
+  cost_velocity: 10 
+  cost_work: 0 
+  cost_time: 0
   mu: 100
   eps: 1e-2
   tol: 1e-1
   file_name_out: simple_jump
   file_name_in: ""
-- name: jump_2
+  
+-
+  name: jump_2
   duration: 1
   ipopt: true
   num_knot_points:
@@ -42,14 +49,17 @@
   use_nominal_stand: true
   max_duration: 2
   cost_actuation: 3
-  cost_velocity: 10
-  cost_work: 0
+  cost_velocity: 10 
+  cost_work: 0 
+  cost_time: 0
   mu: 100
   eps: 0
   tol: 1e-2
   file_name_out: jump_100cm
   file_name_in: ""
-- name: jump_3
+ 
+-
+  name: jump_3
   duration: 1
   ipopt: true
   num_knot_points:
@@ -66,14 +76,17 @@
   use_nominal_stand: true
   max_duration: 2
   cost_actuation: 3
-  cost_velocity: 10
-  cost_work: 0
+  cost_velocity: 10 
+  cost_work: 0 
+  cost_time: 0
   mu: 1
   eps: 1e-2
   tol: 1e-3
   file_name_out: jump_100cm_hq
   file_name_in: jump_100cm
-- name: jump_4
+ 
+-
+  name: jump_4
   duration: 1
   ipopt: true
   num_knot_points:
@@ -90,8 +103,9 @@
   use_nominal_stand: true
   max_duration: 1.5
   cost_actuation: 0.3
-  cost_velocity: 1
-  cost_work: 100
+  cost_velocity: 1 
+  cost_work: 100 
+  cost_time: 0
   mu: 1
   eps: 1e-2
   tol: 1e-3

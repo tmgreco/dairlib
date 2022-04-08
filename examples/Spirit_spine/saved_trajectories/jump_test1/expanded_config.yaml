@@ -1,6 +1,6 @@
 - num_optimizations: 4
   initial_guess: ""
-  saved_directory: /home/feng/Downloads/dairlib/examples/Spirit/saved_trajectories/jump_test1/
+  saved_directory: /home/feng/Downloads/dairlib/examples/Spirit_spine/saved_trajectories/jump_test1/
 - name: jump_1
   duration: 1
   ipopt: true
@@ -20,6 +20,7 @@
   cost_actuation: 3
   cost_velocity: 10
   cost_work: 0
+  cost_time: 0
   mu: 100
   eps: 1e-2
   tol: 1e-1
@@ -44,6 +45,7 @@
   cost_actuation: 3
   cost_velocity: 10
   cost_work: 0
+  cost_time: 0
   mu: 100
   eps: 0
   tol: 1e-2
@@ -68,6 +70,7 @@
   cost_actuation: 3
   cost_velocity: 10
   cost_work: 0
+  cost_time: 0
   mu: 1
   eps: 1e-2
   tol: 1e-3
@@ -92,6 +95,7 @@
   cost_actuation: 0.3
   cost_velocity: 1
   cost_work: 100
+  cost_time: 0
   mu: 1
   eps: 1e-2
   tol: 1e-3

@@ -1,0 +1,365 @@
+# YAML spirit parkour jump configuration
+-
+  num_optimizations: 2
+  initial_guess: ""  #if it is empty, the program will generate initial guess. Otherwise, we use the file given here as the initial guess
+  saved_directory: /home/feng/Downloads/dairlib/examples/Spirit_spine/saved_trajectories/parkour_jump_test1/
+  iterate:
+    
+
+
+- 
+  name: parkour_pronk_1
+  n_jumps: 2
+  transition_surface:
+    - 
+      - 0     #normal x
+      - 0     #normal y
+      - 1     #normal z
+      - 0     #offset x
+      - 0     #offset y
+      - 0     #offset z
+  initial_stand:
+    - 0  #normal x
+    - 0  #normal y
+    - 1  #normal z
+    - 0  #offset x
+    - 0  #offset y
+    - 0  #offset z
+    - false #rerun
+  final_stand:
+    - 0  #normal x
+    - 0  #normal y
+    - 1  #normal z
+    - 0  #offset x
+    - 0  #offset y
+    - 0 #offset z
+    - false #rerun
+  stand_height: 0.23
+  nKnotpoints_flight: 7
+  nKnotpoints_stances: 7
+  apex_height: 0.65
+  max_pitch_magnitude: 0.6
+  max_apex_pitch_magnitude: 0.1
+  lock_rotation: true
+  lock_legs_apex: false
+  force_symmetry: true
+  max_duration: 4
+  cost_actuation: 3
+  cost_velocity: 10 
+  cost_velocity_legs_flight: 2 
+  cost_actuation_legs_flight: 1 
+  cost_time: 1000
+  cost_work: 0 
+  mu: 100
+  eps: 5e-2
+  tol: 1e-1
+  work_constraint_scale: 0
+  file_name_out: simple_parkour_2_1
+  file_name_in: ""
+  animate: false
+  
+- 
+  name: parkour_pronk_2
+  n_jumps: 2
+  transition_surface:
+    -
+      - 0     #normal x
+      - 0     #normal y
+      - 1     #normal z
+      - 0.7   #offset x
+      - 0     #offset y
+      - 0     #offset z
+  initial_stand:
+    - 0  #normal x
+    - 0  #normal y
+    - 1  #normal z
+    - 0  #offset x
+    - 0  #offset y
+    - 0  #offset z
+    - false #rerun
+  final_stand:
+    - 0  #normal x
+    - 0  #normal y
+    - 1  #normal z
+    - 1.4  #offset x
+    - 0  #offset y
+    - 0 #offset z
+    - false #rerun
+  stand_height: 0.23
+  nKnotpoints_flight: 7
+  nKnotpoints_stances: 7
+  apex_height: 0.6
+  max_pitch_magnitude: 1
+  max_apex_pitch_magnitude: 0.3
+  lock_rotation: true
+  lock_legs_apex: false
+  force_symmetry: true
+  max_duration: 2
+  cost_actuation: 3
+  cost_velocity: 15 
+  cost_velocity_legs_flight: 2 
+  cost_actuation_legs_flight: 1 
+  cost_time: 1000
+  cost_work: 0 
+  mu: 100
+  eps: 1e-2
+  tol: 1e-1
+  work_constraint_scale: 0
+  file_name_out: simple_parkour_2_2
+  file_name_in: simple_parkour_2_1
+  animate: false
+
+- 
+  name: parkour_pronk_3
+  n_jumps: 2
+  transition_surface:
+    -
+      - 0     #normal x
+      - 0     #normal y
+      - 1     #normal z
+      - 0.7   #offset x
+      - 0     #offset y
+      - 0.1   #offset z
+  initial_stand:
+    - 0  #normal x
+    - 0  #normal y
+    - 1  #normal z
+    - 0  #offset x
+    - 0  #offset y
+    - 0  #offset z
+    - false #rerun
+  final_stand:
+    - 0  #normal x
+    - 0  #normal y
+    - 1  #normal z
+    - 1.4  #offset x
+    - 0  #offset y
+    - 0 #offset z
+    - false #rerun
+  stand_height: 0.23
+  nKnotpoints_flight: 7
+  nKnotpoints_stances: 7
+  apex_height: 0.6
+  max_pitch_magnitude: 1.2
+  max_apex_pitch_magnitude: 0.6
+  lock_rotation: true
+  lock_legs_apex: false
+  force_symmetry: true
+  max_duration: 2
+  cost_actuation: 3
+  cost_velocity: 15 
+  cost_velocity_legs_flight: 2 
+  cost_actuation_legs_flight: 1
+  cost_time: 1000 
+  cost_work: 0 
+  mu: 100
+  eps: 1e-2
+  tol: 1e-1
+  work_constraint_scale: 0
+  file_name_out: simple_parkour_2_3
+  file_name_in: simple_parkour_2_2
+  animate: true
+
+- 
+  name: parkour_pronk_4
+  n_jumps: 2
+  transition_surface:
+    -
+      - 0     #normal x
+      - 0     #normal y
+      - 1     #normal z
+      - 0.7   #offset x
+      - 0     #offset y
+      - 0.2   #offset z
+  initial_stand:
+    - 0  #normal x
+    - 0  #normal y
+    - 1  #normal z
+    - 0  #offset x
+    - 0  #offset y
+    - 0  #offset z
+    - false #rerun
+  final_stand:
+    - 0  #normal x
+    - 0  #normal y
+    - 1  #normal z
+    - 1.4  #offset x
+    - 0  #offset y
+    - 0 #offset z
+    - false #rerun
+  stand_height: 0.23
+  nKnotpoints_flight: 7
+  nKnotpoints_stances: 7
+  apex_height: 0.6
+  max_pitch_magnitude: 1.5
+  max_apex_pitch_magnitude: 0.8
+  lock_rotation: true
+  lock_legs_apex: true
+  force_symmetry: true
+  max_duration: 2
+  cost_actuation: 3
+  cost_velocity: 15 
+  cost_velocity_legs_flight: 2 
+  cost_actuation_legs_flight: 1 
+  cost_time: 1000
+  cost_work: 100 
+  mu: 100
+  eps: 1e-2
+  tol: 1e-1
+  work_constraint_scale: 0
+  file_name_out: simple_parkour_2_4
+  file_name_in: simple_parkour_2_3
+  animate: false
+
+- 
+  name: parkour_pronk_5
+  n_jumps: 2
+  transition_surface:
+    -
+      - 0     #normal x
+      - 0     #normal y
+      - 1     #normal z
+      - 0.7   #offset x
+      - 0     #offset y
+      - 0.3   #offset z
+  initial_stand:
+    - 0  #normal x
+    - 0  #normal y
+    - 1  #normal z
+    - 0  #offset x
+    - 0  #offset y
+    - 0  #offset z
+    - false #rerun
+  final_stand:
+    - 0  #normal x
+    - 0  #normal y
+    - 1  #normal z
+    - 1.4  #offset x
+    - 0  #offset y
+    - 0 #offset z
+    - false #rerun
+  stand_height: 0.23
+  nKnotpoints_flight: 7
+  nKnotpoints_stances: 7
+  apex_height: 0.65
+  max_pitch_magnitude: 1.5
+  max_apex_pitch_magnitude: 0.8
+  lock_rotation: true
+  lock_legs_apex: true
+  force_symmetry: true
+  max_duration: 2
+  cost_actuation: 3
+  cost_velocity: 15 
+  cost_velocity_legs_flight: 2 
+  cost_actuation_legs_flight: 1 
+  cost_time: 0
+  cost_work: 100 
+  mu: 100
+  eps: 1e-2
+  tol: 1e-1
+  work_constraint_scale: 0
+  file_name_out: simple_parkour_2_5
+  file_name_in: simple_parkour_2_4
+  animate: false
+
+- 
+  name: parkour_pronk_6
+  n_jumps: 2
+  transition_surface:
+    -
+      - 0     #normal x
+      - 0     #normal y
+      - 1     #normal z
+      - 0.7   #offset x
+      - 0     #offset y
+      - 0.4   #offset z
+  initial_stand:
+    - 0  #normal x
+    - 0  #normal y
+    - 1  #normal z
+    - 0  #offset x
+    - 0  #offset y
+    - 0  #offset z
+    - false #rerun
+  final_stand:
+    - 0  #normal x
+    - 0  #normal y
+    - 1  #normal z
+    - 1.4  #offset x
+    - 0  #offset y
+    - 0 #offset z
+    - false #rerun
+  stand_height: 0.23
+  nKnotpoints_flight: 7
+  nKnotpoints_stances: 7
+  apex_height: 0.65
+  max_pitch_magnitude: 2
+  max_apex_pitch_magnitude: 1
+  lock_rotation: true
+  lock_legs_apex: true
+  force_symmetry: true
+  max_duration: 2
+  cost_actuation: 3
+  cost_velocity: 15 
+  cost_velocity_legs_flight: 2 
+  cost_actuation_legs_flight: 1 
+  cost_time: 0
+  cost_work: 100 
+  mu: 1
+  eps: 1e-2
+  tol: 1e-1
+  work_constraint_scale: 0
+  file_name_out: simple_parkour_2_6
+  file_name_in: simple_parkour_2_5
+  animate: false
+
+- 
+  name: parkour_pronk_7
+  n_jumps: 2
+  transition_surface:
+    -
+      - 0     #normal x
+      - 0     #normal y
+      - 1     #normal z
+      - 0.7   #offset x
+      - 0     #offset y
+      - 0.5     #offset z
+  initial_stand:
+    - 0  #normal x
+    - 0  #normal y
+    - 1  #normal z
+    - 0  #offset x
+    - 0  #offset y
+    - 0  #offset z
+    - false #rerun
+  final_stand:
+    - 0  #normal x
+    - 0  #normal y
+    - 1  #normal z
+    - 1.4  #offset x
+    - 0  #offset y
+    - 0 #offset z
+    - false #rerun
+  stand_height: 0.23
+  nKnotpoints_flight: 7
+  nKnotpoints_stances: 7
+  apex_height: 0.7
+  max_pitch_magnitude: 2
+  max_apex_pitch_magnitude: 1
+  lock_rotation: true
+  lock_legs_apex: true
+  force_symmetry: true
+  max_duration: 2.5
+  cost_actuation: 3
+  cost_velocity: 15 
+  cost_velocity_legs_flight: 2 
+  cost_actuation_legs_flight: 1 
+  cost_time: 0
+  cost_work: 100 
+  mu: 1
+  eps: 1e-2
+  tol: 1e-1
+  work_constraint_scale: 0
+  file_name_out: simple_parkour_2_7
+  file_name_in: simple_parkour_2_6
+  animate: true
