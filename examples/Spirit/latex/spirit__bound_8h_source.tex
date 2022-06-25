@@ -1,0 +1,124 @@
+\hypertarget{spirit__bound_8h_source}{}\doxysection{spirit\+\_\+bound.\+h}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{1 \textcolor{comment}{/*}}
+\DoxyCodeLine{2 \textcolor{comment}{ * File: spirit\_bound.h}}
+\DoxyCodeLine{3 \textcolor{comment}{ * -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{4 \textcolor{comment}{ * This interface for spirit jumping behaviors.}}
+\DoxyCodeLine{5 \textcolor{comment}{ * Date: 2021-\/10-\/30}}
+\DoxyCodeLine{6 \textcolor{comment}{ */}}
+\DoxyCodeLine{7 }
+\DoxyCodeLine{8 \textcolor{preprocessor}{\#ifndef \_spirit\_bound}}
+\DoxyCodeLine{9 \textcolor{preprocessor}{\#define \_spirit\_bound}}
+\DoxyCodeLine{10 }
+\DoxyCodeLine{11 \textcolor{preprocessor}{\#include <cmath>}}
+\DoxyCodeLine{12 \textcolor{preprocessor}{\#include <experimental/filesystem>}}
+\DoxyCodeLine{13 \textcolor{preprocessor}{\#include <filesystem>}}
+\DoxyCodeLine{14 }
+\DoxyCodeLine{15 }
+\DoxyCodeLine{16 \textcolor{preprocessor}{\#include "{}common/find\_resource.h"{}}}
+\DoxyCodeLine{17 \textcolor{preprocessor}{\#include "{}systems/trajectory\_optimization/dircon/dircon.h"{}}}
+\DoxyCodeLine{18 \textcolor{preprocessor}{\#include "{}multibody/kinematic/world\_point\_evaluator.h"{}}}
+\DoxyCodeLine{19 \textcolor{preprocessor}{\#include "{}solvers/nonlinear\_constraint.h"{}}}
+\DoxyCodeLine{20 \textcolor{preprocessor}{\#include "{}multibody/kinematic/distance\_evaluator.h"{}}}
+\DoxyCodeLine{21 \textcolor{preprocessor}{\#include "{}multibody/multibody\_utils.h"{}}}
+\DoxyCodeLine{22 \textcolor{preprocessor}{\#include "{}multibody/visualization\_utils.h"{}}}
+\DoxyCodeLine{23 \textcolor{preprocessor}{\#include "{}multibody/kinematic/kinematic\_constraints.h"{}}}
+\DoxyCodeLine{24 }
+\DoxyCodeLine{25 \textcolor{preprocessor}{\#include "{}examples/Spirit/animate\_spirit.h"{}}}
+\DoxyCodeLine{26 \textcolor{preprocessor}{\#include "{}common/file\_utils.h"{}}}
+\DoxyCodeLine{27 \textcolor{preprocessor}{\#include "{}lcm/dircon\_saved\_trajectory.h"{}}}
+\DoxyCodeLine{28 \textcolor{preprocessor}{\#include "{}solvers/optimization\_utils.h"{}}}
+\DoxyCodeLine{29 \textcolor{preprocessor}{\#include "{}solvers/nonlinear\_cost.h"{}}}
+\DoxyCodeLine{30 }
+\DoxyCodeLine{31 \textcolor{preprocessor}{\#include "{}examples/Spirit/spirit\_utils.h"{}}}
+\DoxyCodeLine{32 \textcolor{preprocessor}{\#include "{}examples/Spirit/behavior.h"{}}}
+\DoxyCodeLine{33 }
+\DoxyCodeLine{34 \textcolor{keyword}{using} drake::multibody::MultibodyPlant;}
+\DoxyCodeLine{35 \textcolor{keyword}{using} drake::trajectories::PiecewisePolynomial;}
+\DoxyCodeLine{36 \textcolor{keyword}{namespace }dairlib \{}
+\DoxyCodeLine{37     \textcolor{keyword}{using} systems::trajectory\_optimization::Dircon;}
+\DoxyCodeLine{38 }
+\DoxyCodeLine{39 }
+\DoxyCodeLine{40 \textcolor{keyword}{template} <\textcolor{keyword}{class} Y>  }
+\DoxyCodeLine{41 \textcolor{keyword}{class }\mbox{\hyperlink{classdairlib_1_1SpiritBound}{SpiritBound}} : \textcolor{keyword}{public} \mbox{\hyperlink{classdairlib_1_1Behavior}{Behavior}}<Y> \{}
+\DoxyCodeLine{42 \textcolor{keyword}{public}:}
+\DoxyCodeLine{43 }
+\DoxyCodeLine{44     \mbox{\hyperlink{classdairlib_1_1SpiritBound}{SpiritBound}}();}
+\DoxyCodeLine{45 }
+\DoxyCodeLine{51     \textcolor{keywordtype}{void} \mbox{\hyperlink{classdairlib_1_1SpiritBound_aa5bfe4f90fb22c0957d218b8bfbbe51d}{config}}(std::string yaml\_path, std::string saved\_directory, \textcolor{keywordtype}{int} index,MultibodyPlant<Y>* plant);}
+\DoxyCodeLine{52 }
+\DoxyCodeLine{54     \textcolor{keywordtype}{void} \mbox{\hyperlink{classdairlib_1_1SpiritBound_a11859d7b3364a9b61d255cda5a4aaa59}{generateInitialGuess}}(MultibodyPlant<Y>\& plant);}
+\DoxyCodeLine{55 }
+\DoxyCodeLine{59     \textcolor{keywordtype}{void} \mbox{\hyperlink{classdairlib_1_1SpiritBound_a1044a16113292d9a8947b6a8fc5a39e4}{addConstraints}}(MultibodyPlant<Y>\& plant, }
+\DoxyCodeLine{60                         dairlib::systems::trajectory\_optimization::Dircon<Y>\& trajopt}
+\DoxyCodeLine{61                         );}
+\DoxyCodeLine{62 }
+\DoxyCodeLine{67     \textcolor{keywordtype}{void} \mbox{\hyperlink{classdairlib_1_1SpiritBound_a4952447c88d25ed1aa8ae28279488d47}{run}}(MultibodyPlant<Y>\& plant,}
+\DoxyCodeLine{68             PiecewisePolynomial<Y>* pp\_xtraj,}
+\DoxyCodeLine{69             std::vector<SurfaceConf>* surface\_vector);}
+\DoxyCodeLine{70     }
+\DoxyCodeLine{71     \textcolor{keywordtype}{void} \mbox{\hyperlink{classdairlib_1_1SpiritBound_ab7ea1510ae526634e5de5a8fc80d8fa0}{setUpModeSequence}}();}
+\DoxyCodeLine{72 }
+\DoxyCodeLine{76     \textcolor{keywordtype}{void} \mbox{\hyperlink{classdairlib_1_1SpiritBound_a1a6d84734df447535c334f85050532b5}{addCostLegs}}(MultibodyPlant<Y>\& plant,}
+\DoxyCodeLine{77                 dairlib::systems::trajectory\_optimization::Dircon<Y>\& trajopt,}
+\DoxyCodeLine{78                 \textcolor{keyword}{const} std::vector<double>\& joints,}
+\DoxyCodeLine{79                 \textcolor{keyword}{const} \textcolor{keywordtype}{int} mode\_index);}
+\DoxyCodeLine{80 }
+\DoxyCodeLine{84     std::vector<drake::solvers::Binding<drake::solvers::Cost>> \mbox{\hyperlink{classdairlib_1_1SpiritBound_a8232989933a8ef54220c8d2386cba380}{addCost}}(}
+\DoxyCodeLine{85             MultibodyPlant<Y>\& plant,}
+\DoxyCodeLine{86             dairlib::systems::trajectory\_optimization::Dircon<Y>\& trajopt);}
+\DoxyCodeLine{87 }
+\DoxyCodeLine{88     std::tuple<  std::vector<std::unique\_ptr<dairlib::systems::trajectory\_optimization::DirconMode<Y>>>,}
+\DoxyCodeLine{89     std::vector<std::unique\_ptr<multibody::WorldPointEvaluator<Y>>> ,}
+\DoxyCodeLine{90     std::vector<std::unique\_ptr<multibody::KinematicEvaluatorSet<Y>>>>}
+\DoxyCodeLine{91     \mbox{\hyperlink{classdairlib_1_1SpiritBound_ad7e533db976897d546580bcbb82122e5}{getModeSequence}}(MultibodyPlant<Y>\& plant,}
+\DoxyCodeLine{92                     DirconModeSequence<Y>\& sequence)\{}
+\DoxyCodeLine{93     \mbox{\hyperlink{classdairlib_1_1ModeSequenceHelper}{dairlib::ModeSequenceHelper}} msh;}
+\DoxyCodeLine{94 }
+\DoxyCodeLine{95     this-\/>\mbox{\hyperlink{classdairlib_1_1Behavior_adc15934596e6b9c0b2b20ab846aa3ba5}{getModeSequenceHelper}}(msh);}
+\DoxyCodeLine{96 }
+\DoxyCodeLine{97     \textcolor{keyword}{auto} [modeVector, toeEvals, toeEvalSets] = createSpiritModeSequence(plant, msh);}
+\DoxyCodeLine{98 }
+\DoxyCodeLine{99     \textcolor{keywordflow}{for} (\textcolor{keyword}{auto}\& mode : modeVector)\{}
+\DoxyCodeLine{100         \textcolor{keywordflow}{for} (\textcolor{keywordtype}{int} i = 0; i < mode-\/>evaluators().num\_evaluators(); i++ )\{}
+\DoxyCodeLine{101         mode-\/>MakeConstraintRelative(i,0);}
+\DoxyCodeLine{102         mode-\/>MakeConstraintRelative(i,1);}
+\DoxyCodeLine{103         \}}
+\DoxyCodeLine{104         mode-\/>SetDynamicsScale(}
+\DoxyCodeLine{105             \{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19\}, 150.0);}
+\DoxyCodeLine{106         \textcolor{keywordflow}{if} (mode-\/>evaluators().num\_evaluators() == 4)}
+\DoxyCodeLine{107         \{}
+\DoxyCodeLine{108         mode-\/>SetKinVelocityScale(}
+\DoxyCodeLine{109             \{0, 1, 2, 3\}, \{0, 1, 2\}, 1.0);}
+\DoxyCodeLine{110         mode-\/>SetKinPositionScale(}
+\DoxyCodeLine{111             \{0, 1, 2, 3\}, \{0, 1, 2\}, 150.0);}
+\DoxyCodeLine{112         \}}
+\DoxyCodeLine{113         \textcolor{keywordflow}{else} \textcolor{keywordflow}{if} (mode-\/>evaluators().num\_evaluators() == 2)\{}
+\DoxyCodeLine{114         mode-\/>SetKinVelocityScale(}
+\DoxyCodeLine{115             \{0, 1\}, \{0, 1, 2\}, 1.0);}
+\DoxyCodeLine{116         mode-\/>SetKinPositionScale(}
+\DoxyCodeLine{117             \{0, 1\}, \{0, 1, 2\}, 150.0);}
+\DoxyCodeLine{118         \}}
+\DoxyCodeLine{119         sequence.AddMode(mode.get());}
+\DoxyCodeLine{120     \}}
+\DoxyCodeLine{121     \textcolor{keywordflow}{return} \{std::move(modeVector), std::move(toeEvals), std::move(toeEvalSets)\};}
+\DoxyCodeLine{122     \}}
+\DoxyCodeLine{123 }
+\DoxyCodeLine{124 \textcolor{keyword}{private}:}
+\DoxyCodeLine{125     vector<PiecewisePolynomial<Y>> \mbox{\hyperlink{classdairlib_1_1SpiritBound_a0753aba2764b85722c1467a41eb7f212}{x\_traj}}; }
+\DoxyCodeLine{126 }
+\DoxyCodeLine{127     \textcolor{keywordtype}{double} apex\_height; }
+\DoxyCodeLine{128     \textcolor{keywordtype}{double} \mbox{\hyperlink{classdairlib_1_1SpiritBound_af004866d82e0a54629488629b99abcb4}{fore\_aft\_displacement}}; }
+\DoxyCodeLine{129     \textcolor{keywordtype}{double} \mbox{\hyperlink{classdairlib_1_1SpiritBound_a9f1593538dc21c972e468237f588124c}{eps}}; }
+\DoxyCodeLine{130     \textcolor{keywordtype}{double} \mbox{\hyperlink{classdairlib_1_1SpiritBound_a85a0bc4718fe208882eb29221815ce81}{initial\_height}}; }
+\DoxyCodeLine{131     \textcolor{keywordtype}{double} \mbox{\hyperlink{classdairlib_1_1SpiritBound_acb73e07628ebe6f7468d7854ad02dd06}{pitch\_magnitude\_lo}}; }
+\DoxyCodeLine{132     \textcolor{keywordtype}{double} \mbox{\hyperlink{classdairlib_1_1SpiritBound_a2662a0e4c0765bd3ffa93112eb0742e1}{pitch\_magnitude\_apex}}; }
+\DoxyCodeLine{133     \textcolor{keywordtype}{double} \mbox{\hyperlink{classdairlib_1_1SpiritBound_a6f75e5e69dd9b4f3677c1f6d4fefd9c3}{max\_duration}}; }
+\DoxyCodeLine{134 \};}
+\DoxyCodeLine{135 \}}
+\DoxyCodeLine{136 }
+\DoxyCodeLine{137 \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{138 }
+
+\end{DoxyCode}

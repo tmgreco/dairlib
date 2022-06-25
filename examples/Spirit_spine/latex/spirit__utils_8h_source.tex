@@ -1,0 +1,274 @@
+\hypertarget{spirit__utils_8h_source}{}\doxysection{spirit\+\_\+utils.\+h}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{1 \textcolor{preprocessor}{\#pragma once}}
+\DoxyCodeLine{2 \textcolor{preprocessor}{\#include "{}solvers/nonlinear\_cost.h"{}}}
+\DoxyCodeLine{3 \textcolor{preprocessor}{\#include <drake/multibody/inverse\_kinematics/inverse\_kinematics.h>}}
+\DoxyCodeLine{4 \textcolor{keyword}{namespace }dairlib \{}
+\DoxyCodeLine{5 }
+\DoxyCodeLine{6 \textcolor{keyword}{class }\mbox{\hyperlink{classdairlib_1_1ModeSequenceHelper}{ModeSequenceHelper}} \{}
+\DoxyCodeLine{7   \textcolor{keyword}{public}:}
+\DoxyCodeLine{8     std::vector<Eigen::Matrix<bool,1,4>> modes; \textcolor{comment}{// bool matrix describing toe contacts as true or false e.g. \{\{1,1,1,1\},\{0,0,0,0\}\} would be a full support mode and flight mode}}
+\DoxyCodeLine{9     std::vector<int> knots; \textcolor{comment}{// Matrix of knot points for each mode  }}
+\DoxyCodeLine{10     std::vector<Eigen::Vector3d> normals;}
+\DoxyCodeLine{11     std::vector<Eigen::Vector3d> offsets;}
+\DoxyCodeLine{12     std::vector<double> mus;}
+\DoxyCodeLine{13     std::vector<double> minTs;}
+\DoxyCodeLine{14     std::vector<double> maxTs;}
+\DoxyCodeLine{15     \textcolor{keywordtype}{void} addMode(}
+\DoxyCodeLine{16       Eigen::Matrix<bool,1,4> activeContactVector, }
+\DoxyCodeLine{17       \textcolor{keywordtype}{int} num\_knots, }
+\DoxyCodeLine{18       Eigen::Vector3d normal, }
+\DoxyCodeLine{19       Eigen::Vector3d offset,}
+\DoxyCodeLine{20       \textcolor{keywordtype}{double} mu,}
+\DoxyCodeLine{21       \textcolor{keywordtype}{double} minT = 0,}
+\DoxyCodeLine{22       \textcolor{keywordtype}{double} maxT = std::numeric\_limits<double>::infinity() )\{}
+\DoxyCodeLine{23         modes.push\_back(activeContactVector);}
+\DoxyCodeLine{24         knots.push\_back(num\_knots);}
+\DoxyCodeLine{25         normals.push\_back(normal);}
+\DoxyCodeLine{26         offsets.push\_back(offset);}
+\DoxyCodeLine{27         mus.push\_back(mu);}
+\DoxyCodeLine{28         minTs.push\_back(minT);}
+\DoxyCodeLine{29         maxTs.push\_back(maxT);}
+\DoxyCodeLine{30     \}}
+\DoxyCodeLine{31 }
+\DoxyCodeLine{32     \textcolor{keywordtype}{void} addFlight(}
+\DoxyCodeLine{33       \textcolor{keywordtype}{int} num\_knots,}
+\DoxyCodeLine{34       \textcolor{keywordtype}{double} minT = 0,}
+\DoxyCodeLine{35       \textcolor{keywordtype}{double} maxT = std::numeric\_limits<double>::infinity() }
+\DoxyCodeLine{36     )\{}
+\DoxyCodeLine{37       addMode(}
+\DoxyCodeLine{38           (Eigen::Matrix<bool,1,4>() << \textcolor{keyword}{false}, \textcolor{keyword}{false}, \textcolor{keyword}{false}, \textcolor{keyword}{false}).finished(),}
+\DoxyCodeLine{39           num\_knots, }
+\DoxyCodeLine{40           Eigen::Vector3d::UnitZ(), }
+\DoxyCodeLine{41           Eigen::Vector3d::Zero(), }
+\DoxyCodeLine{42           std::numeric\_limits<double>::infinity()}
+\DoxyCodeLine{43       );}
+\DoxyCodeLine{44     \}}
+\DoxyCodeLine{45 \};}
+\DoxyCodeLine{46 }
+\DoxyCodeLine{47 drake::math::RotationMatrix<double> normal2Rotation(Eigen::Vector3d nHat);}
+\DoxyCodeLine{48 }
+\DoxyCodeLine{54 }
+\DoxyCodeLine{55 \textcolor{keyword}{template} <\textcolor{keyword}{typename} T>}
+\DoxyCodeLine{56 \textcolor{keywordtype}{void} nominalSpiritStand(}
+\DoxyCodeLine{57     drake::multibody::MultibodyPlant<T>\& plant, }
+\DoxyCodeLine{58     Eigen::VectorXd\& xState, }
+\DoxyCodeLine{59     \textcolor{keywordtype}{double} height);}
+\DoxyCodeLine{60 }
+\DoxyCodeLine{72 \textcolor{keywordtype}{void} ikSpiritStand(}
+\DoxyCodeLine{73     drake::multibody::MultibodyPlant<double>\& plant,}
+\DoxyCodeLine{74     Eigen::VectorXd\& xState,}
+\DoxyCodeLine{75     Eigen::Matrix<bool,1,4> contactSequence,}
+\DoxyCodeLine{76     \textcolor{keywordtype}{double} com\_height,}
+\DoxyCodeLine{77     \textcolor{keywordtype}{double} leg\_height,}
+\DoxyCodeLine{78     \textcolor{keywordtype}{double} roll = 0,}
+\DoxyCodeLine{79     \textcolor{keywordtype}{double} pitch = 0,}
+\DoxyCodeLine{80     \textcolor{keywordtype}{double} eps = 0.01);}
+\DoxyCodeLine{81 }
+\DoxyCodeLine{93 \textcolor{keywordtype}{void} constrainToe(drake::multibody::MultibodyPlant<double> \& plant,}
+\DoxyCodeLine{94                   drake::multibody::InverseKinematics \&ik,}
+\DoxyCodeLine{95                   \textcolor{keywordtype}{int} toe, \textcolor{keywordtype}{bool} inContact, drake::math::RotationMatrix<double> orientation,}
+\DoxyCodeLine{96                   \textcolor{keywordtype}{double} com\_height, \textcolor{keywordtype}{double} leg\_height, \textcolor{keywordtype}{double} eps);}
+\DoxyCodeLine{97 }
+\DoxyCodeLine{104 \textcolor{keyword}{template} <\textcolor{keyword}{typename} T>}
+\DoxyCodeLine{105 \textcolor{keywordtype}{void} nominalSpiritStandConstraint(}
+\DoxyCodeLine{106     drake::multibody::MultibodyPlant<T>\& plant,}
+\DoxyCodeLine{107     dairlib::systems::trajectory\_optimization::Dircon<T>\& trajopt,}
+\DoxyCodeLine{108     \textcolor{keywordtype}{double} height,}
+\DoxyCodeLine{109     std::vector<int> knotPoints,}
+\DoxyCodeLine{110     \textcolor{keyword}{const} \textcolor{keywordtype}{double} eps = 0);}
+\DoxyCodeLine{111 }
+\DoxyCodeLine{112 }
+\DoxyCodeLine{117 \textcolor{keyword}{template} <\textcolor{keyword}{typename} T>}
+\DoxyCodeLine{118 \textcolor{keyword}{const} drake::multibody::Frame<T>\& getSpiritToeFrame( }
+\DoxyCodeLine{119     drake::multibody::MultibodyPlant<T>\& plant, }
+\DoxyCodeLine{120     u\_int8\_t toeIndex );}
+\DoxyCodeLine{121 }
+\DoxyCodeLine{134 \textcolor{keyword}{template} <\textcolor{keyword}{typename} T>}
+\DoxyCodeLine{135 std::unique\_ptr<dairlib::multibody::WorldPointEvaluator<T>> getSpiritToeEvaluator( }
+\DoxyCodeLine{136                       drake::multibody::MultibodyPlant<T>\& plant, }
+\DoxyCodeLine{137                       \textcolor{keyword}{const} Eigen::Vector3d toePoint,}
+\DoxyCodeLine{138                       u\_int8\_t toeIndex,}
+\DoxyCodeLine{139                       \textcolor{keyword}{const} Eigen::Vector3d normal = Eigen::Vector3d::UnitZ(),}
+\DoxyCodeLine{140                       \textcolor{keyword}{const} Eigen::Vector3d offset = Eigen::Vector3d::Zero(),}
+\DoxyCodeLine{141                       \textcolor{keywordtype}{bool} xy\_active = \textcolor{keyword}{true}, }
+\DoxyCodeLine{142                       \textcolor{keywordtype}{double} mu = std::numeric\_limits<double>::infinity()}
+\DoxyCodeLine{143                       );}
+\DoxyCodeLine{144 }
+\DoxyCodeLine{145 }
+\DoxyCodeLine{157 }
+\DoxyCodeLine{158 \textcolor{keyword}{template} <\textcolor{keyword}{typename} T>}
+\DoxyCodeLine{159 std::tuple<  std::vector<std::unique\_ptr<dairlib::systems::trajectory\_optimization::DirconMode<T>>>,}
+\DoxyCodeLine{160              std::vector<std::unique\_ptr<multibody::WorldPointEvaluator<T>>> ,}
+\DoxyCodeLine{161              std::vector<std::unique\_ptr<multibody::KinematicEvaluatorSet<T>>>   }
+\DoxyCodeLine{162           >     }
+\DoxyCodeLine{163     createSpiritModeSequence( }
+\DoxyCodeLine{164           drake::multibody::MultibodyPlant<T>\& plant, \textcolor{comment}{// multibodyPlant}}
+\DoxyCodeLine{165           std::vector<Eigen::Matrix<bool,1,4>> modeSeqVect, \textcolor{comment}{// bool matrix describing toe contacts as true or false e.g. \{\{1,1,1,1\},\{0,0,0,0\}\} would be a full support mode and flight mode}}
+\DoxyCodeLine{166           std::vector<int> knotpointVect, \textcolor{comment}{// Matrix of knot points for each mode  }}
+\DoxyCodeLine{167           std::vector<Eigen::Vector3d> normals,}
+\DoxyCodeLine{168           std::vector<Eigen::Vector3d> offsets, }
+\DoxyCodeLine{169           std::vector<double> mus, }
+\DoxyCodeLine{170           std::vector<double> minTs, }
+\DoxyCodeLine{171           std::vector<double> maxTs );}
+\DoxyCodeLine{172 }
+\DoxyCodeLine{174 \textcolor{keyword}{template} <\textcolor{keyword}{typename} T>}
+\DoxyCodeLine{175 std::tuple<  std::vector<std::unique\_ptr<dairlib::systems::trajectory\_optimization::DirconMode<T>>>,}
+\DoxyCodeLine{176              std::vector<std::unique\_ptr<multibody::WorldPointEvaluator<T>>> ,}
+\DoxyCodeLine{177              std::vector<std::unique\_ptr<multibody::KinematicEvaluatorSet<T>>>   }
+\DoxyCodeLine{178           >     }
+\DoxyCodeLine{179     createSpiritModeSequence( }
+\DoxyCodeLine{180           drake::multibody::MultibodyPlant<T>\& plant, \textcolor{comment}{// multibodyPlant}}
+\DoxyCodeLine{181           \textcolor{keyword}{const} \mbox{\hyperlink{classdairlib_1_1ModeSequenceHelper}{dairlib::ModeSequenceHelper}}\& msh );}
+\DoxyCodeLine{182 }
+\DoxyCodeLine{186 \textcolor{keyword}{template} <\textcolor{keyword}{typename} T>}
+\DoxyCodeLine{187 \textcolor{keywordtype}{void} setSpiritJointLimits(}
+\DoxyCodeLine{188                     drake::multibody::MultibodyPlant<T> \& plant,}
+\DoxyCodeLine{189                     dairlib::systems::trajectory\_optimization::Dircon<T>\& trajopt );}
+\DoxyCodeLine{190 }
+\DoxyCodeLine{197 \textcolor{keyword}{template} <\textcolor{keyword}{typename} T>}
+\DoxyCodeLine{198 \textcolor{keywordtype}{void} setSpiritJointLimits(}
+\DoxyCodeLine{199                     drake::multibody::MultibodyPlant<T> \& plant,}
+\DoxyCodeLine{200                     dairlib::systems::trajectory\_optimization::Dircon<T>\& trajopt,}
+\DoxyCodeLine{201                     \textcolor{keywordtype}{int} iJoint, }
+\DoxyCodeLine{202                     \textcolor{keywordtype}{double} minVal, }
+\DoxyCodeLine{203                     \textcolor{keywordtype}{double} maxVal  );}
+\DoxyCodeLine{204 }
+\DoxyCodeLine{211 \textcolor{keyword}{template} <\textcolor{keyword}{typename} T>}
+\DoxyCodeLine{212 \textcolor{keywordtype}{void} setSpiritJointLimits(}
+\DoxyCodeLine{213                     drake::multibody::MultibodyPlant<T> \& plant,}
+\DoxyCodeLine{214                     dairlib::systems::trajectory\_optimization::Dircon<T>\& trajopt,}
+\DoxyCodeLine{215                     std::vector<int> iJoints, }
+\DoxyCodeLine{216                     std::vector<double> minVals, }
+\DoxyCodeLine{217                     std::vector<double> maxVals  );}
+\DoxyCodeLine{218 }
+\DoxyCodeLine{225 \textcolor{keyword}{template} <\textcolor{keyword}{typename} T>}
+\DoxyCodeLine{226 \textcolor{keywordtype}{void} setSpiritJointLimits(}
+\DoxyCodeLine{227                     drake::multibody::MultibodyPlant<T> \& plant,}
+\DoxyCodeLine{228                     dairlib::systems::trajectory\_optimization::Dircon<T>\& trajopt,}
+\DoxyCodeLine{229                     std::vector<int> iJoints, }
+\DoxyCodeLine{230                     \textcolor{keywordtype}{double} minVal, }
+\DoxyCodeLine{231                     \textcolor{keywordtype}{double} maxVal  );}
+\DoxyCodeLine{232 }
+\DoxyCodeLine{233 }
+\DoxyCodeLine{234 }
+\DoxyCodeLine{239 \textcolor{keyword}{template} <\textcolor{keyword}{typename} T> }
+\DoxyCodeLine{240 \textcolor{keywordtype}{void} setSpiritActuationLimits(}
+\DoxyCodeLine{241           drake::multibody::MultibodyPlant<T> \& plant, }
+\DoxyCodeLine{242           dairlib::systems::trajectory\_optimization::Dircon<T>\& trajopt,}
+\DoxyCodeLine{243           \textcolor{keywordtype}{double} actuatorLimit = 3.5 * 6);\textcolor{comment}{// URDF has 40 this is more realistic based on the modules }}
+\DoxyCodeLine{244 }
+\DoxyCodeLine{249 \textcolor{keyword}{template} <\textcolor{keyword}{typename} T> }
+\DoxyCodeLine{250 \textcolor{keywordtype}{void} setSpiritSymmetry(}
+\DoxyCodeLine{251         drake::multibody::MultibodyPlant<T> \& plant, }
+\DoxyCodeLine{252         dairlib::systems::trajectory\_optimization::Dircon<T>\& trajopt,}
+\DoxyCodeLine{253         std::string symmetry = \textcolor{stringliteral}{"{}sagittal"{}},}
+\DoxyCodeLine{254         \textcolor{keywordtype}{bool} ignoreWarning = \textcolor{keyword}{false});}
+\DoxyCodeLine{255 }
+\DoxyCodeLine{256 }
+\DoxyCodeLine{262 \textcolor{keyword}{template} <\textcolor{keyword}{typename} T>}
+\DoxyCodeLine{263 \textcolor{keywordtype}{void} setSpiritSymmetry(}
+\DoxyCodeLine{264         drake::multibody::MultibodyPlant<T> \& plant, }
+\DoxyCodeLine{265         dairlib::systems::trajectory\_optimization::Dircon<T>\& trajopt,}
+\DoxyCodeLine{266         std::vector<std::string> symmetries);}
+\DoxyCodeLine{267 }
+\DoxyCodeLine{272 \textcolor{keyword}{template} <\textcolor{keyword}{typename} T>}
+\DoxyCodeLine{273 \textcolor{keywordtype}{double} calcWork(}
+\DoxyCodeLine{274     drake::multibody::MultibodyPlant<T> \& plant,}
+\DoxyCodeLine{275     drake::trajectories::PiecewisePolynomial<double>\& x\_traj,}
+\DoxyCodeLine{276     drake::trajectories::PiecewisePolynomial<double>\& u\_traj);}
+\DoxyCodeLine{277 }
+\DoxyCodeLine{282 \textcolor{keyword}{template} <\textcolor{keyword}{typename} T>}
+\DoxyCodeLine{283 \textcolor{keywordtype}{double} calcMechanicalWork(}
+\DoxyCodeLine{284     drake::multibody::MultibodyPlant<T> \& plant,}
+\DoxyCodeLine{285     std::vector<drake::trajectories::PiecewisePolynomial<double>>\& x\_trajs,}
+\DoxyCodeLine{286     drake::trajectories::PiecewisePolynomial<double>\& u\_traj);}
+\DoxyCodeLine{287 }
+\DoxyCodeLine{293 \textcolor{keyword}{template} <\textcolor{keyword}{typename} T>}
+\DoxyCodeLine{294 \textcolor{keywordtype}{double} calcElectricalWork(}
+\DoxyCodeLine{295     drake::multibody::MultibodyPlant<T> \& plant,}
+\DoxyCodeLine{296     std::vector<drake::trajectories::PiecewisePolynomial<double>>\& x\_trajs,}
+\DoxyCodeLine{297     drake::trajectories::PiecewisePolynomial<double>\& u\_traj,}
+\DoxyCodeLine{298     \textcolor{keywordtype}{double} efficiency = 0);}
+\DoxyCodeLine{299 }
+\DoxyCodeLine{303 \textcolor{keyword}{template} <\textcolor{keyword}{typename} T>}
+\DoxyCodeLine{304 \textcolor{keywordtype}{double} calcVelocityInt(}
+\DoxyCodeLine{305     drake::multibody::MultibodyPlant<T> \& plant,}
+\DoxyCodeLine{306     drake::trajectories::PiecewisePolynomial<double>\& x\_traj);}
+\DoxyCodeLine{307 }
+\DoxyCodeLine{311 \textcolor{keyword}{template} <\textcolor{keyword}{typename} T>}
+\DoxyCodeLine{312 \textcolor{keywordtype}{double} calcVelocityInt(}
+\DoxyCodeLine{313     drake::multibody::MultibodyPlant<T> \& plant,}
+\DoxyCodeLine{314     std::vector<drake::trajectories::PiecewisePolynomial<double>>\& x\_trajs);}
+\DoxyCodeLine{315 }
+\DoxyCodeLine{319 \textcolor{keyword}{template} <\textcolor{keyword}{typename} T>}
+\DoxyCodeLine{320 \textcolor{keywordtype}{double} calcTorqueInt(}
+\DoxyCodeLine{321     drake::multibody::MultibodyPlant<T> \& plant,}
+\DoxyCodeLine{322     drake::trajectories::PiecewisePolynomial<double>\& u\_traj);}
+\DoxyCodeLine{323 }
+\DoxyCodeLine{324 \textcolor{comment}{// void visualizeSurface(drake::multibody::MultibodyPlant<double>* plant\_vis, }}
+\DoxyCodeLine{325 \textcolor{comment}{//   Eigen::Vector3d surface\_normal,}}
+\DoxyCodeLine{326 \textcolor{comment}{//   Eigen::Vector3d surface\_offset,}}
+\DoxyCodeLine{327 \textcolor{comment}{//   double length\_surf, }}
+\DoxyCodeLine{328 \textcolor{comment}{//   double width\_surf,}}
+\DoxyCodeLine{329 \textcolor{comment}{//   double thickness\_surf,}}
+\DoxyCodeLine{330 \textcolor{comment}{//   const drake::Vector4<double> color}}
+\DoxyCodeLine{331 \textcolor{comment}{//   );}}
+\DoxyCodeLine{332 }
+\DoxyCodeLine{333 \textcolor{keywordtype}{void} visualizeSurface(drake::multibody::MultibodyPlant<double>* plant\_vis, }
+\DoxyCodeLine{334   Eigen::Vector3d surface\_normal,}
+\DoxyCodeLine{335   Eigen::Vector3d surface\_offset,}
+\DoxyCodeLine{336   \textcolor{keywordtype}{double} length\_surf, }
+\DoxyCodeLine{337   \textcolor{keywordtype}{double} width\_surf,}
+\DoxyCodeLine{338   \textcolor{keywordtype}{double} thickness\_surf,}
+\DoxyCodeLine{339   \textcolor{keyword}{const} drake::Vector4<double> color,}
+\DoxyCodeLine{340   std::string name=\textcolor{stringliteral}{"{}box0"{}}}
+\DoxyCodeLine{341   );}
+\DoxyCodeLine{342 }
+\DoxyCodeLine{343 }
+\DoxyCodeLine{344 \textcolor{keywordtype}{void} visualizeSurface(drake::multibody::MultibodyPlant<double>* plant\_vis, }
+\DoxyCodeLine{345   Eigen::Vector3d surface\_normal = -\/Eigen::Vector3d::UnitY(),}
+\DoxyCodeLine{346   Eigen::Vector3d surface\_offset = Eigen::Vector3d::UnitY()*.5,}
+\DoxyCodeLine{347   \textcolor{keywordtype}{double} length\_surf = 0.5, }
+\DoxyCodeLine{348   \textcolor{keywordtype}{double} width\_surf = 0.5,}
+\DoxyCodeLine{349   \textcolor{keywordtype}{double} thickness\_surf = 0.05}
+\DoxyCodeLine{350   );}
+\DoxyCodeLine{351 }
+\DoxyCodeLine{356 \textcolor{keyword}{template} <\textcolor{keyword}{typename} T>}
+\DoxyCodeLine{357 std::vector<drake::solvers::Binding<drake::solvers::Cost>> AddWorkCost(drake::multibody::MultibodyPlant<T> \& plant,}
+\DoxyCodeLine{358                  dairlib::systems::trajectory\_optimization::Dircon<T>\& trajopt,}
+\DoxyCodeLine{359                  \textcolor{keywordtype}{double} cost\_work\_gain);}
+\DoxyCodeLine{360 }
+\DoxyCodeLine{361 }
+\DoxyCodeLine{363 \textcolor{keyword}{class }\mbox{\hyperlink{classdairlib_1_1JointWorkCost}{JointWorkCost}} : \textcolor{keyword}{public} solvers::NonlinearCost<double> \{}
+\DoxyCodeLine{364  \textcolor{keyword}{public}:}
+\DoxyCodeLine{365   \mbox{\hyperlink{classdairlib_1_1JointWorkCost}{JointWorkCost}}(\textcolor{keyword}{const} drake::multibody::MultibodyPlant<double>\& plant,}
+\DoxyCodeLine{366                 \textcolor{keyword}{const} \textcolor{keywordtype}{double} \&Q,}
+\DoxyCodeLine{367                 \textcolor{keyword}{const} \textcolor{keywordtype}{double} \&cost\_work,}
+\DoxyCodeLine{368                 \textcolor{keyword}{const} \textcolor{keywordtype}{double} \&alpha,}
+\DoxyCodeLine{369                 \textcolor{keyword}{const} std::string \&description = \textcolor{stringliteral}{"{}"{}});}
+\DoxyCodeLine{370 }
+\DoxyCodeLine{371  \textcolor{keyword}{private}:}
+\DoxyCodeLine{373   \textcolor{keywordtype}{double} \mbox{\hyperlink{classdairlib_1_1JointWorkCost_ae7561bb2091a65a0c4ed722ec53417ad}{relu\_smooth}}(\textcolor{keyword}{const} \textcolor{keywordtype}{double} x) \textcolor{keyword}{const};}
+\DoxyCodeLine{374   \textcolor{keywordtype}{void} EvaluateCost(\textcolor{keyword}{const} Eigen::Ref<\textcolor{keyword}{const} drake::VectorX<double>> \&x,}
+\DoxyCodeLine{375                     drake::VectorX<double> *y) \textcolor{keyword}{const override};}
+\DoxyCodeLine{376   \textcolor{keyword}{const} drake::multibody::MultibodyPlant<double>\& plant\_;}
+\DoxyCodeLine{377   \textcolor{keywordtype}{double} Q\_; }
+\DoxyCodeLine{378   \textcolor{keywordtype}{double} \mbox{\hyperlink{classdairlib_1_1JointWorkCost_a73b58c2484e6b75f469eb40268c2d289}{cost\_work\_}};}
+\DoxyCodeLine{379   \textcolor{keywordtype}{double} alpha\_; }
+\DoxyCodeLine{380   \textcolor{keywordtype}{int} \mbox{\hyperlink{classdairlib_1_1JointWorkCost_ad02b1fe2d9f9997158ddd9335ebea97d}{n\_q\_}};}
+\DoxyCodeLine{381   \textcolor{keywordtype}{int} n\_v\_;}
+\DoxyCodeLine{382   \textcolor{keywordtype}{int} n\_u\_;}
+\DoxyCodeLine{383 \};}
+\DoxyCodeLine{384 }
+\DoxyCodeLine{385 \textcolor{keywordtype}{double} positivePart(\textcolor{keywordtype}{double} x);}
+\DoxyCodeLine{386 \textcolor{keywordtype}{double} negativePart(\textcolor{keywordtype}{double} x);}
+\DoxyCodeLine{387 }
+\DoxyCodeLine{388 \textcolor{comment}{// Gains on resistive losses for knees and for other motors based on resistance, torque constant, and gear ratio}}
+\DoxyCodeLine{389 \textcolor{keyword}{const} \textcolor{keywordtype}{double} Q\_knee = .249;}
+\DoxyCodeLine{390 \textcolor{keyword}{const} \textcolor{keywordtype}{double} Q\_not\_knee = .561;}
+\DoxyCodeLine{391 }
+\DoxyCodeLine{392 \} \textcolor{comment}{//namespace dairlib}}
+
+\end{DoxyCode}

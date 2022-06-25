@@ -1,0 +1,204 @@
+\hypertarget{classdairlib_1_1SpiritBoxJump}{}\doxysection{dairlib\+::Spirit\+Box\+Jump\texorpdfstring{$<$}{<} Y \texorpdfstring{$>$}{>} Class Template Reference}
+\label{classdairlib_1_1SpiritBoxJump}\index{dairlib::SpiritBoxJump$<$ Y $>$@{dairlib::SpiritBoxJump$<$ Y $>$}}
+Inheritance diagram for dairlib\+::Spirit\+Box\+Jump\texorpdfstring{$<$}{<} Y \texorpdfstring{$>$}{>}\+:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{classdairlib_1_1SpiritBoxJump}
+\end{center}
+\end{figure}
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \mbox{\hyperlink{classdairlib_1_1SpiritBoxJump_a006874c374a94251aa89c109af650ae7}{config}} (std\+::string yaml\+\_\+path, std\+::string saved\+\_\+directory, int index, Multibody\+Plant$<$ Y $>$ $\ast$\mbox{\hyperlink{classdairlib_1_1SpiritBoxJump_abd46e690f20eebf6cc8fe7f0909f284e}{plant}})
+\item 
+\mbox{\Hypertarget{classdairlib_1_1SpiritBoxJump_ac054e28e706da7dc46e9ce72a6639549}\label{classdairlib_1_1SpiritBoxJump_ac054e28e706da7dc46e9ce72a6639549}} 
+void {\bfseries generate\+Initial\+Guess} (Multibody\+Plant$<$ Y $>$ \&\mbox{\hyperlink{classdairlib_1_1SpiritBoxJump_abd46e690f20eebf6cc8fe7f0909f284e}{plant}})
+\begin{DoxyCompactList}\small\item\em Generate a bad initial guess for the spirit box jump traj opt. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{classdairlib_1_1SpiritBoxJump_a73661b11b1708f4cf5cc328eee828c41}{add\+Constraints}} (Multibody\+Plant$<$ Y $>$ \&\mbox{\hyperlink{classdairlib_1_1SpiritBoxJump_abd46e690f20eebf6cc8fe7f0909f284e}{plant}}, dairlib\+::systems\+::trajectory\+\_\+optimization\+::\+Dircon$<$ Y $>$ \&trajopt)
+\item 
+void \mbox{\hyperlink{classdairlib_1_1SpiritBoxJump_a9706b1066d20c6cbcdea31a6a1b72250}{run}} (Multibody\+Plant$<$ Y $>$ \&\mbox{\hyperlink{classdairlib_1_1SpiritBoxJump_abd46e690f20eebf6cc8fe7f0909f284e}{plant}}, Piecewise\+Polynomial$<$ Y $>$ $\ast$pp\+\_\+xtraj, std\+::vector$<$ \mbox{\hyperlink{structSurfaceConf}{Surface\+Conf}} $>$ $\ast$surface\+\_\+vector)
+\item 
+void \mbox{\hyperlink{classdairlib_1_1SpiritBoxJump_a946f5db2093d29d35865f2f30e9a11a5}{set\+Up\+Mode\+Sequence}} ()
+\begin{DoxyCompactList}\small\item\em Set up mode sequence for trajectory optimization problem. Will be defined differently in different behaviors. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{classdairlib_1_1SpiritBoxJump_adcfeef53530c10b3bdac67faa861a276}{add\+Cost}} (Multibody\+Plant$<$ Y $>$ \&\mbox{\hyperlink{classdairlib_1_1SpiritBoxJump_abd46e690f20eebf6cc8fe7f0909f284e}{plant}}, dairlib\+::systems\+::trajectory\+\_\+optimization\+::\+Dircon$<$ Y $>$ \&trajopt)
+\item 
+std\+::tuple$<$ std\+::vector$<$ std\+::unique\+\_\+ptr$<$ dairlib\+::systems\+::trajectory\+\_\+optimization\+::\+Dircon\+Mode$<$ Y $>$ $>$ $>$, std\+::vector$<$ std\+::unique\+\_\+ptr$<$ multibody\+::\+World\+Point\+Evaluator$<$ Y $>$ $>$ $>$, std\+::vector$<$ std\+::unique\+\_\+ptr$<$ multibody\+::\+Kinematic\+Evaluator\+Set$<$ Y $>$ $>$ $>$ $>$ \mbox{\hyperlink{classdairlib_1_1SpiritBoxJump_a5470039f765fb3b847697f66041433d4}{get\+Mode\+Sequence}} (Multibody\+Plant$<$ Y $>$ \&\mbox{\hyperlink{classdairlib_1_1SpiritBoxJump_abd46e690f20eebf6cc8fe7f0909f284e}{plant}}, Dircon\+Mode\+Sequence$<$ Y $>$ \&sequence)
+\begin{DoxyCompactList}\small\item\em get\+Mode\+Sequence, initializes the trajopt mode seqence for jump, see run\+Spirit\+Jump for a def of inputs \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classdairlib_1_1SpiritBoxJump_af649ce1399759809959a8801ab1b6a33}\label{classdairlib_1_1SpiritBoxJump_af649ce1399759809959a8801ab1b6a33}} 
+\mbox{\hyperlink{classdairlib_1_1OptimalSpiritStand}{dairlib\+::\+Optimal\+Spirit\+Stand}} {\bfseries initial\+Stand}
+\item 
+\mbox{\Hypertarget{classdairlib_1_1SpiritBoxJump_a7d8230167cc1d9504ed7e10588b3c2d5}\label{classdairlib_1_1SpiritBoxJump_a7d8230167cc1d9504ed7e10588b3c2d5}} 
+\mbox{\hyperlink{classdairlib_1_1OptimalSpiritStand}{dairlib\+::\+Optimal\+Spirit\+Stand}} {\bfseries final\+Stand}
+\end{DoxyCompactItemize}
+\doxysubsection*{Private Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classdairlib_1_1SpiritBoxJump_abd46e690f20eebf6cc8fe7f0909f284e}\label{classdairlib_1_1SpiritBoxJump_abd46e690f20eebf6cc8fe7f0909f284e}} 
+std\+::unique\+\_\+ptr$<$ Multibody\+Plant$<$ Y $>$ $>$ {\bfseries plant}
+\begin{DoxyCompactList}\small\item\em the robot \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classdairlib_1_1SpiritBoxJump_a506bc76a90d8c9595fb13697394cf348}\label{classdairlib_1_1SpiritBoxJump_a506bc76a90d8c9595fb13697394cf348}} 
+double {\bfseries apex\+\_\+height}
+\item 
+\mbox{\Hypertarget{classdairlib_1_1SpiritBoxJump_a3e256863b068a373b671a3e93c1c368b}\label{classdairlib_1_1SpiritBoxJump_a3e256863b068a373b671a3e93c1c368b}} 
+double {\bfseries initial\+\_\+height}
+\begin{DoxyCompactList}\small\item\em initial stand height \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classdairlib_1_1SpiritBoxJump_a297610431c12b9d0342bd819716629ce}\label{classdairlib_1_1SpiritBoxJump_a297610431c12b9d0342bd819716629ce}} 
+double {\bfseries fore\+\_\+aft\+\_\+displacement}
+\begin{DoxyCompactList}\small\item\em how long the robot jump forward \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classdairlib_1_1SpiritBoxJump_a8cbd2886013d755fe86eb6f95fda57ec}\label{classdairlib_1_1SpiritBoxJump_a8cbd2886013d755fe86eb6f95fda57ec}} 
+bool {\bfseries lock\+\_\+rotation}
+\item 
+\mbox{\Hypertarget{classdairlib_1_1SpiritBoxJump_a4d5ed8964b012ee0949b1569526703a4}\label{classdairlib_1_1SpiritBoxJump_a4d5ed8964b012ee0949b1569526703a4}} 
+bool {\bfseries lock\+\_\+legs\+\_\+apex}
+\begin{DoxyCompactList}\small\item\em reach a specific legs configuration at apex \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classdairlib_1_1SpiritBoxJump_af5032f3fd7b597ccd4fa22c94aae065c}\label{classdairlib_1_1SpiritBoxJump_af5032f3fd7b597ccd4fa22c94aae065c}} 
+bool {\bfseries force\+\_\+symmetry}
+\item 
+\mbox{\Hypertarget{classdairlib_1_1SpiritBoxJump_a24fc40d768fe9ef9ace112ff1bd11d6c}\label{classdairlib_1_1SpiritBoxJump_a24fc40d768fe9ef9ace112ff1bd11d6c}} 
+bool {\bfseries use\+\_\+nominal\+\_\+stand}
+\item 
+\mbox{\Hypertarget{classdairlib_1_1SpiritBoxJump_aef85f34ae9599fbc2eb1fd12605b8af5}\label{classdairlib_1_1SpiritBoxJump_aef85f34ae9599fbc2eb1fd12605b8af5}} 
+double {\bfseries max\+\_\+duration}
+\begin{DoxyCompactList}\small\item\em maximum duration of the bounding behavior \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classdairlib_1_1SpiritBoxJump_a821cc542e6e29ca279e07e25d9603777}\label{classdairlib_1_1SpiritBoxJump_a821cc542e6e29ca279e07e25d9603777}} 
+double {\bfseries eps}
+\begin{DoxyCompactList}\small\item\em tolerance for the constraints \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classdairlib_1_1SpiritBoxJump_ac5ac1f71781ce462dbe9b531a7fdfe80}\label{classdairlib_1_1SpiritBoxJump_ac5ac1f71781ce462dbe9b531a7fdfe80}} 
+double {\bfseries work\+\_\+constraint\+\_\+scale}
+\end{DoxyCompactItemize}
+\doxysubsection*{Additional Inherited Members}
+
+
+\doxysubsection{Member Function Documentation}
+\mbox{\Hypertarget{classdairlib_1_1SpiritBoxJump_a73661b11b1708f4cf5cc328eee828c41}\label{classdairlib_1_1SpiritBoxJump_a73661b11b1708f4cf5cc328eee828c41}} 
+\index{dairlib::SpiritBoxJump$<$ Y $>$@{dairlib::SpiritBoxJump$<$ Y $>$}!addConstraints@{addConstraints}}
+\index{addConstraints@{addConstraints}!dairlib::SpiritBoxJump$<$ Y $>$@{dairlib::SpiritBoxJump$<$ Y $>$}}
+\doxysubsubsection{\texorpdfstring{addConstraints()}{addConstraints()}}
+{\footnotesize\ttfamily template$<$class Y $>$ \\
+void \mbox{\hyperlink{classdairlib_1_1SpiritBoxJump}{dairlib\+::\+Spirit\+Box\+Jump}}$<$ Y $>$\+::add\+Constraints (\begin{DoxyParamCaption}\item[{Multibody\+Plant$<$ Y $>$ \&}]{plant,  }\item[{dairlib\+::systems\+::trajectory\+\_\+optimization\+::\+Dircon$<$ Y $>$ \&}]{trajopt }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [virtual]}}
+
+Adds constraints to the trajopt box jump problem 
+\begin{DoxyParams}{Parameters}
+{\em plant} & robot model \\
+\hline
+{\em trajopt} & trajectory optimization problem to be solved\\
+\hline
+{\em plant} & robot model \\
+\hline
+{\em trajopt} & trajectory to be optimized \\
+\hline
+\end{DoxyParams}
+Setup all the optimization constraints
+
+Constraining xy position
+
+Implements \mbox{\hyperlink{classdairlib_1_1Behavior_af37cc68ab3480ab739a5533520e4afe9}{dairlib\+::\+Behavior$<$ Y $>$}}.
+
+\mbox{\Hypertarget{classdairlib_1_1SpiritBoxJump_adcfeef53530c10b3bdac67faa861a276}\label{classdairlib_1_1SpiritBoxJump_adcfeef53530c10b3bdac67faa861a276}} 
+\index{dairlib::SpiritBoxJump$<$ Y $>$@{dairlib::SpiritBoxJump$<$ Y $>$}!addCost@{addCost}}
+\index{addCost@{addCost}!dairlib::SpiritBoxJump$<$ Y $>$@{dairlib::SpiritBoxJump$<$ Y $>$}}
+\doxysubsubsection{\texorpdfstring{addCost()}{addCost()}}
+{\footnotesize\ttfamily template$<$class Y $>$ \\
+void \mbox{\hyperlink{classdairlib_1_1SpiritBoxJump}{dairlib\+::\+Spirit\+Box\+Jump}}$<$ Y $>$\+::add\+Cost (\begin{DoxyParamCaption}\item[{Multibody\+Plant$<$ Y $>$ \&}]{plant,  }\item[{dairlib\+::systems\+::trajectory\+\_\+optimization\+::\+Dircon$<$ Y $>$ \&}]{trajopt }\end{DoxyParamCaption})}
+
+Adds cost to the trajopt problem 
+\begin{DoxyParams}{Parameters}
+{\em plant} & robot model \\
+\hline
+{\em trajopt} & trajectory optimization problem to be solved \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{classdairlib_1_1SpiritBoxJump_a006874c374a94251aa89c109af650ae7}\label{classdairlib_1_1SpiritBoxJump_a006874c374a94251aa89c109af650ae7}} 
+\index{dairlib::SpiritBoxJump$<$ Y $>$@{dairlib::SpiritBoxJump$<$ Y $>$}!config@{config}}
+\index{config@{config}!dairlib::SpiritBoxJump$<$ Y $>$@{dairlib::SpiritBoxJump$<$ Y $>$}}
+\doxysubsubsection{\texorpdfstring{config()}{config()}}
+{\footnotesize\ttfamily template$<$class Y $>$ \\
+void \mbox{\hyperlink{classdairlib_1_1SpiritBoxJump}{dairlib\+::\+Spirit\+Box\+Jump}}$<$ Y $>$\+::config (\begin{DoxyParamCaption}\item[{std\+::string}]{yaml\+\_\+path,  }\item[{std\+::string}]{saved\+\_\+directory,  }\item[{int}]{index,  }\item[{Multibody\+Plant$<$ Y $>$ $\ast$}]{plant }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [virtual]}}
+
+Assigns values to member variables according to input yaml file 
+\begin{DoxyParams}{Parameters}
+{\em yaml\+\_\+path} & path of the yaml file \\
+\hline
+{\em saved\+\_\+directory} & directory for saving the output trajectories (namely for setting file\+\_\+name\+\_\+out) \\
+\hline
+{\em index} & indicates that we are using the index$^\wedge$th configuration \\
+\hline
+{\em plant} & robot model \\
+\hline
+\end{DoxyParams}
+
+
+Implements \mbox{\hyperlink{classdairlib_1_1Behavior_a81aa8e33441df47b822035de81d1b1d3}{dairlib\+::\+Behavior$<$ Y $>$}}.
+
+\mbox{\Hypertarget{classdairlib_1_1SpiritBoxJump_a5470039f765fb3b847697f66041433d4}\label{classdairlib_1_1SpiritBoxJump_a5470039f765fb3b847697f66041433d4}} 
+\index{dairlib::SpiritBoxJump$<$ Y $>$@{dairlib::SpiritBoxJump$<$ Y $>$}!getModeSequence@{getModeSequence}}
+\index{getModeSequence@{getModeSequence}!dairlib::SpiritBoxJump$<$ Y $>$@{dairlib::SpiritBoxJump$<$ Y $>$}}
+\doxysubsubsection{\texorpdfstring{getModeSequence()}{getModeSequence()}}
+{\footnotesize\ttfamily template$<$class Y $>$ \\
+std\+::tuple$<$ std\+::vector$<$ std\+::unique\+\_\+ptr$<$ dairlib\+::systems\+::trajectory\+\_\+optimization\+::\+Dircon\+Mode$<$ Y $>$ $>$ $>$, std\+::vector$<$ std\+::unique\+\_\+ptr$<$ multibody\+::\+World\+Point\+Evaluator$<$ Y $>$ $>$ $>$, std\+::vector$<$ std\+::unique\+\_\+ptr$<$ multibody\+::\+Kinematic\+Evaluator\+Set$<$ Y $>$ $>$ $>$ $>$ \mbox{\hyperlink{classdairlib_1_1SpiritBoxJump}{dairlib\+::\+Spirit\+Box\+Jump}}$<$ Y $>$\+::get\+Mode\+Sequence (\begin{DoxyParamCaption}\item[{Multibody\+Plant$<$ Y $>$ \&}]{plant,  }\item[{Dircon\+Mode\+Sequence$<$ Y $>$ \&}]{sequence }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [virtual]}}
+
+
+
+get\+Mode\+Sequence, initializes the trajopt mode seqence for jump, see run\+Spirit\+Jump for a def of inputs 
+
+
+
+Implements \mbox{\hyperlink{classdairlib_1_1Behavior_ab173710dd511560fc01680924ace7934}{dairlib\+::\+Behavior$<$ Y $>$}}.
+
+\mbox{\Hypertarget{classdairlib_1_1SpiritBoxJump_a9706b1066d20c6cbcdea31a6a1b72250}\label{classdairlib_1_1SpiritBoxJump_a9706b1066d20c6cbcdea31a6a1b72250}} 
+\index{dairlib::SpiritBoxJump$<$ Y $>$@{dairlib::SpiritBoxJump$<$ Y $>$}!run@{run}}
+\index{run@{run}!dairlib::SpiritBoxJump$<$ Y $>$@{dairlib::SpiritBoxJump$<$ Y $>$}}
+\doxysubsubsection{\texorpdfstring{run()}{run()}}
+{\footnotesize\ttfamily template$<$class Y $>$ \\
+void \mbox{\hyperlink{classdairlib_1_1SpiritBoxJump}{dairlib\+::\+Spirit\+Box\+Jump}}$<$ Y $>$\+::run (\begin{DoxyParamCaption}\item[{Multibody\+Plant$<$ Y $>$ \&}]{plant,  }\item[{Piecewise\+Polynomial$<$ Y $>$ $\ast$}]{pp\+\_\+xtraj,  }\item[{std\+::vector$<$ \mbox{\hyperlink{structSurfaceConf}{Surface\+Conf}} $>$ $\ast$}]{surface\+\_\+vector }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [virtual]}}
+
+Run a trajectory optimization problem for spirit box jumping 
+\begin{DoxyParams}{Parameters}
+{\em plant} & robot model \\
+\hline
+{\em pp\+\_\+xtraj} & state trajectory pointer used for animation \\
+\hline
+{\em surface\+\_\+vector} & vector of surfaces in the scene (for animation)\\
+\hline
+\end{DoxyParams}
+run\+Spirit\+Box\+Jump, runs a trajectory optimization problem for spirit jumping on flat ground 
+\begin{DoxyParams}{Parameters}
+{\em plant} & robot model \\
+\hline
+{\em pp\+\_\+xtraj} & trajectory passed by pointer for spirit animation \\
+\hline
+\end{DoxyParams}
+Setup trajectory optimization
+
+Setup the visualization during the optimization
+
+Run the optimization using your initial guess
+
+Save trajectory
+
+Implements \mbox{\hyperlink{classdairlib_1_1Behavior_af4fe15e5db9f711cbbfb59aecb9ecd84}{dairlib\+::\+Behavior$<$ Y $>$}}.
+
+\mbox{\Hypertarget{classdairlib_1_1SpiritBoxJump_a946f5db2093d29d35865f2f30e9a11a5}\label{classdairlib_1_1SpiritBoxJump_a946f5db2093d29d35865f2f30e9a11a5}} 
+\index{dairlib::SpiritBoxJump$<$ Y $>$@{dairlib::SpiritBoxJump$<$ Y $>$}!setUpModeSequence@{setUpModeSequence}}
+\index{setUpModeSequence@{setUpModeSequence}!dairlib::SpiritBoxJump$<$ Y $>$@{dairlib::SpiritBoxJump$<$ Y $>$}}
+\doxysubsubsection{\texorpdfstring{setUpModeSequence()}{setUpModeSequence()}}
+{\footnotesize\ttfamily template$<$class Y $>$ \\
+void \mbox{\hyperlink{classdairlib_1_1SpiritBoxJump}{dairlib\+::\+Spirit\+Box\+Jump}}$<$ Y $>$\+::set\+Up\+Mode\+Sequence (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [virtual]}}
+
+
+
+Set up mode sequence for trajectory optimization problem. Will be defined differently in different behaviors. 
+
+
+
+Implements \mbox{\hyperlink{classdairlib_1_1Behavior_ab0beeb2823292b949915849e317c0971}{dairlib\+::\+Behavior$<$ Y $>$}}.
+
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+spirit\+\_\+box\+\_\+jump.\+h\item 
+spirit\+\_\+box\+\_\+jump.\+cc\end{DoxyCompactItemize}

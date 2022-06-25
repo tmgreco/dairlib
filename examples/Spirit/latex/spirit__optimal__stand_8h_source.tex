@@ -1,0 +1,61 @@
+\hypertarget{spirit__optimal__stand_8h_source}{}\doxysection{spirit\+\_\+optimal\+\_\+stand.\+h}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{1 \textcolor{preprocessor}{\#pragma once}}
+\DoxyCodeLine{2 }
+\DoxyCodeLine{3 \textcolor{keyword}{namespace }dairlib \{}
+\DoxyCodeLine{5 \textcolor{keyword}{class }\mbox{\hyperlink{classdairlib_1_1OptimalSpiritStand}{OptimalSpiritStand}} \{}
+\DoxyCodeLine{6   \textcolor{keyword}{private}: }
+\DoxyCodeLine{7     drake::multibody::MultibodyPlant<double>* plantPtr\_;}
+\DoxyCodeLine{8     \textcolor{keywordtype}{double} height\_;}
+\DoxyCodeLine{9     Eigen::Vector3d normal\_;}
+\DoxyCodeLine{10     Eigen::Vector3d offset\_;}
+\DoxyCodeLine{11     Eigen::VectorXd fullstate\_;}
+\DoxyCodeLine{12     std::string filename\_;}
+\DoxyCodeLine{13     Eigen::Vector3d rpy\_;}
+\DoxyCodeLine{14     std::string folder\_= \textcolor{stringliteral}{"{}/home/feng/Downloads/dairlib/examples/Spirit/saved\_trajectories/stand\_trajectories/"{}};}
+\DoxyCodeLine{15     }
+\DoxyCodeLine{19     Eigen::VectorXd \mbox{\hyperlink{classdairlib_1_1OptimalSpiritStand_a5d2d5e66b4ed8d7b9c396ba2b4e794b4}{getSpiritOptimalStand}}( \textcolor{keywordtype}{double} tol = 1e-\/4, \textcolor{keywordtype}{bool} animate = \textcolor{keyword}{false});}
+\DoxyCodeLine{20 }
+\DoxyCodeLine{21   \textcolor{keyword}{public}:}
+\DoxyCodeLine{33     \mbox{\hyperlink{classdairlib_1_1OptimalSpiritStand_ab8dd2ef49db0d829543f8b7f7d83d52e}{OptimalSpiritStand}}()\{\};}
+\DoxyCodeLine{34     \mbox{\hyperlink{classdairlib_1_1OptimalSpiritStand_ab8dd2ef49db0d829543f8b7f7d83d52e}{OptimalSpiritStand}}(}
+\DoxyCodeLine{35           drake::multibody::MultibodyPlant<double>* plantPtr, }
+\DoxyCodeLine{36           \textcolor{keywordtype}{double} height, }
+\DoxyCodeLine{37           Eigen::Vector3d normal,}
+\DoxyCodeLine{38           Eigen::Vector3d offset,}
+\DoxyCodeLine{39           \textcolor{keywordtype}{bool} rerun = \textcolor{keyword}{false},}
+\DoxyCodeLine{40           \textcolor{keywordtype}{double} tol = 1e-\/4,}
+\DoxyCodeLine{41           \textcolor{keywordtype}{bool} animate = \textcolor{keyword}{false},}
+\DoxyCodeLine{42           std::string filenameBase = \textcolor{stringliteral}{"{}optimalStand"{}});  \textcolor{comment}{// Constructor}}
+\DoxyCodeLine{43     }
+\DoxyCodeLine{44     \textcolor{keywordtype}{void} init(}
+\DoxyCodeLine{45           drake::multibody::MultibodyPlant<double>* plantPtr, }
+\DoxyCodeLine{46           \textcolor{keywordtype}{double} height, }
+\DoxyCodeLine{47           Eigen::Vector3d normal,}
+\DoxyCodeLine{48           Eigen::Vector3d offset,}
+\DoxyCodeLine{49           \textcolor{keywordtype}{bool} rerun = \textcolor{keyword}{false},}
+\DoxyCodeLine{50           \textcolor{keywordtype}{double} tol = 1e-\/4,}
+\DoxyCodeLine{51           \textcolor{keywordtype}{bool} animate = \textcolor{keyword}{false},}
+\DoxyCodeLine{52           std::string filenameBase = \textcolor{stringliteral}{"{}optimalStand"{}});  \textcolor{comment}{// Constructor}}
+\DoxyCodeLine{53     \textcolor{comment}{// Get the surface normal }}
+\DoxyCodeLine{54     Eigen::VectorXd normal()\{ \textcolor{keywordflow}{return} normal\_; \}}
+\DoxyCodeLine{55     \textcolor{comment}{// Get the surface nominal offset }}
+\DoxyCodeLine{56     Eigen::VectorXd offset()\{ \textcolor{keywordflow}{return} offset\_; \}}
+\DoxyCodeLine{57     \textcolor{comment}{// Get the fullstate of the stand (velocities should be zero)}}
+\DoxyCodeLine{58     Eigen::VectorXd getState()\{ \textcolor{keywordflow}{return} fullstate\_; \}}
+\DoxyCodeLine{59     \textcolor{comment}{// Get the roll pitch yaw as a vector}}
+\DoxyCodeLine{60     Eigen::Vector3d getRPY()\{ \textcolor{keywordflow}{return} rpy\_; \}}
+\DoxyCodeLine{61     \textcolor{comment}{// Get the position of the optimal stand}}
+\DoxyCodeLine{62     Eigen::VectorXd getPosition()\{ \textcolor{keywordflow}{return} fullstate\_.head(plantPtr\_-\/>num\_positions()); \}}
+\DoxyCodeLine{63     \textcolor{comment}{// Get quaternion of the body orientation in optimal stand}}
+\DoxyCodeLine{64     Eigen::VectorXd getQuat()\{ \textcolor{keywordflow}{return} fullstate\_.head(4); \}}
+\DoxyCodeLine{65     \textcolor{comment}{// Get the COM position in the optimal stand (first 7 are [quat; COM] )}}
+\DoxyCodeLine{66     Eigen::VectorXd getCOM()\{ \textcolor{keywordflow}{return} (fullstate\_.head(7)).tail(3); \}}
+\DoxyCodeLine{67     \textcolor{comment}{// Get all the joints (positions that aren't Quat or COM pose)}}
+\DoxyCodeLine{68     Eigen::VectorXd getJoints()\{ \textcolor{keywordflow}{return} (getPosition()).tail(plantPtr\_-\/>num\_positions()-\/7); \}}
+\DoxyCodeLine{69     \textcolor{keywordtype}{double} height()\{\textcolor{keywordflow}{return} height\_;\};}
+\DoxyCodeLine{70 \};}
+\DoxyCodeLine{71 \}}
+
+\end{DoxyCode}

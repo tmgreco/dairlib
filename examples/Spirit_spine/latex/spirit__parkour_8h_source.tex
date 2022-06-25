@@ -1,0 +1,151 @@
+\hypertarget{spirit__parkour_8h_source}{}\doxysection{spirit\+\_\+parkour.\+h}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{1 \textcolor{preprocessor}{\#ifndef \_spirit\_parkour}}
+\DoxyCodeLine{2 \textcolor{preprocessor}{\#define \_spirit\_parkour}}
+\DoxyCodeLine{3 }
+\DoxyCodeLine{4 \textcolor{preprocessor}{\#include <cmath>}}
+\DoxyCodeLine{5 \textcolor{preprocessor}{\#include <experimental/filesystem>}}
+\DoxyCodeLine{6 \textcolor{preprocessor}{\#include <filesystem>}}
+\DoxyCodeLine{7 }
+\DoxyCodeLine{8 \textcolor{preprocessor}{\#include "{}common/find\_resource.h"{}}}
+\DoxyCodeLine{9 \textcolor{preprocessor}{\#include "{}systems/trajectory\_optimization/dircon/dircon.h"{}}}
+\DoxyCodeLine{10 \textcolor{preprocessor}{\#include "{}multibody/kinematic/world\_point\_evaluator.h"{}}}
+\DoxyCodeLine{11 \textcolor{preprocessor}{\#include "{}solvers/nonlinear\_constraint.h"{}}}
+\DoxyCodeLine{12 \textcolor{preprocessor}{\#include "{}multibody/kinematic/distance\_evaluator.h"{}}}
+\DoxyCodeLine{13 \textcolor{preprocessor}{\#include "{}multibody/multibody\_utils.h"{}}}
+\DoxyCodeLine{14 \textcolor{preprocessor}{\#include "{}multibody/visualization\_utils.h"{}}}
+\DoxyCodeLine{15 \textcolor{preprocessor}{\#include "{}multibody/kinematic/kinematic\_constraints.h"{}}}
+\DoxyCodeLine{16 }
+\DoxyCodeLine{17 \textcolor{preprocessor}{\#include "{}examples/Spirit/animate\_spirit.h"{}}}
+\DoxyCodeLine{18 \textcolor{preprocessor}{\#include "{}common/file\_utils.h"{}}}
+\DoxyCodeLine{19 \textcolor{preprocessor}{\#include "{}lcm/dircon\_saved\_trajectory.h"{}}}
+\DoxyCodeLine{20 \textcolor{preprocessor}{\#include "{}solvers/optimization\_utils.h"{}}}
+\DoxyCodeLine{21 \textcolor{preprocessor}{\#include "{}solvers/nonlinear\_cost.h"{}}}
+\DoxyCodeLine{22 }
+\DoxyCodeLine{23 \textcolor{preprocessor}{\#include "{}examples/Spirit/spirit\_utils.h"{}}}
+\DoxyCodeLine{24 \textcolor{preprocessor}{\#include "{}examples/Spirit/behavior.h"{}}}
+\DoxyCodeLine{25 \textcolor{preprocessor}{\#include "{}examples/Spirit/spirit\_optimal\_stand.h"{}}}
+\DoxyCodeLine{26 }
+\DoxyCodeLine{27 }
+\DoxyCodeLine{28 \textcolor{keyword}{using} drake::multibody::MultibodyPlant;}
+\DoxyCodeLine{29 \textcolor{keyword}{using} drake::trajectories::PiecewisePolynomial;}
+\DoxyCodeLine{30 \textcolor{keyword}{namespace }dairlib \{}
+\DoxyCodeLine{31     \textcolor{keyword}{using} systems::trajectory\_optimization::Dircon;}
+\DoxyCodeLine{32 }
+\DoxyCodeLine{33 }
+\DoxyCodeLine{34 \textcolor{keyword}{template} <\textcolor{keyword}{class} Y>  }
+\DoxyCodeLine{35 \textcolor{keyword}{class }\mbox{\hyperlink{classdairlib_1_1SpiritParkourJump}{SpiritParkourJump}} : \textcolor{keyword}{public} \mbox{\hyperlink{classdairlib_1_1Behavior}{Behavior}}<Y> \{}
+\DoxyCodeLine{36 \textcolor{keyword}{public}:}
+\DoxyCodeLine{37 }
+\DoxyCodeLine{38     \mbox{\hyperlink{classdairlib_1_1SpiritParkourJump}{SpiritParkourJump}}();}
+\DoxyCodeLine{44     \textcolor{keywordtype}{void} \mbox{\hyperlink{classdairlib_1_1SpiritParkourJump_ab35d923c435ddb90d7db51e411bb188b}{config}}(std::string yaml\_path, std::string saved\_directory, \textcolor{keywordtype}{int} index,MultibodyPlant<Y>* \mbox{\hyperlink{classdairlib_1_1SpiritParkourJump_af2c645dafbe8b53ec95409110b7ea4a8}{plant}});}
+\DoxyCodeLine{45     }
+\DoxyCodeLine{53     \textcolor{keywordtype}{void} \mbox{\hyperlink{classdairlib_1_1SpiritParkourJump_a70c7e14cd1c207c013b3d653236ed094}{offsetConstraint}}(}
+\DoxyCodeLine{54         MultibodyPlant<Y>\& \mbox{\hyperlink{classdairlib_1_1SpiritParkourJump_af2c645dafbe8b53ec95409110b7ea4a8}{plant}},}
+\DoxyCodeLine{55         dairlib::systems::trajectory\_optimization::Dircon<Y>\& trajopt,}
+\DoxyCodeLine{56         \textcolor{keyword}{const} Eigen::Ref<const drake::solvers::VectorXDecisionVariable>\& xb,}
+\DoxyCodeLine{57         Eigen::Vector3d normal,}
+\DoxyCodeLine{58         Eigen::Vector3d offset,}
+\DoxyCodeLine{59         \textcolor{keywordtype}{double} eps2 = 0.01}
+\DoxyCodeLine{60         );}
+\DoxyCodeLine{62     \textcolor{keywordtype}{void} \mbox{\hyperlink{classdairlib_1_1SpiritParkourJump_a8bac1d129fbb73458ada76fdee27ac0c}{generateInitialGuess}}(MultibodyPlant<Y>\& \mbox{\hyperlink{classdairlib_1_1SpiritParkourJump_af2c645dafbe8b53ec95409110b7ea4a8}{plant}});}
+\DoxyCodeLine{63 }
+\DoxyCodeLine{64     \textcolor{keywordtype}{void} concatVectorTraj(}
+\DoxyCodeLine{65         vector<PiecewisePolynomial<Y>>\& traj, }
+\DoxyCodeLine{66         vector<PiecewisePolynomial<Y>> otherTraj, }
+\DoxyCodeLine{67         \textcolor{keywordtype}{bool} mergeInnerMode);}
+\DoxyCodeLine{71     \textcolor{keywordtype}{void} \mbox{\hyperlink{classdairlib_1_1SpiritParkourJump_a7489bfe19fa03a9e526fc5d9debd3cee}{addConstraints}}(MultibodyPlant<Y>\& \mbox{\hyperlink{classdairlib_1_1SpiritParkourJump_af2c645dafbe8b53ec95409110b7ea4a8}{plant}}, }
+\DoxyCodeLine{72                         dairlib::systems::trajectory\_optimization::Dircon<Y>\& trajopt}
+\DoxyCodeLine{73                         );}
+\DoxyCodeLine{74 }
+\DoxyCodeLine{79     \textcolor{keywordtype}{void} \mbox{\hyperlink{classdairlib_1_1SpiritParkourJump_a234739050c21b32add133cad3160427d}{run}}(MultibodyPlant<Y>\& \mbox{\hyperlink{classdairlib_1_1SpiritParkourJump_af2c645dafbe8b53ec95409110b7ea4a8}{plant}},}
+\DoxyCodeLine{80             PiecewisePolynomial<Y>* pp\_xtraj,}
+\DoxyCodeLine{81             std::vector<SurfaceConf>* surface\_vector);}
+\DoxyCodeLine{82 }
+\DoxyCodeLine{83     \textcolor{keywordtype}{void} \mbox{\hyperlink{classdairlib_1_1SpiritParkourJump_aff82a924f514ca0d511f4f48da21dba0}{setUpModeSequence}}();}
+\DoxyCodeLine{84 }
+\DoxyCodeLine{88     \textcolor{keywordtype}{void} \mbox{\hyperlink{classdairlib_1_1SpiritParkourJump_a845ea55913ccc336141083d048c306c4}{addCost}}(}
+\DoxyCodeLine{89             MultibodyPlant<Y>\& \mbox{\hyperlink{classdairlib_1_1SpiritParkourJump_af2c645dafbe8b53ec95409110b7ea4a8}{plant}},}
+\DoxyCodeLine{90             dairlib::systems::trajectory\_optimization::Dircon<Y>\& trajopt);}
+\DoxyCodeLine{91 }
+\DoxyCodeLine{95     \textcolor{keywordtype}{void} \mbox{\hyperlink{classdairlib_1_1SpiritParkourJump_a49b6b9b039ee1b5fba6435730ce0b5f0}{addCostLegs}}(MultibodyPlant<Y>\& \mbox{\hyperlink{classdairlib_1_1SpiritParkourJump_af2c645dafbe8b53ec95409110b7ea4a8}{plant}},}
+\DoxyCodeLine{96                  dairlib::systems::trajectory\_optimization::Dircon<Y>\& trajopt,}
+\DoxyCodeLine{97                  \textcolor{keyword}{const} \textcolor{keywordtype}{double} \mbox{\hyperlink{classdairlib_1_1Behavior_afdae406f744ef4778b050ef5fabc1334}{cost\_actuation}},}
+\DoxyCodeLine{98                  \textcolor{keyword}{const} \textcolor{keywordtype}{double} \mbox{\hyperlink{classdairlib_1_1Behavior_a24fe00801a0924f2f18b9342189518d7}{cost\_velocity}},}
+\DoxyCodeLine{99                  \textcolor{keyword}{const} std::vector<double>\& joints,}
+\DoxyCodeLine{100                  \textcolor{keyword}{const} \textcolor{keywordtype}{int} mode\_index);}
+\DoxyCodeLine{101 }
+\DoxyCodeLine{102     std::tuple<  std::vector<std::unique\_ptr<dairlib::systems::trajectory\_optimization::DirconMode<Y>>>,}
+\DoxyCodeLine{103     std::vector<std::unique\_ptr<multibody::WorldPointEvaluator<Y>>> ,}
+\DoxyCodeLine{104     std::vector<std::unique\_ptr<multibody::KinematicEvaluatorSet<Y>>>>}
+\DoxyCodeLine{105     \mbox{\hyperlink{classdairlib_1_1SpiritParkourJump_a03ae410ec2435f9b4ebe47eb32f54a3b}{getModeSequence}}(MultibodyPlant<Y>\& \mbox{\hyperlink{classdairlib_1_1SpiritParkourJump_af2c645dafbe8b53ec95409110b7ea4a8}{plant}},}
+\DoxyCodeLine{106                     DirconModeSequence<Y>\& sequence)\{}
+\DoxyCodeLine{107     \textcolor{keywordflow}{for} (\textcolor{keywordtype}{int} i=0;i<\mbox{\hyperlink{classdairlib_1_1SpiritParkourJump_a7c37951482b5c26961331acdcd410ee5}{nJumps}}*5+1;i++)\{}
+\DoxyCodeLine{108         \textcolor{keywordflow}{if} (i\%5==3 || i\%5==4) this-\/>\mbox{\hyperlink{classdairlib_1_1Behavior_aeb1ca35688639cd793f5f5dce641d82a}{num\_knot\_points}}.push\_back(\mbox{\hyperlink{classdairlib_1_1SpiritParkourJump_ace738d080b0ab7388e0018513cc1e6f2}{nKnotpoints\_flight}});}
+\DoxyCodeLine{109         \textcolor{keywordflow}{else} this-\/>\mbox{\hyperlink{classdairlib_1_1Behavior_aeb1ca35688639cd793f5f5dce641d82a}{num\_knot\_points}}.push\_back(\mbox{\hyperlink{classdairlib_1_1SpiritParkourJump_a381d8d250630dbeeef23308dd71cf5e8}{nKnotpoints\_stances}});}
+\DoxyCodeLine{110     \}}
+\DoxyCodeLine{111     }
+\DoxyCodeLine{112     \mbox{\hyperlink{classdairlib_1_1ModeSequenceHelper}{dairlib::ModeSequenceHelper}} msh;}
+\DoxyCodeLine{113     this-\/>\mbox{\hyperlink{classdairlib_1_1Behavior_adc15934596e6b9c0b2b20ab846aa3ba5}{getModeSequenceHelper}}(msh);}
+\DoxyCodeLine{114 }
+\DoxyCodeLine{115     \textcolor{keyword}{auto} [modeVector, toeEvals, toeEvalSets] = createSpiritModeSequence(\mbox{\hyperlink{classdairlib_1_1SpiritParkourJump_af2c645dafbe8b53ec95409110b7ea4a8}{plant}}, msh);}
+\DoxyCodeLine{116 }
+\DoxyCodeLine{117     \textcolor{keywordflow}{for} (\textcolor{keyword}{auto}\& mode : modeVector)\{}
+\DoxyCodeLine{118         \textcolor{keywordflow}{for} (\textcolor{keywordtype}{int} i = 0; i < mode-\/>evaluators().num\_evaluators(); i++ )\{}
+\DoxyCodeLine{119         mode-\/>MakeConstraintRelative(i,0);}
+\DoxyCodeLine{120         mode-\/>MakeConstraintRelative(i,1);}
+\DoxyCodeLine{121         \}}
+\DoxyCodeLine{122         mode-\/>SetDynamicsScale(}
+\DoxyCodeLine{123             \{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19\}, 150.0);}
+\DoxyCodeLine{124         \textcolor{keywordflow}{if} (mode-\/>evaluators().num\_evaluators() == 4)}
+\DoxyCodeLine{125         \{}
+\DoxyCodeLine{126         mode-\/>SetKinVelocityScale(}
+\DoxyCodeLine{127             \{0, 1, 2, 3\}, \{0, 1, 2\}, 1.0);}
+\DoxyCodeLine{128         mode-\/>SetKinPositionScale(}
+\DoxyCodeLine{129             \{0, 1, 2, 3\}, \{0, 1, 2\}, 150.0);}
+\DoxyCodeLine{130         \}}
+\DoxyCodeLine{131         \textcolor{keywordflow}{else} \textcolor{keywordflow}{if} (mode-\/>evaluators().num\_evaluators() == 2)\{}
+\DoxyCodeLine{132         mode-\/>SetKinVelocityScale(}
+\DoxyCodeLine{133             \{0, 1\}, \{0, 1, 2\}, 1.0);}
+\DoxyCodeLine{134         mode-\/>SetKinPositionScale(}
+\DoxyCodeLine{135             \{0, 1\}, \{0, 1, 2\}, 150.0);}
+\DoxyCodeLine{136         \}}
+\DoxyCodeLine{137         sequence.AddMode(mode.get());}
+\DoxyCodeLine{138     \}}
+\DoxyCodeLine{139     \textcolor{keywordflow}{return} \{std::move(modeVector), std::move(toeEvals), std::move(toeEvalSets)\};}
+\DoxyCodeLine{140     \}}
+\DoxyCodeLine{141 }
+\DoxyCodeLine{142 \textcolor{keyword}{private}:}
+\DoxyCodeLine{143 }
+\DoxyCodeLine{144     std::unique\_ptr<MultibodyPlant<Y>> \mbox{\hyperlink{classdairlib_1_1SpiritParkourJump_af2c645dafbe8b53ec95409110b7ea4a8}{plant}}; }
+\DoxyCodeLine{145     std::vector<std::tuple<Eigen::Vector3d,Eigen::Vector3d,double>> \mbox{\hyperlink{classdairlib_1_1SpiritParkourJump_a2f2265477a53eb9879cff9d2b8778641}{transitionSurfaces}}; }
+\DoxyCodeLine{146     }
+\DoxyCodeLine{147     \textcolor{keywordtype}{int} \mbox{\hyperlink{classdairlib_1_1SpiritParkourJump_ace738d080b0ab7388e0018513cc1e6f2}{nKnotpoints\_flight}}; }
+\DoxyCodeLine{148     \textcolor{keywordtype}{int} \mbox{\hyperlink{classdairlib_1_1SpiritParkourJump_a381d8d250630dbeeef23308dd71cf5e8}{nKnotpoints\_stances}}; }
+\DoxyCodeLine{149 }
+\DoxyCodeLine{150 }
+\DoxyCodeLine{151     \textcolor{keywordtype}{double} apex\_height;}
+\DoxyCodeLine{152     \textcolor{keywordtype}{double} \mbox{\hyperlink{classdairlib_1_1SpiritParkourJump_ad3f3e81f1b941fc95a13d8b2d12f6873}{max\_apex\_pitch\_magnitude}}; }
+\DoxyCodeLine{153     \textcolor{keywordtype}{double} \mbox{\hyperlink{classdairlib_1_1SpiritParkourJump_ac2307547b4528724fd6335dc2c6c9ce5}{max\_pitch\_magnitude}}; }
+\DoxyCodeLine{154     \textcolor{keywordtype}{double} \mbox{\hyperlink{classdairlib_1_1SpiritParkourJump_ad27850253d59ab381c4f7b277e4b4775}{initial\_height}}; }
+\DoxyCodeLine{155     \textcolor{keywordtype}{double} \mbox{\hyperlink{classdairlib_1_1SpiritParkourJump_ad863e8213235742eea650ec338730800}{fore\_aft\_displacement}}; }
+\DoxyCodeLine{156     \textcolor{keywordtype}{bool} lock\_rotation;}
+\DoxyCodeLine{157     \textcolor{keywordtype}{bool} \mbox{\hyperlink{classdairlib_1_1SpiritParkourJump_ae0df9dbf624d085529f6ac897a8cc688}{lock\_legs\_apex}}; }
+\DoxyCodeLine{158     \textcolor{keywordtype}{bool} force\_symmetry;}
+\DoxyCodeLine{159     \textcolor{keywordtype}{bool} use\_nominal\_stand;}
+\DoxyCodeLine{160     \textcolor{keywordtype}{double} \mbox{\hyperlink{classdairlib_1_1SpiritParkourJump_a15c9647f25fb3f354c0f94618e7d64f1}{max\_duration}}; }
+\DoxyCodeLine{161     \textcolor{keywordtype}{double} \mbox{\hyperlink{classdairlib_1_1SpiritParkourJump_a8081d27162c255054d7810a92d9cd0e1}{eps}};   }
+\DoxyCodeLine{162     \textcolor{keywordtype}{double} work\_constraint\_scale;}
+\DoxyCodeLine{163     \textcolor{keywordtype}{int} \mbox{\hyperlink{classdairlib_1_1SpiritParkourJump_a7c37951482b5c26961331acdcd410ee5}{nJumps}}; }
+\DoxyCodeLine{164     \textcolor{keywordtype}{double} stand\_height;}
+\DoxyCodeLine{165 \textcolor{keyword}{public}:}
+\DoxyCodeLine{166     \mbox{\hyperlink{classdairlib_1_1OptimalSpiritStand}{dairlib::OptimalSpiritStand}} initialStand;}
+\DoxyCodeLine{167     \mbox{\hyperlink{classdairlib_1_1OptimalSpiritStand}{dairlib::OptimalSpiritStand}} finalStand;}
+\DoxyCodeLine{168 \};}
+\DoxyCodeLine{169 \}}
+\DoxyCodeLine{170 }
+\DoxyCodeLine{171 \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{172 }
+
+\end{DoxyCode}

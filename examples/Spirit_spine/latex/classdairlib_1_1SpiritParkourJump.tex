@@ -1,0 +1,274 @@
+\hypertarget{classdairlib_1_1SpiritParkourJump}{}\doxysection{dairlib\+::Spirit\+Parkour\+Jump\texorpdfstring{$<$}{<} Y \texorpdfstring{$>$}{>} Class Template Reference}
+\label{classdairlib_1_1SpiritParkourJump}\index{dairlib::SpiritParkourJump$<$ Y $>$@{dairlib::SpiritParkourJump$<$ Y $>$}}
+Inheritance diagram for dairlib\+::Spirit\+Parkour\+Jump\texorpdfstring{$<$}{<} Y \texorpdfstring{$>$}{>}\+:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{classdairlib_1_1SpiritParkourJump}
+\end{center}
+\end{figure}
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \mbox{\hyperlink{classdairlib_1_1SpiritParkourJump_ab35d923c435ddb90d7db51e411bb188b}{config}} (std\+::string yaml\+\_\+path, std\+::string saved\+\_\+directory, int index, Multibody\+Plant$<$ Y $>$ $\ast$\mbox{\hyperlink{classdairlib_1_1SpiritParkourJump_af2c645dafbe8b53ec95409110b7ea4a8}{plant}})
+\item 
+void \mbox{\hyperlink{classdairlib_1_1SpiritParkourJump_a70c7e14cd1c207c013b3d653236ed094}{offset\+Constraint}} (Multibody\+Plant$<$ Y $>$ \&\mbox{\hyperlink{classdairlib_1_1SpiritParkourJump_af2c645dafbe8b53ec95409110b7ea4a8}{plant}}, dairlib\+::systems\+::trajectory\+\_\+optimization\+::\+Dircon$<$ Y $>$ \&trajopt, const Eigen\+::\+Ref$<$ const drake\+::solvers\+::\+Vector\+XDecision\+Variable $>$ \&xb, Eigen\+::\+Vector3d normal, Eigen\+::\+Vector3d offset, double eps2=0.\+01)
+\begin{DoxyCompactList}\small\item\em Adds an offset constraint which allows the body to be anywhere on the normal vector. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classdairlib_1_1SpiritParkourJump_a8bac1d129fbb73458ada76fdee27ac0c}\label{classdairlib_1_1SpiritParkourJump_a8bac1d129fbb73458ada76fdee27ac0c}} 
+void {\bfseries generate\+Initial\+Guess} (Multibody\+Plant$<$ Y $>$ \&\mbox{\hyperlink{classdairlib_1_1SpiritParkourJump_af2c645dafbe8b53ec95409110b7ea4a8}{plant}})
+\begin{DoxyCompactList}\small\item\em Generate a bad initial guess by stitching several bounding behaviors together. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classdairlib_1_1SpiritParkourJump_ab6a19dcc07822c4e5f1a291784029986}\label{classdairlib_1_1SpiritParkourJump_ab6a19dcc07822c4e5f1a291784029986}} 
+void {\bfseries concat\+Vector\+Traj} (vector$<$ Piecewise\+Polynomial$<$ Y $>$ $>$ \&traj, vector$<$ Piecewise\+Polynomial$<$ Y $>$ $>$ other\+Traj, bool merge\+Inner\+Mode)
+\item 
+void \mbox{\hyperlink{classdairlib_1_1SpiritParkourJump_a7489bfe19fa03a9e526fc5d9debd3cee}{add\+Constraints}} (Multibody\+Plant$<$ Y $>$ \&\mbox{\hyperlink{classdairlib_1_1SpiritParkourJump_af2c645dafbe8b53ec95409110b7ea4a8}{plant}}, dairlib\+::systems\+::trajectory\+\_\+optimization\+::\+Dircon$<$ Y $>$ \&trajopt)
+\item 
+void \mbox{\hyperlink{classdairlib_1_1SpiritParkourJump_a234739050c21b32add133cad3160427d}{run}} (Multibody\+Plant$<$ Y $>$ \&\mbox{\hyperlink{classdairlib_1_1SpiritParkourJump_af2c645dafbe8b53ec95409110b7ea4a8}{plant}}, Piecewise\+Polynomial$<$ Y $>$ $\ast$pp\+\_\+xtraj, std\+::vector$<$ \mbox{\hyperlink{structSurfaceConf}{Surface\+Conf}} $>$ $\ast$surface\+\_\+vector)
+\item 
+void \mbox{\hyperlink{classdairlib_1_1SpiritParkourJump_aff82a924f514ca0d511f4f48da21dba0}{set\+Up\+Mode\+Sequence}} ()
+\begin{DoxyCompactList}\small\item\em Set up mode sequence for trajectory optimization problem. Will be defined differently in different behaviors. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{classdairlib_1_1SpiritParkourJump_a845ea55913ccc336141083d048c306c4}{add\+Cost}} (Multibody\+Plant$<$ Y $>$ \&\mbox{\hyperlink{classdairlib_1_1SpiritParkourJump_af2c645dafbe8b53ec95409110b7ea4a8}{plant}}, dairlib\+::systems\+::trajectory\+\_\+optimization\+::\+Dircon$<$ Y $>$ \&trajopt)
+\item 
+void \mbox{\hyperlink{classdairlib_1_1SpiritParkourJump_a49b6b9b039ee1b5fba6435730ce0b5f0}{add\+Cost\+Legs}} (Multibody\+Plant$<$ Y $>$ \&\mbox{\hyperlink{classdairlib_1_1SpiritParkourJump_af2c645dafbe8b53ec95409110b7ea4a8}{plant}}, dairlib\+::systems\+::trajectory\+\_\+optimization\+::\+Dircon$<$ Y $>$ \&trajopt, const double \mbox{\hyperlink{classdairlib_1_1Behavior_afdae406f744ef4778b050ef5fabc1334}{cost\+\_\+actuation}}, const double \mbox{\hyperlink{classdairlib_1_1Behavior_a24fe00801a0924f2f18b9342189518d7}{cost\+\_\+velocity}}, const std\+::vector$<$ double $>$ \&joints, const int mode\+\_\+index)
+\item 
+std\+::tuple$<$ std\+::vector$<$ std\+::unique\+\_\+ptr$<$ dairlib\+::systems\+::trajectory\+\_\+optimization\+::\+Dircon\+Mode$<$ Y $>$ $>$ $>$, std\+::vector$<$ std\+::unique\+\_\+ptr$<$ multibody\+::\+World\+Point\+Evaluator$<$ Y $>$ $>$ $>$, std\+::vector$<$ std\+::unique\+\_\+ptr$<$ multibody\+::\+Kinematic\+Evaluator\+Set$<$ Y $>$ $>$ $>$ $>$ \mbox{\hyperlink{classdairlib_1_1SpiritParkourJump_a03ae410ec2435f9b4ebe47eb32f54a3b}{get\+Mode\+Sequence}} (Multibody\+Plant$<$ Y $>$ \&\mbox{\hyperlink{classdairlib_1_1SpiritParkourJump_af2c645dafbe8b53ec95409110b7ea4a8}{plant}}, Dircon\+Mode\+Sequence$<$ Y $>$ \&sequence)
+\begin{DoxyCompactList}\small\item\em get\+Mode\+Sequence, initializes the trajopt mode seqence for jump, see run\+Spirit\+Jump for a def of inputs \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classdairlib_1_1SpiritParkourJump_adfe7f3caf00526cbe4b4868bb3df0f60}\label{classdairlib_1_1SpiritParkourJump_adfe7f3caf00526cbe4b4868bb3df0f60}} 
+\mbox{\hyperlink{classdairlib_1_1OptimalSpiritStand}{dairlib\+::\+Optimal\+Spirit\+Stand}} {\bfseries initial\+Stand}
+\item 
+\mbox{\Hypertarget{classdairlib_1_1SpiritParkourJump_aad322c1d0d8b83b8ad9041ed4909cc89}\label{classdairlib_1_1SpiritParkourJump_aad322c1d0d8b83b8ad9041ed4909cc89}} 
+\mbox{\hyperlink{classdairlib_1_1OptimalSpiritStand}{dairlib\+::\+Optimal\+Spirit\+Stand}} {\bfseries final\+Stand}
+\end{DoxyCompactItemize}
+\doxysubsection*{Private Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classdairlib_1_1SpiritParkourJump_af2c645dafbe8b53ec95409110b7ea4a8}\label{classdairlib_1_1SpiritParkourJump_af2c645dafbe8b53ec95409110b7ea4a8}} 
+std\+::unique\+\_\+ptr$<$ Multibody\+Plant$<$ Y $>$ $>$ {\bfseries plant}
+\begin{DoxyCompactList}\small\item\em the robot \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classdairlib_1_1SpiritParkourJump_a2f2265477a53eb9879cff9d2b8778641}\label{classdairlib_1_1SpiritParkourJump_a2f2265477a53eb9879cff9d2b8778641}} 
+std\+::vector$<$ std\+::tuple$<$ Eigen\+::\+Vector3d, Eigen\+::\+Vector3d, double $>$ $>$ {\bfseries transition\+Surfaces}
+\begin{DoxyCompactList}\small\item\em vector that stores transition surfaces (surface to jump) \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classdairlib_1_1SpiritParkourJump_ace738d080b0ab7388e0018513cc1e6f2}\label{classdairlib_1_1SpiritParkourJump_ace738d080b0ab7388e0018513cc1e6f2}} 
+int {\bfseries n\+Knotpoints\+\_\+flight}
+\begin{DoxyCompactList}\small\item\em number of know points for each flight mode \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classdairlib_1_1SpiritParkourJump_a381d8d250630dbeeef23308dd71cf5e8}\label{classdairlib_1_1SpiritParkourJump_a381d8d250630dbeeef23308dd71cf5e8}} 
+int {\bfseries n\+Knotpoints\+\_\+stances}
+\begin{DoxyCompactList}\small\item\em number of know points for each stance mode \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classdairlib_1_1SpiritParkourJump_a9d298ff9abfa284f1da27eba7f00b5ea}\label{classdairlib_1_1SpiritParkourJump_a9d298ff9abfa284f1da27eba7f00b5ea}} 
+double {\bfseries apex\+\_\+height}
+\item 
+\mbox{\Hypertarget{classdairlib_1_1SpiritParkourJump_ad3f3e81f1b941fc95a13d8b2d12f6873}\label{classdairlib_1_1SpiritParkourJump_ad3f3e81f1b941fc95a13d8b2d12f6873}} 
+double {\bfseries max\+\_\+apex\+\_\+pitch\+\_\+magnitude}
+\begin{DoxyCompactList}\small\item\em max pitch magnitude at apex \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classdairlib_1_1SpiritParkourJump_ac2307547b4528724fd6335dc2c6c9ce5}\label{classdairlib_1_1SpiritParkourJump_ac2307547b4528724fd6335dc2c6c9ce5}} 
+double {\bfseries max\+\_\+pitch\+\_\+magnitude}
+\begin{DoxyCompactList}\small\item\em ax pitch magnitude at stances \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classdairlib_1_1SpiritParkourJump_ad27850253d59ab381c4f7b277e4b4775}\label{classdairlib_1_1SpiritParkourJump_ad27850253d59ab381c4f7b277e4b4775}} 
+double {\bfseries initial\+\_\+height}
+\begin{DoxyCompactList}\small\item\em initial stance height \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classdairlib_1_1SpiritParkourJump_ad863e8213235742eea650ec338730800}\label{classdairlib_1_1SpiritParkourJump_ad863e8213235742eea650ec338730800}} 
+double {\bfseries fore\+\_\+aft\+\_\+displacement}
+\begin{DoxyCompactList}\small\item\em how long the robot jump forward \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classdairlib_1_1SpiritParkourJump_add79d29a61fbefbb84c0fc979ab09f70}\label{classdairlib_1_1SpiritParkourJump_add79d29a61fbefbb84c0fc979ab09f70}} 
+bool {\bfseries lock\+\_\+rotation}
+\item 
+\mbox{\Hypertarget{classdairlib_1_1SpiritParkourJump_ae0df9dbf624d085529f6ac897a8cc688}\label{classdairlib_1_1SpiritParkourJump_ae0df9dbf624d085529f6ac897a8cc688}} 
+bool {\bfseries lock\+\_\+legs\+\_\+apex}
+\begin{DoxyCompactList}\small\item\em reach a specific legs configuration at apex \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classdairlib_1_1SpiritParkourJump_ade84483cdff64c4b2b24d4bb04c92f84}\label{classdairlib_1_1SpiritParkourJump_ade84483cdff64c4b2b24d4bb04c92f84}} 
+bool {\bfseries force\+\_\+symmetry}
+\item 
+\mbox{\Hypertarget{classdairlib_1_1SpiritParkourJump_a964263d6fca13fb3b8a9d9078162e286}\label{classdairlib_1_1SpiritParkourJump_a964263d6fca13fb3b8a9d9078162e286}} 
+bool {\bfseries use\+\_\+nominal\+\_\+stand}
+\item 
+\mbox{\Hypertarget{classdairlib_1_1SpiritParkourJump_a15c9647f25fb3f354c0f94618e7d64f1}\label{classdairlib_1_1SpiritParkourJump_a15c9647f25fb3f354c0f94618e7d64f1}} 
+double {\bfseries max\+\_\+duration}
+\begin{DoxyCompactList}\small\item\em maximum duration of the bounding behavior \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classdairlib_1_1SpiritParkourJump_a8081d27162c255054d7810a92d9cd0e1}\label{classdairlib_1_1SpiritParkourJump_a8081d27162c255054d7810a92d9cd0e1}} 
+double {\bfseries eps}
+\begin{DoxyCompactList}\small\item\em tolerance for the constraints \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classdairlib_1_1SpiritParkourJump_a59d42d0da3b4642029b4466d304ab8ea}\label{classdairlib_1_1SpiritParkourJump_a59d42d0da3b4642029b4466d304ab8ea}} 
+double {\bfseries work\+\_\+constraint\+\_\+scale}
+\item 
+\mbox{\Hypertarget{classdairlib_1_1SpiritParkourJump_a7c37951482b5c26961331acdcd410ee5}\label{classdairlib_1_1SpiritParkourJump_a7c37951482b5c26961331acdcd410ee5}} 
+int {\bfseries n\+Jumps}
+\begin{DoxyCompactList}\small\item\em number of jumps \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classdairlib_1_1SpiritParkourJump_a9a181b07211b23ce07ad089efd24e9ff}\label{classdairlib_1_1SpiritParkourJump_a9a181b07211b23ce07ad089efd24e9ff}} 
+double {\bfseries stand\+\_\+height}
+\end{DoxyCompactItemize}
+\doxysubsection*{Additional Inherited Members}
+
+
+\doxysubsection{Member Function Documentation}
+\mbox{\Hypertarget{classdairlib_1_1SpiritParkourJump_a7489bfe19fa03a9e526fc5d9debd3cee}\label{classdairlib_1_1SpiritParkourJump_a7489bfe19fa03a9e526fc5d9debd3cee}} 
+\index{dairlib::SpiritParkourJump$<$ Y $>$@{dairlib::SpiritParkourJump$<$ Y $>$}!addConstraints@{addConstraints}}
+\index{addConstraints@{addConstraints}!dairlib::SpiritParkourJump$<$ Y $>$@{dairlib::SpiritParkourJump$<$ Y $>$}}
+\doxysubsubsection{\texorpdfstring{addConstraints()}{addConstraints()}}
+{\footnotesize\ttfamily template$<$class Y $>$ \\
+void \mbox{\hyperlink{classdairlib_1_1SpiritParkourJump}{dairlib\+::\+Spirit\+Parkour\+Jump}}$<$ Y $>$\+::add\+Constraints (\begin{DoxyParamCaption}\item[{Multibody\+Plant$<$ Y $>$ \&}]{plant,  }\item[{dairlib\+::systems\+::trajectory\+\_\+optimization\+::\+Dircon$<$ Y $>$ \&}]{trajopt }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [virtual]}}
+
+Adds constraints to the trajopt parkour wall jump problem 
+\begin{DoxyParams}{Parameters}
+{\em plant} & robot model \\
+\hline
+{\em trajopt} & trajectory optimization problem to be solved\\
+\hline
+{\em plant} & robot model \\
+\hline
+{\em trajopt} & trajectory to be optimized \\
+\hline
+\end{DoxyParams}
+Setup all the optimization constraints
+
+$\ast$$\ast$$\ast$$\ast$$\ast$ Constrain the initial and final states. $\ast$$\ast$$\ast$$\ast$$\ast$ ~\newline
+
+
+Constraints on all points
+
+Implements \mbox{\hyperlink{classdairlib_1_1Behavior_af37cc68ab3480ab739a5533520e4afe9}{dairlib\+::\+Behavior$<$ Y $>$}}.
+
+\mbox{\Hypertarget{classdairlib_1_1SpiritParkourJump_a845ea55913ccc336141083d048c306c4}\label{classdairlib_1_1SpiritParkourJump_a845ea55913ccc336141083d048c306c4}} 
+\index{dairlib::SpiritParkourJump$<$ Y $>$@{dairlib::SpiritParkourJump$<$ Y $>$}!addCost@{addCost}}
+\index{addCost@{addCost}!dairlib::SpiritParkourJump$<$ Y $>$@{dairlib::SpiritParkourJump$<$ Y $>$}}
+\doxysubsubsection{\texorpdfstring{addCost()}{addCost()}}
+{\footnotesize\ttfamily template$<$class Y $>$ \\
+void \mbox{\hyperlink{classdairlib_1_1SpiritParkourJump}{dairlib\+::\+Spirit\+Parkour\+Jump}}$<$ Y $>$\+::add\+Cost (\begin{DoxyParamCaption}\item[{Multibody\+Plant$<$ Y $>$ \&}]{plant,  }\item[{dairlib\+::systems\+::trajectory\+\_\+optimization\+::\+Dircon$<$ Y $>$ \&}]{trajopt }\end{DoxyParamCaption})}
+
+Adds cost to the trajopt problem 
+\begin{DoxyParams}{Parameters}
+{\em plant} & robot model \\
+\hline
+{\em trajopt} & trajectory optimization problem to be solved \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{classdairlib_1_1SpiritParkourJump_a49b6b9b039ee1b5fba6435730ce0b5f0}\label{classdairlib_1_1SpiritParkourJump_a49b6b9b039ee1b5fba6435730ce0b5f0}} 
+\index{dairlib::SpiritParkourJump$<$ Y $>$@{dairlib::SpiritParkourJump$<$ Y $>$}!addCostLegs@{addCostLegs}}
+\index{addCostLegs@{addCostLegs}!dairlib::SpiritParkourJump$<$ Y $>$@{dairlib::SpiritParkourJump$<$ Y $>$}}
+\doxysubsubsection{\texorpdfstring{addCostLegs()}{addCostLegs()}}
+{\footnotesize\ttfamily template$<$typename Y $>$ \\
+void \mbox{\hyperlink{classdairlib_1_1SpiritParkourJump}{dairlib\+::\+Spirit\+Parkour\+Jump}}$<$ Y $>$\+::add\+Cost\+Legs (\begin{DoxyParamCaption}\item[{Multibody\+Plant$<$ Y $>$ \&}]{plant,  }\item[{dairlib\+::systems\+::trajectory\+\_\+optimization\+::\+Dircon$<$ Y $>$ \&}]{trajopt,  }\item[{const double}]{cost\+\_\+actuation,  }\item[{const double}]{cost\+\_\+velocity,  }\item[{const std\+::vector$<$ double $>$ \&}]{joints,  }\item[{const int}]{mode\+\_\+index }\end{DoxyParamCaption})}
+
+add cost for legs 
+\begin{DoxyParams}{Parameters}
+{\em joints} & add cost for which joint of the legs \\
+\hline
+{\em mode\+\_\+index} & add most for which mode ~\newline
+ \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{classdairlib_1_1SpiritParkourJump_ab35d923c435ddb90d7db51e411bb188b}\label{classdairlib_1_1SpiritParkourJump_ab35d923c435ddb90d7db51e411bb188b}} 
+\index{dairlib::SpiritParkourJump$<$ Y $>$@{dairlib::SpiritParkourJump$<$ Y $>$}!config@{config}}
+\index{config@{config}!dairlib::SpiritParkourJump$<$ Y $>$@{dairlib::SpiritParkourJump$<$ Y $>$}}
+\doxysubsubsection{\texorpdfstring{config()}{config()}}
+{\footnotesize\ttfamily template$<$class Y $>$ \\
+void \mbox{\hyperlink{classdairlib_1_1SpiritParkourJump}{dairlib\+::\+Spirit\+Parkour\+Jump}}$<$ Y $>$\+::config (\begin{DoxyParamCaption}\item[{std\+::string}]{yaml\+\_\+path,  }\item[{std\+::string}]{saved\+\_\+directory,  }\item[{int}]{index,  }\item[{Multibody\+Plant$<$ Y $>$ $\ast$}]{plant }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [virtual]}}
+
+Assigns values to member variables according to input yaml file 
+\begin{DoxyParams}{Parameters}
+{\em yaml\+\_\+path} & path of the yaml file \\
+\hline
+{\em saved\+\_\+directory} & directory for saving the output trajectories (namely for setting file\+\_\+name\+\_\+out) \\
+\hline
+{\em index} & indicates that we are using the index$^\wedge$th configuration \\
+\hline
+{\em plant} & robot model \\
+\hline
+\end{DoxyParams}
+
+
+Implements \mbox{\hyperlink{classdairlib_1_1Behavior_a81aa8e33441df47b822035de81d1b1d3}{dairlib\+::\+Behavior$<$ Y $>$}}.
+
+\mbox{\Hypertarget{classdairlib_1_1SpiritParkourJump_a03ae410ec2435f9b4ebe47eb32f54a3b}\label{classdairlib_1_1SpiritParkourJump_a03ae410ec2435f9b4ebe47eb32f54a3b}} 
+\index{dairlib::SpiritParkourJump$<$ Y $>$@{dairlib::SpiritParkourJump$<$ Y $>$}!getModeSequence@{getModeSequence}}
+\index{getModeSequence@{getModeSequence}!dairlib::SpiritParkourJump$<$ Y $>$@{dairlib::SpiritParkourJump$<$ Y $>$}}
+\doxysubsubsection{\texorpdfstring{getModeSequence()}{getModeSequence()}}
+{\footnotesize\ttfamily template$<$class Y $>$ \\
+std\+::tuple$<$ std\+::vector$<$ std\+::unique\+\_\+ptr$<$ dairlib\+::systems\+::trajectory\+\_\+optimization\+::\+Dircon\+Mode$<$ Y $>$ $>$ $>$, std\+::vector$<$ std\+::unique\+\_\+ptr$<$ multibody\+::\+World\+Point\+Evaluator$<$ Y $>$ $>$ $>$, std\+::vector$<$ std\+::unique\+\_\+ptr$<$ multibody\+::\+Kinematic\+Evaluator\+Set$<$ Y $>$ $>$ $>$ $>$ \mbox{\hyperlink{classdairlib_1_1SpiritParkourJump}{dairlib\+::\+Spirit\+Parkour\+Jump}}$<$ Y $>$\+::get\+Mode\+Sequence (\begin{DoxyParamCaption}\item[{Multibody\+Plant$<$ Y $>$ \&}]{plant,  }\item[{Dircon\+Mode\+Sequence$<$ Y $>$ \&}]{sequence }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [virtual]}}
+
+
+
+get\+Mode\+Sequence, initializes the trajopt mode seqence for jump, see run\+Spirit\+Jump for a def of inputs 
+
+
+
+Implements \mbox{\hyperlink{classdairlib_1_1Behavior_ab173710dd511560fc01680924ace7934}{dairlib\+::\+Behavior$<$ Y $>$}}.
+
+\mbox{\Hypertarget{classdairlib_1_1SpiritParkourJump_a70c7e14cd1c207c013b3d653236ed094}\label{classdairlib_1_1SpiritParkourJump_a70c7e14cd1c207c013b3d653236ed094}} 
+\index{dairlib::SpiritParkourJump$<$ Y $>$@{dairlib::SpiritParkourJump$<$ Y $>$}!offsetConstraint@{offsetConstraint}}
+\index{offsetConstraint@{offsetConstraint}!dairlib::SpiritParkourJump$<$ Y $>$@{dairlib::SpiritParkourJump$<$ Y $>$}}
+\doxysubsubsection{\texorpdfstring{offsetConstraint()}{offsetConstraint()}}
+{\footnotesize\ttfamily template$<$typename Y $>$ \\
+void \mbox{\hyperlink{classdairlib_1_1SpiritParkourJump}{dairlib\+::\+Spirit\+Parkour\+Jump}}$<$ Y $>$\+::offset\+Constraint (\begin{DoxyParamCaption}\item[{Multibody\+Plant$<$ Y $>$ \&}]{plant,  }\item[{dairlib\+::systems\+::trajectory\+\_\+optimization\+::\+Dircon$<$ Y $>$ \&}]{trajopt,  }\item[{const Eigen\+::\+Ref$<$ const drake\+::solvers\+::\+Vector\+XDecision\+Variable $>$ \&}]{xb,  }\item[{Eigen\+::\+Vector3d}]{normal,  }\item[{Eigen\+::\+Vector3d}]{offset,  }\item[{double}]{eps2 = {\ttfamily 0.01} }\end{DoxyParamCaption})}
+
+
+
+Adds an offset constraint which allows the body to be anywhere on the normal vector. 
+
+Add constraints for states at the transitional surface 
+\begin{DoxyParams}{Parameters}
+{\em plant} & robot model \\
+\hline
+{\em trajopt} & trajectory optimization problem to be solved \\
+\hline
+{\em xb} & state to be constrained \\
+\hline
+{\em normal} & normal vector of the transitional surface \\
+\hline
+{\em offset} & offset vector of the transitional surface \\
+\hline
+{\em eps2} & particular tolerance for this constraint \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{classdairlib_1_1SpiritParkourJump_a234739050c21b32add133cad3160427d}\label{classdairlib_1_1SpiritParkourJump_a234739050c21b32add133cad3160427d}} 
+\index{dairlib::SpiritParkourJump$<$ Y $>$@{dairlib::SpiritParkourJump$<$ Y $>$}!run@{run}}
+\index{run@{run}!dairlib::SpiritParkourJump$<$ Y $>$@{dairlib::SpiritParkourJump$<$ Y $>$}}
+\doxysubsubsection{\texorpdfstring{run()}{run()}}
+{\footnotesize\ttfamily template$<$class Y $>$ \\
+void \mbox{\hyperlink{classdairlib_1_1SpiritParkourJump}{dairlib\+::\+Spirit\+Parkour\+Jump}}$<$ Y $>$\+::run (\begin{DoxyParamCaption}\item[{Multibody\+Plant$<$ Y $>$ \&}]{plant,  }\item[{Piecewise\+Polynomial$<$ Y $>$ $\ast$}]{pp\+\_\+xtraj,  }\item[{std\+::vector$<$ \mbox{\hyperlink{structSurfaceConf}{Surface\+Conf}} $>$ $\ast$}]{surface\+\_\+vector }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [virtual]}}
+
+Run a trajectory optimization problem for spirit parkour jump 
+\begin{DoxyParams}{Parameters}
+{\em plant} & robot model \\
+\hline
+{\em pp\+\_\+xtraj} & state trajectory pointer used for animation \\
+\hline
+{\em surface\+\_\+vector} & vector of surfaces in the scene (for animation)\\
+\hline
+\end{DoxyParams}
+run\+Spirit\+Parkour\+Jump, runs a trajectory optimization problem for spirit jumping on flat ground 
+\begin{DoxyParams}{Parameters}
+{\em plant} & robot model \\
+\hline
+{\em pp\+\_\+xtraj} & trajectory passed by pointer for spirit animation \\
+\hline
+\end{DoxyParams}
+Setup the visualization during the optimization
+
+Run the optimization using your initial guess
+
+Save trajectory
+
+Implements \mbox{\hyperlink{classdairlib_1_1Behavior_af4fe15e5db9f711cbbfb59aecb9ecd84}{dairlib\+::\+Behavior$<$ Y $>$}}.
+
+\mbox{\Hypertarget{classdairlib_1_1SpiritParkourJump_aff82a924f514ca0d511f4f48da21dba0}\label{classdairlib_1_1SpiritParkourJump_aff82a924f514ca0d511f4f48da21dba0}} 
+\index{dairlib::SpiritParkourJump$<$ Y $>$@{dairlib::SpiritParkourJump$<$ Y $>$}!setUpModeSequence@{setUpModeSequence}}
+\index{setUpModeSequence@{setUpModeSequence}!dairlib::SpiritParkourJump$<$ Y $>$@{dairlib::SpiritParkourJump$<$ Y $>$}}
+\doxysubsubsection{\texorpdfstring{setUpModeSequence()}{setUpModeSequence()}}
+{\footnotesize\ttfamily template$<$class Y $>$ \\
+void \mbox{\hyperlink{classdairlib_1_1SpiritParkourJump}{dairlib\+::\+Spirit\+Parkour\+Jump}}$<$ Y $>$\+::set\+Up\+Mode\+Sequence (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [virtual]}}
+
+
+
+Set up mode sequence for trajectory optimization problem. Will be defined differently in different behaviors. 
+
+
+
+Implements \mbox{\hyperlink{classdairlib_1_1Behavior_ab0beeb2823292b949915849e317c0971}{dairlib\+::\+Behavior$<$ Y $>$}}.
+
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+spirit\+\_\+parkour.\+h\item 
+spirit\+\_\+parkour.\+cc\end{DoxyCompactItemize}

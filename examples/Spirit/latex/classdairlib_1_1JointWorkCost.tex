@@ -1,0 +1,65 @@
+\hypertarget{classdairlib_1_1JointWorkCost}{}\doxysection{dairlib\+::Joint\+Work\+Cost Class Reference}
+\label{classdairlib_1_1JointWorkCost}\index{dairlib::JointWorkCost@{dairlib::JointWorkCost}}
+
+
+\mbox{\hyperlink{classdairlib_1_1JointWorkCost}{Joint\+Work\+Cost}} object for adding smooth relu without slack variables to cost.  
+
+
+
+
+{\ttfamily \#include $<$spirit\+\_\+utils.\+h$>$}
+
+Inheritance diagram for dairlib\+::Joint\+Work\+Cost\+:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{classdairlib_1_1JointWorkCost}
+\end{center}
+\end{figure}
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classdairlib_1_1JointWorkCost_a175314d1680b6607f2100a0480ec00fb}\label{classdairlib_1_1JointWorkCost_a175314d1680b6607f2100a0480ec00fb}} 
+{\bfseries Joint\+Work\+Cost} (const drake\+::multibody\+::\+Multibody\+Plant$<$ double $>$ \&plant, const double \&Q, const double \&cost\+\_\+work, const double \&alpha, const std\+::string \&description=\char`\"{}\char`\"{})
+\end{DoxyCompactItemize}
+\doxysubsection*{Private Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classdairlib_1_1JointWorkCost_ae7561bb2091a65a0c4ed722ec53417ad}\label{classdairlib_1_1JointWorkCost_ae7561bb2091a65a0c4ed722ec53417ad}} 
+double {\bfseries relu\+\_\+smooth} (const double x) const
+\begin{DoxyCompactList}\small\item\em Smooth relu. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classdairlib_1_1JointWorkCost_aa94941cc32af1a0f2da38af46d996bd9}\label{classdairlib_1_1JointWorkCost_aa94941cc32af1a0f2da38af46d996bd9}} 
+void {\bfseries Evaluate\+Cost} (const Eigen\+::\+Ref$<$ const drake\+::\+VectorX$<$ double $>$ $>$ \&x, drake\+::\+VectorX$<$ double $>$ $\ast$y) const override
+\end{DoxyCompactItemize}
+\doxysubsection*{Private Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classdairlib_1_1JointWorkCost_a3450baf0a26be5ab0c943a4a81928fd0}\label{classdairlib_1_1JointWorkCost_a3450baf0a26be5ab0c943a4a81928fd0}} 
+const drake\+::multibody\+::\+Multibody\+Plant$<$ double $>$ \& {\bfseries plant\+\_\+}
+\item 
+\mbox{\Hypertarget{classdairlib_1_1JointWorkCost_a53dacc0323b3dfcb94092037f7baa522}\label{classdairlib_1_1JointWorkCost_a53dacc0323b3dfcb94092037f7baa522}} 
+double {\bfseries Q\+\_\+}
+\item 
+\mbox{\Hypertarget{classdairlib_1_1JointWorkCost_a73b58c2484e6b75f469eb40268c2d289}\label{classdairlib_1_1JointWorkCost_a73b58c2484e6b75f469eb40268c2d289}} 
+double {\bfseries cost\+\_\+work\+\_\+}
+\begin{DoxyCompactList}\small\item\em Gain on actuation squared. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classdairlib_1_1JointWorkCost_aeb3cfabd1e1f3f7fb20f49eba7e031e7}\label{classdairlib_1_1JointWorkCost_aeb3cfabd1e1f3f7fb20f49eba7e031e7}} 
+double {\bfseries alpha\+\_\+}
+\item 
+\mbox{\Hypertarget{classdairlib_1_1JointWorkCost_ad02b1fe2d9f9997158ddd9335ebea97d}\label{classdairlib_1_1JointWorkCost_ad02b1fe2d9f9997158ddd9335ebea97d}} 
+int {\bfseries n\+\_\+q\+\_\+}
+\begin{DoxyCompactList}\small\item\em Gain on smoothing for relu, higher is less smooth. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classdairlib_1_1JointWorkCost_a0f8ca8094fe11afd4bdb45891d01cf60}\label{classdairlib_1_1JointWorkCost_a0f8ca8094fe11afd4bdb45891d01cf60}} 
+int {\bfseries n\+\_\+v\+\_\+}
+\item 
+\mbox{\Hypertarget{classdairlib_1_1JointWorkCost_a18132d28ac0ab44893fd800a4b19fe92}\label{classdairlib_1_1JointWorkCost_a18132d28ac0ab44893fd800a4b19fe92}} 
+int {\bfseries n\+\_\+u\+\_\+}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\mbox{\hyperlink{classdairlib_1_1JointWorkCost}{Joint\+Work\+Cost}} object for adding smooth relu without slack variables to cost. 
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+spirit\+\_\+utils.\+h\item 
+spirit\+\_\+utils.\+cc\end{DoxyCompactItemize}

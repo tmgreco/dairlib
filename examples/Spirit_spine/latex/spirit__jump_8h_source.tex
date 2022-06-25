@@ -1,0 +1,111 @@
+\hypertarget{spirit__jump_8h_source}{}\doxysection{spirit\+\_\+jump.\+h}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{1 \textcolor{comment}{/*}}
+\DoxyCodeLine{2 \textcolor{comment}{ * File: spirit\_jump.h}}
+\DoxyCodeLine{3 \textcolor{comment}{ * -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{4 \textcolor{comment}{ * This interface for spirit jumping behaviors.}}
+\DoxyCodeLine{5 \textcolor{comment}{ * Date: 2021-\/10-\/30}}
+\DoxyCodeLine{6 \textcolor{comment}{ */}}
+\DoxyCodeLine{7 }
+\DoxyCodeLine{8 \textcolor{preprocessor}{\#ifndef \_spirit\_jump}}
+\DoxyCodeLine{9 \textcolor{preprocessor}{\#define \_spirit\_jump}}
+\DoxyCodeLine{10 }
+\DoxyCodeLine{11 \textcolor{preprocessor}{\#include <cmath>}}
+\DoxyCodeLine{12 \textcolor{preprocessor}{\#include <experimental/filesystem>}}
+\DoxyCodeLine{13 \textcolor{preprocessor}{\#include <filesystem>}}
+\DoxyCodeLine{14 }
+\DoxyCodeLine{15 }
+\DoxyCodeLine{16 \textcolor{preprocessor}{\#include "{}common/find\_resource.h"{}}}
+\DoxyCodeLine{17 \textcolor{preprocessor}{\#include "{}systems/trajectory\_optimization/dircon/dircon.h"{}}}
+\DoxyCodeLine{18 \textcolor{preprocessor}{\#include "{}multibody/kinematic/world\_point\_evaluator.h"{}}}
+\DoxyCodeLine{19 \textcolor{preprocessor}{\#include "{}solvers/nonlinear\_constraint.h"{}}}
+\DoxyCodeLine{20 \textcolor{preprocessor}{\#include "{}multibody/kinematic/distance\_evaluator.h"{}}}
+\DoxyCodeLine{21 \textcolor{preprocessor}{\#include "{}multibody/multibody\_utils.h"{}}}
+\DoxyCodeLine{22 \textcolor{preprocessor}{\#include "{}multibody/visualization\_utils.h"{}}}
+\DoxyCodeLine{23 \textcolor{preprocessor}{\#include "{}multibody/kinematic/kinematic\_constraints.h"{}}}
+\DoxyCodeLine{24 }
+\DoxyCodeLine{25 \textcolor{preprocessor}{\#include "{}examples/Spirit/animate\_spirit.h"{}}}
+\DoxyCodeLine{26 \textcolor{preprocessor}{\#include "{}common/file\_utils.h"{}}}
+\DoxyCodeLine{27 \textcolor{preprocessor}{\#include "{}lcm/dircon\_saved\_trajectory.h"{}}}
+\DoxyCodeLine{28 \textcolor{preprocessor}{\#include "{}solvers/optimization\_utils.h"{}}}
+\DoxyCodeLine{29 \textcolor{preprocessor}{\#include "{}solvers/nonlinear\_cost.h"{}}}
+\DoxyCodeLine{30 }
+\DoxyCodeLine{31 \textcolor{preprocessor}{\#include "{}examples/Spirit/spirit\_utils.h"{}}}
+\DoxyCodeLine{32 \textcolor{preprocessor}{\#include "{}examples/Spirit/behavior.h"{}}}
+\DoxyCodeLine{33 }
+\DoxyCodeLine{34 \textcolor{keyword}{using} drake::multibody::MultibodyPlant;}
+\DoxyCodeLine{35 \textcolor{keyword}{using} drake::trajectories::PiecewisePolynomial;}
+\DoxyCodeLine{36 \textcolor{keyword}{namespace }dairlib \{}
+\DoxyCodeLine{37     \textcolor{keyword}{using} systems::trajectory\_optimization::Dircon;}
+\DoxyCodeLine{38 }
+\DoxyCodeLine{39 }
+\DoxyCodeLine{40 \textcolor{keyword}{template} <\textcolor{keyword}{class} Y>  }
+\DoxyCodeLine{41 \textcolor{keyword}{class }\mbox{\hyperlink{classdairlib_1_1SpiritJump}{SpiritJump}} : \textcolor{keyword}{public} \mbox{\hyperlink{classdairlib_1_1Behavior}{Behavior}}<Y> \{}
+\DoxyCodeLine{42 \textcolor{keyword}{public}:}
+\DoxyCodeLine{43 }
+\DoxyCodeLine{44     \mbox{\hyperlink{classdairlib_1_1SpiritJump}{SpiritJump}}();}
+\DoxyCodeLine{45 }
+\DoxyCodeLine{51     \textcolor{keywordtype}{void} \mbox{\hyperlink{classdairlib_1_1SpiritJump_aef5e71a2b1883f1100b6360a95472ebd}{config}}(std::string yaml\_path, std::string saved\_directory, \textcolor{keywordtype}{int} index,MultibodyPlant<Y>* plant);}
+\DoxyCodeLine{52     }
+\DoxyCodeLine{54     \textcolor{keywordtype}{void} \mbox{\hyperlink{classdairlib_1_1SpiritJump_ae8f9a8fabd41b6740bf2a3afa80745e2}{generateInitialGuess}}(MultibodyPlant<Y>\& plant);}
+\DoxyCodeLine{55 }
+\DoxyCodeLine{59     \textcolor{keywordtype}{void} \mbox{\hyperlink{classdairlib_1_1SpiritJump_a0703f3440a47d56a0351559ee9c393a0}{addConstraints}}(MultibodyPlant<Y>\& plant, }
+\DoxyCodeLine{60                         dairlib::systems::trajectory\_optimization::Dircon<Y>\& trajopt}
+\DoxyCodeLine{61                         );}
+\DoxyCodeLine{62 }
+\DoxyCodeLine{67     \textcolor{keywordtype}{void} \mbox{\hyperlink{classdairlib_1_1SpiritJump_a829e124992513fc9314d214c7cb1bba8}{run}}(MultibodyPlant<Y>\& plant,}
+\DoxyCodeLine{68             PiecewisePolynomial<Y>* pp\_xtraj,}
+\DoxyCodeLine{69             std::vector<SurfaceConf>* surface\_vector);}
+\DoxyCodeLine{70 }
+\DoxyCodeLine{71     \textcolor{keywordtype}{void} \mbox{\hyperlink{classdairlib_1_1SpiritJump_a28d892e89e98eb98a3d3b731b9c2d052}{setUpModeSequence}}();}
+\DoxyCodeLine{72 }
+\DoxyCodeLine{73     std::tuple<  std::vector<std::unique\_ptr<dairlib::systems::trajectory\_optimization::DirconMode<Y>>>,}
+\DoxyCodeLine{74     std::vector<std::unique\_ptr<multibody::WorldPointEvaluator<Y>>> ,}
+\DoxyCodeLine{75     std::vector<std::unique\_ptr<multibody::KinematicEvaluatorSet<Y>>>>}
+\DoxyCodeLine{76     \mbox{\hyperlink{classdairlib_1_1SpiritJump_a4210071ebbe2382fa5231a143607119a}{getModeSequence}}(}
+\DoxyCodeLine{77                         MultibodyPlant<Y>\& plant,}
+\DoxyCodeLine{78                         DirconModeSequence<Y>\& sequence)\{}
+\DoxyCodeLine{79         \mbox{\hyperlink{classdairlib_1_1ModeSequenceHelper}{dairlib::ModeSequenceHelper}} msh;}
+\DoxyCodeLine{80         this-\/>\mbox{\hyperlink{classdairlib_1_1Behavior_adc15934596e6b9c0b2b20ab846aa3ba5}{getModeSequenceHelper}}(msh);}
+\DoxyCodeLine{81         }
+\DoxyCodeLine{82         \textcolor{keyword}{auto} [modeVector, toeEvals, toeEvalSets] = createSpiritModeSequence(plant, msh);}
+\DoxyCodeLine{83 }
+\DoxyCodeLine{84         \textcolor{keywordflow}{for} (\textcolor{keyword}{auto}\& mode : modeVector)\{}
+\DoxyCodeLine{85             \textcolor{keywordflow}{for} (\textcolor{keywordtype}{int} i = 0; i < mode-\/>evaluators().num\_evaluators(); i++ )\{}
+\DoxyCodeLine{86             mode-\/>MakeConstraintRelative(i,0);}
+\DoxyCodeLine{87             mode-\/>MakeConstraintRelative(i,1);}
+\DoxyCodeLine{88             \}}
+\DoxyCodeLine{89             mode-\/>SetDynamicsScale(}
+\DoxyCodeLine{90                 \{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17\}, 200);}
+\DoxyCodeLine{91             \textcolor{keywordflow}{if} (mode-\/>evaluators().num\_evaluators() > 0)}
+\DoxyCodeLine{92             \{}
+\DoxyCodeLine{93             mode-\/>SetKinVelocityScale(}
+\DoxyCodeLine{94                 \{0, 1, 2, 3\}, \{0, 1, 2\}, 1);}
+\DoxyCodeLine{95             mode-\/>SetKinPositionScale(}
+\DoxyCodeLine{96                 \{0, 1, 2, 3\}, \{0, 1, 2\}, 200);}
+\DoxyCodeLine{97             \}}
+\DoxyCodeLine{98             sequence.AddMode(mode.get());}
+\DoxyCodeLine{99         \}}
+\DoxyCodeLine{100         \textcolor{keywordflow}{return} \{std::move(modeVector), std::move(toeEvals), std::move(toeEvalSets)\};}
+\DoxyCodeLine{101         \}}
+\DoxyCodeLine{102 }
+\DoxyCodeLine{103 \textcolor{keyword}{private}:}
+\DoxyCodeLine{104     \textcolor{keywordtype}{double} \mbox{\hyperlink{classdairlib_1_1SpiritJump_ae47456ec33319a7651430a201114ae91}{duration}}; }
+\DoxyCodeLine{105     \textcolor{keywordtype}{double} apex\_height;}
+\DoxyCodeLine{106     \textcolor{keywordtype}{double} \mbox{\hyperlink{classdairlib_1_1SpiritJump_a9c43a502ef7744e05fc09c803f56e65d}{initial\_height}}; }
+\DoxyCodeLine{107     \textcolor{keywordtype}{double} \mbox{\hyperlink{classdairlib_1_1SpiritJump_aae4328fa2597b939bdff6fe91d549eae}{fore\_aft\_displacement}}; }
+\DoxyCodeLine{108     \textcolor{keywordtype}{bool} lock\_rotation;}
+\DoxyCodeLine{109     \textcolor{keywordtype}{bool} \mbox{\hyperlink{classdairlib_1_1SpiritJump_af969d7bdeea708d56c53412a27b2417f}{lock\_legs\_apex}}; }
+\DoxyCodeLine{110     \textcolor{keywordtype}{bool} force\_symmetry;}
+\DoxyCodeLine{111     \textcolor{keywordtype}{bool} use\_nominal\_stand;}
+\DoxyCodeLine{112     \textcolor{keywordtype}{double} \mbox{\hyperlink{classdairlib_1_1SpiritJump_a57fd8f2e96353d2e85df1d243cc8cd4a}{max\_duration}}; }
+\DoxyCodeLine{113     \textcolor{keywordtype}{double} \mbox{\hyperlink{classdairlib_1_1SpiritJump_afcda2b5286811deea1646098306e62d5}{eps}}; }
+\DoxyCodeLine{114 }
+\DoxyCodeLine{115 \};}
+\DoxyCodeLine{116 \}}
+\DoxyCodeLine{117 }
+\DoxyCodeLine{118 \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{119 }
+
+\end{DoxyCode}

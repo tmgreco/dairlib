@@ -1,0 +1,295 @@
+\hypertarget{classdairlib_1_1Behavior}{}\doxysection{dairlib\+::Behavior\texorpdfstring{$<$}{<} Y \texorpdfstring{$>$}{>} Class Template Reference}
+\label{classdairlib_1_1Behavior}\index{dairlib::Behavior$<$ Y $>$@{dairlib::Behavior$<$ Y $>$}}
+
+
+Abstract base class for all spirit behaviors.  
+
+
+
+
+{\ttfamily \#include $<$behavior.\+h$>$}
+
+Inheritance diagram for dairlib\+::Behavior\texorpdfstring{$<$}{<} Y \texorpdfstring{$>$}{>}\+:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=0.995556cm]{classdairlib_1_1Behavior}
+\end{center}
+\end{figure}
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \mbox{\hyperlink{classdairlib_1_1Behavior_a5b846993f96fdf17f4d0127c257bbaa9}{add\+Cost}} (Multibody\+Plant$<$ Y $>$ \&plant, dairlib\+::systems\+::trajectory\+\_\+optimization\+::\+Dircon$<$ Y $>$ \&trajopt)
+\item 
+virtual void \mbox{\hyperlink{classdairlib_1_1Behavior_a81aa8e33441df47b822035de81d1b1d3}{config}} (std\+::string yaml\+\_\+path, std\+::string saved\+\_\+directory, int index, Multibody\+Plant$<$ Y $>$ $\ast$plant)=0
+\item 
+virtual void \mbox{\hyperlink{classdairlib_1_1Behavior_af37cc68ab3480ab739a5533520e4afe9}{add\+Constraints}} (Multibody\+Plant$<$ Y $>$ \&plant, dairlib\+::systems\+::trajectory\+\_\+optimization\+::\+Dircon$<$ Y $>$ \&trajopt)=0
+\item 
+virtual void \mbox{\hyperlink{classdairlib_1_1Behavior_af4fe15e5db9f711cbbfb59aecb9ecd84}{run}} (Multibody\+Plant$<$ Y $>$ \&plant, Piecewise\+Polynomial$<$ Y $>$ $\ast$pp\+\_\+xtraj, std\+::vector$<$ \mbox{\hyperlink{structSurfaceConf}{Surface\+Conf}} $>$ $\ast$surface\+\_\+vector)=0
+\item 
+\mbox{\Hypertarget{classdairlib_1_1Behavior_a4c6155066dd568b79b47a9f51ffd6539}\label{classdairlib_1_1Behavior_a4c6155066dd568b79b47a9f51ffd6539}} 
+void {\bfseries load\+Old\+Trajectory} (std\+::string traj\+\_\+dir)
+\item 
+virtual void \mbox{\hyperlink{classdairlib_1_1Behavior_ab0beeb2823292b949915849e317c0971}{set\+Up\+Mode\+Sequence}} ()=0
+\begin{DoxyCompactList}\small\item\em Set up mode sequence for trajectory optimization problem. Will be defined differently in different behaviors. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classdairlib_1_1Behavior_af5fe6faddc82bf3b52dfe7ab30365619}\label{classdairlib_1_1Behavior_af5fe6faddc82bf3b52dfe7ab30365619}} 
+void {\bfseries enable\+\_\+animate} ()
+\begin{DoxyCompactList}\small\item\em Typically enable animation at the last optimization. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsection*{Protected Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classdairlib_1_1Behavior_a7e5710aeb7f7715cb8c3b61f037de4a6}\label{classdairlib_1_1Behavior_a7e5710aeb7f7715cb8c3b61f037de4a6}} 
+void {\bfseries add\+Pose\+Constraints} (dairlib\+::systems\+::trajectory\+\_\+optimization\+::\+Dircon$<$ Y $>$ \&trajopt, Eigen\+::\+Vector\+Block$<$ const drake\+::solvers\+::\+Vector\+XDecision\+Variable $>$ \&var, map$<$ std\+::string, int $>$ \&name\+\_\+map, double qx, double qy, double qz, double qw, double tolerance)
+\begin{DoxyCompactList}\small\item\em constraint the orientation of a state within a quaternion with a tolerance \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classdairlib_1_1Behavior_a07878cf4b103be65ee4f9a44a43c0b7b}\label{classdairlib_1_1Behavior_a07878cf4b103be65ee4f9a44a43c0b7b}} 
+void {\bfseries add\+Mode\+To\+Sequence\+Vector} (std\+::string mode\+\_\+name, Eigen\+::\+Vector3d normal, Eigen\+::\+Vector3d offset, double minT, double maxT)
+\begin{DoxyCompactList}\small\item\em Push elements to the five mode sequence helper vectors. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classdairlib_1_1Behavior_adc15934596e6b9c0b2b20ab846aa3ba5}\label{classdairlib_1_1Behavior_adc15934596e6b9c0b2b20ab846aa3ba5}} 
+void {\bfseries get\+Mode\+Sequence\+Helper} (\mbox{\hyperlink{classdairlib_1_1ModeSequenceHelper}{dairlib\+::\+Mode\+Sequence\+Helper}} \&msh)
+\begin{DoxyCompactList}\small\item\em get mode sequence helper according to the five mode sequence helper vectors \end{DoxyCompactList}\item 
+virtual std\+::tuple$<$ std\+::vector$<$ std\+::unique\+\_\+ptr$<$ dairlib\+::systems\+::trajectory\+\_\+optimization\+::\+Dircon\+Mode$<$ Y $>$ $>$ $>$, std\+::vector$<$ std\+::unique\+\_\+ptr$<$ multibody\+::\+World\+Point\+Evaluator$<$ Y $>$ $>$ $>$, std\+::vector$<$ std\+::unique\+\_\+ptr$<$ multibody\+::\+Kinematic\+Evaluator\+Set$<$ Y $>$ $>$ $>$ $>$ \mbox{\hyperlink{classdairlib_1_1Behavior_ab173710dd511560fc01680924ace7934}{get\+Mode\+Sequence}} (Multibody\+Plant$<$ Y $>$ \&plant, Dircon\+Mode\+Sequence$<$ Y $>$ \&sequence)=0
+\begin{DoxyCompactList}\small\item\em get\+Mode\+Sequence, initializes the trajopt mode seqence for jump, see run\+Spirit\+Jump for a def of inputs \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{classdairlib_1_1Behavior_a07c449c18c69f5888f05cbf3795255e2}{set\+Solver}} (dairlib\+::systems\+::trajectory\+\_\+optimization\+::\+Dircon$<$ Y $>$ \&trajopt)
+\item 
+void \mbox{\hyperlink{classdairlib_1_1Behavior_a4f27fad735797a14e89a16a8840d4c03}{init\+Trajectory}} (dairlib\+::systems\+::trajectory\+\_\+optimization\+::\+Dircon$<$ Y $>$ \&trajopt, Dircon\+Mode\+Sequence$<$ Y $>$ \&sequence)
+\item 
+void \mbox{\hyperlink{classdairlib_1_1Behavior_afabec2c61703ae8e5ba80ab400440523}{setup\+Visualization}} (dairlib\+::systems\+::trajectory\+\_\+optimization\+::\+Dircon$<$ Y $>$ \&trajopt, Dircon\+Mode\+Sequence$<$ Y $>$ \&sequence)
+\item 
+void \mbox{\hyperlink{classdairlib_1_1Behavior_ab9ecd1296c32aaf83c9eb03da9ab74df}{save\+Trajectory}} (Multibody\+Plant$<$ Y $>$ \&plant, dairlib\+::systems\+::trajectory\+\_\+optimization\+::\+Dircon$<$ Y $>$ \&trajopt, const drake\+::solvers\+::\+Mathematical\+Program\+Result \&result)
+\end{DoxyCompactItemize}
+\doxysubsection*{Protected Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classdairlib_1_1Behavior_aeb1ca35688639cd793f5f5dce641d82a}\label{classdairlib_1_1Behavior_aeb1ca35688639cd793f5f5dce641d82a}} 
+std\+::vector$<$ int $>$ {\bfseries num\+\_\+knot\+\_\+points}
+\begin{DoxyCompactList}\small\item\em Sequence of \#knot points for each mode. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classdairlib_1_1Behavior_a5042e747e1f821debf10c0f990fb7777}\label{classdairlib_1_1Behavior_a5042e747e1f821debf10c0f990fb7777}} 
+double {\bfseries mu}
+\begin{DoxyCompactList}\small\item\em Coefficient of friction. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classdairlib_1_1Behavior_ab004841012b6f2f3eaa949fdab9db96a}\label{classdairlib_1_1Behavior_ab004841012b6f2f3eaa949fdab9db96a}} 
+double {\bfseries tol}
+\begin{DoxyCompactList}\small\item\em Tolerance for solver. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classdairlib_1_1Behavior_abc9edadde930adfd4d6d5c23633d14aa}\label{classdairlib_1_1Behavior_abc9edadde930adfd4d6d5c23633d14aa}} 
+bool {\bfseries ipopt}
+\begin{DoxyCompactList}\small\item\em Choice of optimization solver. True=ipopt, False=snopt. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classdairlib_1_1Behavior_afdae406f744ef4778b050ef5fabc1334}\label{classdairlib_1_1Behavior_afdae406f744ef4778b050ef5fabc1334}} 
+double {\bfseries cost\+\_\+actuation}
+\begin{DoxyCompactList}\small\item\em Cost coefficient of actuation. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classdairlib_1_1Behavior_a24fe00801a0924f2f18b9342189518d7}\label{classdairlib_1_1Behavior_a24fe00801a0924f2f18b9342189518d7}} 
+double {\bfseries cost\+\_\+velocity}
+\begin{DoxyCompactList}\small\item\em Cost coefficient of velocity. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classdairlib_1_1Behavior_a6b8fde7ad390137a8648216619145a03}\label{classdairlib_1_1Behavior_a6b8fde7ad390137a8648216619145a03}} 
+double {\bfseries cost\+\_\+work}
+\begin{DoxyCompactList}\small\item\em Cost coefficient of work. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classdairlib_1_1Behavior_acb4c0613cd632b900903153f55c851b9}\label{classdairlib_1_1Behavior_acb4c0613cd632b900903153f55c851b9}} 
+double {\bfseries cost\+\_\+velocity\+\_\+legs\+\_\+flight}
+\begin{DoxyCompactList}\small\item\em Cost coefficient of velocity for legs during flight. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classdairlib_1_1Behavior_afe2822cead9fe85f237b433a5e52b5ae}\label{classdairlib_1_1Behavior_afe2822cead9fe85f237b433a5e52b5ae}} 
+double {\bfseries cost\+\_\+actuation\+\_\+legs\+\_\+flight}
+\begin{DoxyCompactList}\small\item\em Cost coefficient of actuation for legs during flight. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classdairlib_1_1Behavior_a5833041b512504ff02b3551d4ec15dad}\label{classdairlib_1_1Behavior_a5833041b512504ff02b3551d4ec15dad}} 
+double {\bfseries cost\+\_\+time}
+\begin{DoxyCompactList}\small\item\em Cost coefficient of time. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classdairlib_1_1Behavior_a656a6d4bf35182c4ff54cde4300bd594}\label{classdairlib_1_1Behavior_a656a6d4bf35182c4ff54cde4300bd594}} 
+bool {\bfseries get\+\_\+animate\+\_\+info} =false
+\begin{DoxyCompactList}\small\item\em Whether or not return the trajectory to \mbox{\hyperlink{classdairlib_1_1Spirit}{Spirit}} for animation. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classdairlib_1_1Behavior_a7be02fadb5e299b379bc705f6b8a544f}\label{classdairlib_1_1Behavior_a7be02fadb5e299b379bc705f6b8a544f}} 
+std\+::string {\bfseries file\+\_\+name\+\_\+out}
+\begin{DoxyCompactList}\small\item\em Store optimized trajectories into this file if not empty. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classdairlib_1_1Behavior_a84922622bc8496e55c2a30df02eab47c}\label{classdairlib_1_1Behavior_a84922622bc8496e55c2a30df02eab47c}} 
+std\+::string {\bfseries file\+\_\+name\+\_\+in} = \char`\"{}\char`\"{}
+\begin{DoxyCompactList}\small\item\em Load initial trajectories from this file if not empty. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classdairlib_1_1Behavior_a0d0aaba61b9f65bf39a5edcb324cc4dd}\label{classdairlib_1_1Behavior_a0d0aaba61b9f65bf39a5edcb324cc4dd}} 
+Piecewise\+Polynomial$<$ Y $>$ {\bfseries x\+\_\+traj}
+\begin{DoxyCompactList}\small\item\em initial and solution state trajectory \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classdairlib_1_1Behavior_a93d20cced9b31ed2e2edf01d06e6c228}\label{classdairlib_1_1Behavior_a93d20cced9b31ed2e2edf01d06e6c228}} 
+Piecewise\+Polynomial$<$ Y $>$ {\bfseries u\+\_\+traj}
+\begin{DoxyCompactList}\small\item\em initial and solution control trajectory \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classdairlib_1_1Behavior_a464427a914b6044d5abd975d50239179}\label{classdairlib_1_1Behavior_a464427a914b6044d5abd975d50239179}} 
+vector$<$ Piecewise\+Polynomial$<$ Y $>$ $>$ {\bfseries l\+\_\+traj}
+\begin{DoxyCompactList}\small\item\em initial and solution contact force trajectory \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classdairlib_1_1Behavior_afb33b6ef504c5358c9d90c8ec52f6d84}\label{classdairlib_1_1Behavior_afb33b6ef504c5358c9d90c8ec52f6d84}} 
+vector$<$ Piecewise\+Polynomial$<$ Y $>$ $>$ {\bfseries lc\+\_\+traj}
+\begin{DoxyCompactList}\small\item\em initial and solution contact force slack variable trajectory \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classdairlib_1_1Behavior_a2dc191ece5737d342b00b5f6d0bc8b5b}\label{classdairlib_1_1Behavior_a2dc191ece5737d342b00b5f6d0bc8b5b}} 
+vector$<$ Piecewise\+Polynomial$<$ Y $>$ $>$ {\bfseries vc\+\_\+traj}
+\begin{DoxyCompactList}\small\item\em initial and solution contact velocity slack variable trajectory \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classdairlib_1_1Behavior_a794e849416731afd1d18f3973ed72505}\label{classdairlib_1_1Behavior_a794e849416731afd1d18f3973ed72505}} 
+std\+::vector$<$ std\+::string $>$ {\bfseries mode\+\_\+vector}
+\begin{DoxyCompactList}\small\item\em vector of mode names for setting up mode sequence \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classdairlib_1_1Behavior_a187c058a402662edec184b958cd69a3b}\label{classdairlib_1_1Behavior_a187c058a402662edec184b958cd69a3b}} 
+std\+::vector$<$ double $>$ {\bfseries min\+T\+\_\+vector}
+\begin{DoxyCompactList}\small\item\em vector of minimum time of each mode for setting up mode sequence \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classdairlib_1_1Behavior_a63cf68b44da858a54b2e5ffe23e7a77b}\label{classdairlib_1_1Behavior_a63cf68b44da858a54b2e5ffe23e7a77b}} 
+std\+::vector$<$ double $>$ {\bfseries max\+T\+\_\+vector}
+\begin{DoxyCompactList}\small\item\em vector of maximum time of each mode for setting up mode sequence \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classdairlib_1_1Behavior_a29601bbf38bf4fd11fd72fb8e476a9ae}\label{classdairlib_1_1Behavior_a29601bbf38bf4fd11fd72fb8e476a9ae}} 
+std\+::vector$<$ Eigen\+::\+Vector3d $>$ {\bfseries normal\+\_\+vector}
+\begin{DoxyCompactList}\small\item\em vector of normal vectors of toes\textquotesingle{} contact planes \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classdairlib_1_1Behavior_a8b1f0e7768645ba6069197e35036e81e}\label{classdairlib_1_1Behavior_a8b1f0e7768645ba6069197e35036e81e}} 
+std\+::vector$<$ Eigen\+::\+Vector3d $>$ {\bfseries offset\+\_\+vector}
+\begin{DoxyCompactList}\small\item\em vector of offset vectors of toes\textquotesingle{} contact planes \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\subsubsection*{template$<$class Y$>$\newline
+class dairlib\+::\+Behavior$<$ Y $>$}
+Abstract base class for all spirit behaviors. 
+
+\doxysubsection{Member Function Documentation}
+\mbox{\Hypertarget{classdairlib_1_1Behavior_af37cc68ab3480ab739a5533520e4afe9}\label{classdairlib_1_1Behavior_af37cc68ab3480ab739a5533520e4afe9}} 
+\index{dairlib::Behavior$<$ Y $>$@{dairlib::Behavior$<$ Y $>$}!addConstraints@{addConstraints}}
+\index{addConstraints@{addConstraints}!dairlib::Behavior$<$ Y $>$@{dairlib::Behavior$<$ Y $>$}}
+\doxysubsubsection{\texorpdfstring{addConstraints()}{addConstraints()}}
+{\footnotesize\ttfamily template$<$class Y $>$ \\
+virtual void \mbox{\hyperlink{classdairlib_1_1Behavior}{dairlib\+::\+Behavior}}$<$ Y $>$\+::add\+Constraints (\begin{DoxyParamCaption}\item[{Multibody\+Plant$<$ Y $>$ \&}]{plant,  }\item[{dairlib\+::systems\+::trajectory\+\_\+optimization\+::\+Dircon$<$ Y $>$ \&}]{trajopt }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+Adds constraints to the trajopt problem 
+\begin{DoxyParams}{Parameters}
+{\em plant} & robot model \\
+\hline
+{\em trajopt} & trajectory optimization problem to be solved \\
+\hline
+\end{DoxyParams}
+
+
+Implemented in \mbox{\hyperlink{classdairlib_1_1SpiritBound_a1044a16113292d9a8947b6a8fc5a39e4}{dairlib\+::\+Spirit\+Bound$<$ Y $>$}}, \mbox{\hyperlink{classdairlib_1_1SpiritBoxJump_a73661b11b1708f4cf5cc328eee828c41}{dairlib\+::\+Spirit\+Box\+Jump$<$ Y $>$}}, \mbox{\hyperlink{classdairlib_1_1SpiritJump_a0703f3440a47d56a0351559ee9c393a0}{dairlib\+::\+Spirit\+Jump$<$ Y $>$}}, \mbox{\hyperlink{classdairlib_1_1SpiritParkourJump_a7489bfe19fa03a9e526fc5d9debd3cee}{dairlib\+::\+Spirit\+Parkour\+Jump$<$ Y $>$}}, and \mbox{\hyperlink{classdairlib_1_1SpiritParkourWallPronk_a7a3c14cdf272e4b98246cf2209c960b2}{dairlib\+::\+Spirit\+Parkour\+Wall\+Pronk$<$ Y $>$}}.
+
+\mbox{\Hypertarget{classdairlib_1_1Behavior_a5b846993f96fdf17f4d0127c257bbaa9}\label{classdairlib_1_1Behavior_a5b846993f96fdf17f4d0127c257bbaa9}} 
+\index{dairlib::Behavior$<$ Y $>$@{dairlib::Behavior$<$ Y $>$}!addCost@{addCost}}
+\index{addCost@{addCost}!dairlib::Behavior$<$ Y $>$@{dairlib::Behavior$<$ Y $>$}}
+\doxysubsubsection{\texorpdfstring{addCost()}{addCost()}}
+{\footnotesize\ttfamily template$<$class Y $>$ \\
+void \mbox{\hyperlink{classdairlib_1_1Behavior}{dairlib\+::\+Behavior}}$<$ Y $>$\+::add\+Cost (\begin{DoxyParamCaption}\item[{Multibody\+Plant$<$ Y $>$ \&}]{plant,  }\item[{dairlib\+::systems\+::trajectory\+\_\+optimization\+::\+Dircon$<$ Y $>$ \&}]{trajopt }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+Adds cost to the trajopt problem 
+\begin{DoxyParams}{Parameters}
+{\em plant} & robot model \\
+\hline
+{\em trajopt} & trajectory optimization problem to be solved \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{classdairlib_1_1Behavior_a81aa8e33441df47b822035de81d1b1d3}\label{classdairlib_1_1Behavior_a81aa8e33441df47b822035de81d1b1d3}} 
+\index{dairlib::Behavior$<$ Y $>$@{dairlib::Behavior$<$ Y $>$}!config@{config}}
+\index{config@{config}!dairlib::Behavior$<$ Y $>$@{dairlib::Behavior$<$ Y $>$}}
+\doxysubsubsection{\texorpdfstring{config()}{config()}}
+{\footnotesize\ttfamily template$<$class Y $>$ \\
+virtual void \mbox{\hyperlink{classdairlib_1_1Behavior}{dairlib\+::\+Behavior}}$<$ Y $>$\+::config (\begin{DoxyParamCaption}\item[{std\+::string}]{yaml\+\_\+path,  }\item[{std\+::string}]{saved\+\_\+directory,  }\item[{int}]{index,  }\item[{Multibody\+Plant$<$ Y $>$ $\ast$}]{plant }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+Assigns values to member variables according to input yaml file 
+\begin{DoxyParams}{Parameters}
+{\em yaml\+\_\+path} & path of the yaml file \\
+\hline
+{\em saved\+\_\+directory} & directory for saving the output trajectories (namely for setting file\+\_\+name\+\_\+out) \\
+\hline
+{\em index} & indicates that we are using the index$^\wedge$th configuration \\
+\hline
+{\em plant} & robot model \\
+\hline
+\end{DoxyParams}
+
+
+Implemented in \mbox{\hyperlink{classdairlib_1_1SpiritBound_aa5bfe4f90fb22c0957d218b8bfbbe51d}{dairlib\+::\+Spirit\+Bound$<$ Y $>$}}, \mbox{\hyperlink{classdairlib_1_1SpiritBoxJump_a006874c374a94251aa89c109af650ae7}{dairlib\+::\+Spirit\+Box\+Jump$<$ Y $>$}}, \mbox{\hyperlink{classdairlib_1_1SpiritJump_aef5e71a2b1883f1100b6360a95472ebd}{dairlib\+::\+Spirit\+Jump$<$ Y $>$}}, \mbox{\hyperlink{classdairlib_1_1SpiritParkourJump_ab35d923c435ddb90d7db51e411bb188b}{dairlib\+::\+Spirit\+Parkour\+Jump$<$ Y $>$}}, and \mbox{\hyperlink{classdairlib_1_1SpiritParkourWallPronk_adff739e009c00c2f4f191558f57fa157}{dairlib\+::\+Spirit\+Parkour\+Wall\+Pronk$<$ Y $>$}}.
+
+\mbox{\Hypertarget{classdairlib_1_1Behavior_ab173710dd511560fc01680924ace7934}\label{classdairlib_1_1Behavior_ab173710dd511560fc01680924ace7934}} 
+\index{dairlib::Behavior$<$ Y $>$@{dairlib::Behavior$<$ Y $>$}!getModeSequence@{getModeSequence}}
+\index{getModeSequence@{getModeSequence}!dairlib::Behavior$<$ Y $>$@{dairlib::Behavior$<$ Y $>$}}
+\doxysubsubsection{\texorpdfstring{getModeSequence()}{getModeSequence()}}
+{\footnotesize\ttfamily template$<$class Y $>$ \\
+virtual std\+::tuple$<$ std\+::vector$<$ std\+::unique\+\_\+ptr$<$ dairlib\+::systems\+::trajectory\+\_\+optimization\+::\+Dircon\+Mode$<$ Y $>$ $>$ $>$, std\+::vector$<$ std\+::unique\+\_\+ptr$<$ multibody\+::\+World\+Point\+Evaluator$<$ Y $>$ $>$ $>$, std\+::vector$<$ std\+::unique\+\_\+ptr$<$ multibody\+::\+Kinematic\+Evaluator\+Set$<$ Y $>$ $>$ $>$ $>$ \mbox{\hyperlink{classdairlib_1_1Behavior}{dairlib\+::\+Behavior}}$<$ Y $>$\+::get\+Mode\+Sequence (\begin{DoxyParamCaption}\item[{Multibody\+Plant$<$ Y $>$ \&}]{plant,  }\item[{Dircon\+Mode\+Sequence$<$ Y $>$ \&}]{sequence }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [protected]}, {\ttfamily [pure virtual]}}
+
+
+
+get\+Mode\+Sequence, initializes the trajopt mode seqence for jump, see run\+Spirit\+Jump for a def of inputs 
+
+
+
+Implemented in \mbox{\hyperlink{classdairlib_1_1SpiritBound_ad7e533db976897d546580bcbb82122e5}{dairlib\+::\+Spirit\+Bound$<$ Y $>$}}, \mbox{\hyperlink{classdairlib_1_1SpiritBoxJump_a5470039f765fb3b847697f66041433d4}{dairlib\+::\+Spirit\+Box\+Jump$<$ Y $>$}}, \mbox{\hyperlink{classdairlib_1_1SpiritJump_a4210071ebbe2382fa5231a143607119a}{dairlib\+::\+Spirit\+Jump$<$ Y $>$}}, \mbox{\hyperlink{classdairlib_1_1SpiritParkourJump_a03ae410ec2435f9b4ebe47eb32f54a3b}{dairlib\+::\+Spirit\+Parkour\+Jump$<$ Y $>$}}, and \mbox{\hyperlink{classdairlib_1_1SpiritParkourWallPronk_ac7dd5c331a7746a66621ee246739ccd5}{dairlib\+::\+Spirit\+Parkour\+Wall\+Pronk$<$ Y $>$}}.
+
+\mbox{\Hypertarget{classdairlib_1_1Behavior_a4f27fad735797a14e89a16a8840d4c03}\label{classdairlib_1_1Behavior_a4f27fad735797a14e89a16a8840d4c03}} 
+\index{dairlib::Behavior$<$ Y $>$@{dairlib::Behavior$<$ Y $>$}!initTrajectory@{initTrajectory}}
+\index{initTrajectory@{initTrajectory}!dairlib::Behavior$<$ Y $>$@{dairlib::Behavior$<$ Y $>$}}
+\doxysubsubsection{\texorpdfstring{initTrajectory()}{initTrajectory()}}
+{\footnotesize\ttfamily template$<$class Y $>$ \\
+void \mbox{\hyperlink{classdairlib_1_1Behavior}{dairlib\+::\+Behavior}}$<$ Y $>$\+::init\+Trajectory (\begin{DoxyParamCaption}\item[{dairlib\+::systems\+::trajectory\+\_\+optimization\+::\+Dircon$<$ Y $>$ \&}]{trajopt,  }\item[{Dircon\+Mode\+Sequence$<$ Y $>$ \&}]{sequence }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Initialize trajectory 
+\begin{DoxyParams}{Parameters}
+{\em trajopt} & trajectory optimization problem to be solved \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{classdairlib_1_1Behavior_af4fe15e5db9f711cbbfb59aecb9ecd84}\label{classdairlib_1_1Behavior_af4fe15e5db9f711cbbfb59aecb9ecd84}} 
+\index{dairlib::Behavior$<$ Y $>$@{dairlib::Behavior$<$ Y $>$}!run@{run}}
+\index{run@{run}!dairlib::Behavior$<$ Y $>$@{dairlib::Behavior$<$ Y $>$}}
+\doxysubsubsection{\texorpdfstring{run()}{run()}}
+{\footnotesize\ttfamily template$<$class Y $>$ \\
+virtual void \mbox{\hyperlink{classdairlib_1_1Behavior}{dairlib\+::\+Behavior}}$<$ Y $>$\+::run (\begin{DoxyParamCaption}\item[{Multibody\+Plant$<$ Y $>$ \&}]{plant,  }\item[{Piecewise\+Polynomial$<$ Y $>$ $\ast$}]{pp\+\_\+xtraj,  }\item[{std\+::vector$<$ \mbox{\hyperlink{structSurfaceConf}{Surface\+Conf}} $>$ $\ast$}]{surface\+\_\+vector }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+Run a trajectory optimization problem for spirit behavior 
+\begin{DoxyParams}{Parameters}
+{\em plant} & robot model \\
+\hline
+{\em pp\+\_\+xtraj} & state trajectory pointer used for animation \\
+\hline
+{\em surface\+\_\+vector} & vector of surfaces in the scene (for animation) \\
+\hline
+\end{DoxyParams}
+
+
+Implemented in \mbox{\hyperlink{classdairlib_1_1SpiritBound_a4952447c88d25ed1aa8ae28279488d47}{dairlib\+::\+Spirit\+Bound$<$ Y $>$}}, \mbox{\hyperlink{classdairlib_1_1SpiritBoxJump_a9706b1066d20c6cbcdea31a6a1b72250}{dairlib\+::\+Spirit\+Box\+Jump$<$ Y $>$}}, \mbox{\hyperlink{classdairlib_1_1SpiritJump_a829e124992513fc9314d214c7cb1bba8}{dairlib\+::\+Spirit\+Jump$<$ Y $>$}}, \mbox{\hyperlink{classdairlib_1_1SpiritParkourJump_a234739050c21b32add133cad3160427d}{dairlib\+::\+Spirit\+Parkour\+Jump$<$ Y $>$}}, and \mbox{\hyperlink{classdairlib_1_1SpiritParkourWallPronk_a7118a9c4d5a2bc88f36b266a59bab785}{dairlib\+::\+Spirit\+Parkour\+Wall\+Pronk$<$ Y $>$}}.
+
+\mbox{\Hypertarget{classdairlib_1_1Behavior_ab9ecd1296c32aaf83c9eb03da9ab74df}\label{classdairlib_1_1Behavior_ab9ecd1296c32aaf83c9eb03da9ab74df}} 
+\index{dairlib::Behavior$<$ Y $>$@{dairlib::Behavior$<$ Y $>$}!saveTrajectory@{saveTrajectory}}
+\index{saveTrajectory@{saveTrajectory}!dairlib::Behavior$<$ Y $>$@{dairlib::Behavior$<$ Y $>$}}
+\doxysubsubsection{\texorpdfstring{saveTrajectory()}{saveTrajectory()}}
+{\footnotesize\ttfamily template$<$class Y $>$ \\
+void \mbox{\hyperlink{classdairlib_1_1Behavior}{dairlib\+::\+Behavior}}$<$ Y $>$\+::save\+Trajectory (\begin{DoxyParamCaption}\item[{Multibody\+Plant$<$ Y $>$ \&}]{plant,  }\item[{dairlib\+::systems\+::trajectory\+\_\+optimization\+::\+Dircon$<$ Y $>$ \&}]{trajopt,  }\item[{const drake\+::solvers\+::\+Mathematical\+Program\+Result \&}]{result }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+
+\begin{DoxyParams}{Parameters}
+{\em trajopt} & trajectory optimization problem to be solved \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{classdairlib_1_1Behavior_a07c449c18c69f5888f05cbf3795255e2}\label{classdairlib_1_1Behavior_a07c449c18c69f5888f05cbf3795255e2}} 
+\index{dairlib::Behavior$<$ Y $>$@{dairlib::Behavior$<$ Y $>$}!setSolver@{setSolver}}
+\index{setSolver@{setSolver}!dairlib::Behavior$<$ Y $>$@{dairlib::Behavior$<$ Y $>$}}
+\doxysubsubsection{\texorpdfstring{setSolver()}{setSolver()}}
+{\footnotesize\ttfamily template$<$class Y $>$ \\
+void \mbox{\hyperlink{classdairlib_1_1Behavior}{dairlib\+::\+Behavior}}$<$ Y $>$\+::set\+Solver (\begin{DoxyParamCaption}\item[{dairlib\+::systems\+::trajectory\+\_\+optimization\+::\+Dircon$<$ Y $>$ \&}]{trajopt }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+Set solver 
+\begin{DoxyParams}{Parameters}
+{\em trajopt} & trajectory optimization problem to be solved \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{classdairlib_1_1Behavior_ab0beeb2823292b949915849e317c0971}\label{classdairlib_1_1Behavior_ab0beeb2823292b949915849e317c0971}} 
+\index{dairlib::Behavior$<$ Y $>$@{dairlib::Behavior$<$ Y $>$}!setUpModeSequence@{setUpModeSequence}}
+\index{setUpModeSequence@{setUpModeSequence}!dairlib::Behavior$<$ Y $>$@{dairlib::Behavior$<$ Y $>$}}
+\doxysubsubsection{\texorpdfstring{setUpModeSequence()}{setUpModeSequence()}}
+{\footnotesize\ttfamily template$<$class Y $>$ \\
+virtual void \mbox{\hyperlink{classdairlib_1_1Behavior}{dairlib\+::\+Behavior}}$<$ Y $>$\+::set\+Up\+Mode\+Sequence (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Set up mode sequence for trajectory optimization problem. Will be defined differently in different behaviors. 
+
+
+
+Implemented in \mbox{\hyperlink{classdairlib_1_1SpiritBound_ab7ea1510ae526634e5de5a8fc80d8fa0}{dairlib\+::\+Spirit\+Bound$<$ Y $>$}}, \mbox{\hyperlink{classdairlib_1_1SpiritBoxJump_a946f5db2093d29d35865f2f30e9a11a5}{dairlib\+::\+Spirit\+Box\+Jump$<$ Y $>$}}, \mbox{\hyperlink{classdairlib_1_1SpiritJump_a28d892e89e98eb98a3d3b731b9c2d052}{dairlib\+::\+Spirit\+Jump$<$ Y $>$}}, \mbox{\hyperlink{classdairlib_1_1SpiritParkourJump_aff82a924f514ca0d511f4f48da21dba0}{dairlib\+::\+Spirit\+Parkour\+Jump$<$ Y $>$}}, and \mbox{\hyperlink{classdairlib_1_1SpiritParkourWallPronk_a5e9d3c7c225bfb063d73f3939ebb9350}{dairlib\+::\+Spirit\+Parkour\+Wall\+Pronk$<$ Y $>$}}.
+
+\mbox{\Hypertarget{classdairlib_1_1Behavior_afabec2c61703ae8e5ba80ab400440523}\label{classdairlib_1_1Behavior_afabec2c61703ae8e5ba80ab400440523}} 
+\index{dairlib::Behavior$<$ Y $>$@{dairlib::Behavior$<$ Y $>$}!setupVisualization@{setupVisualization}}
+\index{setupVisualization@{setupVisualization}!dairlib::Behavior$<$ Y $>$@{dairlib::Behavior$<$ Y $>$}}
+\doxysubsubsection{\texorpdfstring{setupVisualization()}{setupVisualization()}}
+{\footnotesize\ttfamily template$<$class Y $>$ \\
+void \mbox{\hyperlink{classdairlib_1_1Behavior}{dairlib\+::\+Behavior}}$<$ Y $>$\+::setup\+Visualization (\begin{DoxyParamCaption}\item[{dairlib\+::systems\+::trajectory\+\_\+optimization\+::\+Dircon$<$ Y $>$ \&}]{trajopt,  }\item[{Dircon\+Mode\+Sequence$<$ Y $>$ \&}]{sequence }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [protected]}}
+
+
+\begin{DoxyParams}{Parameters}
+{\em trajopt} & trajectory optimization problem to be solved \\
+\hline
+\end{DoxyParams}
+
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+behavior.\+h\end{DoxyCompactItemize}

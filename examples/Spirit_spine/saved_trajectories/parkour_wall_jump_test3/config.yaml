@@ -2,7 +2,9 @@
 -
   num_optimizations: 2
   initial_guess: ""  #if it is empty, the program will generate initial guess. Otherwise, we use the file given here as the initial guess
-  saved_directory: /home/feng/Downloads/dairlib/examples/Spirit/saved_trajectories/parkour_wall_jump_test3/
+  spine_type: twisting
+  urdf_path: examples/Spirit_spine/spirit_with_spine_drake.urdf
+  saved_directory: /home/feng/Downloads/dairlib/examples/Spirit_spine/saved_trajectories/parkour_wall_jump_test3/
   iterate:
     
 
@@ -280,7 +282,6 @@
   file_name_in: simple_parkour_2_4
   animate: false
 
-
 - 
   name: parkour_pronk_6
   n_jumps: 2
@@ -289,8 +290,62 @@
       - 0     #normal x
       - 1     #normal y
       - 0     #normal z
-      - 0.8     #offset x
+      - 0.75     #offset x
       - -0.35     #offset y
+      - 0.4    #offset z
+  initial_stand:
+    - 0  #normal x
+    - 0  #normal y
+    - 1  #normal z
+    - 0  #offset x
+    - 0  #offset y
+    - 0  #offset z
+    - false #rerun
+  final_stand:
+    - 0  #normal x
+    - 0  #normal y
+    - 1  #normal z
+    - 1.7  #offset x
+    - 0.05  #offset y
+    - 0 #offset z
+    - false #rerun
+  stand_height: 0.23
+  nKnotpoints_flight: 7
+  nKnotpoints_stances: 7
+  apex_heights: 
+    - 0.65
+    - 0.65
+  max_pitch_magnitude: 1.2
+  max_apex_pitch_magnitude: 0.1
+  lock_rotation: true
+  lock_legs_apex: false
+  force_symmetry: false
+  max_duration: 2
+  cost_actuation: 3
+  cost_velocity: 10 
+  cost_velocity_legs_flight: 2 
+  cost_actuation_legs_flight: 1 
+  cost_time: 1000
+  cost_work: 0
+  mu: 2
+  eps: 1e-2
+  tol: 1e-1
+  xtol: 1e-1
+  work_constraint_scale: 0
+  file_name_out: simple_parkour_2_6
+  file_name_in: simple_parkour_2_5
+  animate: false
+  
+- 
+  name: parkour_pronk_7
+  n_jumps: 2
+  transition_surface:
+    - 
+      - 0     #normal x
+      - 1     #normal y
+      - 0     #normal z
+      - 0.85     #offset x
+      - -0.4     #offset y
       - 0.4    #offset z
   initial_stand:
     - 0  #normal x
@@ -331,20 +386,20 @@
   tol: 1e-1
   xtol: 5e-2
   work_constraint_scale: 0
-  file_name_out: simple_parkour_2_6
-  file_name_in: simple_parkour_2_5
+  file_name_out: simple_parkour_2_7
+  file_name_in: simple_parkour_2_6
   animate: false
 
 - 
-  name: parkour_pronk_7
+  name: parkour_pronk_8
   n_jumps: 2
   transition_surface:
     - 
       - 0     #normal x
       - 1     #normal y
       - 0     #normal z
-      - 0.8     #offset x
-      - -0.55     #offset y
+      - 0.85     #offset x
+      - -0.7     #offset y
       - 0.4    #offset z
   initial_stand:
     - 0  #normal x
@@ -358,7 +413,7 @@
     - 0  #normal x
     - 0  #normal y
     - 1  #normal z
-    - 1.8  #offset x
+    - 1.7  #offset x
     - 0  #offset y
     - 0 #offset z
     - false #rerun
@@ -374,10 +429,10 @@
   lock_legs_apex: false
   force_symmetry: false
   max_duration: 2
-  cost_actuation: 3
-  cost_velocity: 10 
-  cost_velocity_legs_flight: 2 
-  cost_actuation_legs_flight: 1 
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 100 
+  cost_actuation_legs_flight: 0 
   cost_time: 0
   cost_work: 100
   mu: 1
@@ -385,7 +440,8 @@
   tol: 1e-1
   xtol: 5e-2
   work_constraint_scale: 0
-  file_name_out: simple_parkour_2_7
-  file_name_in: simple_parkour_2_6
+  file_name_out: simple_parkour_2_8
+  file_name_in: simple_parkour_2_7
   animate: false
+
 

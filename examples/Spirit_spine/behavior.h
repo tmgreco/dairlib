@@ -6,6 +6,8 @@
 #include <unistd.h>
 #include <gflags/gflags.h>
 #include <string.h>
+#include <iostream>
+#include <fstream>
 
 #include "drake/solvers/snopt_solver.h"
 #include "drake/solvers/ipopt_solver.h"
@@ -21,6 +23,7 @@
 #include "systems/trajectory_optimization/dircon/dircon.h"
 #include "examples/Spirit_spine/spirit_utils.h"
 #include "examples/Spirit_spine/surface_conf.h"
+
 using drake::multibody::MultibodyPlant;
 using drake::trajectories::PiecewisePolynomial;
 using drake::geometry::SceneGraph;
@@ -83,8 +86,11 @@ namespace dairlib {
         virtual void setUpModeSequence()=0;
         /// Typically enable animation at the last optimization
         void enable_animate(){get_animate_info=true;}
+
+        std::string urdf_path;
+        std::string spine_type;
     protected:
-        
+        int index;
         std::vector<int> num_knot_points; //!< Sequence of #knot points for each mode
         double mu; //!< Coefficient of friction
         double tol; //!< Tolerance for solver
@@ -96,6 +102,7 @@ namespace dairlib {
         double cost_actuation_legs_flight; //!< Cost coefficient of actuation for legs during flight
         double cost_time; //!< Cost coefficient of time
         bool get_animate_info=false; //!< Whether or not return the trajectory to Spirit for animation
+
 
         std::string file_name_out; //!< Store optimized trajectories into this file if not empty
         std::string file_name_in= ""; //!< Load initial trajectories from this file if not empty
@@ -269,6 +276,32 @@ namespace dairlib {
             //  double cost_work_acceleration = solvers::EvalCostGivenSolution(
             //      result, cost_joint_work_bindings);
             //  std::cout<<"Cost Work = " << cost_work_acceleration << std::endl;
+        }
+
+        void saveContractForceData(std::string file_path){
+            std::ofstream myfile; // 
+            myfile.open(file_path);
+            Y traj_end_time=this->l_traj[this->mode_vector.size()-1].end_time();
+            for (Y current_time=0;current_time<traj_end_time;current_time+=0.01){
+                int mode=-1;
+                for (int i=0;i<this->mode_vector.size();i++){
+                Y start_time=this->l_traj[i].start_time();
+                Y end_time=this->l_traj[i].end_time();
+                if (abs(start_time)!=std::numeric_limits<Y>::infinity() && abs(end_time)!=std::numeric_limits<Y>::infinity() 
+                    && current_time>=start_time && current_time<end_time){
+                    mode=i;
+                }
+                }
+                myfile << current_time << ",";
+                if (mode==-1){
+                for (int i = 0; i < 12; i++) myfile << 0 << ",";
+                }
+                else{
+                for (int i = 0; i < 12; i++) myfile << this->l_traj[mode].value(current_time)(i,0) << ",";
+                }
+                myfile <<"\n";
+            }
+            myfile.close(); // <- note this correction!!
         }
     };
 }

@@ -1,0 +1,65 @@
+\hypertarget{classdairlib_1_1Spirit}{}\doxysection{dairlib\+::Spirit\texorpdfstring{$<$}{<} B, T \texorpdfstring{$>$}{>} Class Template Reference}
+\label{classdairlib_1_1Spirit}\index{dairlib::Spirit$<$ B, T $>$@{dairlib::Spirit$<$ B, T $>$}}
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{classdairlib_1_1Spirit_a2e24debeb9de3c074e302166948a6ecf}{Spirit}} (std\+::string yaml\+\_\+path)
+\item 
+\mbox{\Hypertarget{classdairlib_1_1Spirit_a55c97e27b259117a4e8c9cdcf6edd28a}\label{classdairlib_1_1Spirit_a55c97e27b259117a4e8c9cdcf6edd28a}} 
+void {\bfseries run} ()
+\item 
+\mbox{\Hypertarget{classdairlib_1_1Spirit_a93d5993fe3bff7ea11f055c56f7fcef0}\label{classdairlib_1_1Spirit_a93d5993fe3bff7ea11f055c56f7fcef0}} 
+void {\bfseries animate} ()
+\end{DoxyCompactItemize}
+\doxysubsection*{Private Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classdairlib_1_1Spirit_ab753dd20f343b3d1a4a509f33bfed7a4}\label{classdairlib_1_1Spirit_ab753dd20f343b3d1a4a509f33bfed7a4}} 
+int {\bfseries num\+\_\+optimizations}
+\item 
+\mbox{\Hypertarget{classdairlib_1_1Spirit_a5544671ebc82790ade8a117b58dc1f98}\label{classdairlib_1_1Spirit_a5544671ebc82790ade8a117b58dc1f98}} 
+std\+::string {\bfseries initial\+\_\+guess}
+\item 
+\mbox{\Hypertarget{classdairlib_1_1Spirit_a212c23a752297dcd4233502256e95665}\label{classdairlib_1_1Spirit_a212c23a752297dcd4233502256e95665}} 
+std\+::string {\bfseries yaml\+\_\+path}
+\item 
+\mbox{\Hypertarget{classdairlib_1_1Spirit_ac0fe2228cd28a4cb752d0f8e12462846}\label{classdairlib_1_1Spirit_ac0fe2228cd28a4cb752d0f8e12462846}} 
+std\+::string {\bfseries saved\+\_\+directory}
+\item 
+\mbox{\Hypertarget{classdairlib_1_1Spirit_a6ac6a29766dece04381e6df7158edc28}\label{classdairlib_1_1Spirit_a6ac6a29766dece04381e6df7158edc28}} 
+std\+::unique\+\_\+ptr$<$ Multibody\+Plant$<$ T $>$ $>$ {\bfseries plant}
+\item 
+\mbox{\Hypertarget{classdairlib_1_1Spirit_a2ea174457732db3d808e9b745f6155ff}\label{classdairlib_1_1Spirit_a2ea174457732db3d808e9b745f6155ff}} 
+std\+::unique\+\_\+ptr$<$ Multibody\+Plant$<$ T $>$ $>$ {\bfseries plant\+\_\+vis}
+\item 
+\mbox{\Hypertarget{classdairlib_1_1Spirit_ade916a0578bfffbbf1f0dc4dd3843676}\label{classdairlib_1_1Spirit_ade916a0578bfffbbf1f0dc4dd3843676}} 
+std\+::unique\+\_\+ptr$<$ Scene\+Graph$<$ T $>$ $>$ {\bfseries scene\+\_\+graph\+\_\+ptr}
+\item 
+\mbox{\Hypertarget{classdairlib_1_1Spirit_a885d7ec121fab06dca6f6abadb5066d9}\label{classdairlib_1_1Spirit_a885d7ec121fab06dca6f6abadb5066d9}} 
+drake\+::systems\+::\+Diagram\+Builder$<$ double $>$ {\bfseries builder}
+\item 
+\mbox{\Hypertarget{classdairlib_1_1Spirit_a9316157c40e9899f4c801e5536d59139}\label{classdairlib_1_1Spirit_a9316157c40e9899f4c801e5536d59139}} 
+B$<$ T $>$ {\bfseries behavior}
+\item 
+\mbox{\Hypertarget{classdairlib_1_1Spirit_a2deff5fa619478ee57bfc73df501ad80}\label{classdairlib_1_1Spirit_a2deff5fa619478ee57bfc73df501ad80}} 
+Piecewise\+Polynomial$<$ T $>$ {\bfseries pp\+\_\+xtraj}
+\item 
+\mbox{\Hypertarget{classdairlib_1_1Spirit_a085520a02f82eb117d5689013f0aca19}\label{classdairlib_1_1Spirit_a085520a02f82eb117d5689013f0aca19}} 
+std\+::vector$<$ \mbox{\hyperlink{structSurfaceConf}{Surface\+Conf}} $>$ {\bfseries surface\+\_\+vector}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Constructor \& Destructor Documentation}
+\mbox{\Hypertarget{classdairlib_1_1Spirit_a2e24debeb9de3c074e302166948a6ecf}\label{classdairlib_1_1Spirit_a2e24debeb9de3c074e302166948a6ecf}} 
+\index{dairlib::Spirit$<$ B, T $>$@{dairlib::Spirit$<$ B, T $>$}!Spirit@{Spirit}}
+\index{Spirit@{Spirit}!dairlib::Spirit$<$ B, T $>$@{dairlib::Spirit$<$ B, T $>$}}
+\doxysubsubsection{\texorpdfstring{Spirit()}{Spirit()}}
+{\footnotesize\ttfamily template$<$template$<$ class $>$ class B, class T $>$ \\
+\mbox{\hyperlink{classdairlib_1_1Spirit}{dairlib\+::\+Spirit}}$<$ B, T $>$\+::\+Spirit (\begin{DoxyParamCaption}\item[{std\+::string}]{yaml\+\_\+path }\end{DoxyParamCaption})}
+
+init plant
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+Spirit.\+h\item 
+Spirit.\+cc\end{DoxyCompactItemize}

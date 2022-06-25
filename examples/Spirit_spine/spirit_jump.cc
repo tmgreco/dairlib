@@ -22,7 +22,7 @@ SpiritJump<Y>::SpiritJump(){
 template <class Y>
 void SpiritJump<Y>::config(std::string yaml_path, std::string saved_directory, int index,MultibodyPlant<Y>* plant){
   YAML::Node config = YAML::LoadFile(yaml_path);
-
+  this->index=index;
   this->duration=config[index]["duration"].as<double>();
   this->ipopt=config[index]["ipopt"].as<bool>();
   this->num_knot_points=config[index]["num_knot_points"].as<std::vector<int>>();
@@ -383,7 +383,7 @@ void SpiritJump<Y>::run(MultibodyPlant<Y>& plant,
     solver_id = drake::solvers::ChooseBestSolver(trajopt);
     std::cout << "\nChose the best solver: " << solver_id.name() << std::endl;
   }
-
+  
   auto start = std::chrono::high_resolution_clock::now();
   auto solver = drake::solvers::MakeSolver(solver_id);
   drake::solvers::MathematicalProgramResult result;
@@ -393,10 +393,21 @@ void SpiritJump<Y>::run(MultibodyPlant<Y>& plant,
   std::chrono::duration<double> elapsed = finish - start;
   std::cout << "Solve time: " << elapsed.count() <<std::endl;
   std::cout << "Cost: " << result.get_optimal_cost() <<std::endl;
+  
   std::cout << (result.is_success() ? "Optimization Success" : "Optimization Fail") << std::endl;
 
   /// Save trajectory
   this->saveTrajectory(plant,trajopt,result);
+
+  // Writing contact force data
+  std::string contect_force_fname="/home/feng/Downloads/dairlib/examples/Spirit_spine/data/test"+std::to_string(this->index)+".csv";
+  this->saveContractForceData(contect_force_fname);
+  
+  // for (int i=0;i<4;i++) {
+  //   std::cout << "lambda pp "<<i<<" at 0.1s\n"<< this->l_traj[i].value(0.1) << std::endl;
+  //   std::cout << "lambda time mode "<<i<<" start: "<< this->l_traj[i].start_time()<<" end: "<< this->l_traj[i].end_time()<<std::endl;
+  // }
+  
 
   /// pass the final trajectory back to spirit for animation
   *pp_xtraj =trajopt.ReconstructStateTrajectory(result);

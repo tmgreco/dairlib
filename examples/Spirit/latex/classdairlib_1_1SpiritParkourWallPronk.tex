@@ -1,0 +1,274 @@
+\hypertarget{classdairlib_1_1SpiritParkourWallPronk}{}\doxysection{dairlib\+::Spirit\+Parkour\+Wall\+Pronk\texorpdfstring{$<$}{<} Y \texorpdfstring{$>$}{>} Class Template Reference}
+\label{classdairlib_1_1SpiritParkourWallPronk}\index{dairlib::SpiritParkourWallPronk$<$ Y $>$@{dairlib::SpiritParkourWallPronk$<$ Y $>$}}
+Inheritance diagram for dairlib\+::Spirit\+Parkour\+Wall\+Pronk\texorpdfstring{$<$}{<} Y \texorpdfstring{$>$}{>}\+:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{classdairlib_1_1SpiritParkourWallPronk}
+\end{center}
+\end{figure}
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \mbox{\hyperlink{classdairlib_1_1SpiritParkourWallPronk_adff739e009c00c2f4f191558f57fa157}{config}} (std\+::string yaml\+\_\+path, std\+::string saved\+\_\+directory, int index, Multibody\+Plant$<$ Y $>$ $\ast$\mbox{\hyperlink{classdairlib_1_1SpiritParkourWallPronk_ad308423967b977ed6a52523910b48d4c}{plant}})
+\item 
+void \mbox{\hyperlink{classdairlib_1_1SpiritParkourWallPronk_a85d96d2d2aaf3cc8e5587809259dba95}{offset\+Constraint}} (Multibody\+Plant$<$ Y $>$ \&\mbox{\hyperlink{classdairlib_1_1SpiritParkourWallPronk_ad308423967b977ed6a52523910b48d4c}{plant}}, dairlib\+::systems\+::trajectory\+\_\+optimization\+::\+Dircon$<$ Y $>$ \&trajopt, const Eigen\+::\+Ref$<$ const drake\+::solvers\+::\+Vector\+XDecision\+Variable $>$ \&xb, Eigen\+::\+Vector3d normal, Eigen\+::\+Vector3d offset, double eps2=0.\+01)
+\begin{DoxyCompactList}\small\item\em Adds an offset constraint which allows the body to be anywhere on the normal vector. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classdairlib_1_1SpiritParkourWallPronk_ace881223a3611940432acf4cbdbe88a7}\label{classdairlib_1_1SpiritParkourWallPronk_ace881223a3611940432acf4cbdbe88a7}} 
+void {\bfseries generate\+Initial\+Guess} (Multibody\+Plant$<$ Y $>$ \&\mbox{\hyperlink{classdairlib_1_1SpiritParkourWallPronk_ad308423967b977ed6a52523910b48d4c}{plant}})
+\begin{DoxyCompactList}\small\item\em Generate a bad initial guess by stitching several bounding behaviors together. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classdairlib_1_1SpiritParkourWallPronk_a0e3ab5d3d79c34acf779dfb9d5b9a843}\label{classdairlib_1_1SpiritParkourWallPronk_a0e3ab5d3d79c34acf779dfb9d5b9a843}} 
+void {\bfseries concat\+Vector\+Traj} (vector$<$ Piecewise\+Polynomial$<$ Y $>$ $>$ \&traj, vector$<$ Piecewise\+Polynomial$<$ Y $>$ $>$ other\+Traj, bool merge\+Inner\+Mode)
+\item 
+void \mbox{\hyperlink{classdairlib_1_1SpiritParkourWallPronk_a7a3c14cdf272e4b98246cf2209c960b2}{add\+Constraints}} (Multibody\+Plant$<$ Y $>$ \&\mbox{\hyperlink{classdairlib_1_1SpiritParkourWallPronk_ad308423967b977ed6a52523910b48d4c}{plant}}, dairlib\+::systems\+::trajectory\+\_\+optimization\+::\+Dircon$<$ Y $>$ \&trajopt)
+\item 
+void \mbox{\hyperlink{classdairlib_1_1SpiritParkourWallPronk_a7118a9c4d5a2bc88f36b266a59bab785}{run}} (Multibody\+Plant$<$ Y $>$ \&\mbox{\hyperlink{classdairlib_1_1SpiritParkourWallPronk_ad308423967b977ed6a52523910b48d4c}{plant}}, Piecewise\+Polynomial$<$ Y $>$ $\ast$pp\+\_\+xtraj, std\+::vector$<$ \mbox{\hyperlink{structSurfaceConf}{Surface\+Conf}} $>$ $\ast$surface\+\_\+vector)
+\item 
+void \mbox{\hyperlink{classdairlib_1_1SpiritParkourWallPronk_a5e9d3c7c225bfb063d73f3939ebb9350}{set\+Up\+Mode\+Sequence}} ()
+\begin{DoxyCompactList}\small\item\em Set up mode sequence for trajectory optimization problem. Will be defined differently in different behaviors. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{classdairlib_1_1SpiritParkourWallPronk_ac852a9808a2ef3bbfff105f7aad8f0e6}{add\+Cost}} (Multibody\+Plant$<$ Y $>$ \&\mbox{\hyperlink{classdairlib_1_1SpiritParkourWallPronk_ad308423967b977ed6a52523910b48d4c}{plant}}, dairlib\+::systems\+::trajectory\+\_\+optimization\+::\+Dircon$<$ Y $>$ \&trajopt)
+\item 
+void \mbox{\hyperlink{classdairlib_1_1SpiritParkourWallPronk_aded03d5934f085c4d0aee0333943f0c5}{add\+Cost\+Legs}} (Multibody\+Plant$<$ Y $>$ \&\mbox{\hyperlink{classdairlib_1_1SpiritParkourWallPronk_ad308423967b977ed6a52523910b48d4c}{plant}}, dairlib\+::systems\+::trajectory\+\_\+optimization\+::\+Dircon$<$ Y $>$ \&trajopt, const double \mbox{\hyperlink{classdairlib_1_1Behavior_afdae406f744ef4778b050ef5fabc1334}{cost\+\_\+actuation}}, const double \mbox{\hyperlink{classdairlib_1_1Behavior_a24fe00801a0924f2f18b9342189518d7}{cost\+\_\+velocity}}, const std\+::vector$<$ double $>$ \&joints, const int mode\+\_\+index)
+\item 
+std\+::tuple$<$ std\+::vector$<$ std\+::unique\+\_\+ptr$<$ dairlib\+::systems\+::trajectory\+\_\+optimization\+::\+Dircon\+Mode$<$ Y $>$ $>$ $>$, std\+::vector$<$ std\+::unique\+\_\+ptr$<$ multibody\+::\+World\+Point\+Evaluator$<$ Y $>$ $>$ $>$, std\+::vector$<$ std\+::unique\+\_\+ptr$<$ multibody\+::\+Kinematic\+Evaluator\+Set$<$ Y $>$ $>$ $>$ $>$ \mbox{\hyperlink{classdairlib_1_1SpiritParkourWallPronk_ac7dd5c331a7746a66621ee246739ccd5}{get\+Mode\+Sequence}} (Multibody\+Plant$<$ Y $>$ \&\mbox{\hyperlink{classdairlib_1_1SpiritParkourWallPronk_ad308423967b977ed6a52523910b48d4c}{plant}}, Dircon\+Mode\+Sequence$<$ Y $>$ \&sequence)
+\begin{DoxyCompactList}\small\item\em get\+Mode\+Sequence, initializes the trajopt mode seqence for jump, see run\+Spirit\+Jump for a def of inputs \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classdairlib_1_1SpiritParkourWallPronk_a4b721c7eb2153e5339b07561c87fb6f5}\label{classdairlib_1_1SpiritParkourWallPronk_a4b721c7eb2153e5339b07561c87fb6f5}} 
+\mbox{\hyperlink{classdairlib_1_1OptimalSpiritStand}{dairlib\+::\+Optimal\+Spirit\+Stand}} {\bfseries initial\+Stand}
+\item 
+\mbox{\Hypertarget{classdairlib_1_1SpiritParkourWallPronk_a0150d7f3d7cc3ac6f0313da1a1dcb692}\label{classdairlib_1_1SpiritParkourWallPronk_a0150d7f3d7cc3ac6f0313da1a1dcb692}} 
+\mbox{\hyperlink{classdairlib_1_1OptimalSpiritStand}{dairlib\+::\+Optimal\+Spirit\+Stand}} {\bfseries final\+Stand}
+\end{DoxyCompactItemize}
+\doxysubsection*{Private Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classdairlib_1_1SpiritParkourWallPronk_ad308423967b977ed6a52523910b48d4c}\label{classdairlib_1_1SpiritParkourWallPronk_ad308423967b977ed6a52523910b48d4c}} 
+std\+::unique\+\_\+ptr$<$ Multibody\+Plant$<$ Y $>$ $>$ {\bfseries plant}
+\begin{DoxyCompactList}\small\item\em the robot \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classdairlib_1_1SpiritParkourWallPronk_abf82ae093359c9a9b29337430612f7c0}\label{classdairlib_1_1SpiritParkourWallPronk_abf82ae093359c9a9b29337430612f7c0}} 
+std\+::vector$<$ std\+::tuple$<$ Eigen\+::\+Vector3d, Eigen\+::\+Vector3d, double $>$ $>$ {\bfseries transition\+Surfaces}
+\begin{DoxyCompactList}\small\item\em vector that stores transition surfaces (surface to jump) \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classdairlib_1_1SpiritParkourWallPronk_a522831a4417f7e7e8f8f09a08fd239e2}\label{classdairlib_1_1SpiritParkourWallPronk_a522831a4417f7e7e8f8f09a08fd239e2}} 
+int {\bfseries n\+Knotpoints\+\_\+flight}
+\begin{DoxyCompactList}\small\item\em number of know points for each flight mode \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classdairlib_1_1SpiritParkourWallPronk_a5f33a62d8986bf9811e3f7dc1d126f70}\label{classdairlib_1_1SpiritParkourWallPronk_a5f33a62d8986bf9811e3f7dc1d126f70}} 
+int {\bfseries n\+Knotpoints\+\_\+stances}
+\begin{DoxyCompactList}\small\item\em number of know points for each stance mode \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classdairlib_1_1SpiritParkourWallPronk_af6912d675e412f80a91773d87031505b}\label{classdairlib_1_1SpiritParkourWallPronk_af6912d675e412f80a91773d87031505b}} 
+double {\bfseries max\+\_\+apex\+\_\+pitch\+\_\+magnitude}
+\begin{DoxyCompactList}\small\item\em max pitch magnitude at apex \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classdairlib_1_1SpiritParkourWallPronk_a45c94beb12b31d3f977321d135134f69}\label{classdairlib_1_1SpiritParkourWallPronk_a45c94beb12b31d3f977321d135134f69}} 
+double {\bfseries max\+\_\+pitch\+\_\+magnitude}
+\begin{DoxyCompactList}\small\item\em ax pitch magnitude at stances \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classdairlib_1_1SpiritParkourWallPronk_a9201856ed1773943289c69370311561c}\label{classdairlib_1_1SpiritParkourWallPronk_a9201856ed1773943289c69370311561c}} 
+double {\bfseries initial\+\_\+height}
+\begin{DoxyCompactList}\small\item\em initial stance height \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classdairlib_1_1SpiritParkourWallPronk_a57d15dc8a688d44bf5190fc59dffd7f6}\label{classdairlib_1_1SpiritParkourWallPronk_a57d15dc8a688d44bf5190fc59dffd7f6}} 
+double {\bfseries fore\+\_\+aft\+\_\+displacement}
+\begin{DoxyCompactList}\small\item\em how long the robot jump forward \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classdairlib_1_1SpiritParkourWallPronk_a6213c7181688a83e5af3ba02878fff1e}\label{classdairlib_1_1SpiritParkourWallPronk_a6213c7181688a83e5af3ba02878fff1e}} 
+bool {\bfseries lock\+\_\+rotation}
+\item 
+\mbox{\Hypertarget{classdairlib_1_1SpiritParkourWallPronk_ab20cdab9770f460371e113cd28323407}\label{classdairlib_1_1SpiritParkourWallPronk_ab20cdab9770f460371e113cd28323407}} 
+bool {\bfseries lock\+\_\+legs\+\_\+apex}
+\begin{DoxyCompactList}\small\item\em reach a specific legs configuration at apex \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classdairlib_1_1SpiritParkourWallPronk_a12bf38827b5b370d66c097af3d1e8529}\label{classdairlib_1_1SpiritParkourWallPronk_a12bf38827b5b370d66c097af3d1e8529}} 
+bool {\bfseries force\+\_\+symmetry}
+\item 
+\mbox{\Hypertarget{classdairlib_1_1SpiritParkourWallPronk_aa289275420987bf76308a3fb5c383b73}\label{classdairlib_1_1SpiritParkourWallPronk_aa289275420987bf76308a3fb5c383b73}} 
+bool {\bfseries use\+\_\+nominal\+\_\+stand}
+\item 
+\mbox{\Hypertarget{classdairlib_1_1SpiritParkourWallPronk_aa00b9af51f4d5580ff1a4b54ea372f6f}\label{classdairlib_1_1SpiritParkourWallPronk_aa00b9af51f4d5580ff1a4b54ea372f6f}} 
+double {\bfseries max\+\_\+duration}
+\begin{DoxyCompactList}\small\item\em maximum duration of the bounding behavior \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classdairlib_1_1SpiritParkourWallPronk_a058e349624ba54399c5aa42200570190}\label{classdairlib_1_1SpiritParkourWallPronk_a058e349624ba54399c5aa42200570190}} 
+double {\bfseries eps}
+\begin{DoxyCompactList}\small\item\em tolerance for the constraints \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classdairlib_1_1SpiritParkourWallPronk_a5503e63d5ef1e88962f4eddab372bd65}\label{classdairlib_1_1SpiritParkourWallPronk_a5503e63d5ef1e88962f4eddab372bd65}} 
+double {\bfseries work\+\_\+constraint\+\_\+scale}
+\item 
+\mbox{\Hypertarget{classdairlib_1_1SpiritParkourWallPronk_a8fb2d369686fea69936008d5a8890a12}\label{classdairlib_1_1SpiritParkourWallPronk_a8fb2d369686fea69936008d5a8890a12}} 
+int {\bfseries n\+Jumps}
+\begin{DoxyCompactList}\small\item\em number of jumps \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classdairlib_1_1SpiritParkourWallPronk_a7cf88eb336b2307bff37362aa755713f}\label{classdairlib_1_1SpiritParkourWallPronk_a7cf88eb336b2307bff37362aa755713f}} 
+double {\bfseries xtol}
+\begin{DoxyCompactList}\small\item\em tolerace of transformed x axis displacement where robot land on the transition surfaces \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classdairlib_1_1SpiritParkourWallPronk_a21d6927bc0a080f182c1af8fe7368d07}\label{classdairlib_1_1SpiritParkourWallPronk_a21d6927bc0a080f182c1af8fe7368d07}} 
+std\+::vector$<$ double $>$ {\bfseries apex\+\_\+heights}
+\end{DoxyCompactItemize}
+\doxysubsection*{Additional Inherited Members}
+
+
+\doxysubsection{Member Function Documentation}
+\mbox{\Hypertarget{classdairlib_1_1SpiritParkourWallPronk_a7a3c14cdf272e4b98246cf2209c960b2}\label{classdairlib_1_1SpiritParkourWallPronk_a7a3c14cdf272e4b98246cf2209c960b2}} 
+\index{dairlib::SpiritParkourWallPronk$<$ Y $>$@{dairlib::SpiritParkourWallPronk$<$ Y $>$}!addConstraints@{addConstraints}}
+\index{addConstraints@{addConstraints}!dairlib::SpiritParkourWallPronk$<$ Y $>$@{dairlib::SpiritParkourWallPronk$<$ Y $>$}}
+\doxysubsubsection{\texorpdfstring{addConstraints()}{addConstraints()}}
+{\footnotesize\ttfamily template$<$class Y $>$ \\
+void \mbox{\hyperlink{classdairlib_1_1SpiritParkourWallPronk}{dairlib\+::\+Spirit\+Parkour\+Wall\+Pronk}}$<$ Y $>$\+::add\+Constraints (\begin{DoxyParamCaption}\item[{Multibody\+Plant$<$ Y $>$ \&}]{plant,  }\item[{dairlib\+::systems\+::trajectory\+\_\+optimization\+::\+Dircon$<$ Y $>$ \&}]{trajopt }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [virtual]}}
+
+Adds constraints to the trajopt parkour wall jump problem 
+\begin{DoxyParams}{Parameters}
+{\em plant} & robot model \\
+\hline
+{\em trajopt} & trajectory optimization problem to be solved\\
+\hline
+{\em plant} & robot model \\
+\hline
+{\em trajopt} & trajectory to be optimized \\
+\hline
+\end{DoxyParams}
+Setup all the optimization constraints
+
+$\ast$$\ast$$\ast$$\ast$$\ast$ Constrain the initial and final states. $\ast$$\ast$$\ast$$\ast$$\ast$ ~\newline
+
+
+Constraints on all points
+
+Implements \mbox{\hyperlink{classdairlib_1_1Behavior_af37cc68ab3480ab739a5533520e4afe9}{dairlib\+::\+Behavior$<$ Y $>$}}.
+
+\mbox{\Hypertarget{classdairlib_1_1SpiritParkourWallPronk_ac852a9808a2ef3bbfff105f7aad8f0e6}\label{classdairlib_1_1SpiritParkourWallPronk_ac852a9808a2ef3bbfff105f7aad8f0e6}} 
+\index{dairlib::SpiritParkourWallPronk$<$ Y $>$@{dairlib::SpiritParkourWallPronk$<$ Y $>$}!addCost@{addCost}}
+\index{addCost@{addCost}!dairlib::SpiritParkourWallPronk$<$ Y $>$@{dairlib::SpiritParkourWallPronk$<$ Y $>$}}
+\doxysubsubsection{\texorpdfstring{addCost()}{addCost()}}
+{\footnotesize\ttfamily template$<$class Y $>$ \\
+void \mbox{\hyperlink{classdairlib_1_1SpiritParkourWallPronk}{dairlib\+::\+Spirit\+Parkour\+Wall\+Pronk}}$<$ Y $>$\+::add\+Cost (\begin{DoxyParamCaption}\item[{Multibody\+Plant$<$ Y $>$ \&}]{plant,  }\item[{dairlib\+::systems\+::trajectory\+\_\+optimization\+::\+Dircon$<$ Y $>$ \&}]{trajopt }\end{DoxyParamCaption})}
+
+Adds cost to the trajopt problem 
+\begin{DoxyParams}{Parameters}
+{\em plant} & robot model \\
+\hline
+{\em trajopt} & trajectory optimization problem to be solved \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{classdairlib_1_1SpiritParkourWallPronk_aded03d5934f085c4d0aee0333943f0c5}\label{classdairlib_1_1SpiritParkourWallPronk_aded03d5934f085c4d0aee0333943f0c5}} 
+\index{dairlib::SpiritParkourWallPronk$<$ Y $>$@{dairlib::SpiritParkourWallPronk$<$ Y $>$}!addCostLegs@{addCostLegs}}
+\index{addCostLegs@{addCostLegs}!dairlib::SpiritParkourWallPronk$<$ Y $>$@{dairlib::SpiritParkourWallPronk$<$ Y $>$}}
+\doxysubsubsection{\texorpdfstring{addCostLegs()}{addCostLegs()}}
+{\footnotesize\ttfamily template$<$typename Y $>$ \\
+void \mbox{\hyperlink{classdairlib_1_1SpiritParkourWallPronk}{dairlib\+::\+Spirit\+Parkour\+Wall\+Pronk}}$<$ Y $>$\+::add\+Cost\+Legs (\begin{DoxyParamCaption}\item[{Multibody\+Plant$<$ Y $>$ \&}]{plant,  }\item[{dairlib\+::systems\+::trajectory\+\_\+optimization\+::\+Dircon$<$ Y $>$ \&}]{trajopt,  }\item[{const double}]{cost\+\_\+actuation,  }\item[{const double}]{cost\+\_\+velocity,  }\item[{const std\+::vector$<$ double $>$ \&}]{joints,  }\item[{const int}]{mode\+\_\+index }\end{DoxyParamCaption})}
+
+add cost for legs 
+\begin{DoxyParams}{Parameters}
+{\em joints} & add cost for which joint of the legs \\
+\hline
+{\em mode\+\_\+index} & add most for which mode ~\newline
+ \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{classdairlib_1_1SpiritParkourWallPronk_adff739e009c00c2f4f191558f57fa157}\label{classdairlib_1_1SpiritParkourWallPronk_adff739e009c00c2f4f191558f57fa157}} 
+\index{dairlib::SpiritParkourWallPronk$<$ Y $>$@{dairlib::SpiritParkourWallPronk$<$ Y $>$}!config@{config}}
+\index{config@{config}!dairlib::SpiritParkourWallPronk$<$ Y $>$@{dairlib::SpiritParkourWallPronk$<$ Y $>$}}
+\doxysubsubsection{\texorpdfstring{config()}{config()}}
+{\footnotesize\ttfamily template$<$class Y $>$ \\
+void \mbox{\hyperlink{classdairlib_1_1SpiritParkourWallPronk}{dairlib\+::\+Spirit\+Parkour\+Wall\+Pronk}}$<$ Y $>$\+::config (\begin{DoxyParamCaption}\item[{std\+::string}]{yaml\+\_\+path,  }\item[{std\+::string}]{saved\+\_\+directory,  }\item[{int}]{index,  }\item[{Multibody\+Plant$<$ Y $>$ $\ast$}]{plant }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [virtual]}}
+
+Assigns values to member variables according to input yaml file 
+\begin{DoxyParams}{Parameters}
+{\em yaml\+\_\+path} & path of the yaml file \\
+\hline
+{\em saved\+\_\+directory} & directory for saving the output trajectories (namely for setting file\+\_\+name\+\_\+out) \\
+\hline
+{\em index} & indicates that we are using the index$^\wedge$th configuration \\
+\hline
+{\em plant} & robot model \\
+\hline
+\end{DoxyParams}
+
+
+Implements \mbox{\hyperlink{classdairlib_1_1Behavior_a81aa8e33441df47b822035de81d1b1d3}{dairlib\+::\+Behavior$<$ Y $>$}}.
+
+\mbox{\Hypertarget{classdairlib_1_1SpiritParkourWallPronk_ac7dd5c331a7746a66621ee246739ccd5}\label{classdairlib_1_1SpiritParkourWallPronk_ac7dd5c331a7746a66621ee246739ccd5}} 
+\index{dairlib::SpiritParkourWallPronk$<$ Y $>$@{dairlib::SpiritParkourWallPronk$<$ Y $>$}!getModeSequence@{getModeSequence}}
+\index{getModeSequence@{getModeSequence}!dairlib::SpiritParkourWallPronk$<$ Y $>$@{dairlib::SpiritParkourWallPronk$<$ Y $>$}}
+\doxysubsubsection{\texorpdfstring{getModeSequence()}{getModeSequence()}}
+{\footnotesize\ttfamily template$<$class Y $>$ \\
+std\+::tuple$<$ std\+::vector$<$ std\+::unique\+\_\+ptr$<$ dairlib\+::systems\+::trajectory\+\_\+optimization\+::\+Dircon\+Mode$<$ Y $>$ $>$ $>$, std\+::vector$<$ std\+::unique\+\_\+ptr$<$ multibody\+::\+World\+Point\+Evaluator$<$ Y $>$ $>$ $>$, std\+::vector$<$ std\+::unique\+\_\+ptr$<$ multibody\+::\+Kinematic\+Evaluator\+Set$<$ Y $>$ $>$ $>$ $>$ \mbox{\hyperlink{classdairlib_1_1SpiritParkourWallPronk}{dairlib\+::\+Spirit\+Parkour\+Wall\+Pronk}}$<$ Y $>$\+::get\+Mode\+Sequence (\begin{DoxyParamCaption}\item[{Multibody\+Plant$<$ Y $>$ \&}]{plant,  }\item[{Dircon\+Mode\+Sequence$<$ Y $>$ \&}]{sequence }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [virtual]}}
+
+
+
+get\+Mode\+Sequence, initializes the trajopt mode seqence for jump, see run\+Spirit\+Jump for a def of inputs 
+
+
+
+Implements \mbox{\hyperlink{classdairlib_1_1Behavior_ab173710dd511560fc01680924ace7934}{dairlib\+::\+Behavior$<$ Y $>$}}.
+
+\mbox{\Hypertarget{classdairlib_1_1SpiritParkourWallPronk_a85d96d2d2aaf3cc8e5587809259dba95}\label{classdairlib_1_1SpiritParkourWallPronk_a85d96d2d2aaf3cc8e5587809259dba95}} 
+\index{dairlib::SpiritParkourWallPronk$<$ Y $>$@{dairlib::SpiritParkourWallPronk$<$ Y $>$}!offsetConstraint@{offsetConstraint}}
+\index{offsetConstraint@{offsetConstraint}!dairlib::SpiritParkourWallPronk$<$ Y $>$@{dairlib::SpiritParkourWallPronk$<$ Y $>$}}
+\doxysubsubsection{\texorpdfstring{offsetConstraint()}{offsetConstraint()}}
+{\footnotesize\ttfamily template$<$typename Y $>$ \\
+void \mbox{\hyperlink{classdairlib_1_1SpiritParkourWallPronk}{dairlib\+::\+Spirit\+Parkour\+Wall\+Pronk}}$<$ Y $>$\+::offset\+Constraint (\begin{DoxyParamCaption}\item[{Multibody\+Plant$<$ Y $>$ \&}]{plant,  }\item[{dairlib\+::systems\+::trajectory\+\_\+optimization\+::\+Dircon$<$ Y $>$ \&}]{trajopt,  }\item[{const Eigen\+::\+Ref$<$ const drake\+::solvers\+::\+Vector\+XDecision\+Variable $>$ \&}]{xb,  }\item[{Eigen\+::\+Vector3d}]{normal,  }\item[{Eigen\+::\+Vector3d}]{offset,  }\item[{double}]{eps2 = {\ttfamily 0.01} }\end{DoxyParamCaption})}
+
+
+
+Adds an offset constraint which allows the body to be anywhere on the normal vector. 
+
+Add constraints for states at the transitional surface 
+\begin{DoxyParams}{Parameters}
+{\em plant} & robot model \\
+\hline
+{\em trajopt} & trajectory optimization problem to be solved \\
+\hline
+{\em xb} & state to be constrained \\
+\hline
+{\em normal} & normal vector of the transitional surface \\
+\hline
+{\em offset} & offset vector of the transitional surface \\
+\hline
+{\em eps2} & particular tolerance for this constraint \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{classdairlib_1_1SpiritParkourWallPronk_a7118a9c4d5a2bc88f36b266a59bab785}\label{classdairlib_1_1SpiritParkourWallPronk_a7118a9c4d5a2bc88f36b266a59bab785}} 
+\index{dairlib::SpiritParkourWallPronk$<$ Y $>$@{dairlib::SpiritParkourWallPronk$<$ Y $>$}!run@{run}}
+\index{run@{run}!dairlib::SpiritParkourWallPronk$<$ Y $>$@{dairlib::SpiritParkourWallPronk$<$ Y $>$}}
+\doxysubsubsection{\texorpdfstring{run()}{run()}}
+{\footnotesize\ttfamily template$<$class Y $>$ \\
+void \mbox{\hyperlink{classdairlib_1_1SpiritParkourWallPronk}{dairlib\+::\+Spirit\+Parkour\+Wall\+Pronk}}$<$ Y $>$\+::run (\begin{DoxyParamCaption}\item[{Multibody\+Plant$<$ Y $>$ \&}]{plant,  }\item[{Piecewise\+Polynomial$<$ Y $>$ $\ast$}]{pp\+\_\+xtraj,  }\item[{std\+::vector$<$ \mbox{\hyperlink{structSurfaceConf}{Surface\+Conf}} $>$ $\ast$}]{surface\+\_\+vector }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [virtual]}}
+
+Run a trajectory optimization problem for spirit parkour wall jump 
+\begin{DoxyParams}{Parameters}
+{\em plant} & robot model \\
+\hline
+{\em pp\+\_\+xtraj} & state trajectory pointer used for animation \\
+\hline
+{\em surface\+\_\+vector} & vector of surfaces in the scene (for animation)\\
+\hline
+\end{DoxyParams}
+run\+Spirit\+Parkour\+Wall\+Pronk, runs a trajectory optimization problem for spirit jumping on flat ground 
+\begin{DoxyParams}{Parameters}
+{\em plant} & robot model \\
+\hline
+{\em pp\+\_\+xtraj} & trajectory passed by pointer for spirit animation \\
+\hline
+\end{DoxyParams}
+Setup the visualization during the optimization
+
+Run the optimization using your initial guess
+
+Save trajectory
+
+Implements \mbox{\hyperlink{classdairlib_1_1Behavior_af4fe15e5db9f711cbbfb59aecb9ecd84}{dairlib\+::\+Behavior$<$ Y $>$}}.
+
+\mbox{\Hypertarget{classdairlib_1_1SpiritParkourWallPronk_a5e9d3c7c225bfb063d73f3939ebb9350}\label{classdairlib_1_1SpiritParkourWallPronk_a5e9d3c7c225bfb063d73f3939ebb9350}} 
+\index{dairlib::SpiritParkourWallPronk$<$ Y $>$@{dairlib::SpiritParkourWallPronk$<$ Y $>$}!setUpModeSequence@{setUpModeSequence}}
+\index{setUpModeSequence@{setUpModeSequence}!dairlib::SpiritParkourWallPronk$<$ Y $>$@{dairlib::SpiritParkourWallPronk$<$ Y $>$}}
+\doxysubsubsection{\texorpdfstring{setUpModeSequence()}{setUpModeSequence()}}
+{\footnotesize\ttfamily template$<$class Y $>$ \\
+void \mbox{\hyperlink{classdairlib_1_1SpiritParkourWallPronk}{dairlib\+::\+Spirit\+Parkour\+Wall\+Pronk}}$<$ Y $>$\+::set\+Up\+Mode\+Sequence (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [virtual]}}
+
+
+
+Set up mode sequence for trajectory optimization problem. Will be defined differently in different behaviors. 
+
+
+
+Implements \mbox{\hyperlink{classdairlib_1_1Behavior_ab0beeb2823292b949915849e317c0971}{dairlib\+::\+Behavior$<$ Y $>$}}.
+
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+spirit\+\_\+parkour\+\_\+wall.\+h\item 
+spirit\+\_\+parkour\+\_\+wall.\+cc\end{DoxyCompactItemize}

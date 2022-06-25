@@ -1,6 +1,6 @@
 - num_optimizations: 4
   initial_guess: ""
-  saved_directory: /home/feng/Downloads/dairlib/examples/Spirit/saved_trajectories/bound_test1/
+  saved_directory: /home/feng/Downloads/dairlib/examples/Spirit_spine/saved_trajectories/bound_test1/
 - name: bound_1
   ipopt: true
   num_knot_points:

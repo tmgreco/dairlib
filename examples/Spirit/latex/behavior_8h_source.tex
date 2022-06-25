@@ -1,0 +1,255 @@
+\hypertarget{behavior_8h_source}{}\doxysection{behavior.\+h}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{1 \textcolor{preprocessor}{\#ifndef \_spirit\_behavior}}
+\DoxyCodeLine{2 \textcolor{preprocessor}{\#define \_spirit\_behavior}}
+\DoxyCodeLine{3 }
+\DoxyCodeLine{4 \textcolor{preprocessor}{\#include <memory>}}
+\DoxyCodeLine{5 \textcolor{preprocessor}{\#include <chrono>}}
+\DoxyCodeLine{6 \textcolor{preprocessor}{\#include <unistd.h>}}
+\DoxyCodeLine{7 \textcolor{preprocessor}{\#include <gflags/gflags.h>}}
+\DoxyCodeLine{8 \textcolor{preprocessor}{\#include <string.h>}}
+\DoxyCodeLine{9 }
+\DoxyCodeLine{10 \textcolor{preprocessor}{\#include "{}drake/solvers/snopt\_solver.h"{}}}
+\DoxyCodeLine{11 \textcolor{preprocessor}{\#include "{}drake/solvers/ipopt\_solver.h"{}}}
+\DoxyCodeLine{12 \textcolor{preprocessor}{\#include "{}drake/systems/analysis/simulator.h"{}}}
+\DoxyCodeLine{13 \textcolor{preprocessor}{\#include "{}drake/systems/framework/diagram.h"{}}}
+\DoxyCodeLine{14 \textcolor{preprocessor}{\#include "{}drake/systems/framework/diagram\_builder.h"{}}}
+\DoxyCodeLine{15 \textcolor{preprocessor}{\#include "{}drake/multibody/parsing/parser.h"{}}}
+\DoxyCodeLine{16 \textcolor{preprocessor}{\#include <drake/multibody/inverse\_kinematics/inverse\_kinematics.h>}}
+\DoxyCodeLine{17 \textcolor{preprocessor}{\#include <drake/solvers/choose\_best\_solver.h>}}
+\DoxyCodeLine{18 \textcolor{preprocessor}{\#include "{}drake/geometry/drake\_visualizer.h"{}}}
+\DoxyCodeLine{19 \textcolor{preprocessor}{\#include "{}drake/solvers/solve.h"{}}}
+\DoxyCodeLine{20 }
+\DoxyCodeLine{21 \textcolor{preprocessor}{\#include "{}systems/trajectory\_optimization/dircon/dircon.h"{}}}
+\DoxyCodeLine{22 \textcolor{preprocessor}{\#include "{}examples/Spirit/spirit\_utils.h"{}}}
+\DoxyCodeLine{23 \textcolor{preprocessor}{\#include "{}examples/Spirit/surface\_conf.h"{}}}
+\DoxyCodeLine{24 \textcolor{keyword}{using} drake::multibody::MultibodyPlant;}
+\DoxyCodeLine{25 \textcolor{keyword}{using} drake::trajectories::PiecewisePolynomial;}
+\DoxyCodeLine{26 \textcolor{keyword}{using} drake::geometry::SceneGraph;}
+\DoxyCodeLine{27 \textcolor{keyword}{using} drake::solvers::VariableRefList;}
+\DoxyCodeLine{28 }
+\DoxyCodeLine{29 \textcolor{keyword}{namespace }dairlib \{}
+\DoxyCodeLine{30     }
+\DoxyCodeLine{31     \textcolor{keyword}{using} systems::trajectory\_optimization::DirconModeSequence;}
+\DoxyCodeLine{32     \textcolor{keyword}{using} std::vector;}
+\DoxyCodeLine{33     \textcolor{keyword}{using} std::map;}
+\DoxyCodeLine{34 }
+\DoxyCodeLine{36     \textcolor{keyword}{template} <\textcolor{keyword}{class} Y> }
+\DoxyCodeLine{37     \textcolor{keyword}{class }\mbox{\hyperlink{classdairlib_1_1Behavior}{Behavior}}\{}
+\DoxyCodeLine{38         \textcolor{keyword}{public}:}
+\DoxyCodeLine{42         \textcolor{keywordtype}{void} \mbox{\hyperlink{classdairlib_1_1Behavior_a5b846993f96fdf17f4d0127c257bbaa9}{addCost}}(MultibodyPlant<Y>\& plant, }
+\DoxyCodeLine{43                     dairlib::systems::trajectory\_optimization::Dircon<Y>\& trajopt)\{}
+\DoxyCodeLine{44                         \textcolor{keyword}{auto} u   = trajopt.input();}
+\DoxyCodeLine{45                         \textcolor{comment}{// Setup the traditional cost function}}
+\DoxyCodeLine{46                         trajopt.AddRunningCost( u.transpose()*\mbox{\hyperlink{classdairlib_1_1Behavior_afdae406f744ef4778b050ef5fabc1334}{cost\_actuation}}*u);}
+\DoxyCodeLine{47                         trajopt.AddVelocityCost(\mbox{\hyperlink{classdairlib_1_1Behavior_a24fe00801a0924f2f18b9342189518d7}{cost\_velocity}});}
+\DoxyCodeLine{48                         AddWorkCost(plant, trajopt, \mbox{\hyperlink{classdairlib_1_1Behavior_a6b8fde7ad390137a8648216619145a03}{cost\_work}});}
+\DoxyCodeLine{49                     \}}
+\DoxyCodeLine{50 }
+\DoxyCodeLine{56         \textcolor{keyword}{virtual} \textcolor{keywordtype}{void} \mbox{\hyperlink{classdairlib_1_1Behavior_a81aa8e33441df47b822035de81d1b1d3}{config}}(std::string yaml\_path, std::string saved\_directory, \textcolor{keywordtype}{int} index,MultibodyPlant<Y>* plant) = 0; \textcolor{comment}{//Maybe it should load configuration directly from the path}}
+\DoxyCodeLine{57         }
+\DoxyCodeLine{61         \textcolor{keyword}{virtual} \textcolor{keywordtype}{void} \mbox{\hyperlink{classdairlib_1_1Behavior_af37cc68ab3480ab739a5533520e4afe9}{addConstraints}}(}
+\DoxyCodeLine{62                             MultibodyPlant<Y>\& plant, }
+\DoxyCodeLine{63                             dairlib::systems::trajectory\_optimization::Dircon<Y>\& trajopt}
+\DoxyCodeLine{64                             ) =0;}
+\DoxyCodeLine{65 }
+\DoxyCodeLine{70         \textcolor{keyword}{virtual} \textcolor{keywordtype}{void} \mbox{\hyperlink{classdairlib_1_1Behavior_af4fe15e5db9f711cbbfb59aecb9ecd84}{run}}(MultibodyPlant<Y>\& plant,}
+\DoxyCodeLine{71                         PiecewisePolynomial<Y>* pp\_xtraj,}
+\DoxyCodeLine{72                         std::vector<SurfaceConf>* surface\_vector) = 0;}
+\DoxyCodeLine{73 }
+\DoxyCodeLine{74         \textcolor{keywordtype}{void} loadOldTrajectory(std::string traj\_dir)\{}
+\DoxyCodeLine{75             dairlib::DirconTrajectory old\_traj(traj\_dir);}
+\DoxyCodeLine{76             this-\/>\mbox{\hyperlink{classdairlib_1_1Behavior_a0d0aaba61b9f65bf39a5edcb324cc4dd}{x\_traj}} = old\_traj.ReconstructStateTrajectory();}
+\DoxyCodeLine{77             this-\/>\mbox{\hyperlink{classdairlib_1_1Behavior_a93d20cced9b31ed2e2edf01d06e6c228}{u\_traj}} = old\_traj.ReconstructInputTrajectory();}
+\DoxyCodeLine{78             this-\/>\mbox{\hyperlink{classdairlib_1_1Behavior_a464427a914b6044d5abd975d50239179}{l\_traj}} = old\_traj.ReconstructLambdaTrajectory();}
+\DoxyCodeLine{79             this-\/>\mbox{\hyperlink{classdairlib_1_1Behavior_afb33b6ef504c5358c9d90c8ec52f6d84}{lc\_traj}} = old\_traj.ReconstructLambdaCTrajectory();}
+\DoxyCodeLine{80             this-\/>\mbox{\hyperlink{classdairlib_1_1Behavior_a2dc191ece5737d342b00b5f6d0bc8b5b}{vc\_traj}} = old\_traj.ReconstructGammaCTrajectory();}
+\DoxyCodeLine{81         \}}
+\DoxyCodeLine{83         \textcolor{keyword}{virtual} \textcolor{keywordtype}{void} \mbox{\hyperlink{classdairlib_1_1Behavior_ab0beeb2823292b949915849e317c0971}{setUpModeSequence}}()=0;}
+\DoxyCodeLine{85         \textcolor{keywordtype}{void} \mbox{\hyperlink{classdairlib_1_1Behavior_af5fe6faddc82bf3b52dfe7ab30365619}{enable\_animate}}()\{\mbox{\hyperlink{classdairlib_1_1Behavior_a656a6d4bf35182c4ff54cde4300bd594}{get\_animate\_info}}=\textcolor{keyword}{true};\}}
+\DoxyCodeLine{86     \textcolor{keyword}{protected}:}
+\DoxyCodeLine{87         }
+\DoxyCodeLine{88         std::vector<int> \mbox{\hyperlink{classdairlib_1_1Behavior_aeb1ca35688639cd793f5f5dce641d82a}{num\_knot\_points}}; }
+\DoxyCodeLine{89         \textcolor{keywordtype}{double} \mbox{\hyperlink{classdairlib_1_1Behavior_a5042e747e1f821debf10c0f990fb7777}{mu}}; }
+\DoxyCodeLine{90         \textcolor{keywordtype}{double} \mbox{\hyperlink{classdairlib_1_1Behavior_ab004841012b6f2f3eaa949fdab9db96a}{tol}}; }
+\DoxyCodeLine{91         \textcolor{keywordtype}{bool} \mbox{\hyperlink{classdairlib_1_1Behavior_abc9edadde930adfd4d6d5c23633d14aa}{ipopt}}; }
+\DoxyCodeLine{92         \textcolor{keywordtype}{double} \mbox{\hyperlink{classdairlib_1_1Behavior_afdae406f744ef4778b050ef5fabc1334}{cost\_actuation}}; }
+\DoxyCodeLine{93         \textcolor{keywordtype}{double} \mbox{\hyperlink{classdairlib_1_1Behavior_a24fe00801a0924f2f18b9342189518d7}{cost\_velocity}}; }
+\DoxyCodeLine{94         \textcolor{keywordtype}{double} \mbox{\hyperlink{classdairlib_1_1Behavior_a6b8fde7ad390137a8648216619145a03}{cost\_work}}; }
+\DoxyCodeLine{95         \textcolor{keywordtype}{double} \mbox{\hyperlink{classdairlib_1_1Behavior_acb4c0613cd632b900903153f55c851b9}{cost\_velocity\_legs\_flight}}; }
+\DoxyCodeLine{96         \textcolor{keywordtype}{double} \mbox{\hyperlink{classdairlib_1_1Behavior_afe2822cead9fe85f237b433a5e52b5ae}{cost\_actuation\_legs\_flight}}; }
+\DoxyCodeLine{97         \textcolor{keywordtype}{double} \mbox{\hyperlink{classdairlib_1_1Behavior_a5833041b512504ff02b3551d4ec15dad}{cost\_time}}; }
+\DoxyCodeLine{98         \textcolor{keywordtype}{bool} \mbox{\hyperlink{classdairlib_1_1Behavior_a656a6d4bf35182c4ff54cde4300bd594}{get\_animate\_info}}=\textcolor{keyword}{false}; }
+\DoxyCodeLine{99 }
+\DoxyCodeLine{100         std::string \mbox{\hyperlink{classdairlib_1_1Behavior_a7be02fadb5e299b379bc705f6b8a544f}{file\_name\_out}}; }
+\DoxyCodeLine{101         std::string \mbox{\hyperlink{classdairlib_1_1Behavior_a84922622bc8496e55c2a30df02eab47c}{file\_name\_in}}= \textcolor{stringliteral}{"{}"{}}; }
+\DoxyCodeLine{102 }
+\DoxyCodeLine{103         PiecewisePolynomial<Y> \mbox{\hyperlink{classdairlib_1_1Behavior_a0d0aaba61b9f65bf39a5edcb324cc4dd}{x\_traj}}; }
+\DoxyCodeLine{104         PiecewisePolynomial<Y> \mbox{\hyperlink{classdairlib_1_1Behavior_a93d20cced9b31ed2e2edf01d06e6c228}{u\_traj}}; }
+\DoxyCodeLine{105         vector<PiecewisePolynomial<Y>> \mbox{\hyperlink{classdairlib_1_1Behavior_a464427a914b6044d5abd975d50239179}{l\_traj}}; }
+\DoxyCodeLine{106         vector<PiecewisePolynomial<Y>> \mbox{\hyperlink{classdairlib_1_1Behavior_afb33b6ef504c5358c9d90c8ec52f6d84}{lc\_traj}}; }
+\DoxyCodeLine{107         vector<PiecewisePolynomial<Y>> \mbox{\hyperlink{classdairlib_1_1Behavior_a2dc191ece5737d342b00b5f6d0bc8b5b}{vc\_traj}}; }
+\DoxyCodeLine{108         }
+\DoxyCodeLine{109 }
+\DoxyCodeLine{110         std::vector<std::string> \mbox{\hyperlink{classdairlib_1_1Behavior_a794e849416731afd1d18f3973ed72505}{mode\_vector}}; }
+\DoxyCodeLine{111         std::vector<double> \mbox{\hyperlink{classdairlib_1_1Behavior_a187c058a402662edec184b958cd69a3b}{minT\_vector}}; }
+\DoxyCodeLine{112         std::vector<double> \mbox{\hyperlink{classdairlib_1_1Behavior_a63cf68b44da858a54b2e5ffe23e7a77b}{maxT\_vector}}; }
+\DoxyCodeLine{113         std::vector<Eigen::Vector3d> \mbox{\hyperlink{classdairlib_1_1Behavior_a29601bbf38bf4fd11fd72fb8e476a9ae}{normal\_vector}}; }
+\DoxyCodeLine{114         std::vector<Eigen::Vector3d> \mbox{\hyperlink{classdairlib_1_1Behavior_a8b1f0e7768645ba6069197e35036e81e}{offset\_vector}}; }
+\DoxyCodeLine{115 }
+\DoxyCodeLine{117         \textcolor{keywordtype}{void} \mbox{\hyperlink{classdairlib_1_1Behavior_a7e5710aeb7f7715cb8c3b61f037de4a6}{addPoseConstraints}}(dairlib::systems::trajectory\_optimization::Dircon<Y>\& trajopt,}
+\DoxyCodeLine{118                                 Eigen::VectorBlock<const drake::solvers::VectorXDecisionVariable>  \&var,}
+\DoxyCodeLine{119                                 map<std::string, int> \&name\_map,}
+\DoxyCodeLine{120                                 \textcolor{keywordtype}{double} qx,}
+\DoxyCodeLine{121                                 \textcolor{keywordtype}{double} qy,}
+\DoxyCodeLine{122                                 \textcolor{keywordtype}{double} qz,}
+\DoxyCodeLine{123                                 \textcolor{keywordtype}{double} qw,}
+\DoxyCodeLine{124                                 \textcolor{keywordtype}{double} tolerance)\{}
+\DoxyCodeLine{125             trajopt.AddBoundingBoxConstraint(qw -\/ tolerance, qw + tolerance, var(name\_map.at(\textcolor{stringliteral}{"{}base\_qw"{}})));}
+\DoxyCodeLine{126             trajopt.AddBoundingBoxConstraint(qx -\/ tolerance, qx + tolerance, var(name\_map.at(\textcolor{stringliteral}{"{}base\_qx"{}})));}
+\DoxyCodeLine{127             trajopt.AddBoundingBoxConstraint(qy -\/ tolerance, qy + tolerance, var(name\_map.at(\textcolor{stringliteral}{"{}base\_qy"{}})));}
+\DoxyCodeLine{128             trajopt.AddBoundingBoxConstraint(qz -\/ tolerance, qz + tolerance, var(name\_map.at(\textcolor{stringliteral}{"{}base\_qz"{}})));}
+\DoxyCodeLine{129         \}}
+\DoxyCodeLine{130 }
+\DoxyCodeLine{132         \textcolor{keywordtype}{void} \mbox{\hyperlink{classdairlib_1_1Behavior_a07878cf4b103be65ee4f9a44a43c0b7b}{addModeToSequenceVector}}(std::string mode\_name,}
+\DoxyCodeLine{133                                     Eigen::Vector3d normal, }
+\DoxyCodeLine{134                                     Eigen::Vector3d offset,}
+\DoxyCodeLine{135                                     \textcolor{keywordtype}{double} minT,}
+\DoxyCodeLine{136                                     \textcolor{keywordtype}{double} maxT)\{}
+\DoxyCodeLine{137             \mbox{\hyperlink{classdairlib_1_1Behavior_a794e849416731afd1d18f3973ed72505}{mode\_vector}}.push\_back(mode\_name);}
+\DoxyCodeLine{138             \mbox{\hyperlink{classdairlib_1_1Behavior_a29601bbf38bf4fd11fd72fb8e476a9ae}{normal\_vector}}.push\_back(normal);}
+\DoxyCodeLine{139             \mbox{\hyperlink{classdairlib_1_1Behavior_a8b1f0e7768645ba6069197e35036e81e}{offset\_vector}}.push\_back(offset);                           }
+\DoxyCodeLine{140             \mbox{\hyperlink{classdairlib_1_1Behavior_a187c058a402662edec184b958cd69a3b}{minT\_vector}}.push\_back(minT);}
+\DoxyCodeLine{141             \mbox{\hyperlink{classdairlib_1_1Behavior_a63cf68b44da858a54b2e5ffe23e7a77b}{maxT\_vector}}.push\_back(maxT);}
+\DoxyCodeLine{142         \}}
+\DoxyCodeLine{143 }
+\DoxyCodeLine{145         \textcolor{keywordtype}{void} \mbox{\hyperlink{classdairlib_1_1Behavior_adc15934596e6b9c0b2b20ab846aa3ba5}{getModeSequenceHelper}}(\mbox{\hyperlink{classdairlib_1_1ModeSequenceHelper}{dairlib::ModeSequenceHelper}}\& msh)\{}
+\DoxyCodeLine{146             \textcolor{keywordtype}{int} counter=0;}
+\DoxyCodeLine{147             \textcolor{keywordflow}{for} (std::string mode\_name : \mbox{\hyperlink{classdairlib_1_1Behavior_a794e849416731afd1d18f3973ed72505}{mode\_vector}})\{}
+\DoxyCodeLine{148                 Eigen::Matrix<bool,1,4> contact\_bool;}
+\DoxyCodeLine{149                 \textcolor{keywordflow}{if} (mode\_name==\textcolor{stringliteral}{"{}stance"{}}) contact\_bool<< \textcolor{keyword}{true},  \textcolor{keyword}{true},  \textcolor{keyword}{true},  \textcolor{keyword}{true};}
+\DoxyCodeLine{150                 \textcolor{keywordflow}{else} \textcolor{keywordflow}{if} (mode\_name==\textcolor{stringliteral}{"{}flight"{}}) contact\_bool<< \textcolor{keyword}{false}, \textcolor{keyword}{false}, \textcolor{keyword}{false}, \textcolor{keyword}{false};}
+\DoxyCodeLine{151                 \textcolor{keywordflow}{else} \textcolor{keywordflow}{if} (mode\_name==\textcolor{stringliteral}{"{}rear\_stance"{}}) contact\_bool<<\textcolor{keyword}{false}, \textcolor{keyword}{true}, \textcolor{keyword}{false}, \textcolor{keyword}{true};}
+\DoxyCodeLine{152                 \textcolor{keywordflow}{else} \textcolor{keywordflow}{if} (mode\_name==\textcolor{stringliteral}{"{}front\_stance"{}}) contact\_bool<< \textcolor{keyword}{true}, \textcolor{keyword}{false}, true ,\textcolor{keyword}{false};}
+\DoxyCodeLine{153                 \textcolor{keywordflow}{else} std::cout<<\textcolor{stringliteral}{"{}Wrong mode name!"{}}<<std::endl;}
+\DoxyCodeLine{154                 msh.addMode( \textcolor{comment}{// Stance}}
+\DoxyCodeLine{155                     contact\_bool, \textcolor{comment}{// contact bools}}
+\DoxyCodeLine{156                     \mbox{\hyperlink{classdairlib_1_1Behavior_aeb1ca35688639cd793f5f5dce641d82a}{num\_knot\_points}}[counter],  \textcolor{comment}{// number of knot points in the collocation}}
+\DoxyCodeLine{157                     \mbox{\hyperlink{classdairlib_1_1Behavior_a29601bbf38bf4fd11fd72fb8e476a9ae}{normal\_vector}}[counter], \textcolor{comment}{// normal}}
+\DoxyCodeLine{158                     \mbox{\hyperlink{classdairlib_1_1Behavior_a8b1f0e7768645ba6069197e35036e81e}{offset\_vector}}[counter],  \textcolor{comment}{// world offset}}
+\DoxyCodeLine{159                     \mbox{\hyperlink{classdairlib_1_1Behavior_a5042e747e1f821debf10c0f990fb7777}{mu}}, \textcolor{comment}{//friction}}
+\DoxyCodeLine{160                     \mbox{\hyperlink{classdairlib_1_1Behavior_a187c058a402662edec184b958cd69a3b}{minT\_vector}}[counter], \textcolor{comment}{// minimum time}}
+\DoxyCodeLine{161                     \mbox{\hyperlink{classdairlib_1_1Behavior_a63cf68b44da858a54b2e5ffe23e7a77b}{maxT\_vector}}[counter] \textcolor{comment}{// maximum time}}
+\DoxyCodeLine{162                     );}
+\DoxyCodeLine{163                 }
+\DoxyCodeLine{164                 counter++;}
+\DoxyCodeLine{165             \}}
+\DoxyCodeLine{166         \}                   }
+\DoxyCodeLine{167 }
+\DoxyCodeLine{169         \textcolor{keyword}{virtual} std::tuple<  std::vector<std::unique\_ptr<dairlib::systems::trajectory\_optimization::DirconMode<Y>>>,}
+\DoxyCodeLine{170                     std::vector<std::unique\_ptr<multibody::WorldPointEvaluator<Y>>> ,}
+\DoxyCodeLine{171                     std::vector<std::unique\_ptr<multibody::KinematicEvaluatorSet<Y>>>>}
+\DoxyCodeLine{172         \mbox{\hyperlink{classdairlib_1_1Behavior_ab173710dd511560fc01680924ace7934}{getModeSequence}}(}
+\DoxyCodeLine{173                         MultibodyPlant<Y>\& plant,}
+\DoxyCodeLine{174                         DirconModeSequence<Y>\& sequence)=0;}
+\DoxyCodeLine{177         \textcolor{keywordtype}{void} \mbox{\hyperlink{classdairlib_1_1Behavior_a07c449c18c69f5888f05cbf3795255e2}{setSolver}}(dairlib::systems::trajectory\_optimization::Dircon<Y>\& trajopt)\{}
+\DoxyCodeLine{178             \textcolor{keywordflow}{if} (\mbox{\hyperlink{classdairlib_1_1Behavior_abc9edadde930adfd4d6d5c23633d14aa}{ipopt}}) \{}
+\DoxyCodeLine{179                 \textcolor{comment}{// Ipopt settings adapted from CaSaDi and FROST}}
+\DoxyCodeLine{180                 \textcolor{keyword}{auto} \textcolor{keywordtype}{id} = drake::solvers::IpoptSolver::id();}
+\DoxyCodeLine{181                 trajopt.SetSolverOption(\textcolor{keywordtype}{id}, \textcolor{stringliteral}{"{}tol"{}}, \mbox{\hyperlink{classdairlib_1_1Behavior_ab004841012b6f2f3eaa949fdab9db96a}{tol}});}
+\DoxyCodeLine{182                 trajopt.SetSolverOption(\textcolor{keywordtype}{id}, \textcolor{stringliteral}{"{}dual\_inf\_tol"{}}, \mbox{\hyperlink{classdairlib_1_1Behavior_ab004841012b6f2f3eaa949fdab9db96a}{tol}});}
+\DoxyCodeLine{183                 trajopt.SetSolverOption(\textcolor{keywordtype}{id}, \textcolor{stringliteral}{"{}constr\_viol\_tol"{}}, \mbox{\hyperlink{classdairlib_1_1Behavior_ab004841012b6f2f3eaa949fdab9db96a}{tol}});}
+\DoxyCodeLine{184                 trajopt.SetSolverOption(\textcolor{keywordtype}{id}, \textcolor{stringliteral}{"{}compl\_inf\_tol"{}}, \mbox{\hyperlink{classdairlib_1_1Behavior_ab004841012b6f2f3eaa949fdab9db96a}{tol}});}
+\DoxyCodeLine{185                 trajopt.SetSolverOption(\textcolor{keywordtype}{id}, \textcolor{stringliteral}{"{}max\_iter"{}}, 1000000);}
+\DoxyCodeLine{186                 trajopt.SetSolverOption(\textcolor{keywordtype}{id}, \textcolor{stringliteral}{"{}nlp\_lower\_bound\_inf"{}}, -\/1e6);}
+\DoxyCodeLine{187                 trajopt.SetSolverOption(\textcolor{keywordtype}{id}, \textcolor{stringliteral}{"{}nlp\_upper\_bound\_inf"{}}, 1e6);}
+\DoxyCodeLine{188                 trajopt.SetSolverOption(\textcolor{keywordtype}{id}, \textcolor{stringliteral}{"{}print\_timing\_statistics"{}}, \textcolor{stringliteral}{"{}yes"{}});}
+\DoxyCodeLine{189                 trajopt.SetSolverOption(\textcolor{keywordtype}{id}, \textcolor{stringliteral}{"{}print\_level"{}}, 5);}
+\DoxyCodeLine{190 }
+\DoxyCodeLine{191                 \textcolor{comment}{// Set to ignore overall tolerance/dual infeasibility, but terminate when}}
+\DoxyCodeLine{192                 \textcolor{comment}{// primal feasible and objective fails to increase over 5 iterations.}}
+\DoxyCodeLine{193                 trajopt.SetSolverOption(\textcolor{keywordtype}{id}, \textcolor{stringliteral}{"{}acceptable\_compl\_inf\_tol"{}}, \mbox{\hyperlink{classdairlib_1_1Behavior_ab004841012b6f2f3eaa949fdab9db96a}{tol}});}
+\DoxyCodeLine{194                 trajopt.SetSolverOption(\textcolor{keywordtype}{id}, \textcolor{stringliteral}{"{}acceptable\_constr\_viol\_tol"{}}, \mbox{\hyperlink{classdairlib_1_1Behavior_ab004841012b6f2f3eaa949fdab9db96a}{tol}});}
+\DoxyCodeLine{195                 trajopt.SetSolverOption(\textcolor{keywordtype}{id}, \textcolor{stringliteral}{"{}acceptable\_obj\_change\_tol"{}}, \mbox{\hyperlink{classdairlib_1_1Behavior_ab004841012b6f2f3eaa949fdab9db96a}{tol}});}
+\DoxyCodeLine{196                 trajopt.SetSolverOption(\textcolor{keywordtype}{id}, \textcolor{stringliteral}{"{}acceptable\_tol"{}}, \mbox{\hyperlink{classdairlib_1_1Behavior_ab004841012b6f2f3eaa949fdab9db96a}{tol}});}
+\DoxyCodeLine{197                 trajopt.SetSolverOption(\textcolor{keywordtype}{id}, \textcolor{stringliteral}{"{}acceptable\_iter"{}}, 5);}
+\DoxyCodeLine{198             \} \textcolor{keywordflow}{else} \{}
+\DoxyCodeLine{199                 \textcolor{comment}{// Set up Trajectory Optimization options}}
+\DoxyCodeLine{200                 trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(),}
+\DoxyCodeLine{201                                         \textcolor{stringliteral}{"{}Print file"{}}, \textcolor{stringliteral}{"{}../snopt.out"{}});}
+\DoxyCodeLine{202                 trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(),}
+\DoxyCodeLine{203                                         \textcolor{stringliteral}{"{}Major iterations limit"{}}, 100000);}
+\DoxyCodeLine{204                 trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(), \textcolor{stringliteral}{"{}Iterations limit"{}}, 100000);}
+\DoxyCodeLine{205                 trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(),}
+\DoxyCodeLine{206                                         \textcolor{stringliteral}{"{}Major optimality tolerance"{}},}
+\DoxyCodeLine{207                                         \mbox{\hyperlink{classdairlib_1_1Behavior_ab004841012b6f2f3eaa949fdab9db96a}{tol}});  \textcolor{comment}{// target optimality}}
+\DoxyCodeLine{208                 trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(), \textcolor{stringliteral}{"{}Major feasibility tolerance"{}}, \mbox{\hyperlink{classdairlib_1_1Behavior_ab004841012b6f2f3eaa949fdab9db96a}{tol}});}
+\DoxyCodeLine{209                 trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(), \textcolor{stringliteral}{"{}Verify level"{}},}
+\DoxyCodeLine{210                                         0);  \textcolor{comment}{// 0}}
+\DoxyCodeLine{211                 \}}
+\DoxyCodeLine{212             \}}
+\DoxyCodeLine{215         \textcolor{keywordtype}{void} \mbox{\hyperlink{classdairlib_1_1Behavior_a4f27fad735797a14e89a16a8840d4c03}{initTrajectory}}(dairlib::systems::trajectory\_optimization::Dircon<Y>\& trajopt,}
+\DoxyCodeLine{216                                 DirconModeSequence<Y>\& sequence)\{}
+\DoxyCodeLine{217                 \textcolor{keywordflow}{if} (\mbox{\hyperlink{classdairlib_1_1Behavior_a84922622bc8496e55c2a30df02eab47c}{file\_name\_in}}.empty())\{}
+\DoxyCodeLine{218                     trajopt.drake::systems::trajectory\_optimization::MultipleShooting::}
+\DoxyCodeLine{219                         SetInitialTrajectory(this-\/>u\_traj, this-\/>x\_traj);}
+\DoxyCodeLine{220                     \textcolor{keywordflow}{for} (\textcolor{keywordtype}{int} j = 0; j < sequence.num\_modes(); j++) \{}
+\DoxyCodeLine{221                     trajopt.SetInitialForceTrajectory(j, this-\/>l\_traj[j], this-\/>lc\_traj[j],}
+\DoxyCodeLine{222                                                         this-\/>vc\_traj[j]);}
+\DoxyCodeLine{223                     \}}
+\DoxyCodeLine{224                 \}\textcolor{keywordflow}{else}\{}
+\DoxyCodeLine{225                     std::cout<<\textcolor{stringliteral}{"{}Loading decision var from file, will fail if num dec vars changed"{}} <<std::endl;}
+\DoxyCodeLine{226                     dairlib::DirconTrajectory loaded\_traj(\mbox{\hyperlink{classdairlib_1_1Behavior_a84922622bc8496e55c2a30df02eab47c}{file\_name\_in}});}
+\DoxyCodeLine{227                     trajopt.SetInitialGuessForAllVariables(loaded\_traj.GetDecisionVariables());}
+\DoxyCodeLine{228                 \}}
+\DoxyCodeLine{229             \}}
+\DoxyCodeLine{230 }
+\DoxyCodeLine{232         \textcolor{keywordtype}{void} \mbox{\hyperlink{classdairlib_1_1Behavior_afabec2c61703ae8e5ba80ab400440523}{setupVisualization}}(dairlib::systems::trajectory\_optimization::Dircon<Y>\& trajopt,}
+\DoxyCodeLine{233                                 DirconModeSequence<Y>\& sequence)\{}
+\DoxyCodeLine{234             \textcolor{keywordtype}{int} num\_ghosts = 3;\textcolor{comment}{// Number of ghosts in visualization. NOTE: there are limitations on number of ghosts based on modes and knotpoints}}
+\DoxyCodeLine{235             std::vector<unsigned int> visualizer\_poses; \textcolor{comment}{// Ghosts for visualizing during optimization}}
+\DoxyCodeLine{236             \textcolor{keywordflow}{for}(\textcolor{keywordtype}{int} i = 0; i < sequence.num\_modes(); i++)\{}
+\DoxyCodeLine{237                 visualizer\_poses.push\_back(num\_ghosts); }
+\DoxyCodeLine{238             \}}
+\DoxyCodeLine{239             trajopt.CreateVisualizationCallback(}
+\DoxyCodeLine{240                 dairlib::FindResourceOrThrow(\textcolor{stringliteral}{"{}examples/Spirit/spirit\_drake.urdf"{}}),}
+\DoxyCodeLine{241                 visualizer\_poses, 0.2); \textcolor{comment}{// setup which URDF, how many poses, and alpha transparency }}
+\DoxyCodeLine{242         \}}
+\DoxyCodeLine{243         }
+\DoxyCodeLine{245         \textcolor{keywordtype}{void} \mbox{\hyperlink{classdairlib_1_1Behavior_ab9ecd1296c32aaf83c9eb03da9ab74df}{saveTrajectory}}(MultibodyPlant<Y>\& plant,}
+\DoxyCodeLine{246                             dairlib::systems::trajectory\_optimization::Dircon<Y>\& trajopt,}
+\DoxyCodeLine{247                             \textcolor{keyword}{const} drake::solvers::MathematicalProgramResult\& result)\{}
+\DoxyCodeLine{248             \textcolor{keywordflow}{if}(!\mbox{\hyperlink{classdairlib_1_1Behavior_a7be02fadb5e299b379bc705f6b8a544f}{file\_name\_out}}.empty())\{}
+\DoxyCodeLine{249                 dairlib::DirconTrajectory saved\_traj(}
+\DoxyCodeLine{250                     plant, trajopt, result, \textcolor{stringliteral}{"{}Jumping trajectory"{}},}
+\DoxyCodeLine{251                     \textcolor{stringliteral}{"{}Decision variables and state/input trajectories "{}}}
+\DoxyCodeLine{252                     \textcolor{stringliteral}{"{}for jumping"{}});}
+\DoxyCodeLine{253                 saved\_traj.WriteToFile(\mbox{\hyperlink{classdairlib_1_1Behavior_a7be02fadb5e299b379bc705f6b8a544f}{file\_name\_out}});}
+\DoxyCodeLine{254                 dairlib::DirconTrajectory old\_traj(\mbox{\hyperlink{classdairlib_1_1Behavior_a7be02fadb5e299b379bc705f6b8a544f}{file\_name\_out}});}
+\DoxyCodeLine{255                 this-\/>x\_traj = old\_traj.ReconstructStateTrajectory();}
+\DoxyCodeLine{256                 this-\/>u\_traj = old\_traj.ReconstructInputTrajectory();}
+\DoxyCodeLine{257                 this-\/>l\_traj = old\_traj.ReconstructLambdaTrajectory();}
+\DoxyCodeLine{258                 this-\/>lc\_traj = old\_traj.ReconstructLambdaCTrajectory();}
+\DoxyCodeLine{259                 this-\/>vc\_traj = old\_traj.ReconstructGammaCTrajectory();}
+\DoxyCodeLine{260 }
+\DoxyCodeLine{261             \} \textcolor{keywordflow}{else}\{}
+\DoxyCodeLine{262                 std::cout << \textcolor{stringliteral}{"{}warning no file name provided, will not be able to return full solution"{}} << std::endl;}
+\DoxyCodeLine{263                 this-\/>x\_traj  = trajopt.ReconstructStateTrajectory(result);}
+\DoxyCodeLine{264                 this-\/>u\_traj  = trajopt.ReconstructInputTrajectory(result);}
+\DoxyCodeLine{265                 this-\/>l\_traj  = trajopt.ReconstructLambdaTrajectory(result);}
+\DoxyCodeLine{266             \}}
+\DoxyCodeLine{267             \textcolor{keyword}{auto} x\_trajs = trajopt.ReconstructDiscontinuousStateTrajectory(result);}
+\DoxyCodeLine{268             std::cout<<\textcolor{stringliteral}{"{}Work = "{}} << dairlib::calcElectricalWork(plant, x\_trajs, this-\/>u\_traj) << std::endl;}
+\DoxyCodeLine{269             \textcolor{comment}{//  double cost\_work\_acceleration = solvers::EvalCostGivenSolution(}}
+\DoxyCodeLine{270             \textcolor{comment}{//      result, cost\_joint\_work\_bindings);}}
+\DoxyCodeLine{271             \textcolor{comment}{//  std::cout<<"{}Cost Work = "{} << cost\_work\_acceleration << std::endl;}}
+\DoxyCodeLine{272         \}}
+\DoxyCodeLine{273     \};}
+\DoxyCodeLine{274 \}}
+\DoxyCodeLine{275 }
+\DoxyCodeLine{276 }
+\DoxyCodeLine{277 }
+\DoxyCodeLine{278 \textcolor{preprocessor}{\#endif}}
+
+\end{DoxyCode}

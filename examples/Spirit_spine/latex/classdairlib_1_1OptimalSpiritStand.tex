@@ -1,0 +1,146 @@
+\hypertarget{classdairlib_1_1OptimalSpiritStand}{}\doxysection{dairlib\+::Optimal\+Spirit\+Stand Class Reference}
+\label{classdairlib_1_1OptimalSpiritStand}\index{dairlib::OptimalSpiritStand@{dairlib::OptimalSpiritStand}}
+
+
+Containter for an optimized stand behavior, useful for initial and final conditions TODO add templating.  
+
+
+
+
+{\ttfamily \#include $<$spirit\+\_\+optimal\+\_\+stand.\+h$>$}
+
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{classdairlib_1_1OptimalSpiritStand_ab8dd2ef49db0d829543f8b7f7d83d52e}{Optimal\+Spirit\+Stand}} ()
+\item 
+\mbox{\Hypertarget{classdairlib_1_1OptimalSpiritStand_ac589e065969f6a83486f8baf6765b8c5}\label{classdairlib_1_1OptimalSpiritStand_ac589e065969f6a83486f8baf6765b8c5}} 
+{\bfseries Optimal\+Spirit\+Stand} (drake\+::multibody\+::\+Multibody\+Plant$<$ double $>$ $\ast$plant\+Ptr, double height, Eigen\+::\+Vector3d normal, Eigen\+::\+Vector3d offset, bool rerun=false, double tol=1e-\/4, bool animate=false, std\+::string filename\+Base=\char`\"{}optimal\+Stand\char`\"{})
+\item 
+\mbox{\Hypertarget{classdairlib_1_1OptimalSpiritStand_af8493ba098a5c3ef7c56da8562fbb285}\label{classdairlib_1_1OptimalSpiritStand_af8493ba098a5c3ef7c56da8562fbb285}} 
+void {\bfseries init} (drake\+::multibody\+::\+Multibody\+Plant$<$ double $>$ $\ast$plant\+Ptr, double height, Eigen\+::\+Vector3d normal, Eigen\+::\+Vector3d offset, bool rerun=false, double tol=1e-\/4, bool animate=false, std\+::string filename\+Base=\char`\"{}optimal\+Stand\char`\"{})
+\item 
+\mbox{\Hypertarget{classdairlib_1_1OptimalSpiritStand_abc5410d25d1929fad49cdf3424d206f3}\label{classdairlib_1_1OptimalSpiritStand_abc5410d25d1929fad49cdf3424d206f3}} 
+Eigen\+::\+Vector\+Xd {\bfseries normal} ()
+\item 
+\mbox{\Hypertarget{classdairlib_1_1OptimalSpiritStand_a29c5c5da009c0511533db299d0007133}\label{classdairlib_1_1OptimalSpiritStand_a29c5c5da009c0511533db299d0007133}} 
+Eigen\+::\+Vector\+Xd {\bfseries offset} ()
+\item 
+\mbox{\Hypertarget{classdairlib_1_1OptimalSpiritStand_a045b467bb49e37a6d46c6cf7f72a5537}\label{classdairlib_1_1OptimalSpiritStand_a045b467bb49e37a6d46c6cf7f72a5537}} 
+Eigen\+::\+Vector\+Xd {\bfseries get\+State} ()
+\item 
+\mbox{\Hypertarget{classdairlib_1_1OptimalSpiritStand_ab612f95b5b13ea8b60778f37cd9bf2bc}\label{classdairlib_1_1OptimalSpiritStand_ab612f95b5b13ea8b60778f37cd9bf2bc}} 
+Eigen\+::\+Vector3d {\bfseries get\+RPY} ()
+\item 
+\mbox{\Hypertarget{classdairlib_1_1OptimalSpiritStand_aa2247627068ba7134ee066e2816d82a3}\label{classdairlib_1_1OptimalSpiritStand_aa2247627068ba7134ee066e2816d82a3}} 
+Eigen\+::\+Vector\+Xd {\bfseries get\+Position} ()
+\item 
+\mbox{\Hypertarget{classdairlib_1_1OptimalSpiritStand_a0f2fd35e4c82dd75e4bca186f9dbcba6}\label{classdairlib_1_1OptimalSpiritStand_a0f2fd35e4c82dd75e4bca186f9dbcba6}} 
+Eigen\+::\+Vector\+Xd {\bfseries get\+Quat} ()
+\item 
+\mbox{\Hypertarget{classdairlib_1_1OptimalSpiritStand_a263cd8e2f1f36df891df9b69335533fe}\label{classdairlib_1_1OptimalSpiritStand_a263cd8e2f1f36df891df9b69335533fe}} 
+Eigen\+::\+Vector\+Xd {\bfseries get\+COM} ()
+\item 
+\mbox{\Hypertarget{classdairlib_1_1OptimalSpiritStand_ada344b957aa4e7ef6d026cdbb118c369}\label{classdairlib_1_1OptimalSpiritStand_ada344b957aa4e7ef6d026cdbb118c369}} 
+Eigen\+::\+Vector\+Xd {\bfseries get\+Joints} ()
+\item 
+\mbox{\Hypertarget{classdairlib_1_1OptimalSpiritStand_afa92e1d33133d9b283d304fee8d64f91}\label{classdairlib_1_1OptimalSpiritStand_afa92e1d33133d9b283d304fee8d64f91}} 
+double {\bfseries height} ()
+\end{DoxyCompactItemize}
+\doxysubsection*{Private Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+Eigen\+::\+Vector\+Xd \mbox{\hyperlink{classdairlib_1_1OptimalSpiritStand_a5d2d5e66b4ed8d7b9c396ba2b4e794b4}{get\+Spirit\+Optimal\+Stand}} (double tol=1e-\/4, bool animate=false)
+\end{DoxyCompactItemize}
+\doxysubsection*{Private Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classdairlib_1_1OptimalSpiritStand_ace1511d4e5a7d12b9024d5a776e4ed8f}\label{classdairlib_1_1OptimalSpiritStand_ace1511d4e5a7d12b9024d5a776e4ed8f}} 
+drake\+::multibody\+::\+Multibody\+Plant$<$ double $>$ $\ast$ {\bfseries plant\+Ptr\+\_\+}
+\item 
+\mbox{\Hypertarget{classdairlib_1_1OptimalSpiritStand_a18b4db9782c4bc82b76b36cc73917546}\label{classdairlib_1_1OptimalSpiritStand_a18b4db9782c4bc82b76b36cc73917546}} 
+double {\bfseries height\+\_\+}
+\item 
+\mbox{\Hypertarget{classdairlib_1_1OptimalSpiritStand_aca4cbdbce2b582548624034180074946}\label{classdairlib_1_1OptimalSpiritStand_aca4cbdbce2b582548624034180074946}} 
+Eigen\+::\+Vector3d {\bfseries normal\+\_\+}
+\item 
+\mbox{\Hypertarget{classdairlib_1_1OptimalSpiritStand_a147734b88acfa3d70b6ef0c54261e828}\label{classdairlib_1_1OptimalSpiritStand_a147734b88acfa3d70b6ef0c54261e828}} 
+Eigen\+::\+Vector3d {\bfseries offset\+\_\+}
+\item 
+\mbox{\Hypertarget{classdairlib_1_1OptimalSpiritStand_a5755cc1ddc53e11e64a4c9ae22b13044}\label{classdairlib_1_1OptimalSpiritStand_a5755cc1ddc53e11e64a4c9ae22b13044}} 
+Eigen\+::\+Vector\+Xd {\bfseries fullstate\+\_\+}
+\item 
+\mbox{\Hypertarget{classdairlib_1_1OptimalSpiritStand_af9ef0d103dc7bd614edd34257670f100}\label{classdairlib_1_1OptimalSpiritStand_af9ef0d103dc7bd614edd34257670f100}} 
+std\+::string {\bfseries filename\+\_\+}
+\item 
+\mbox{\Hypertarget{classdairlib_1_1OptimalSpiritStand_aec7315512f6d92b137ee92dcffbf32bf}\label{classdairlib_1_1OptimalSpiritStand_aec7315512f6d92b137ee92dcffbf32bf}} 
+Eigen\+::\+Vector3d {\bfseries rpy\+\_\+}
+\item 
+\mbox{\Hypertarget{classdairlib_1_1OptimalSpiritStand_a1cd0eeda94d79e84cff570191695885a}\label{classdairlib_1_1OptimalSpiritStand_a1cd0eeda94d79e84cff570191695885a}} 
+std\+::string {\bfseries folder\+\_\+} = \char`\"{}/home/feng/Downloads/dairlib/examples/\mbox{\hyperlink{classdairlib_1_1Spirit}{Spirit}}/saved\+\_\+trajectories/stand\+\_\+trajectories/\char`\"{}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Containter for an optimized stand behavior, useful for initial and final conditions TODO add templating. 
+
+\doxysubsection{Constructor \& Destructor Documentation}
+\mbox{\Hypertarget{classdairlib_1_1OptimalSpiritStand_ab8dd2ef49db0d829543f8b7f7d83d52e}\label{classdairlib_1_1OptimalSpiritStand_ab8dd2ef49db0d829543f8b7f7d83d52e}} 
+\index{dairlib::OptimalSpiritStand@{dairlib::OptimalSpiritStand}!OptimalSpiritStand@{OptimalSpiritStand}}
+\index{OptimalSpiritStand@{OptimalSpiritStand}!dairlib::OptimalSpiritStand@{dairlib::OptimalSpiritStand}}
+\doxysubsubsection{\texorpdfstring{OptimalSpiritStand()}{OptimalSpiritStand()}}
+{\footnotesize\ttfamily dairlib\+::\+Optimal\+Spirit\+Stand\+::\+Optimal\+Spirit\+Stand (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+The constructor for the Optimal Stand defined using the surface normal and saving the offset. If a file of a nearby stand is in folder\+\_\+ it will not rerun the optimization by default 
+\begin{DoxyParams}{Parameters}
+{\em plant\+Ptr} & pointer to plant used in stand \\
+\hline
+{\em height} & the normal distance of the COM from the surface \\
+\hline
+{\em normal} & the surface normal \\
+\hline
+{\em offset} & the nominal location of the surface normal (not used in the optimization) \\
+\hline
+{\em rerun} & boolean to rerun an optimization that has a saved file already \\
+\hline
+{\em tol} & tolerance for the optimization \\
+\hline
+{\em animate} & boolean to enable looping animation visualization \\
+\hline
+{\em filename\+Base} & filename\+Base for saving the optimization \\
+\hline
+\end{DoxyParams}
+
+
+\doxysubsection{Member Function Documentation}
+\mbox{\Hypertarget{classdairlib_1_1OptimalSpiritStand_a5d2d5e66b4ed8d7b9c396ba2b4e794b4}\label{classdairlib_1_1OptimalSpiritStand_a5d2d5e66b4ed8d7b9c396ba2b4e794b4}} 
+\index{dairlib::OptimalSpiritStand@{dairlib::OptimalSpiritStand}!getSpiritOptimalStand@{getSpiritOptimalStand}}
+\index{getSpiritOptimalStand@{getSpiritOptimalStand}!dairlib::OptimalSpiritStand@{dairlib::OptimalSpiritStand}}
+\doxysubsubsection{\texorpdfstring{getSpiritOptimalStand()}{getSpiritOptimalStand()}}
+{\footnotesize\ttfamily Eigen\+::\+Vector\+Xd dairlib\+::\+Optimal\+Spirit\+Stand\+::get\+Spirit\+Optimal\+Stand (\begin{DoxyParamCaption}\item[{double}]{tol = {\ttfamily 1e-\/4},  }\item[{bool}]{animate = {\ttfamily false} }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+Runs the stand optimization for the object, can be used to update the stand 
+\begin{DoxyParams}{Parameters}
+{\em tol} & tolerance for the optimization \\
+\hline
+{\em animate} & boolean to enable looping animation visualization \\
+\hline
+\end{DoxyParams}
+Setup trajectory optimization
+
+Setup all the optimization constraints
+
+Setup the cost function
+
+Setup the visualization during the optimization
+
+Run the optimization using your initial guess
+
+Save trajectory
+
+Run animation of the final trajectory
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+spirit\+\_\+optimal\+\_\+stand.\+h\item 
+spirit\+\_\+optimal\+\_\+stand.\+cc\end{DoxyCompactItemize}

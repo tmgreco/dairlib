@@ -1,0 +1,18 @@
+\hypertarget{animate__spirit_8h_source}{}\doxysection{animate\+\_\+spirit.\+h}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{1 \textcolor{preprocessor}{\#pragma once}}
+\DoxyCodeLine{2 }
+\DoxyCodeLine{3 \textcolor{keyword}{namespace }dairlib \{}
+\DoxyCodeLine{4 }
+\DoxyCodeLine{14 \textcolor{keyword}{template} <\textcolor{keyword}{typename} T>}
+\DoxyCodeLine{15 \textcolor{keywordtype}{void} runAnimate(}
+\DoxyCodeLine{16     std::unique\_ptr<drake::multibody::MultibodyPlant<T>> plant\_ptr,}
+\DoxyCodeLine{17     drake::multibody::MultibodyPlant<double>* plant\_double\_ptr,}
+\DoxyCodeLine{18     std::unique\_ptr<drake::geometry::SceneGraph<double>> scene\_graph\_ptr,}
+\DoxyCodeLine{19     drake::trajectories::PiecewisePolynomial<double> pp\_xtraj,}
+\DoxyCodeLine{20     \textcolor{keywordtype}{double} real\_time\_factor = 1}
+\DoxyCodeLine{21     ) ;}
+\DoxyCodeLine{22 \}  \textcolor{comment}{// dairlib namespace}}
+
+\end{DoxyCode}

@@ -1,6 +1,7 @@
 #include "examples/Spirit_spine/Spirit.h"
 #include "examples/Spirit_spine/spirit_jump.h"
 #include "examples/Spirit_spine/spirit_bound.h"
+#include "examples/Spirit_spine/spirit_bounds2s.h"
 #include "examples/Spirit_spine/spirit_box_jump.h"
 #include "examples/Spirit_spine/spirit_parkour.h"
 #include "examples/Spirit_spine/spirit_parkour_wall.h"
@@ -27,6 +28,8 @@ Spirit<B,T>::Spirit(std::string yaml_path) :plant (std::make_unique<MultibodyPla
     initial_guess=config[0]["initial_guess"].as<std::string>();
 
     saved_directory=config[0]["saved_directory"].as<std::string>();
+    behavior.urdf_path=config[0]["urdf_path"].as<std::string>();
+    behavior.spine_type=config[0]["spine_type"].as<std::string>();
     // Create saved directory if it doesn't exist
     if (!std::experimental::filesystem::is_directory(saved_directory) || !std::experimental::filesystem::exists(saved_directory)) { 
         std::experimental::filesystem::create_directory(saved_directory); 
@@ -127,6 +130,7 @@ void Spirit<B,T>::run(){
 }
 template class Spirit<dairlib::SpiritJump,double>;
 template class Spirit<dairlib::SpiritBound,double>;
+template class Spirit<dairlib::SpiritBoundS2s,double>;
 template class Spirit<dairlib::SpiritBoxJump,double>;
 template class Spirit<dairlib::SpiritParkourJump,double>;
 template class Spirit<dairlib::SpiritParkourWallPronk,double>;

@@ -15,15 +15,15 @@ using systems::trajectory_optimization::Dircon;
 template <class Y> 
 SpiritParkourWallPronk<Y>::SpiritParkourWallPronk():plant (std::make_unique<MultibodyPlant<Y>>(0.0))
 {
-    Parser parser(plant.get());
-    std::string full_name =
-        dairlib::FindResourceOrThrow("examples/Spirit_spine/spirit_with_spine_drake.urdf");
-    parser.AddModelFromFile(full_name);
-    plant->mutable_gravity_field().set_gravity_vector(-9.81 *
-        Eigen::Vector3d::UnitZ());
-    plant->Finalize();
-    initialStand.init(plant.get(), 0.2, Eigen::Vector3d::UnitZ(), Eigen::Vector3d::Zero(),false);
-    finalStand.init(plant.get(), 0.2, Eigen::Vector3d::UnitZ(), Eigen::Vector3d::Zero(),false);
+    // Parser parser(plant.get());
+    // std::string full_name =
+    //     dairlib::FindResourceOrThrow(this->urdf_path);
+    // parser.AddModelFromFile(full_name);
+    // plant->mutable_gravity_field().set_gravity_vector(-9.81 *
+    //     Eigen::Vector3d::UnitZ());
+    // plant->Finalize();
+    // initialStand.init(plant.get(), 0.2, Eigen::Vector3d::UnitZ(), Eigen::Vector3d::Zero(),false);
+    // finalStand.init(plant.get(), 0.2, Eigen::Vector3d::UnitZ(), Eigen::Vector3d::Zero(),false);
 }
 
 template <class Y>
@@ -31,6 +31,7 @@ void SpiritParkourWallPronk<Y>::config(
   std::string yaml_path, std::string saved_directory, int index,MultibodyPlant<Y>* plant)
   {
   YAML::Node config = YAML::LoadFile(yaml_path);
+  this->index=index;
   this->nKnotpoints_flight =config[index]["nKnotpoints_flight"].as<double>();
   this->nKnotpoints_stances =config[index]["nKnotpoints_stances"].as<double>();
   this->apex_heights =config[index]["apex_heights"].as<std::vector<double>>();
@@ -87,9 +88,6 @@ void SpiritParkourWallPronk<Y>::config(
                                               config[index]["transition_surface"][i][4].as<double>()*Eigen::Vector3d::UnitY()+
                                               config[index]["transition_surface"][i][5].as<double>()*Eigen::Vector3d::UnitZ(),
                                             std::numeric_limits<double>::infinity()));
-  //   std::cout<<"Transition surface normal"<<config[index]["transition_surface"][i][0].as<double>()*Eigen::Vector3d::UnitX()+
-  //                                             config[index]["transition_surface"][i][1].as<double>()*Eigen::Vector3d::UnitY()+
-  //                                             config[index]["transition_surface"][i][2].as<double>()*Eigen::Vector3d::UnitZ()<<std::endl;
   }
   
 }
@@ -178,7 +176,7 @@ void SpiritParkourWallPronk<Y>::generateInitialGuess(MultibodyPlant<Y>& plant){
     concatVectorTraj( this->vc_traj, vc_traj_i , true);
   }
   // Run animation of the final trajectory
-  std::string full_name = dairlib::FindResourceOrThrow("examples/Spirit_spine/spirit_with_spine_drake.urdf");
+  std::string full_name = dairlib::FindResourceOrThrow(this->urdf_path);
   drake::systems::DiagramBuilder<double> builder;
   auto plant_vis = std::make_unique<MultibodyPlant<double>>(0.0);
   auto scene_graph_ptr = std::make_unique<SceneGraph<double>>();
@@ -273,6 +271,10 @@ void SpiritParkourWallPronk<Y>::addCost(
             dairlib::systems::trajectory_optimization::Dircon<Y>& trajopt){
   auto u   = trajopt.input();
   auto x   = trajopt.state();
+  int n_q = plant.num_positions();
+
+  auto velocities_map = multibody::makeNameToVelocitiesMap(plant);
+  auto actuator_map = multibody::makeNameToActuatorsMap(plant);
 
   // Setup the traditional cost function
   trajopt.AddRunningCost( u.transpose()*this->cost_actuation*u);
@@ -289,6 +291,35 @@ void SpiritParkourWallPronk<Y>::addCost(
   addCostLegs(plant, trajopt, this->cost_velocity_legs_flight, this->cost_actuation_legs_flight, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}, 7);
   addCostLegs(plant, trajopt, this->cost_velocity_legs_flight, this->cost_actuation_legs_flight, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}, 8);
   addCostLegs(plant, trajopt, this->cost_velocity_legs_flight, this->cost_actuation_legs_flight, {2, 3, 6, 7, 10, 11}, 9);
+
+  AddWorkCost(plant, trajopt, this->cost_work);
+  // work_constraint_scale=1;
+  // for (int joint = 0; joint < 13; joint++){
+  //   auto power_plus = trajopt.NewSequentialVariable(1, "joint_" + std::to_string(joint)+"_power_plus");
+  //   auto power_minus = trajopt.NewSequentialVariable(1, "joint_" + std::to_string(joint)+"_power_minus");
+
+  //   trajopt.AddRunningCost(this->cost_work * (power_plus + power_minus));
+
+  //   for(int time_index = 0; time_index < trajopt.N(); time_index++){
+  //     auto u_i   = trajopt.input(time_index);
+  //     auto x_i   = trajopt.state(time_index);
+
+  //     drake::symbolic::Variable actuation = u_i(actuator_map.at("motor_" + std::to_string(joint)));
+  //     drake::symbolic::Variable velocity = x_i(n_q + velocities_map.at("joint_" + std::to_string(joint) +"dot"));
+  //     drake::symbolic::Variable power_plus_i = trajopt.GetSequentialVariableAtIndex("joint_" + std::to_string(joint)+"_power_plus", time_index)[0];
+  //     drake::symbolic::Variable power_minus_i = trajopt.GetSequentialVariableAtIndex("joint_" + std::to_string(joint)+"_power_minus", time_index)[0];
+
+
+  //     if (this->cost_work > 0){
+  //       trajopt.AddConstraint(actuation * velocity * work_constraint_scale == (power_plus_i - power_minus_i) * work_constraint_scale) ;
+  //       trajopt.AddLinearConstraint(power_plus_i * work_constraint_scale >= 0);
+  //       trajopt.AddLinearConstraint(power_minus_i * work_constraint_scale >= 0);
+  //     }
+  //     trajopt.SetInitialGuess(power_plus_i, 0);
+  //     trajopt.SetInitialGuess(power_minus_i, 0);
+  //   }
+  // }
+
 }
 
 // addConstraints, adds constraints to the trajopt jump problem. See runSpiritParkourWallPronk for a description of the inputs
@@ -340,47 +371,14 @@ void SpiritParkourWallPronk<Y>::addConstraints(
   // Nominal stand
   nominalSpiritStandConstraint(plant,trajopt,initialStand.height(), {0}, eps);
 
-  // // Body pose constraints (keep the body flat) at initial state
-  // trajopt.AddBoundingBoxConstraint(1, 1,  x0(positions_map.at("base_qw")));
-  // trajopt.AddBoundingBoxConstraint(0, 0,  x0(positions_map.at("base_qx")));
-  // trajopt.AddBoundingBoxConstraint(0, 0,  x0(positions_map.at("base_qy")));
-  // trajopt.AddBoundingBoxConstraint(0, 0,  x0(positions_map.at("base_qz")));
-
-  // // Initial  velocity
-  // trajopt.AddBoundingBoxConstraint(VectorXd::Zero(n_v), VectorXd::Zero(n_v), x0.tail(n_v));
-
-  // // Final Standing XY Pos 
-  // std::cout<<"FINAL Stand OFFSET: "<<standOffsetFinal(0)<<", "<<standOffsetFinal(1)<<std::endl;
-  // trajopt.AddBoundingBoxConstraint(standOffsetFinal(0)-eps, standOffsetFinal(0)+eps, xf(positions_map.at("base_x")));
-  // trajopt.AddBoundingBoxConstraint(standOffsetFinal(1)-eps, standOffsetFinal(1)+eps, xf(positions_map.at("base_y")));
-  // // Nominal stand
-  // nominalSpiritStandConstraint(plant,trajopt,finalStand.height(), {trajopt.N()-1}, eps);
-  // // Body pose constraints (keep the body flat) at final state
-  // trajopt.AddBoundingBoxConstraint(1, 1, xf(positions_map.at("base_qw")));
-  // trajopt.AddBoundingBoxConstraint(-eps, eps, xf(positions_map.at("base_qx")));
-  // trajopt.AddBoundingBoxConstraint(-eps, eps, xf(positions_map.at("base_qy")));
-  // trajopt.AddBoundingBoxConstraint(-eps, eps, xf(positions_map.at("base_qz")));
-  // // Zero velocity
-  // trajopt.AddBoundingBoxConstraint(VectorXd::Zero(n_v), VectorXd::Zero(n_v), xf.tail(n_v));
- 
-  // //  *********************initial lift off and final touch down *******************************
-  // trajopt.AddBoundingBoxConstraint( cos(max_pitch_magnitude/2.0),              1, xlo_rear_1(positions_map.at("base_qw")));
-  // trajopt.AddBoundingBoxConstraint(           -eps,            eps, xlo_rear_1(positions_map.at("base_qx")));
-  // trajopt.AddBoundingBoxConstraint(-sin(max_pitch_magnitude/2.0), sin(max_pitch_magnitude/2.0), xlo_rear_1(positions_map.at("base_qy")));
-  // trajopt.AddBoundingBoxConstraint(           -eps,            eps, xlo_rear_1(positions_map.at("base_qz")));
-
-
-  // trajopt.AddBoundingBoxConstraint( cos(max_pitch_magnitude/2.0),              1, xtd_front_2(positions_map.at("base_qw")));
-  // trajopt.AddBoundingBoxConstraint(           -eps,            eps, xtd_front_2(positions_map.at("base_qx")));
-  // trajopt.AddBoundingBoxConstraint(0, sin(max_pitch_magnitude/2.0), xtd_front_2(positions_map.at("base_qy")));
-  // trajopt.AddBoundingBoxConstraint(           -eps,            eps, xtd_front_2(positions_map.at("base_qz")));
+  
 
   // Body pose constraints (keep the body flat) at initial state
-  trajopt.AddBoundingBoxConstraint(0.995, 1,  x0(positions_map.at("base_qw")));
+  trajopt.AddBoundingBoxConstraint(0.87, 1,  x0(positions_map.at("base_qw")));
   trajopt.AddBoundingBoxConstraint(0, 0 , x0(positions_map.at("base_qx")));
   trajopt.AddBoundingBoxConstraint(0, 0,  x0(positions_map.at("base_qy")));
-  trajopt.AddBoundingBoxConstraint(-0.1, 0.1,  x0(positions_map.at("base_qz")));
-
+  trajopt.AddBoundingBoxConstraint(-0.48, 0.48,  x0(positions_map.at("base_qz")));
+  trajopt.AddBoundingBoxConstraint(-eps, eps, x0(positions_map.at("joint_12")));
   // Initial  velocity
   trajopt.AddBoundingBoxConstraint(VectorXd::Zero(n_v), VectorXd::Zero(n_v), x0.tail(n_v));
 
@@ -388,13 +386,15 @@ void SpiritParkourWallPronk<Y>::addConstraints(
   std::cout<<"FINAL Stand OFFSET: "<<standOffsetFinal(0)<<", "<<standOffsetFinal(1)<<std::endl;
   trajopt.AddBoundingBoxConstraint(standOffsetFinal(0)-eps, standOffsetFinal(0)+eps, xf(positions_map.at("base_x")));
   trajopt.AddBoundingBoxConstraint(standOffsetFinal(1)-eps, standOffsetFinal(1)+eps, xf(positions_map.at("base_y")));
-  // Nominal stand
+  
   nominalSpiritStandConstraint(plant,trajopt,finalStand.height(), {trajopt.N()-1}, eps);
   // Body pose constraints (keep the body flat) at final state
-  trajopt.AddBoundingBoxConstraint(0.995, 1, xf(positions_map.at("base_qw")));
+  trajopt.AddBoundingBoxConstraint(0.87, 1, xf(positions_map.at("base_qw")));
   trajopt.AddBoundingBoxConstraint(-eps, eps, xf(positions_map.at("base_qx")));
   trajopt.AddBoundingBoxConstraint(-eps, eps, xf(positions_map.at("base_qy")));
-  trajopt.AddBoundingBoxConstraint(-0.1, 0.1, xf(positions_map.at("base_qz")));
+  trajopt.AddBoundingBoxConstraint(-0.48, 0.48, xf(positions_map.at("base_qz")));
+  trajopt.AddBoundingBoxConstraint(-eps, eps, xf(positions_map.at("joint_12")));
+  // Nominal stand
   // Zero velocity
   trajopt.AddBoundingBoxConstraint(VectorXd::Zero(n_v), VectorXd::Zero(n_v), xf.tail(n_v));
  
@@ -454,6 +454,7 @@ void SpiritParkourWallPronk<Y>::addConstraints(
         trajopt.AddBoundingBoxConstraint(-0, 0, xapex( n_q + velocities_map.at("joint_9dot")));
         trajopt.AddBoundingBoxConstraint(-0, 0, xapex( n_q + velocities_map.at("joint_10dot")));
         trajopt.AddBoundingBoxConstraint(-0, 0, xapex( n_q + velocities_map.at("joint_11dot")));
+        trajopt.AddBoundingBoxConstraint(-0, 0, xapex( n_q + velocities_map.at("joint_12dot")));
       }
 
     }
@@ -475,29 +476,16 @@ void SpiritParkourWallPronk<Y>::addConstraints(
 
       this->offsetConstraint(plant, trajopt, xbot, sNormal,sOffset);
 
-      // trajopt.AddBoundingBoxConstraint(- eps, + eps, xbot(n_q + velocities_map.at("base_vz")) );
-      // float surface_height=std::get<1>(transitionSurfaces[iJump -1])[2];
-      // trajopt.AddBoundingBoxConstraint(surface_height+0.2, surface_height+0.25, xbot(positions_map.at("base_z")) );
-      
+      // Add force constraints
+      // for (int transitionModeIndex=interiorStanceModeIndex-1;transitionModeIndex<interiorStanceModeIndex+2;transitionModeIndex++){
+      //   for (int i=0;i<trajopt.mode_length(transitionModeIndex);i++){
+      //     for (int j=2;j<13;j+=3){
+      //       auto f_tran =trajopt.force_vars( interiorStanceModeIndex , i);
+      //       trajopt.AddBoundingBoxConstraint( -150, 150, f_tran(j));
+      //     }
+      //   }
+      // }
 
-
-      // //  front legs touch-down max_pitch_magnitude angle
-      // trajopt.AddBoundingBoxConstraint( cos(max_pitch_magnitude/2.0),              1, xtd_front_s(positions_map.at("base_qw")));
-      // trajopt.AddBoundingBoxConstraint(           -eps,            eps, xtd_front_s(positions_map.at("base_qx")));
-      // trajopt.AddBoundingBoxConstraint(-sin(max_pitch_magnitude/2.0), sin(max_pitch_magnitude/2.0), xtd_front_s(positions_map.at("base_qy")));
-      // trajopt.AddBoundingBoxConstraint(           -eps,            eps, xtd_front_s(positions_map.at("base_qz")));
-
-      // //  rear legs touch-down max_pitch_magnitude angle
-      // trajopt.AddBoundingBoxConstraint( cos(max_apex_pitch_magnitude/2/2.0),              1, xtd_rear_s(positions_map.at("base_qw")));
-      // trajopt.AddBoundingBoxConstraint(           -eps,            eps, xtd_rear_s(positions_map.at("base_qx")));
-      // trajopt.AddBoundingBoxConstraint(-sin(max_apex_pitch_magnitude/2/2.0), sin(max_apex_pitch_magnitude/2/2.0), xtd_rear_s(positions_map.at("base_qy")));
-      // trajopt.AddBoundingBoxConstraint(           -eps,            eps, xtd_rear_s(positions_map.at("base_qz")));
-      
-      // //  rear legs lift-off max_pitch_magnitude angle
-      // trajopt.AddBoundingBoxConstraint( cos(max_pitch_magnitude/2.0),              1, xlo_rear_s(positions_map.at("base_qw")));
-      // trajopt.AddBoundingBoxConstraint(           -eps,            eps, xlo_rear_s(positions_map.at("base_qx")));
-      // trajopt.AddBoundingBoxConstraint(-sin(max_pitch_magnitude/2.0), sin(max_pitch_magnitude/2.0), xlo_rear_s(positions_map.at("base_qy")));
-      // trajopt.AddBoundingBoxConstraint(           -eps,            eps, xlo_rear_s(positions_map.at("base_qz")));
     }
 
   }
@@ -573,7 +561,7 @@ void SpiritParkourWallPronk<Y>::run(MultibodyPlant<Y>& plant,
   // Ipopt settings adapted from CaSaDi and FROST
   auto id = drake::solvers::IpoptSolver::id();
   trajopt.SetSolverOption(id, "tol", this->tol);
-  trajopt.SetSolverOption(id, "dual_inf_tol", this->tol);
+  trajopt.SetSolverOption(id, "dual_inf_tol", this->tol*100);
   trajopt.SetSolverOption(id, "constr_viol_tol", this->tol);
   trajopt.SetSolverOption(id, "compl_inf_tol", this->tol);
   trajopt.SetSolverOption(id, "max_iter", 10000);
@@ -649,6 +637,8 @@ void SpiritParkourWallPronk<Y>::run(MultibodyPlant<Y>& plant,
 
 
   this->saveTrajectory(plant,trajopt,result);
+  std::string contect_force_fname="/home/feng/Downloads/dairlib/examples/Spirit_spine/data/test"+std::to_string(this->index)+".csv";
+  this->saveContractForceData(contect_force_fname);
 
   const drake::Vector4<double> orange(1.0, 0.55, 0.0, 1.0);
   if (this->get_animate_info) {

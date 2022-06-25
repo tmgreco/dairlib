@@ -360,7 +360,7 @@ void SpiritBound<Y>::addConstraints(
   trajopt.AddBoundingBoxConstraint(0 , 0, x0(positions_map.at("base_qx")));
   trajopt.AddBoundingBoxConstraint(0, 0, x0(positions_map.at("base_qy")));
   trajopt.AddBoundingBoxConstraint(0, 0 , x0(positions_map.at("base_qz")));
-
+  trajopt.AddBoundingBoxConstraint(-eps, eps, x0(positions_map.at("joint_12")));
   // Initial  velocity
   trajopt.AddBoundingBoxConstraint(VectorXd::Zero(n_v), VectorXd::Zero(n_v), x0.tail(n_v));
 
@@ -397,6 +397,7 @@ void SpiritBound<Y>::addConstraints(
   /// Final constraints
   // x,y position
   trajopt.AddBoundingBoxConstraint(0-eps, 0+eps, xf(positions_map.at("base_y")));
+  trajopt.AddBoundingBoxConstraint(-eps, eps, xf(positions_map.at("joint_12")));
   if (fore_aft_displacement >= 0){
     trajopt.AddBoundingBoxConstraint(fore_aft_displacement-eps, fore_aft_displacement, xf(positions_map.at("base_x")));
   }
@@ -541,6 +542,7 @@ void SpiritBound<Y>::run(MultibodyPlant<Y>& plant,
   std::cout << (result.is_success() ? "Optimization Success" : "Optimization Fail") << std::endl;
   /// Save trajectory
   this->saveTrajectory(plant,trajopt,result);
+  for (int i=0;i<6;i++) std::cout << "lambda pp "<<i<<" at 0.1s\n"<< this->l_traj[i].value(0.1) << std::endl;
 
   auto x_trajs = trajopt.ReconstructDiscontinuousStateTrajectory(result);
   std::cout<<"Work = " << dairlib::calcElectricalWork(plant, x_trajs, this->u_traj) << std::endl;
