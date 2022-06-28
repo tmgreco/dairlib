@@ -145,7 +145,8 @@ void SpiritParkourWallPronk<Y>::offsetConstraint(
 template <class Y>
 void SpiritParkourWallPronk<Y>::generateInitialGuess(MultibodyPlant<Y>& plant){
   // Generate initial guess from two from inplace bound
-  std::string file_name_in = "/home/feng/Downloads/dairlib/examples/Spirit_spine/saved_trajectories/bound_test1/in_place_bound";
+  // std::string file_name_in = "/home/feng/Downloads/dairlib/examples/Spirit_spine/saved_trajectories/bound_test1/in_place_bound";
+  std::string file_name_in = "/home/feng/Downloads/dairlib/examples/Spirit_spine/saved_trajectories/bound_test1_without_spine/in_place_bound";
   // std::string file_name_in = "/home/feng/Downloads/dairlib/examples/Spirit/saved_trajectories/jump_test1/simple_jump";
   dairlib::DirconTrajectory loaded_traj(file_name_in);
 
@@ -293,32 +294,6 @@ void SpiritParkourWallPronk<Y>::addCost(
   addCostLegs(plant, trajopt, this->cost_velocity_legs_flight, this->cost_actuation_legs_flight, {2, 3, 6, 7, 10, 11}, 9);
 
   AddWorkCost(plant, trajopt, this->cost_work);
-  // work_constraint_scale=1;
-  // for (int joint = 0; joint < 13; joint++){
-  //   auto power_plus = trajopt.NewSequentialVariable(1, "joint_" + std::to_string(joint)+"_power_plus");
-  //   auto power_minus = trajopt.NewSequentialVariable(1, "joint_" + std::to_string(joint)+"_power_minus");
-
-  //   trajopt.AddRunningCost(this->cost_work * (power_plus + power_minus));
-
-  //   for(int time_index = 0; time_index < trajopt.N(); time_index++){
-  //     auto u_i   = trajopt.input(time_index);
-  //     auto x_i   = trajopt.state(time_index);
-
-  //     drake::symbolic::Variable actuation = u_i(actuator_map.at("motor_" + std::to_string(joint)));
-  //     drake::symbolic::Variable velocity = x_i(n_q + velocities_map.at("joint_" + std::to_string(joint) +"dot"));
-  //     drake::symbolic::Variable power_plus_i = trajopt.GetSequentialVariableAtIndex("joint_" + std::to_string(joint)+"_power_plus", time_index)[0];
-  //     drake::symbolic::Variable power_minus_i = trajopt.GetSequentialVariableAtIndex("joint_" + std::to_string(joint)+"_power_minus", time_index)[0];
-
-
-  //     if (this->cost_work > 0){
-  //       trajopt.AddConstraint(actuation * velocity * work_constraint_scale == (power_plus_i - power_minus_i) * work_constraint_scale) ;
-  //       trajopt.AddLinearConstraint(power_plus_i * work_constraint_scale >= 0);
-  //       trajopt.AddLinearConstraint(power_minus_i * work_constraint_scale >= 0);
-  //     }
-  //     trajopt.SetInitialGuess(power_plus_i, 0);
-  //     trajopt.SetInitialGuess(power_minus_i, 0);
-  //   }
-  // }
 
 }
 
@@ -332,6 +307,24 @@ void SpiritParkourWallPronk<Y>::addConstraints(
   // Get position and velocity dictionaries
   auto positions_map = multibody::makeNameToPositionsMap(plant);
   auto velocities_map = multibody::makeNameToVelocitiesMap(plant);
+
+  auto actuators_map=multibody::makeNameToActuatorsMap(plant);
+  // std::cout<<"!!!!!!!!!!!!!!!\n";
+  // for(std::map<std::string, int>::const_iterator it = positions_map.begin();it != positions_map.end(); ++it)
+  // {
+  //   std::cout << it->first << " " << it->second << "\n";
+  // }
+  // std::cout<<"!!!!!!!!!!!!!!!\n";
+  // for(std::map<std::string, int>::const_iterator it = velocities_map.begin();it != velocities_map.end(); ++it)
+  // {
+  //   std::cout << it->first << " " << it->second << "\n";
+  // }
+  // std::cout<<"!!!!!!!!!!!!!!!\n";
+  // for(std::map<std::string, int>::const_iterator it = actuators_map.begin();it != actuators_map.end(); ++it)
+  // {
+  //   std::cout << it->first << " " << it->second << "\n";
+  // }
+
 
   setSpiritJointLimits(plant, trajopt);
   setSpiritActuationLimits(plant, trajopt);
@@ -378,7 +371,7 @@ void SpiritParkourWallPronk<Y>::addConstraints(
   trajopt.AddBoundingBoxConstraint(0, 0 , x0(positions_map.at("base_qx")));
   trajopt.AddBoundingBoxConstraint(0, 0,  x0(positions_map.at("base_qy")));
   trajopt.AddBoundingBoxConstraint(-0.48, 0.48,  x0(positions_map.at("base_qz")));
-  trajopt.AddBoundingBoxConstraint(-eps, eps, x0(positions_map.at("joint_12")));
+  if (this->spine_type== "twisting") trajopt.AddBoundingBoxConstraint(-eps, eps, x0(positions_map.at("joint_12")));
   // Initial  velocity
   trajopt.AddBoundingBoxConstraint(VectorXd::Zero(n_v), VectorXd::Zero(n_v), x0.tail(n_v));
 
@@ -393,7 +386,7 @@ void SpiritParkourWallPronk<Y>::addConstraints(
   trajopt.AddBoundingBoxConstraint(-eps, eps, xf(positions_map.at("base_qx")));
   trajopt.AddBoundingBoxConstraint(-eps, eps, xf(positions_map.at("base_qy")));
   trajopt.AddBoundingBoxConstraint(-0.48, 0.48, xf(positions_map.at("base_qz")));
-  trajopt.AddBoundingBoxConstraint(-eps, eps, xf(positions_map.at("joint_12")));
+  if (this->spine_type== "twisting") trajopt.AddBoundingBoxConstraint(-eps, eps, xf(positions_map.at("joint_12")));
   // Nominal stand
   // Zero velocity
   trajopt.AddBoundingBoxConstraint(VectorXd::Zero(n_v), VectorXd::Zero(n_v), xf.tail(n_v));
@@ -454,7 +447,7 @@ void SpiritParkourWallPronk<Y>::addConstraints(
         trajopt.AddBoundingBoxConstraint(-0, 0, xapex( n_q + velocities_map.at("joint_9dot")));
         trajopt.AddBoundingBoxConstraint(-0, 0, xapex( n_q + velocities_map.at("joint_10dot")));
         trajopt.AddBoundingBoxConstraint(-0, 0, xapex( n_q + velocities_map.at("joint_11dot")));
-        trajopt.AddBoundingBoxConstraint(-0, 0, xapex( n_q + velocities_map.at("joint_12dot")));
+        if (this->spine_type== "twisting") trajopt.AddBoundingBoxConstraint(-0, 0, xapex( n_q + velocities_map.at("joint_12dot")));
       }
 
     }
@@ -616,7 +609,7 @@ void SpiritParkourWallPronk<Y>::run(MultibodyPlant<Y>& plant,
       visualizer_poses.push_back(num_ghosts); 
   }
   trajopt.CreateVisualizationCallback(
-      dairlib::FindResourceOrThrow("examples/Spirit_spine/spirit_with_spine_drake.urdf"),
+      dairlib::FindResourceOrThrow(this->urdf_path),
       visualizer_poses, 0.2); // setup which URDF, how many poses, and alpha transparency 
 
 
@@ -639,7 +632,14 @@ void SpiritParkourWallPronk<Y>::run(MultibodyPlant<Y>& plant,
   this->saveTrajectory(plant,trajopt,result);
   std::string contect_force_fname="/home/feng/Downloads/dairlib/examples/Spirit_spine/data/test"+std::to_string(this->index)+".csv";
   this->saveContractForceData(contect_force_fname);
-
+  // std::cout<< "x traj 0.4"<<std::endl;
+  // std::cout<< this->x_traj.value(0.4)<<std::endl;
+  // std::cout<< "x traj 0.41"<<std::endl;
+  // std::cout<< this->x_traj.value(0.41)<<std::endl;
+  // std::cout<< "u traj 0.4"<<std::endl;
+  // std::cout<< this->u_traj.value(0.4)<<std::endl;
+  // std::cout<< "u traj 0.41"<<std::endl;
+  // std::cout<< this->u_traj.value(0.41)<<std::endl;
   const drake::Vector4<double> orange(1.0, 0.55, 0.0, 1.0);
   if (this->get_animate_info) {
     int counter = 0;

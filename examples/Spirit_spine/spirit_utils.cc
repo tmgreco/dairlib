@@ -545,17 +545,14 @@ drake::math::RotationMatrix<double> normal2Rotation(Eigen::Vector3d nHat){
   drake::math::RotationMatrix<double> rotMat;
   assert(std::abs(nHat.squaredNorm() - 1) < eps );
   if       ( std::abs(nHat.dot(Eigen::Vector3d::UnitZ()) - 1) < eps){ //If close to +unitZ dont rotate
-    // std::cout<<"A"<<std::endl;
     rotMat = drake::math::RotationMatrix<double>();
   }else if ( std::abs(nHat.dot(Eigen::Vector3d::UnitZ()) + 1) < eps){ //If close to -unitZ dont rotate
-    // std::cout<<"B"<<std::endl;
     Eigen::Matrix3d R;
     R <<  1,  0,  0,
           0, -1,  0,
           0,  0, -1;
     rotMat = drake::math::RotationMatrix<double>(R);
   }else if ( std::abs(nHat.dot(Eigen::Vector3d::UnitX())) <= std::abs(nHat.dot(Eigen::Vector3d::UnitY())) ){
-    // std::cout<<"C"<<std::endl;
     Eigen::Vector3d nyHat =  nHat.cross(Eigen::Vector3d::UnitX());
     Eigen::Vector3d nxHat =  nyHat.cross(nHat);
     Eigen::Matrix3d R;
@@ -564,7 +561,6 @@ drake::math::RotationMatrix<double> normal2Rotation(Eigen::Vector3d nHat){
     R.col(2) << nHat; 
     rotMat = drake::math::RotationMatrix<double>(R);
   }else if ( std::abs(nHat.dot(Eigen::Vector3d::UnitX())) > std::abs(nHat.dot(Eigen::Vector3d::UnitY())) ){
-    // std::cout<<"D"<<std::endl;
     Eigen::Vector3d nxHat = -nHat.cross(Eigen::Vector3d::UnitY());
     Eigen::Vector3d nyHat =  nHat.cross(nxHat);
     Eigen::Matrix3d R;
@@ -598,7 +594,7 @@ double calcWork(
       auto x_low = x_traj.value(knot_points[knot_index]);
       auto x_up  = x_traj.value(knot_points[knot_index + 1]);
 
-    for (int joint = 0; joint < 12; joint++){
+    for (int joint = 0; joint < plant.num_actuators(); joint++){
 
       double actuation_low = u_low(actuator_map.at("motor_" + std::to_string(joint)));
       double actuation_up  =  u_up(actuator_map.at("motor_" + std::to_string(joint)));
@@ -635,7 +631,7 @@ double calcMechanicalWork(
       auto x_low = x_traj.value(knot_points[knot_index]);
       auto x_up = x_traj.value(knot_points[knot_index + 1]);
 
-      for (int joint = 0; joint < 12; joint++) {
+      for (int joint = 0; joint < plant.num_actuators(); joint++) {
 
         double actuation_low = u_low(actuator_map.at("motor_" + std::to_string(joint)));
         double actuation_up = u_up(actuator_map.at("motor_" + std::to_string(joint)));
@@ -676,7 +672,7 @@ double calcElectricalWork(
       auto x_low = x_traj.value(knot_points[knot_index]);
       auto x_up = x_traj.value(knot_points[knot_index + 1]);
 
-      for (int joint = 0; joint < 13; joint++) {
+      for (int joint = 0; joint < plant.num_actuators(); joint++) {
         if(joint == 1 or joint == 3 or joint == 5 or joint == 7){
           Q = Q_knee;
         }
@@ -793,12 +789,12 @@ std::vector<drake::solvers::Binding<drake::solvers::Cost>> AddWorkCost(drake::mu
                  double cost_work_gain){
   std::vector<drake::solvers::Binding<drake::solvers::Cost>> cost_joint_work_bindings;
   int n_q = plant.num_positions();
+
   auto velocities_map = multibody::makeNameToVelocitiesMap(plant);
   auto actuator_map = multibody::makeNameToActuatorsMap(plant);
-
   double Q = 0;
   // Loop through each joint
-  for (int joint = 0; joint < 13; joint++) {
+  for (int joint = 0; joint < plant.num_actuators(); joint++) {
     if(joint == 1 or joint == 3 or joint == 5 or joint == 7)
       Q = Q_knee;
     else
@@ -862,8 +858,10 @@ double u_i = x(1);
 double u_ip = x(2);
 double v_i = x(3);
 double v_ip = x(4);
-double work_low = cost_work_ * relu_smooth(u_i * v_i + Q_ * u_i * u_i);
-double work_up = cost_work_ * relu_smooth(u_ip * v_ip + Q_ * u_ip * u_ip);
+// double work_low = cost_work_ * relu_smooth(u_i * v_i + Q_ * u_i * u_i);
+// double work_up = cost_work_ * relu_smooth(u_ip * v_ip + Q_ * u_ip * u_ip);
+double work_low = cost_work_ * abs(u_i * v_i + Q_ * u_i * u_i);
+double work_up = cost_work_ * abs(u_ip * v_ip + Q_ * u_ip * u_ip);
 
 drake::VectorX<double> rv(1);
 rv[0] = 1/2.0 * h_i *(work_low + work_up);

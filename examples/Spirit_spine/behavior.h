@@ -244,7 +244,7 @@ namespace dairlib {
                 visualizer_poses.push_back(num_ghosts); 
             }
             trajopt.CreateVisualizationCallback(
-                dairlib::FindResourceOrThrow("examples/Spirit_spine/spirit_with_spine_drake.urdf"),
+                dairlib::FindResourceOrThrow(urdf_path),
                 visualizer_poses, 0.2); // setup which URDF, how many poses, and alpha transparency 
         }
         
@@ -272,7 +272,8 @@ namespace dairlib {
                 this->l_traj  = trajopt.ReconstructLambdaTrajectory(result);
             }
             auto x_trajs = trajopt.ReconstructDiscontinuousStateTrajectory(result);
-            std::cout<<"Work = " << dairlib::calcElectricalWork(plant, x_trajs, this->u_traj) << std::endl;
+            std::cout<<"Electrical Work = " << dairlib::calcElectricalWork(plant, x_trajs, this->u_traj) << std::endl;
+            std::cout<<"Mechanical Work = " << dairlib::calcMechanicalWork(plant, x_trajs, this->u_traj) << std::endl;
             //  double cost_work_acceleration = solvers::EvalCostGivenSolution(
             //      result, cost_joint_work_bindings);
             //  std::cout<<"Cost Work = " << cost_work_acceleration << std::endl;

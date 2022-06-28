@@ -1,8 +1,8 @@
 - num_optimizations: 2
   initial_guess: ""
-  spine_type: twisting
-  urdf_path: examples/Spirit_spine/spirit_with_spine_drake.urdf
-  saved_directory: /home/feng/Downloads/dairlib/examples/Spirit_spine/saved_trajectories/parkour_wall_jump_test3/
+  spine_type: rigid
+  urdf_path: examples/Spirit_spine/spirit_drake.urdf
+  saved_directory: /home/feng/Downloads/dairlib/examples/Spirit_spine/saved_trajectories/parkour_wall_jump_without_spine/
   iterate: ~
 - name: parkour_pronk_1
   n_jumps: 2

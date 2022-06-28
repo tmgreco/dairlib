@@ -72,7 +72,7 @@ Spirit<B,T>::Spirit(std::string yaml_path) :plant (std::make_unique<MultibodyPla
     Parser parser(plant.get());
     Parser parser_vis(plant_vis.get(), scene_graph_ptr.get());
     std::string full_name =
-        dairlib::FindResourceOrThrow("examples/Spirit_spine/spirit_with_spine_drake.urdf");
+        dairlib::FindResourceOrThrow(behavior.urdf_path);
 
     parser.AddModelFromFile(full_name);
     parser_vis.AddModelFromFile(full_name);
