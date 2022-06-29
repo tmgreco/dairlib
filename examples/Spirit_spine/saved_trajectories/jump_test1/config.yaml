@@ -3,6 +3,15 @@
   num_optimizations: 4
   initial_guess: ""  #if it is empty, the program will generate initial guess. Otherwise, we use the file given here as the initial guess
   saved_directory: /home/feng/Downloads/dairlib/examples/Spirit_spine/saved_trajectories/jump_test1/
+  spine_type: twisting
+  urdf_path: examples/Spirit_spine/spirit_with_spine_drake.urdf
+  iterate:
+    name: jump_4
+    iteration_variable: fore_aft_displacement
+    for:
+      start: 0.3
+      end: 1.5
+      step_size: 0.05  
 
 - 
   name: jump_1
@@ -42,7 +51,7 @@
     - 7
   apex_height: 0.45
   initial_height: 0.2
-  fore_aft_displacement: 1
+  fore_aft_displacement: 0.3
   lock_rotation: true
   lock_legs_apex: true
   force_symmetry: false
@@ -69,7 +78,7 @@
     - 7
   apex_height: 0.45
   initial_height: 0.2
-  fore_aft_displacement: 1
+  fore_aft_displacement: 0.3
   lock_rotation: false
   lock_legs_apex: false
   force_symmetry: false
@@ -96,14 +105,14 @@
     - 7
   apex_height: 0.45
   initial_height: 0.2
-  fore_aft_displacement: 1
+  fore_aft_displacement: 0.3
   lock_rotation: false
   lock_legs_apex: false
   force_symmetry: false
   use_nominal_stand: true
   max_duration: 1.5
-  cost_actuation: 0.3
-  cost_velocity: 1 
+  cost_actuation: 0
+  cost_velocity: 0 
   cost_work: 100 
   cost_time: 0
   mu: 1

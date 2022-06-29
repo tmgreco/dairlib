@@ -26,7 +26,6 @@ Spirit<B,T>::Spirit(std::string yaml_path) :plant (std::make_unique<MultibodyPla
     YAML::Node config = YAML::LoadFile(yaml_path);
     
     initial_guess=config[0]["initial_guess"].as<std::string>();
-
     saved_directory=config[0]["saved_directory"].as<std::string>();
     behavior.urdf_path=config[0]["urdf_path"].as<std::string>();
     behavior.spine_type=config[0]["spine_type"].as<std::string>();
@@ -52,10 +51,25 @@ Spirit<B,T>::Spirit(std::string yaml_path) :plant (std::make_unique<MultibodyPla
           for (std::size_t j =0; j<config[0]["iterate"]["values"].size();j++){
             OPTIMIZATIONS.push_back(Clone(config[i]));
             OPTIMIZATIONS[OPTIMIZATIONS.size()-1][config[0]["iterate"]["iteration_variable"].as<std::string>()]=config[0]["iterate"]["values"][j];
-            // Generate correct file name in and out
+            // Generate correct file names in and out
             if (j!=0) OPTIMIZATIONS[OPTIMIZATIONS.size()-1]["file_name_in"]= name_in+"_"+std::to_string(j-1);
             if (j<config[0]["iterate"]["values"].size()-1) OPTIMIZATIONS[OPTIMIZATIONS.size()-1]["file_name_out"]= name_in+"_"+std::to_string(j);
           }
+          if (config[0]["iterate"]["for"].size()>0){
+            int j=0;
+            for (double v =config[0]["iterate"]["for"]["start"].as<double>(); v < config[0]["iterate"]["for"]["end"].as<double>();
+                  v += config[0]["iterate"]["for"]["step_size"].as<double>()){
+              OPTIMIZATIONS.push_back(Clone(config[i]));
+              OPTIMIZATIONS[OPTIMIZATIONS.size()-1][config[0]["iterate"]["iteration_variable"].as<std::string>()]=v;
+              // Generate correct file names in and out
+              if (v!=config[0]["iterate"]["for"]["start"].as<double>()) OPTIMIZATIONS[OPTIMIZATIONS.size()-1]["file_name_in"]= name_in+"_"+std::to_string(j-1);
+              if (v+config[0]["iterate"]["for"]["step_size"].as<double>() < config[0]["iterate"]["for"]["end"].as<double>()) {
+                OPTIMIZATIONS[OPTIMIZATIONS.size()-1]["file_name_out"]= name_in+"_"+std::to_string(j);
+              }
+              j++;
+          }
+          }
+          
         }
         else{
           OPTIMIZATIONS.push_back(Clone(config[i]));

@@ -145,8 +145,9 @@ void SpiritParkourWallPronk<Y>::offsetConstraint(
 template <class Y>
 void SpiritParkourWallPronk<Y>::generateInitialGuess(MultibodyPlant<Y>& plant){
   // Generate initial guess from two from inplace bound
-  // std::string file_name_in = "/home/feng/Downloads/dairlib/examples/Spirit_spine/saved_trajectories/bound_test1/in_place_bound";
-  std::string file_name_in = "/home/feng/Downloads/dairlib/examples/Spirit_spine/saved_trajectories/bound_test1_without_spine/in_place_bound";
+  std::string file_name_in;
+  if (this->spine_type=="twisting") file_name_in= "/home/feng/Downloads/dairlib/examples/Spirit_spine/saved_trajectories/bound_test1/in_place_bound";
+  else if (this->spine_type=="rigid") file_name_in = "/home/feng/Downloads/dairlib/examples/Spirit_spine/saved_trajectories/bound_test1_without_spine/in_place_bound";
   // std::string file_name_in = "/home/feng/Downloads/dairlib/examples/Spirit/saved_trajectories/jump_test1/simple_jump";
   dairlib::DirconTrajectory loaded_traj(file_name_in);
 
@@ -630,8 +631,9 @@ void SpiritParkourWallPronk<Y>::run(MultibodyPlant<Y>& plant,
 
 
   this->saveTrajectory(plant,trajopt,result);
-  std::string contect_force_fname="/home/feng/Downloads/dairlib/examples/Spirit_spine/data/test"+std::to_string(this->index)+".csv";
-  this->saveContractForceData(contect_force_fname);
+  std::string contect_force_fname="/home/feng/Downloads/dairlib/examples/Spirit_spine/data/optimization"+std::to_string(this->index)+".csv";
+  this->saveContactForceData(contect_force_fname);
+  // const auto& toe_frame = dairlib::getSpiritToeFrame(plant, toe);
   // std::cout<< "x traj 0.4"<<std::endl;
   // std::cout<< this->x_traj.value(0.4)<<std::endl;
   // std::cout<< "x traj 0.41"<<std::endl;

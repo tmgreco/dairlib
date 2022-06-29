@@ -279,7 +279,7 @@ namespace dairlib {
             //  std::cout<<"Cost Work = " << cost_work_acceleration << std::endl;
         }
 
-        void saveContractForceData(std::string file_path){
+        void saveContactForceData(std::string file_path){
             std::ofstream myfile; // 
             myfile.open(file_path);
             Y traj_end_time=this->l_traj[this->mode_vector.size()-1].end_time();
@@ -295,10 +295,29 @@ namespace dairlib {
                 }
                 myfile << current_time << ",";
                 if (mode==-1){
-                for (int i = 0; i < 12; i++) myfile << 0 << ",";
+                    for (int i = 0; i < 12; i++) myfile << 0 << ",";
                 }
                 else{
-                for (int i = 0; i < 12; i++) myfile << this->l_traj[mode].value(current_time)(i,0) << ",";
+                    // leg order: front left, rare left, front right, rare left
+                    Eigen::Matrix<bool,1,4> contact_bool;
+                    if (mode_vector[mode]=="stance") contact_bool<< true,  true,  true,  true;
+                    else if (mode_vector[mode]=="flight") contact_bool<< false, false, false, false;
+                    else if (mode_vector[mode]=="rear_stance") contact_bool<<false, true, false, true;
+                    else if (mode_vector[mode]=="front_stance") contact_bool<< true, false, true ,false;
+                    int temp_index=0;
+                    for (int j=0;j<4;j++){
+                        if (contact_bool(1,j)){
+                            for (int k=0;k<3;k++) myfile << this->l_traj[mode].value(current_time)(temp_index+k,0) << ",";
+                            temp_index+=3;
+                        }
+                        else{
+                            for (int k=0;k<3;k++) myfile << 0 << ",";
+                        }
+                    }
+                    // for (int i = 0; i < l_traj[mode].value(current_time).rows(); i++) {
+                    //     myfile << this->l_traj[mode].value(current_time)(i,0) << ",";
+                    // }
+                    // std::cout<<"Mode: "<< mode<<"time: "<< current_time<<" "<<this->l_traj[mode].value(current_time)<<std::endl;
                 }
                 myfile <<"\n";
             }

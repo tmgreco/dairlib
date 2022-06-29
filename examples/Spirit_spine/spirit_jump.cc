@@ -378,6 +378,11 @@ void SpiritJump<Y>::run(MultibodyPlant<Y>& plant,
   drake::solvers::SolverId solver_id("");
   if (this->ipopt) {
     solver_id = drake::solvers::IpoptSolver().id();
+    trajopt.SetSolverOption(solver_id, "tol", this->tol);
+    trajopt.SetSolverOption(solver_id, "dual_inf_tol", this->tol*100);
+    trajopt.SetSolverOption(solver_id, "constr_viol_tol", this->tol);
+    trajopt.SetSolverOption(solver_id, "compl_inf_tol", this->tol);
+    trajopt.SetSolverOption(solver_id, "max_iter", 10000);
     std::cout << "\nChose manually: " << solver_id.name() << std::endl;
   } else {
     solver_id = drake::solvers::ChooseBestSolver(trajopt);
@@ -401,8 +406,17 @@ void SpiritJump<Y>::run(MultibodyPlant<Y>& plant,
 
   // Writing contact force data
   std::string contect_force_fname="/home/feng/Downloads/dairlib/examples/Spirit_spine/data/test"+std::to_string(this->index)+".csv";
-  this->saveContractForceData(contect_force_fname);
+  this->saveContactForceData(contect_force_fname);
   
+
+  auto context = plant.CreateDefaultContext();
+  Eigen::VectorXd q_s=this->x_traj.value(0.4);
+  plant.SetPositionsAndVelocities(context.get(),q_s);
+  const auto& toe_frame = dairlib::getSpiritToeFrame(plant, 1);
+  std::cout<<"!!!!!!!!!!!"<<toe_frame.is_body_frame()<<std::endl;
+  
+  std::cout<<toe_frame.CalcRotationMatrixInWorld(*context).matrix()<<std::endl;
+  // const RigidTransformd X_WA = toe_frame.CalcPoseInWorld(*context);
   // for (int i=0;i<4;i++) {
   //   std::cout << "lambda pp "<<i<<" at 0.1s\n"<< this->l_traj[i].value(0.1) << std::endl;
   //   std::cout << "lambda time mode "<<i<<" start: "<< this->l_traj[i].start_time()<<" end: "<< this->l_traj[i].end_time()<<std::endl;
