@@ -632,7 +632,7 @@ void SpiritParkourWallPronk<Y>::run(MultibodyPlant<Y>& plant,
 
   this->saveTrajectory(plant,trajopt,result);
   std::string contect_force_fname="/home/feng/Downloads/dairlib/examples/Spirit_spine/data/optimization"+std::to_string(this->index)+".csv";
-  this->saveContactForceData(contect_force_fname);
+  this->saveContactForceData(this->finalStand.offset()[0],contect_force_fname);
   // const auto& toe_frame = dairlib::getSpiritToeFrame(plant, toe);
   // std::cout<< "x traj 0.4"<<std::endl;
   // std::cout<< this->x_traj.value(0.4)<<std::endl;

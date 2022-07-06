@@ -18,7 +18,7 @@
 #include "lcm/dircon_saved_trajectory.h"
 #include "examples/Spirit_spine/spirit_jump.h"
 #include "examples/Spirit_spine/spirit_bound.h"
-#include "examples/Spirit_spine/spirit_bounds2s.h"
+#include "examples/Spirit_spine/spirit_bounding_gait.h"
 #include "examples/Spirit_spine/spirit_box_jump.h"
 #include "examples/Spirit_spine/spirit_parkour.h"
 #include "examples/Spirit_spine/spirit_parkour_wall.h"

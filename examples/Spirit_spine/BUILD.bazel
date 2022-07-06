@@ -113,9 +113,9 @@ cc_library(
 )
 
 cc_library(
-    name = "spirit_bounds2s",
-    srcs = ["spirit_bounds2s.cc"],
-    hdrs = ["spirit_bounds2s.h"],
+    name = "spirit_bounding_gait",
+    srcs = ["spirit_bounding_gait.cc"],
+    hdrs = ["spirit_bounding_gait.h"],
     data = ["spirit_with_spine_drake.urdf",
             "spirit_drake.urdf"],
     deps = [
@@ -189,7 +189,7 @@ cc_library(
         ":animate_spirit",
         ":spirit_jump",
         ":spirit_bound",
-        ":spirit_bounds2s",
+        ":spirit_bounding_gait",
         ":spirit_box_jump",
         ":spirit_parkour_jump",
         ":spirit_parkour_wall_jump",
@@ -224,7 +224,7 @@ cc_binary(
         ":animate_spirit",
         ":spirit_jump",
         ":spirit_bound",
-        ":spirit_bounds2s",
+        ":spirit_bounding_gait",
         ":spirit_parkour_wall_jump",
         ":Spirit",
         "//common",

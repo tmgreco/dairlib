@@ -93,7 +93,7 @@
     - 7
     - 7
     - 7
-  apex_height: 0.45
+  apex_height: -1
   initial_height: 0.2
   fore_aft_displacement: 0.3
   lock_rotation: false
@@ -107,7 +107,7 @@
   cost_time: 0
   mu: 1
   eps: 1e-2
-  tol: 1e-3
+  tol: 1e-1
   file_name_out: jump_100cm_hq_0
   file_name_in: jump_100cm_hq
 - name: jump_4
@@ -118,7 +118,7 @@
     - 7
     - 7
     - 7
-  apex_height: 0.45
+  apex_height: -1
   initial_height: 0.2
   fore_aft_displacement: 0.35
   lock_rotation: false
@@ -132,7 +132,7 @@
   cost_time: 0
   mu: 1
   eps: 1e-2
-  tol: 1e-3
+  tol: 1e-1
   file_name_out: jump_100cm_hq_1
   file_name_in: jump_100cm_hq_0
 - name: jump_4
@@ -143,7 +143,7 @@
     - 7
     - 7
     - 7
-  apex_height: 0.45
+  apex_height: -1
   initial_height: 0.2
   fore_aft_displacement: 0.4
   lock_rotation: false
@@ -157,7 +157,7 @@
   cost_time: 0
   mu: 1
   eps: 1e-2
-  tol: 1e-3
+  tol: 1e-1
   file_name_out: jump_100cm_hq_2
   file_name_in: jump_100cm_hq_1
 - name: jump_4
@@ -168,7 +168,7 @@
     - 7
     - 7
     - 7
-  apex_height: 0.45
+  apex_height: -1
   initial_height: 0.2
   fore_aft_displacement: 0.45
   lock_rotation: false
@@ -182,7 +182,7 @@
   cost_time: 0
   mu: 1
   eps: 1e-2
-  tol: 1e-3
+  tol: 1e-1
   file_name_out: jump_100cm_hq_3
   file_name_in: jump_100cm_hq_2
 - name: jump_4
@@ -193,7 +193,7 @@
     - 7
     - 7
     - 7
-  apex_height: 0.45
+  apex_height: -1
   initial_height: 0.2
   fore_aft_displacement: 0.4999999999999999
   lock_rotation: false
@@ -207,7 +207,7 @@
   cost_time: 0
   mu: 1
   eps: 1e-2
-  tol: 1e-3
+  tol: 1e-1
   file_name_out: jump_100cm_hq_4
   file_name_in: jump_100cm_hq_3
 - name: jump_4
@@ -218,7 +218,7 @@
     - 7
     - 7
     - 7
-  apex_height: 0.45
+  apex_height: -1
   initial_height: 0.2
   fore_aft_displacement: 0.5499999999999999
   lock_rotation: false
@@ -232,7 +232,7 @@
   cost_time: 0
   mu: 1
   eps: 1e-2
-  tol: 1e-3
+  tol: 1e-1
   file_name_out: jump_100cm_hq_5
   file_name_in: jump_100cm_hq_4
 - name: jump_4
@@ -243,7 +243,7 @@
     - 7
     - 7
     - 7
-  apex_height: 0.45
+  apex_height: -1
   initial_height: 0.2
   fore_aft_displacement: 0.6
   lock_rotation: false
@@ -257,7 +257,7 @@
   cost_time: 0
   mu: 1
   eps: 1e-2
-  tol: 1e-3
+  tol: 1e-1
   file_name_out: jump_100cm_hq_6
   file_name_in: jump_100cm_hq_5
 - name: jump_4
@@ -268,7 +268,7 @@
     - 7
     - 7
     - 7
-  apex_height: 0.45
+  apex_height: -1
   initial_height: 0.2
   fore_aft_displacement: 0.65
   lock_rotation: false
@@ -282,7 +282,7 @@
   cost_time: 0
   mu: 1
   eps: 1e-2
-  tol: 1e-3
+  tol: 1e-1
   file_name_out: jump_100cm_hq_7
   file_name_in: jump_100cm_hq_6
 - name: jump_4
@@ -293,7 +293,7 @@
     - 7
     - 7
     - 7
-  apex_height: 0.45
+  apex_height: -1
   initial_height: 0.2
   fore_aft_displacement: 0.7000000000000001
   lock_rotation: false
@@ -307,7 +307,7 @@
   cost_time: 0
   mu: 1
   eps: 1e-2
-  tol: 1e-3
+  tol: 1e-1
   file_name_out: jump_100cm_hq_8
   file_name_in: jump_100cm_hq_7
 - name: jump_4
@@ -318,7 +318,7 @@
     - 7
     - 7
     - 7
-  apex_height: 0.45
+  apex_height: -1
   initial_height: 0.2
   fore_aft_displacement: 0.7500000000000001
   lock_rotation: false
@@ -332,7 +332,7 @@
   cost_time: 0
   mu: 1
   eps: 1e-2
-  tol: 1e-3
+  tol: 1e-1
   file_name_out: jump_100cm_hq_9
   file_name_in: jump_100cm_hq_8
 - name: jump_4
@@ -343,7 +343,7 @@
     - 7
     - 7
     - 7
-  apex_height: 0.45
+  apex_height: -1
   initial_height: 0.2
   fore_aft_displacement: 0.8000000000000002
   lock_rotation: false
@@ -357,7 +357,7 @@
   cost_time: 0
   mu: 1
   eps: 1e-2
-  tol: 1e-3
+  tol: 1e-1
   file_name_out: jump_100cm_hq_10
   file_name_in: jump_100cm_hq_9
 - name: jump_4
@@ -368,7 +368,7 @@
     - 7
     - 7
     - 7
-  apex_height: 0.45
+  apex_height: -1
   initial_height: 0.2
   fore_aft_displacement: 0.8500000000000002
   lock_rotation: false
@@ -382,7 +382,7 @@
   cost_time: 0
   mu: 1
   eps: 1e-2
-  tol: 1e-3
+  tol: 1e-1
   file_name_out: jump_100cm_hq_11
   file_name_in: jump_100cm_hq_10
 - name: jump_4
@@ -393,7 +393,7 @@
     - 7
     - 7
     - 7
-  apex_height: 0.45
+  apex_height: -1
   initial_height: 0.2
   fore_aft_displacement: 0.9000000000000002
   lock_rotation: false
@@ -407,7 +407,7 @@
   cost_time: 0
   mu: 1
   eps: 1e-2
-  tol: 1e-3
+  tol: 1e-1
   file_name_out: jump_100cm_hq_12
   file_name_in: jump_100cm_hq_11
 - name: jump_4
@@ -418,7 +418,7 @@
     - 7
     - 7
     - 7
-  apex_height: 0.45
+  apex_height: -1
   initial_height: 0.2
   fore_aft_displacement: 0.9500000000000003
   lock_rotation: false
@@ -432,7 +432,7 @@
   cost_time: 0
   mu: 1
   eps: 1e-2
-  tol: 1e-3
+  tol: 1e-1
   file_name_out: jump_100cm_hq_13
   file_name_in: jump_100cm_hq_12
 - name: jump_4
@@ -443,7 +443,7 @@
     - 7
     - 7
     - 7
-  apex_height: 0.45
+  apex_height: -1
   initial_height: 0.2
   fore_aft_displacement: 1
   lock_rotation: false
@@ -457,7 +457,7 @@
   cost_time: 0
   mu: 1
   eps: 1e-2
-  tol: 1e-3
+  tol: 1e-1
   file_name_out: jump_100cm_hq_14
   file_name_in: jump_100cm_hq_13
 - name: jump_4
@@ -468,7 +468,7 @@
     - 7
     - 7
     - 7
-  apex_height: 0.45
+  apex_height: -1
   initial_height: 0.2
   fore_aft_displacement: 1.05
   lock_rotation: false
@@ -482,7 +482,7 @@
   cost_time: 0
   mu: 1
   eps: 1e-2
-  tol: 1e-3
+  tol: 1e-1
   file_name_out: jump_100cm_hq_15
   file_name_in: jump_100cm_hq_14
 - name: jump_4
@@ -493,7 +493,7 @@
     - 7
     - 7
     - 7
-  apex_height: 0.45
+  apex_height: -1
   initial_height: 0.2
   fore_aft_displacement: 1.1
   lock_rotation: false
@@ -507,7 +507,7 @@
   cost_time: 0
   mu: 1
   eps: 1e-2
-  tol: 1e-3
+  tol: 1e-1
   file_name_out: jump_100cm_hq_16
   file_name_in: jump_100cm_hq_15
 - name: jump_4
@@ -518,7 +518,7 @@
     - 7
     - 7
     - 7
-  apex_height: 0.45
+  apex_height: -1
   initial_height: 0.2
   fore_aft_displacement: 1.15
   lock_rotation: false
@@ -532,7 +532,7 @@
   cost_time: 0
   mu: 1
   eps: 1e-2
-  tol: 1e-3
+  tol: 1e-1
   file_name_out: jump_100cm_hq_17
   file_name_in: jump_100cm_hq_16
 - name: jump_4
@@ -543,7 +543,7 @@
     - 7
     - 7
     - 7
-  apex_height: 0.45
+  apex_height: -1
   initial_height: 0.2
   fore_aft_displacement: 1.2
   lock_rotation: false
@@ -557,7 +557,7 @@
   cost_time: 0
   mu: 1
   eps: 1e-2
-  tol: 1e-3
+  tol: 1e-1
   file_name_out: jump_100cm_hq_18
   file_name_in: jump_100cm_hq_17
 - name: jump_4
@@ -568,7 +568,7 @@
     - 7
     - 7
     - 7
-  apex_height: 0.45
+  apex_height: -1
   initial_height: 0.2
   fore_aft_displacement: 1.25
   lock_rotation: false
@@ -582,7 +582,7 @@
   cost_time: 0
   mu: 1
   eps: 1e-2
-  tol: 1e-3
+  tol: 1e-1
   file_name_out: jump_100cm_hq_19
   file_name_in: jump_100cm_hq_18
 - name: jump_4
@@ -593,7 +593,7 @@
     - 7
     - 7
     - 7
-  apex_height: 0.45
+  apex_height: -1
   initial_height: 0.2
   fore_aft_displacement: 1.3
   lock_rotation: false
@@ -607,7 +607,7 @@
   cost_time: 0
   mu: 1
   eps: 1e-2
-  tol: 1e-3
+  tol: 1e-1
   file_name_out: jump_100cm_hq_20
   file_name_in: jump_100cm_hq_19
 - name: jump_4
@@ -618,7 +618,7 @@
     - 7
     - 7
     - 7
-  apex_height: 0.45
+  apex_height: -1
   initial_height: 0.2
   fore_aft_displacement: 1.350000000000001
   lock_rotation: false
@@ -632,7 +632,7 @@
   cost_time: 0
   mu: 1
   eps: 1e-2
-  tol: 1e-3
+  tol: 1e-1
   file_name_out: jump_100cm_hq_21
   file_name_in: jump_100cm_hq_20
 - name: jump_4
@@ -643,7 +643,7 @@
     - 7
     - 7
     - 7
-  apex_height: 0.45
+  apex_height: -1
   initial_height: 0.2
   fore_aft_displacement: 1.400000000000001
   lock_rotation: false
@@ -657,7 +657,7 @@
   cost_time: 0
   mu: 1
   eps: 1e-2
-  tol: 1e-3
+  tol: 1e-1
   file_name_out: jump_100cm_hq_22
   file_name_in: jump_100cm_hq_21
 - name: jump_4
@@ -668,7 +668,7 @@
     - 7
     - 7
     - 7
-  apex_height: 0.45
+  apex_height: -1
   initial_height: 0.2
   fore_aft_displacement: 1.450000000000001
   lock_rotation: false
@@ -682,6 +682,6 @@
   cost_time: 0
   mu: 1
   eps: 1e-2
-  tol: 1e-3
+  tol: 1e-1
   file_name_out: jump_100cm_hq_work_option3
   file_name_in: jump_100cm_hq_22

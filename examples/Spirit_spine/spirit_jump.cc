@@ -92,7 +92,7 @@ void SpiritJump<Y>::generateInitialGuess(MultibodyPlant<Y>& plant){
   dairlib::nominalSpiritStand( plant, xInit,  0.16); //Update xInit
   dairlib::nominalSpiritStand( plant, xMid,  0.35); //Update xMid
 
-  xMid(positions_map.at("base_z"))=apex_height;
+  if (apex_height>0) xMid(positions_map.at("base_z"))=apex_height;
 
   VectorXd deltaX(nx);
   VectorXd averageV(nx);
@@ -254,6 +254,7 @@ void SpiritJump<Y>::addConstraints(
 
   // Apex body positions conditions
   trajopt.AddBoundingBoxConstraint(-eps, eps, xapex(positions_map.at("base_y")));
+  trajopt.AddBoundingBoxConstraint(- eps, + eps, xapex(n_q + velocities_map.at("base_vz")) );
   // trajopt.AddBoundingBoxConstraint(-eps, eps, xapex(positions_map.at("joint_12")));
   // Apex height
   if(apex_height > 0)
@@ -320,7 +321,6 @@ void SpiritJump<Y>::addConstraints(
     if (lock_rotation and i != 0 and i != (trajopt.N()-1)) this->addPoseConstraints(trajopt,xi,positions_map,0,0,0,1,eps);
     // Height
     trajopt.AddBoundingBoxConstraint( 0.15, 5, xi( positions_map.at("base_z")));
-    // trajopt.AddBoundingBoxConstraint(0, 0, xi(positions_map.at("joint_12")));
   }
 }
 
@@ -382,7 +382,19 @@ void SpiritJump<Y>::run(MultibodyPlant<Y>& plant,
     trajopt.SetSolverOption(solver_id, "dual_inf_tol", this->tol*100);
     trajopt.SetSolverOption(solver_id, "constr_viol_tol", this->tol);
     trajopt.SetSolverOption(solver_id, "compl_inf_tol", this->tol);
-    trajopt.SetSolverOption(solver_id, "max_iter", 10000);
+    trajopt.SetSolverOption(solver_id, "max_iter", 2000);
+    trajopt.SetSolverOption(solver_id, "nlp_lower_bound_inf", -1e6);
+    trajopt.SetSolverOption(solver_id, "nlp_upper_bound_inf", 1e6);
+    trajopt.SetSolverOption(solver_id, "print_timing_statistics", "yes");
+    trajopt.SetSolverOption(solver_id, "print_level", 5);
+
+    // Set to ignore overall tolerance/dual infeasibility, but terminate when
+    // primal feasible and objective fails to increase over 5 iterations.
+    trajopt.SetSolverOption(solver_id, "acceptable_compl_inf_tol", this->tol);
+    trajopt.SetSolverOption(solver_id, "acceptable_constr_viol_tol", this->tol);
+    trajopt.SetSolverOption(solver_id, "acceptable_obj_change_tol", this->tol);
+    trajopt.SetSolverOption(solver_id, "acceptable_tol", this->tol * 10);
+    trajopt.SetSolverOption(solver_id, "acceptable_iter", 5);
     std::cout << "\nChose manually: " << solver_id.name() << std::endl;
   } else {
     solver_id = drake::solvers::ChooseBestSolver(trajopt);
@@ -401,26 +413,24 @@ void SpiritJump<Y>::run(MultibodyPlant<Y>& plant,
   
   std::cout << (result.is_success() ? "Optimization Success" : "Optimization Fail") << std::endl;
 
+  // If the optimization failed, recover by imposing and relaxing the constraints again
+  
   /// Save trajectory
   this->saveTrajectory(plant,trajopt,result);
 
   // Writing contact force data
   std::string contect_force_fname="/home/feng/Downloads/dairlib/examples/Spirit_spine/data/test"+std::to_string(this->index)+".csv";
-  this->saveContactForceData(contect_force_fname);
+  this->saveContactForceData(this->fore_aft_displacement,contect_force_fname);
   
 
-  auto context = plant.CreateDefaultContext();
-  Eigen::VectorXd q_s=this->x_traj.value(0.4);
-  plant.SetPositionsAndVelocities(context.get(),q_s);
-  const auto& toe_frame = dairlib::getSpiritToeFrame(plant, 1);
-  std::cout<<"!!!!!!!!!!!"<<toe_frame.is_body_frame()<<std::endl;
+  // auto context = plant.CreateDefaultContext();
+  // Eigen::VectorXd q_s=this->x_traj.value(0.4);
+  // plant.SetPositionsAndVelocities(context.get(),q_s);
+  // const auto& toe_frame = dairlib::getSpiritToeFrame(plant, 1);
+  // std::cout<<"!!!!!!!!!!!"<<toe_frame.is_body_frame()<<std::endl;
   
-  std::cout<<toe_frame.CalcRotationMatrixInWorld(*context).matrix()<<std::endl;
-  // const RigidTransformd X_WA = toe_frame.CalcPoseInWorld(*context);
-  // for (int i=0;i<4;i++) {
-  //   std::cout << "lambda pp "<<i<<" at 0.1s\n"<< this->l_traj[i].value(0.1) << std::endl;
-  //   std::cout << "lambda time mode "<<i<<" start: "<< this->l_traj[i].start_time()<<" end: "<< this->l_traj[i].end_time()<<std::endl;
-  // }
+  // std::cout<<toe_frame.CalcRotationMatrixInWorld(*context).matrix()<<std::endl;
+
   
 
   /// pass the final trajectory back to spirit for animation

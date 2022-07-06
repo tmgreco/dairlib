@@ -1,7 +1,7 @@
 #include "examples/Spirit_spine/Spirit.h"
 #include "examples/Spirit_spine/spirit_jump.h"
 #include "examples/Spirit_spine/spirit_bound.h"
-#include "examples/Spirit_spine/spirit_bounds2s.h"
+#include "examples/Spirit_spine/spirit_bounding_gait.h"
 #include "examples/Spirit_spine/spirit_box_jump.h"
 #include "examples/Spirit_spine/spirit_parkour.h"
 #include "examples/Spirit_spine/spirit_parkour_wall.h"
@@ -144,7 +144,7 @@ void Spirit<B,T>::run(){
 }
 template class Spirit<dairlib::SpiritJump,double>;
 template class Spirit<dairlib::SpiritBound,double>;
-template class Spirit<dairlib::SpiritBoundS2s,double>;
+template class Spirit<dairlib::SpiritBoundingGait,double>;
 template class Spirit<dairlib::SpiritBoxJump,double>;
 template class Spirit<dairlib::SpiritParkourJump,double>;
 template class Spirit<dairlib::SpiritParkourWallPronk,double>;

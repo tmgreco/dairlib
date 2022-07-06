@@ -90,6 +90,8 @@ namespace dairlib {
         std::string urdf_path;
         std::string spine_type;
     protected:
+        double mechanical_work;
+
         int index;
         std::vector<int> num_knot_points; //!< Sequence of #knot points for each mode
         double mu; //!< Coefficient of friction
@@ -272,16 +274,19 @@ namespace dairlib {
                 this->l_traj  = trajopt.ReconstructLambdaTrajectory(result);
             }
             auto x_trajs = trajopt.ReconstructDiscontinuousStateTrajectory(result);
+            mechanical_work=dairlib::calcMechanicalWork(plant, x_trajs, this->u_traj);
             std::cout<<"Electrical Work = " << dairlib::calcElectricalWork(plant, x_trajs, this->u_traj) << std::endl;
-            std::cout<<"Mechanical Work = " << dairlib::calcMechanicalWork(plant, x_trajs, this->u_traj) << std::endl;
+            std::cout<<"Mechanical Work = " <<  mechanical_work<< std::endl;
             //  double cost_work_acceleration = solvers::EvalCostGivenSolution(
             //      result, cost_joint_work_bindings);
             //  std::cout<<"Cost Work = " << cost_work_acceleration << std::endl;
         }
 
-        void saveContactForceData(std::string file_path){
+        void saveContactForceData(double param, std::string file_path){
             std::ofstream myfile; // 
             myfile.open(file_path);
+            myfile << param << "," << mechanical_work << "\n";
+
             Y traj_end_time=this->l_traj[this->mode_vector.size()-1].end_time();
             for (Y current_time=0;current_time<traj_end_time;current_time+=0.01){
                 int mode=-1;
