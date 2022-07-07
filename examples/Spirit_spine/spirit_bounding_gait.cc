@@ -58,7 +58,7 @@ void SpiritBoundingGait<Y>::generateInitialGuess(MultibodyPlant<Y>& plant){
   double pitch_lo = -0.1;
   double apex_height = this->apex_height;
   double duration = 0.2;
-std::vector<MatrixXd> x_points;
+  std::vector<MatrixXd> x_points;
   VectorXd x_const;
 
   
@@ -577,6 +577,24 @@ void SpiritBoundingGait<Y>::run(MultibodyPlant<Y>& plant,
 
   /// Run animation of the final trajectory
   *pp_xtraj =trajopt.ReconstructStateTrajectory(result);
+  /// Create offset polynomial
+  std::vector<double> breaks=pp_xtraj->get_breaks();
+  std::vector<Eigen::MatrixXd> samples(breaks.size());
+  for (int i = 0; i < static_cast<int>(breaks.size()); ++i) {
+    samples[i].resize(39, 1);
+    for (int j=0;j<39;j++) samples[i](j, 0) = 0;
+    samples[i](4, 0) = pp_xtraj->value(pp_xtraj->end_time())(4,0);
+  }
+  PiecewisePolynomial<double> ini_offset_pp = PiecewisePolynomial<double>::FirstOrderHold(breaks, samples);
+  PiecewisePolynomial<double> offset_pp=ini_offset_pp;
+  
+  for (int i=0;i<10;i++){
+    PiecewisePolynomial<Y> x_traj_i=trajopt.ReconstructStateTrajectory(result)+offset_pp;
+    offset_pp+=ini_offset_pp;
+    x_traj_i.shiftRight(pp_xtraj->end_time());
+    pp_xtraj->ConcatenateInTime(x_traj_i);
+  }
+  // }
 }
 
 template class SpiritBoundingGait<double>;

@@ -411,8 +411,8 @@ void SpiritJump<Y>::run(MultibodyPlant<Y>& plant,
   std::cout << "Solve time: " << elapsed.count() <<std::endl;
   std::cout << "Cost: " << result.get_optimal_cost() <<std::endl;
   
-  std::cout << (result.is_success() ? "Optimization Success" : "Optimization Fail") << std::endl;
-
+  std::cout << (result.is_success() ? "Optimization Success" : "Optimization Fail. Running again") << std::endl;
+  
   // If the optimization failed, recover by imposing and relaxing the constraints again
   
   /// Save trajectory
@@ -430,11 +430,30 @@ void SpiritJump<Y>::run(MultibodyPlant<Y>& plant,
   // std::cout<<"!!!!!!!!!!!"<<toe_frame.is_body_frame()<<std::endl;
   
   // std::cout<<toe_frame.CalcRotationMatrixInWorld(*context).matrix()<<std::endl;
-
+  if (!result.is_success() || result.get_optimal_cost()>20000){
+    this-> lock_legs_apex=true;
+    this->run(plant,pp_xtraj,surface_vector);
+    this-> lock_legs_apex=false;
+  }
   
 
   /// pass the final trajectory back to spirit for animation
   *pp_xtraj =trajopt.ReconstructStateTrajectory(result);
+  
+
+  // std::vector<MatrixXd> x_points;
+  // VectorXd x_const;
+
+  // dairlib::ikSpiritStand(plant, x_const, {false, false, false, false}, apex_height, 0.2, 0, 0);
+  // x_points.push_back(x_const);
+  // dairlib::ikSpiritStand(plant, x_const, {true, false, true, false}, stand_height+0.05, 0.2, 0, -pitch_lo);
+  // x_points.push_back(x_const);
+
+  // this->x_traj.push_back(PiecewisePolynomial<double>::FirstOrderHold({0 * duration/3.0, 1 * duration/3.0},x_points));
+  // x_points.clear();
+  
+
+  
 }
 
 template class SpiritJump<double>;

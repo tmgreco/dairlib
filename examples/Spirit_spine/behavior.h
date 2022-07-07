@@ -285,8 +285,8 @@ namespace dairlib {
         void saveContactForceData(double param, std::string file_path){
             std::ofstream myfile; // 
             myfile.open(file_path);
-            myfile << param << "," << mechanical_work << "\n";
-
+            myfile << "fore aft displacement,"<<param << ",Mechanical work," << mechanical_work << "\n";
+            myfile<< "Time, Front L ,,, Front R ,,, Back L ,,, Back R ,,,, x, y, z, vx, vy, vz, \n";
             Y traj_end_time=this->l_traj[this->mode_vector.size()-1].end_time();
             for (Y current_time=0;current_time<traj_end_time;current_time+=0.01){
                 int mode=-1;
@@ -319,11 +319,10 @@ namespace dairlib {
                             for (int k=0;k<3;k++) myfile << 0 << ",";
                         }
                     }
-                    // for (int i = 0; i < l_traj[mode].value(current_time).rows(); i++) {
-                    //     myfile << this->l_traj[mode].value(current_time)(i,0) << ",";
-                    // }
-                    // std::cout<<"Mode: "<< mode<<"time: "<< current_time<<" "<<this->l_traj[mode].value(current_time)<<std::endl;
                 }
+                myfile<<",";
+                for (int i=4;i<7;i++) myfile << this->x_traj.value(current_time)(i,0) << ",";
+                for (int i=3;i<6;i++) myfile << this->x_traj.value(current_time)(20+i,0) << ",";
                 myfile <<"\n";
             }
             myfile.close(); // <- note this correction!!

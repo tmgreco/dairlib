@@ -226,8 +226,8 @@
     - 7
     - 7
   initial_height: 0.2
-  pitch_magnitude_lo: 0.3
-  pitch_magnitude_apex: 0.05
+  pitch_magnitude_lo: 0.6
+  pitch_magnitude_apex: 0.6
   lock_spine: true
   apex_height: -1
   speed: 3
@@ -241,6 +241,6 @@
   cost_work: 100 
   mu: 1
   eps: 1e-2
-  tol: 1e-3
+  tol: 1e-2
   file_name_out: bounding_gait8
   file_name_in: bounding_gait7
