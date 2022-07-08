@@ -122,7 +122,7 @@ void Spirit<B,T>::animate(){
   auto diagram = builder.Build();
   while (1) {
     drake::systems::Simulator<double> simulator(*diagram);
-    simulator.set_target_realtime_rate(0.25);
+    simulator.set_target_realtime_rate(1);
     simulator.Initialize();
     simulator.AdvanceTo(pp_xtraj.end_time());
     sleep(2);

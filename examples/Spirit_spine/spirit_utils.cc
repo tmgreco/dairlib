@@ -823,6 +823,59 @@ std::vector<drake::solvers::Binding<drake::solvers::Cost>> AddWorkCost(drake::mu
   } // Joint loop
   return cost_joint_work_bindings;
 }
+template <typename T>
+std::vector<drake::solvers::Binding<drake::solvers::Cost>> AddPowerCost(drake::multibody::MultibodyPlant<T> & plant,
+                 dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,
+                 double cost_power_gain){
+  std::vector<drake::solvers::Binding<drake::solvers::Cost>> cost_joint_power_bindings;
+  int n_q = plant.num_positions();
+
+  auto velocities_map = multibody::makeNameToVelocitiesMap(plant);
+  auto actuator_map = multibody::makeNameToActuatorsMap(plant);
+  double Q = 0;
+  // // Calculate total time ht
+  // auto ht = trajopt.timestep(trajopt.get_mode_start(0) + 0);
+  // for (int mode_index = 0; mode_index < trajopt.num_modes(); mode_index++) {
+  //   for (int knot_index = 0; knot_index < trajopt.mode_length(mode_index)-1; knot_index++){
+  //     ht +=trajopt.timestep(trajopt.get_mode_start(mode_index) + knot_index);
+  //   }
+  // }
+  // ht -= trajopt.timestep(trajopt.get_mode_start(0) + 0);
+  // Loop through each joint
+  for (int joint = 0; joint < plant.num_actuators(); joint++) {
+    if(joint == 1 or joint == 3 or joint == 5 or joint == 7)
+      Q = Q_knee;
+    else
+      Q = Q_not_knee;
+    auto joint_power_cost = std::make_shared<JointPowerCost>(plant, trajopt, Q, cost_power_gain,4);
+    int act_int = actuator_map.at("motor_" + std::to_string(joint));
+    int vel_int = n_q + velocities_map.at("joint_" + std::to_string(joint) +"dot");
+    // Loop through each mode
+    for (int mode_index = 0; mode_index < trajopt.num_modes(); mode_index++) {
+      for (int knot_index = 0; knot_index < trajopt.mode_length(mode_index)-1; knot_index++) {
+        auto u_i = trajopt.input(trajopt.get_mode_start(mode_index) + knot_index)(act_int);
+        auto x_i   = trajopt.state_vars(mode_index, knot_index)(vel_int);
+        auto u_ip = trajopt.input(trajopt.get_mode_start(mode_index) + knot_index+1)(act_int);
+        auto x_ip   = trajopt.state_vars(mode_index, knot_index+1)(vel_int);
+
+        auto hi = trajopt.timestep(trajopt.get_mode_start(mode_index) + knot_index);
+        auto ht = trajopt.time();
+        drake::solvers::VectorXDecisionVariable variables(trajopt.N()+3);
+        variables(0) = u_i;
+        variables(1) = u_ip;
+        variables(2) = x_i;
+        variables(3) = x_ip;
+        joint_power_cost->SetHIndex(trajopt.get_mode_start(mode_index) + knot_index);
+        for (int i=0;i<trajopt.N()-1;i++){
+          variables((4+i))=trajopt.timestep(i)[0];
+        }
+        cost_joint_power_bindings.push_back(trajopt.AddCost(joint_power_cost, variables));
+      } // knot point loop
+    } // Mode loop
+  } // Joint loop
+  return cost_joint_power_bindings;
+}
+
 
 JointWorkCost::JointWorkCost(const drake::multibody::MultibodyPlant<double>& plant,
                              const double &Q,
@@ -866,6 +919,47 @@ double work_up = cost_work_ * abs(u_ip * v_ip + Q_ * u_ip * u_ip);
 drake::VectorX<double> rv(1);
 rv[0] = 1/2.0 * h_i *(work_low + work_up);
 (*y) = rv;
+};
+
+
+JointPowerCost::JointPowerCost(const drake::multibody::MultibodyPlant<double>& plant,
+                            dairlib::systems::trajectory_optimization::Dircon<double>& trajopt,
+                             const double &Q,
+                             const double &cost_work,
+                             const double &alpha,
+                             const std::string &description)
+    :solvers::NonlinearCost<double>(3+trajopt.N(),description), plant_(plant){
+  N_=trajopt.N();
+  Q_ = Q;
+  cost_work_ = cost_work;
+  alpha_ = alpha;
+  n_q_ = plant_.num_positions();
+  n_v_ = plant_.num_velocities();
+  n_u_ = plant_.num_actuators();
+  DRAKE_DEMAND(alpha_ > 0);
+}
+
+void JointPowerCost::EvaluateCost(const Eigen::Ref<const drake::VectorX<double>> &x,
+                  drake::VectorX<double> *y) const{
+  double u_i = x(0);
+  double u_ip = x(1);
+  double v_i = x(2);
+  double v_ip = x(3);
+
+  double h_i = x(h_index_);
+  double ht = 0;
+  for (int i =0;i<N_-1;i++){
+    ht+=x(i+4);
+  }
+  // double work_low = cost_work_ * relu_smooth(u_i * v_i + Q_ * u_i * u_i);
+  // double work_up = cost_work_ * relu_smooth(u_ip * v_ip + Q_ * u_ip * u_ip);
+  double work_low = cost_work_ * abs(u_i * v_i + Q_ * u_i * u_i);
+  double work_up = cost_work_ * abs(u_ip * v_ip + Q_ * u_ip * u_ip);
+
+  drake::VectorX<double> rv(1);
+  // rv[0] = 1/2.0 * h_i/ht *(work_low + work_up);
+  rv[0] = 1/2.0 * h_i/ht *(work_low + work_up);
+  (*y) = rv;
 };
 
 double positivePart(double x){
@@ -1066,6 +1160,10 @@ template double calcTorqueInt(
     drake::trajectories::PiecewisePolynomial<double>& u_traj);
 
 template std::vector<drake::solvers::Binding<drake::solvers::Cost>> AddWorkCost(drake::multibody::MultibodyPlant<double> & plant,
+                 dairlib::systems::trajectory_optimization::Dircon<double>& trajopt,
+                 double cost_work_gain);
+
+template std::vector<drake::solvers::Binding<drake::solvers::Cost>> AddPowerCost(drake::multibody::MultibodyPlant<double> & plant,
                  dairlib::systems::trajectory_optimization::Dircon<double>& trajopt,
                  double cost_work_gain);
 

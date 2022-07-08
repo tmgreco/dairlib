@@ -23,7 +23,7 @@ SpiritBoundingGait<Y>::SpiritBoundingGait(){
 template <class Y>
 void SpiritBoundingGait<Y>::config(std::string yaml_path, std::string saved_directory, int index,MultibodyPlant<Y>* plant){
   YAML::Node config = YAML::LoadFile(yaml_path);
-
+  this->index=index;
   this->ipopt=config[index]["ipopt"].as<bool>();
   this->num_knot_points=config[index]["num_knot_points"].as<std::vector<int>>();
   this->initial_height=config[index]["initial_height"].as<double>();
@@ -323,7 +323,7 @@ std::vector<drake::solvers::Binding<drake::solvers::Cost>> SpiritBoundingGait<Y>
   addCostLegs(plant, trajopt, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}, 3);
   addCostLegs(plant, trajopt,  {2, 3, 6, 7, 10, 11}, 4);
 
-  return AddWorkCost(plant, trajopt, this->cost_work);
+  return AddPowerCost(plant, trajopt, this->cost_work);
 }
 /// Adds constraints to the trajopt bound problem
 /// \param plant robot model
@@ -348,7 +348,7 @@ void SpiritBoundingGait<Y>::addConstraints(
   auto x0  = trajopt.initial_state();
   auto xtd = trajopt.state_vars(1,0);
   auto xapex  = trajopt.state_vars(3,0) ;
-  auto xlo  =  trajopt.state_vars(5,0);
+  auto xlo  =  trajopt.state_vars(4,0);
   auto xf  = trajopt.final_state();
 
 
@@ -365,9 +365,9 @@ void SpiritBoundingGait<Y>::addConstraints(
   trajopt.AddBoundingBoxConstraint(-eps, eps, x0(plant.num_positions()+velocities_map.at("base_vz")));
 
   // Limit magnitude of pitch
-  trajopt.AddBoundingBoxConstraint(cos(pitch_magnitude_apex/2.0), 1, x0(positions_map.at("base_qw")));
+  trajopt.AddBoundingBoxConstraint(cos(this->pitch_magnitude_apex/2.0), 1, x0(positions_map.at("base_qw")));
   trajopt.AddBoundingBoxConstraint(-eps, eps, x0(positions_map.at("base_qx")));
-  trajopt.AddBoundingBoxConstraint(-sin(pitch_magnitude_apex/2.0) , sin(pitch_magnitude_apex/2.0), x0(positions_map.at("base_qy")));
+  trajopt.AddBoundingBoxConstraint(-sin(this->pitch_magnitude_apex/2.0) , sin(this->pitch_magnitude_apex/2.0), x0(positions_map.at("base_qy")));
   trajopt.AddBoundingBoxConstraint(-eps, eps, x0(positions_map.at("base_qz")));
 
 
@@ -418,8 +418,8 @@ void SpiritBoundingGait<Y>::addConstraints(
   trajopt.AddBoundingBoxConstraint(-eps, eps, xapex(positions_map.at("base_qz")));
   // Velocity
   trajopt.AddBoundingBoxConstraint(-eps, eps, xapex(plant.num_positions()+velocities_map.at("base_vz")));
-  // Apex height
-  if (apex_height>0) trajopt.AddBoundingBoxConstraint(apex_height-eps,apex_height+ eps, xapex(positions_map.at("base_z")));
+  // // Apex height
+  // if (apex_height>0) trajopt.AddBoundingBoxConstraint(apex_height-eps,apex_height+ eps, xapex(positions_map.at("base_z")));
 
 
   /// LO constraints
@@ -455,10 +455,10 @@ void SpiritBoundingGait<Y>::setUpModeSequence(){
   this->maxT_vector.clear();
   //                          mode name   normal                  world offset            minT  maxT
   this->addModeToSequenceVector("flight",Eigen::Vector3d::UnitZ(),Eigen::Vector3d::Zero(),0.04, 0.5);
-  this->addModeToSequenceVector("front_stance",Eigen::Vector3d::UnitZ(),Eigen::Vector3d::Zero(),0.15, 1);
+  this->addModeToSequenceVector("front_stance",Eigen::Vector3d::UnitZ(),Eigen::Vector3d::Zero(),0.02, 1);
   this->addModeToSequenceVector("flight",Eigen::Vector3d::UnitZ(),Eigen::Vector3d::Zero(),0.04, 1);
   this->addModeToSequenceVector("flight",Eigen::Vector3d::UnitZ(),Eigen::Vector3d::Zero(),0.04, 1);
-  this->addModeToSequenceVector("rear_stance",Eigen::Vector3d::UnitZ(),Eigen::Vector3d::Zero(),0.15, 1);
+  this->addModeToSequenceVector("rear_stance",Eigen::Vector3d::UnitZ(),Eigen::Vector3d::Zero(),0.02, 1);
   this->addModeToSequenceVector("flight",Eigen::Vector3d::UnitZ(),Eigen::Vector3d::Zero(),0.04, 0.1);
 }
 
@@ -565,7 +565,10 @@ void SpiritBoundingGait<Y>::run(MultibodyPlant<Y>& plant,
   std::cout << (result.is_success() ? "Optimization Success" : "Optimization Fail") << std::endl;
   /// Save trajectory
   this->saveTrajectory(plant,trajopt,result);
-
+  // Writing contact force data
+  // std::string contect_force_fname="/home/feng/Downloads/dairlib/examples/Spirit_spine/data/bounding_gait/test"+std::to_string(this->index)+".csv";
+  // this->saveContactForceData(this->speed,contect_force_fname);
+  
   // auto x_trajs = trajopt.ReconstructDiscontinuousStateTrajectory(result);
   // std::cout<<"Work = " << dairlib::calcElectricalWork(plant, x_trajs, this->u_traj) << std::endl;
 
@@ -587,13 +590,14 @@ void SpiritBoundingGait<Y>::run(MultibodyPlant<Y>& plant,
   }
   PiecewisePolynomial<double> ini_offset_pp = PiecewisePolynomial<double>::FirstOrderHold(breaks, samples);
   PiecewisePolynomial<double> offset_pp=ini_offset_pp;
-  
+
   for (int i=0;i<10;i++){
     PiecewisePolynomial<Y> x_traj_i=trajopt.ReconstructStateTrajectory(result)+offset_pp;
     offset_pp+=ini_offset_pp;
     x_traj_i.shiftRight(pp_xtraj->end_time());
     pp_xtraj->ConcatenateInTime(x_traj_i);
   }
+  
   // }
 }
 

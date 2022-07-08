@@ -358,6 +358,14 @@ std::vector<drake::solvers::Binding<drake::solvers::Cost>> AddWorkCost(drake::mu
                  dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,
                  double cost_work_gain);
 
+/// Adds a cost on the integral of electrical power
+///     @param plant, the robot model
+///     @param trajopt the dircon object
+///     @param cost_work_gain, the gain on the electrical work
+template <typename T>
+std::vector<drake::solvers::Binding<drake::solvers::Cost>> AddPowerCost(drake::multibody::MultibodyPlant<T> & plant,
+                 dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,
+                 double cost_work_gain);
 
 /// JointWorkCost object for adding smooth relu without slack variables to cost
 class JointWorkCost : public solvers::NonlinearCost<double> {
@@ -380,6 +388,32 @@ class JointWorkCost : public solvers::NonlinearCost<double> {
   int n_q_;
   int n_v_;
   int n_u_;
+};
+
+class JointPowerCost : public solvers::NonlinearCost<double> {
+ public:
+  JointPowerCost(const drake::multibody::MultibodyPlant<double>& plant,
+                dairlib::systems::trajectory_optimization::Dircon<double>& trajopt,
+                const double &Q,
+                const double &cost_work,
+                const double &alpha,
+                const std::string &description = "");
+  void SetHIndex(int i){
+    h_index_=i;
+  };
+ private:
+  /// Smooth relu
+  void EvaluateCost(const Eigen::Ref<const drake::VectorX<double>> &x,
+                    drake::VectorX<double> *y) const override;
+  const drake::multibody::MultibodyPlant<double>& plant_;
+  double Q_; /// Gain on actuation squared
+  double cost_work_;
+  double alpha_; /// Gain on smoothing for relu, higher is less smooth
+  int n_q_;
+  int n_v_;
+  int n_u_;
+  int h_index_;
+  int N_;
 };
 
 double positivePart(double x);
