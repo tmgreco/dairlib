@@ -274,7 +274,7 @@ namespace dairlib {
                 this->l_traj  = trajopt.ReconstructLambdaTrajectory(result);
             }
             auto x_trajs = trajopt.ReconstructDiscontinuousStateTrajectory(result);
-            mechanical_work=dairlib::calcMechanicalWork(plant, x_trajs, this->u_traj);
+            mechanical_work=dairlib::calcMechanicalWork(plant, x_trajs, this->u_traj)/this->u_traj.end_time();
             std::cout<<"Electrical Work = " << dairlib::calcElectricalWork(plant, x_trajs, this->u_traj) << std::endl;
             std::cout<<"Mechanical Work = " <<  mechanical_work<< std::endl;
             //  double cost_work_acceleration = solvers::EvalCostGivenSolution(
