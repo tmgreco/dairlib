@@ -833,14 +833,6 @@ std::vector<drake::solvers::Binding<drake::solvers::Cost>> AddPowerCost(drake::m
   auto velocities_map = multibody::makeNameToVelocitiesMap(plant);
   auto actuator_map = multibody::makeNameToActuatorsMap(plant);
   double Q = 0;
-  // // Calculate total time ht
-  // auto ht = trajopt.timestep(trajopt.get_mode_start(0) + 0);
-  // for (int mode_index = 0; mode_index < trajopt.num_modes(); mode_index++) {
-  //   for (int knot_index = 0; knot_index < trajopt.mode_length(mode_index)-1; knot_index++){
-  //     ht +=trajopt.timestep(trajopt.get_mode_start(mode_index) + knot_index);
-  //   }
-  // }
-  // ht -= trajopt.timestep(trajopt.get_mode_start(0) + 0);
   // Loop through each joint
   for (int joint = 0; joint < plant.num_actuators(); joint++) {
     if(joint == 1 or joint == 3 or joint == 5 or joint == 7)
@@ -859,7 +851,6 @@ std::vector<drake::solvers::Binding<drake::solvers::Cost>> AddPowerCost(drake::m
         auto x_ip   = trajopt.state_vars(mode_index, knot_index+1)(vel_int);
 
         auto hi = trajopt.timestep(trajopt.get_mode_start(mode_index) + knot_index);
-        auto ht = trajopt.time();
         drake::solvers::VectorXDecisionVariable variables(trajopt.N()+3);
         variables(0) = u_i;
         variables(1) = u_ip;
@@ -938,7 +929,7 @@ JointPowerCost::JointPowerCost(const drake::multibody::MultibodyPlant<double>& p
   n_u_ = plant_.num_actuators();
   DRAKE_DEMAND(alpha_ > 0);
 }
-
+// COMMENT
 void JointPowerCost::EvaluateCost(const Eigen::Ref<const drake::VectorX<double>> &x,
                   drake::VectorX<double> *y) const{
   double u_i = x(0);

@@ -1,12 +1,12 @@
 /*
- * File: spirit_bound.h
+ * File: spirit_trot.h
  * ----------------
  * This interface for spirit jumping behaviors.
  * Date: 2021-10-30
  */
 
-#ifndef _spirit_bounding_gait
-#define _spirit_bounding_gait
+#ifndef _spirit_trot
+#define _spirit_trot
 
 #include <cmath>
 #include <experimental/filesystem>
@@ -38,10 +38,10 @@ namespace dairlib {
 
 
 template <class Y>  
-class SpiritBoundingGait : public Behavior<Y> {
+class SpiritTrot : public Behavior<Y> {
 public:
 
-    SpiritBoundingGait();
+    SpiritTrot();
 
     /// Assigns values to member variables according to input yaml file
     /// \param yaml_path path of the yaml file
@@ -125,15 +125,17 @@ private:
     vector<PiecewisePolynomial<Y>> x_traj; //!< vector of initial and solution state trajectory
 
     bool lock_leg_apex;
-    bool lock_spine;
+    double max_spine_magnitude;
     bool pitch_magnitude_apex;
-    double cost_power;
     double apex_height; 
+    double cost_power;
     double speed;
     double eps; //!< tolerance for the constraints
     double initial_height; //!< initial stand height
     double pitch_magnitude_lo; //!< maximum pitch magnitude at lift off
     double max_duration; //!< maximum duration of the bounding behavior
+    double min_duration;
+    double toe_height;
 };
 }
 

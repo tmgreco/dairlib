@@ -159,6 +159,8 @@ namespace dairlib {
                 else if (mode_name=="flight") contact_bool<< false, false, false, false;
                 else if (mode_name=="rear_stance") contact_bool<<false, true, false, true;
                 else if (mode_name=="front_stance") contact_bool<< true, false, true ,false;
+                else if (mode_name=="diag1") contact_bool<< true, false, false, true ;
+                else if (mode_name=="diag2") contact_bool<<  false,true,true, false ;
                 else std::cout<<"Wrong mode name!"<<std::endl;
                 msh.addMode( // Stance
                     contact_bool, // contact bools
@@ -276,7 +278,7 @@ namespace dairlib {
             auto x_trajs = trajopt.ReconstructDiscontinuousStateTrajectory(result);
             mechanical_work=dairlib::calcMechanicalWork(plant, x_trajs, this->u_traj)/this->u_traj.end_time();
             std::cout<<"Electrical Work = " << dairlib::calcElectricalWork(plant, x_trajs, this->u_traj) << std::endl;
-            std::cout<<"Mechanical Work = " <<  mechanical_work<< std::endl;
+            std::cout<<"Mechanical Power = " <<  mechanical_work<< std::endl;
             //  double cost_work_acceleration = solvers::EvalCostGivenSolution(
             //      result, cost_joint_work_bindings);
             //  std::cout<<"Cost Work = " << cost_work_acceleration << std::endl;
@@ -286,8 +288,8 @@ namespace dairlib {
             std::ofstream myfile; // 
             myfile.open(file_path);
             myfile << "fore aft displacement,"<<param << ",Mechanical work," << mechanical_work << "\n";
-            myfile<< "Time, Front L ,,, Front R ,,, Back L ,,, Back R ,,,, x, y, z, vx, vy, vz, \n";
-            Y traj_end_time=this->l_traj[this->mode_vector.size()-1].end_time();
+            myfile<< "Time, Front L ,,, Front R ,,, Back L ,,, Back R ,,,, x, y, z, vx, vy, vz, joint 12, joint 12 dot, joint 12 torque \n";
+            Y traj_end_time=this->u_traj.end_time();
             for (Y current_time=0;current_time<traj_end_time;current_time+=0.01){
                 int mode=-1;
                 for (int i=0;i<this->mode_vector.size();i++){
@@ -309,6 +311,8 @@ namespace dairlib {
                     else if (mode_vector[mode]=="flight") contact_bool<< false, false, false, false;
                     else if (mode_vector[mode]=="rear_stance") contact_bool<<false, true, false, true;
                     else if (mode_vector[mode]=="front_stance") contact_bool<< true, false, true ,false;
+                    else if (mode_vector[mode]=="diag1") contact_bool<< true, false, false, true ;
+                    else if (mode_vector[mode]=="diag2") contact_bool<<  false,true,true, false ;
                     int temp_index=0;
                     for (int j=0;j<4;j++){
                         if (contact_bool(1,j)){
@@ -323,6 +327,8 @@ namespace dairlib {
                 myfile<<",";
                 for (int i=4;i<7;i++) myfile << this->x_traj.value(current_time)(i,0) << ",";
                 for (int i=3;i<6;i++) myfile << this->x_traj.value(current_time)(20+i,0) << ",";
+                myfile << this->x_traj.value(current_time)(7,0) << ","<< this->x_traj.value(current_time)(26,0) << ","<<
+                         this->u_traj.value(current_time)(0,0)<<",";
                 myfile <<"\n";
             }
             myfile.close(); // <- note this correction!!

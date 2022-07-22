@@ -1,6 +1,8 @@
 #include "examples/Spirit_spine/Spirit.h"
 #include "examples/Spirit_spine/spirit_jump.h"
 #include "examples/Spirit_spine/spirit_bound.h"
+#include "examples/Spirit_spine/spirit_trot.h"
+#include "examples/Spirit_spine/spirit_trot_half.h"
 #include "examples/Spirit_spine/spirit_bounding_gait.h"
 #include "examples/Spirit_spine/spirit_box_jump.h"
 #include "examples/Spirit_spine/spirit_parkour.h"
@@ -120,12 +122,19 @@ void Spirit<B,T>::animate(){
   multibody::connectTrajectoryVisualizer(plant_vis.get(),
       &builder, &scene_graph, pp_xtraj);
   auto diagram = builder.Build();
+  // bool save=false;
   while (1) {
     drake::systems::Simulator<double> simulator(*diagram);
-    simulator.set_target_realtime_rate(1);
+    simulator.set_target_realtime_rate(0.2);
     simulator.Initialize();
     simulator.AdvanceTo(pp_xtraj.end_time());
+    // if (!save){
+    //   save=true;
+    //   ani = simulator.get_recording_as_animation();
+    //   ani.save("/home/feng/Downloads/dairlib/examples/Spirit_spine/animations/pend_playback.mp4", fps=30);
+    // }
     sleep(2);
+    
   }
 }
 
@@ -144,6 +153,8 @@ void Spirit<B,T>::run(){
 }
 template class Spirit<dairlib::SpiritJump,double>;
 template class Spirit<dairlib::SpiritBound,double>;
+template class Spirit<dairlib::SpiritTrot,double>;
+template class Spirit<dairlib::SpiritTrotHalf,double>;
 template class Spirit<dairlib::SpiritBoundingGait,double>;
 template class Spirit<dairlib::SpiritBoxJump,double>;
 template class Spirit<dairlib::SpiritParkourJump,double>;

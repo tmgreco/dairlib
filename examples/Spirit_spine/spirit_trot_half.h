@@ -1,12 +1,12 @@
 /*
- * File: spirit_bound.h
+ * File: spirit_trot.h
  * ----------------
  * This interface for spirit jumping behaviors.
  * Date: 2021-10-30
  */
 
-#ifndef _spirit_bounding_gait
-#define _spirit_bounding_gait
+#ifndef _spirit_trot_half
+#define _spirit_trot_half
 
 #include <cmath>
 #include <experimental/filesystem>
@@ -38,10 +38,10 @@ namespace dairlib {
 
 
 template <class Y>  
-class SpiritBoundingGait : public Behavior<Y> {
+class SpiritTrotHalf : public Behavior<Y> {
 public:
 
-    SpiritBoundingGait();
+    SpiritTrotHalf();
 
     /// Assigns values to member variables according to input yaml file
     /// \param yaml_path path of the yaml file
@@ -101,20 +101,26 @@ public:
         mode->MakeConstraintRelative(i,0);
         mode->MakeConstraintRelative(i,1);
         }
+        // mode->SetDynamicsScale(
+        //     {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17}, 150.0);
         mode->SetDynamicsScale(
-            {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19}, 150.0);
+            {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17,18,19}, 150.0);
+        // mode->SetDynamicsScale(7, 1000);
+        std::unordered_map<int, double> dynamic_map= mode->GetDynamicsScale();
+        for (auto const& element : dynamic_map) std::cout << element.first << " = " << element.second << std::endl;
+  
         if (mode->evaluators().num_evaluators() == 4)
         {
-        mode->SetKinVelocityScale(
-            {0, 1, 2, 3}, {0, 1, 2}, 1.0);
-        mode->SetKinPositionScale(
-            {0, 1, 2, 3}, {0, 1, 2}, 150.0);
+            mode->SetKinVelocityScale(
+                {0, 1, 2, 3}, {0, 1, 2}, 1.0);
+            mode->SetKinPositionScale(
+                {0, 1, 2, 3}, {0, 1, 2}, 150.0);
         }
         else if (mode->evaluators().num_evaluators() == 2){
-        mode->SetKinVelocityScale(
-            {0, 1}, {0, 1, 2}, 1.0);
-        mode->SetKinPositionScale(
-            {0, 1}, {0, 1, 2}, 150.0);
+            mode->SetKinVelocityScale(
+                {0, 1}, {0, 1, 2}, 1.0);
+            mode->SetKinPositionScale(
+                {0, 1}, {0, 1, 2}, 150.0);
         }
         sequence.AddMode(mode.get());
     }
@@ -125,15 +131,17 @@ private:
     vector<PiecewisePolynomial<Y>> x_traj; //!< vector of initial and solution state trajectory
 
     bool lock_leg_apex;
-    bool lock_spine;
+    double max_spine_magnitude;
     bool pitch_magnitude_apex;
-    double cost_power;
     double apex_height; 
+    double cost_power;
     double speed;
     double eps; //!< tolerance for the constraints
     double initial_height; //!< initial stand height
     double pitch_magnitude_lo; //!< maximum pitch magnitude at lift off
     double max_duration; //!< maximum duration of the bounding behavior
+    double min_duration;
+    double toe_height;
 };
 }
 

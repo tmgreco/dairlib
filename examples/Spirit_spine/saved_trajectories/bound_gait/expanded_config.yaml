@@ -293,8 +293,8 @@
     - 7
     - 7
   initial_height: 0.2
-  pitch_magnitude_lo: 0.2
-  pitch_magnitude_apex: 0.02
+  pitch_magnitude_lo: 1
+  pitch_magnitude_apex: 1
   lock_spine: false
   apex_height: -1
   speed: 3

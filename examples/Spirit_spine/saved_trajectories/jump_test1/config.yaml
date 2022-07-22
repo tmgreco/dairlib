@@ -10,8 +10,8 @@
     iteration_variable: fore_aft_displacement
     for:
       start: 0.3
-      end: 1.5
-      step_size: 0.05  
+      end: 1.0
+      step_size: 0.5  
 
 - 
   name: jump_1
