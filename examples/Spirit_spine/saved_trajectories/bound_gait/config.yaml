@@ -28,7 +28,7 @@
   cost_velocity_legs_flight: 2
   cost_actuation_legs_flight: 1
   cost_time: 1000
-  cost_work: 0 
+  cost_power: 0 
   mu: 100
   eps: 1e-2
   tol: 1e-1
@@ -58,7 +58,7 @@
   cost_velocity_legs_flight: 2
   cost_actuation_legs_flight: 1
   cost_time: 1000
-  cost_work: 0 
+  cost_power: 0 
   mu: 1
   eps: 1e-2
   tol: 1e-1
@@ -88,7 +88,7 @@
   cost_velocity_legs_flight: 2
   cost_actuation_legs_flight: 1
   cost_time: 0
-  cost_work: 0 
+  cost_power: 0 
   mu: 1
   eps: 1e-2
   tol: 1e-1
@@ -118,7 +118,7 @@
   cost_velocity_legs_flight: 2
   cost_actuation_legs_flight: 1
   cost_time: 0
-  cost_work: 0 
+  cost_power: 0 
   mu: 1
   eps: 1e-2
   tol: 1e-1
@@ -148,7 +148,7 @@
   cost_velocity_legs_flight: 0
   cost_actuation_legs_flight: 0
   cost_time: 0
-  cost_work: 100 
+  cost_power: 100 
   mu: 1
   eps: 1e-2
   tol: 1e-1
@@ -178,7 +178,7 @@
   cost_velocity_legs_flight: 0
   cost_actuation_legs_flight: 0
   cost_time: 0
-  cost_work: 100 
+  cost_power: 100 
   mu: 1
   eps: 1e-2
   tol: 1
@@ -207,7 +207,7 @@
   cost_velocity_legs_flight: 0
   cost_actuation_legs_flight: 0
   cost_time: 0
-  cost_work: 100 
+  cost_power: 100 
   mu: 1
   eps: 1e-2
   tol: 1e-2
@@ -237,7 +237,7 @@
   cost_velocity_legs_flight: 0
   cost_actuation_legs_flight: 0
   cost_time: 0
-  cost_work: 100 
+  cost_power: 100 
   mu: 0.7
   eps: 1e-2
   tol: 1e-1
@@ -266,7 +266,7 @@
   cost_velocity_legs_flight: 0
   cost_actuation_legs_flight: 0
   cost_time: 0
-  cost_work: 100 
+  cost_power: 100 
   mu: 0.7
   eps: 1e-2
   tol: 1e-1
@@ -295,7 +295,7 @@
   cost_velocity_legs_flight: 0
   cost_actuation_legs_flight: 0
   cost_time: 0
-  cost_work: 100 
+  cost_power: 100 
   mu: 0.7
   eps: 1e-2
   tol: 1e-2
@@ -324,38 +324,9 @@
   cost_velocity_legs_flight: 0
   cost_actuation_legs_flight: 0
   cost_time: 0
-  cost_work: 100 
+  cost_power: 100 
   mu: 0.7
   eps: 1e-2
   tol: 1e-2
   file_name_out: bounding_gait11
   file_name_in: bounding_gait10
-# - 
-  # name: bound_8
-  # ipopt: true
-  # num_knot_points:
-  #   - 7
-  #   - 7
-  #   - 7
-  #   - 7
-  #   - 7
-  #   - 7
-  # initial_height: 0.2
-  # pitch_magnitude_lo: 0.6
-  # pitch_magnitude_apex: 0.6
-  # lock_spine: true
-  # apex_height: -1
-  # speed: 3
-  # max_duration: 1
-  # lock_leg_apex: false
-  # cost_actuation: 0
-  # cost_velocity: 0
-  # cost_velocity_legs_flight: 0
-  # cost_actuation_legs_flight: 0
-  # cost_time: 0
-  # cost_work: 100 
-  # mu: 1
-  # eps: 1e-2
-  # tol: 1e-2
-  # file_name_out: bounding_gait8
-  # file_name_in: bounding_gait7

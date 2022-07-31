@@ -5,8 +5,8 @@
  * Date: 2021-10-30
  */
 
-#ifndef _spirit_bounding_gait
-#define _spirit_bounding_gait
+#ifndef _spirit_turn
+#define _spirit_turn
 
 #include <cmath>
 #include <experimental/filesystem>
@@ -38,10 +38,10 @@ namespace dairlib {
 
 
 template <class Y>  
-class SpiritBoundingGait : public Behavior<Y> {
+class SpiritTurn : public Behavior<Y> {
 public:
 
-    SpiritBoundingGait();
+    SpiritTurn();
 
     /// Assigns values to member variables according to input yaml file
     /// \param yaml_path path of the yaml file
@@ -127,6 +127,7 @@ private:
     bool lock_leg_apex;
     bool lock_spine;
     double pitch_magnitude_apex;
+    double orientation_diff;
     double cost_power;
     double apex_height; 
     double speed;

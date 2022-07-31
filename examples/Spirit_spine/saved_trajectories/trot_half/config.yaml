@@ -199,7 +199,7 @@
     - 7
   pitch_magnitude_lo: 0.1
   pitch_magnitude_apex: 0.1
-  max_spine_magnitude: 0
+  max_spine_magnitude: 0.8
   apex_height: 0.42
   speed: 0.7
   max_duration: 0.7

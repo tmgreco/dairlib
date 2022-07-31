@@ -1,4 +1,4 @@
-#include "examples/Spirit_spine/spirit_bounding_gait.h"
+#include "examples/Spirit_spine/spirit_turn.h"
 #include <yaml-cpp/yaml.h>
 
 
@@ -12,7 +12,7 @@ using systems::trajectory_optimization::DirconModeSequence;
 using systems::trajectory_optimization::Dircon;
 
 template <class Y> 
-SpiritBoundingGait<Y>::SpiritBoundingGait(){
+SpiritTurn<Y>::SpiritTurn(){
 }
 
 /// Assigns values to member variables according to input yaml file
@@ -21,7 +21,7 @@ SpiritBoundingGait<Y>::SpiritBoundingGait(){
 /// \param index indicates that we are using the index^th configuration
 /// \param plant: robot model
 template <class Y>
-void SpiritBoundingGait<Y>::config(std::string yaml_path, std::string saved_directory, int index,MultibodyPlant<Y>* plant){
+void SpiritTurn<Y>::config(std::string yaml_path, std::string saved_directory, int index,MultibodyPlant<Y>* plant){
   YAML::Node config = YAML::LoadFile(yaml_path);
   this->index=index;
   this->ipopt=config[index]["ipopt"].as<bool>();
@@ -29,6 +29,7 @@ void SpiritBoundingGait<Y>::config(std::string yaml_path, std::string saved_dire
   this->initial_height=config[index]["initial_height"].as<double>();
   this->pitch_magnitude_lo=config[index]["pitch_magnitude_lo"].as<double>();
   this->pitch_magnitude_apex=config[index]["pitch_magnitude_apex"].as<double>();
+  this->orientation_diff=config[index]["orientation_diff"].as<double>();
   this->lock_spine=config[index]["lock_spine"].as<bool>();
   this->apex_height=config[index]["apex_height"].as<double>();
   this->speed=config[index]["speed"].as<double>();
@@ -53,7 +54,7 @@ void SpiritBoundingGait<Y>::config(std::string yaml_path, std::string saved_dire
 /// Generate a bad initial guess for the spirit bound traj opt
 /// \param plant: robot model
 template <class Y>
-void SpiritBoundingGait<Y>::generateInitialGuess(MultibodyPlant<Y>& plant){
+void SpiritTurn<Y>::generateInitialGuess(MultibodyPlant<Y>& plant){
   double stand_height = this->initial_height;
   double pitch_lo = -0.1;
   double apex_height = this->apex_height;
@@ -268,7 +269,7 @@ void SpiritBoundingGait<Y>::generateInitialGuess(MultibodyPlant<Y>& plant){
 /// \param joints add cost for which joint of the legs
 /// \param mode_index add most for which mode 
 template <class Y>
-void SpiritBoundingGait<Y>::addCostLegs(MultibodyPlant<Y>& plant,
+void SpiritTurn<Y>::addCostLegs(MultibodyPlant<Y>& plant,
                  dairlib::systems::trajectory_optimization::Dircon<Y>& trajopt,
                  const std::vector<double>& joints,
                  const int mode_index){
@@ -306,7 +307,7 @@ void SpiritBoundingGait<Y>::addCostLegs(MultibodyPlant<Y>& plant,
 /// \param plant robot model
 /// \param trajopt trajectory optimization problem to be solved
 template <class Y>
-std::vector<drake::solvers::Binding<drake::solvers::Cost>> SpiritBoundingGait<Y>::addCost(
+std::vector<drake::solvers::Binding<drake::solvers::Cost>> SpiritTurn<Y>::addCost(
             MultibodyPlant<Y>& plant,
             dairlib::systems::trajectory_optimization::Dircon<Y>& trajopt){
   auto u   = trajopt.input();
@@ -331,7 +332,7 @@ std::vector<drake::solvers::Binding<drake::solvers::Cost>> SpiritBoundingGait<Y>
 /// \param plant robot model
 /// \param trajopt trajectory optimization problem to be solved
 template <class Y>
-void SpiritBoundingGait<Y>::addConstraints(
+void SpiritTurn<Y>::addConstraints(
                     MultibodyPlant<Y>& plant,
                     dairlib::systems::trajectory_optimization::Dircon<Y>& trajopt){
 // Get position and velocity dictionaries
@@ -363,7 +364,7 @@ void SpiritBoundingGait<Y>::addConstraints(
 
   // velocities
   // trajopt.AddBoundingBoxConstraint(this->speed-eps, this->speed+eps, x0(plant.num_positions()+velocities_map.at("base_vx")));
-  trajopt.AddBoundingBoxConstraint(-eps, eps, x0(plant.num_positions()+velocities_map.at("base_vy")));
+  // trajopt.AddBoundingBoxConstraint(-eps, eps, x0(plant.num_positions()+velocities_map.at("base_vy")));
   trajopt.AddBoundingBoxConstraint(-eps, eps, x0(plant.num_positions()+velocities_map.at("base_vz")));
 
   // Limit magnitude of pitch
@@ -402,50 +403,85 @@ void SpiritBoundingGait<Y>::addConstraints(
   }
 
 
+
   /// Touch down constraint
-
-  // Limit magnitude of pitch
-  trajopt.AddBoundingBoxConstraint(cos(pitch_magnitude_lo/2.0), 1, xtd(positions_map.at("base_qw")));
-  trajopt.AddBoundingBoxConstraint(-eps, eps, xtd(positions_map.at("base_qx")));
-  trajopt.AddBoundingBoxConstraint(-sin(pitch_magnitude_lo/2.0) , sin(pitch_magnitude_lo/2.0), xtd(positions_map.at("base_qy")));
-  trajopt.AddBoundingBoxConstraint(-eps, eps, xtd(positions_map.at("base_qz")));
+  trajopt.AddBoundingBoxConstraint(cos(pitch_magnitude_lo/2.0)*cos(orientation_diff/8), 1, xtd(positions_map.at("base_qw")));
+  trajopt.AddBoundingBoxConstraint(-sin(orientation_diff/8)*sin(pitch_magnitude_lo/2.0)-eps,sin(orientation_diff/8)*sin(pitch_magnitude_lo/2.0)+ eps, xtd(positions_map.at("base_qx")));
+  trajopt.AddBoundingBoxConstraint(-sin(pitch_magnitude_lo/2.0)*cos(orientation_diff/8)-eps , sin(pitch_magnitude_lo/2.0)+eps, xtd(positions_map.at("base_qy")));
+  trajopt.AddBoundingBoxConstraint(-cos(pitch_magnitude_lo/2.0)*sin(orientation_diff/8)-eps, cos(pitch_magnitude_lo/2.0)*sin(orientation_diff/8)+eps, xtd(positions_map.at("base_qz")));
 
 
-  /// Flight 2 constraint
+  // /// Flight 2 constraint
   
-  // Limit magnitude of pitch
-  trajopt.AddBoundingBoxConstraint(cos(pitch_magnitude_apex/2.0), 1, xapex(positions_map.at("base_qw")));
-  trajopt.AddBoundingBoxConstraint(-eps, eps, xapex(positions_map.at("base_qx")));
-  trajopt.AddBoundingBoxConstraint(-sin(pitch_magnitude_apex/2.0) , sin(pitch_magnitude_apex/2.0), xapex(positions_map.at("base_qy")));
-  trajopt.AddBoundingBoxConstraint(-eps, eps, xapex(positions_map.at("base_qz")));
+  // // Limit magnitude of pitch
+  trajopt.AddBoundingBoxConstraint(cos(pitch_magnitude_apex/2.0)*cos(orientation_diff/4), 1, xapex(positions_map.at("base_qw")));
+  trajopt.AddBoundingBoxConstraint(-sin(orientation_diff/4)*sin(pitch_magnitude_apex/2.0)-eps,sin(orientation_diff/4)*sin(pitch_magnitude_apex/2.0)+ eps, xapex(positions_map.at("base_qx")));
+  trajopt.AddBoundingBoxConstraint(-sin(pitch_magnitude_apex/2.0)*cos(orientation_diff/4)-eps , sin(pitch_magnitude_apex/2.0)+eps, xapex(positions_map.at("base_qy")));
+  trajopt.AddBoundingBoxConstraint(-cos(pitch_magnitude_apex/2.0)*sin(orientation_diff/4)-eps, cos(pitch_magnitude_apex/2.0)*sin(orientation_diff/4)+eps, xapex(positions_map.at("base_qz")));
+
   // Velocity
   trajopt.AddBoundingBoxConstraint(-eps, eps, xapex(plant.num_positions()+velocities_map.at("base_vz")));
-  // // Apex height
-  // if (apex_height>0) trajopt.AddBoundingBoxConstraint(apex_height-eps,apex_height+ eps, xapex(positions_map.at("base_z")));
+  // // // Apex height
+  // // if (apex_height>0) trajopt.AddBoundingBoxConstraint(apex_height-eps,apex_height+ eps, xapex(positions_map.at("base_z")));
 
 
   /// LO constraints
   // Limit magnitude of pitch
-  trajopt.AddBoundingBoxConstraint(cos(pitch_magnitude_lo/2.0), 1, xlo(positions_map.at("base_qw")));
-  trajopt.AddBoundingBoxConstraint(-eps, eps, xlo(positions_map.at("base_qx")));
-  trajopt.AddBoundingBoxConstraint(-sin(pitch_magnitude_lo/2.0) , sin(pitch_magnitude_lo/2.0), xlo(positions_map.at("base_qy")));
-  trajopt.AddBoundingBoxConstraint(-eps, eps, xlo(positions_map.at("base_qz")));
+  trajopt.AddBoundingBoxConstraint(cos(pitch_magnitude_lo/2.0)*cos(orientation_diff/2), 1, xlo(positions_map.at("base_qw")));
+  trajopt.AddBoundingBoxConstraint(-sin(orientation_diff/2)*sin(pitch_magnitude_lo/2.0)-eps,sin(orientation_diff/2)*sin(pitch_magnitude_lo/2.0)+ eps, xlo(positions_map.at("base_qx")));
+  trajopt.AddBoundingBoxConstraint(-sin(pitch_magnitude_lo/2.0)*cos(orientation_diff/2)-eps , sin(pitch_magnitude_lo/2.0)+eps, xlo(positions_map.at("base_qy")));
+  trajopt.AddBoundingBoxConstraint(-cos(pitch_magnitude_lo/2.0)*sin(orientation_diff/2)-eps, cos(pitch_magnitude_lo/2.0)*sin(orientation_diff/2)+eps, xlo(positions_map.at("base_qz")));
+
+
 
 
   /// Final constraints
-  for (int i=0;i<n_q+n_v;i++) {
-    if (i!=4) trajopt.AddConstraint( xf(i)-x0(i),-eps, eps);
-  }
+  // Final orientation
+  // Limit magnitude of yaw
+  // TO DO: Compute yaw  yaw diff=0.1
+  //        Compute roll, pitch
+  // auto t0=2.0 * (x0(0) * x0(3) + x0(1)* x0(2));
+  // auto t1=1 - 2* (x0(2) * x0(2) + x0(3)* x0(3));
+  // auto yaw0 = atan2(t0, t1);
+  // auto t2=2.0 * (xf(0) * xf(3) + xf(1)* xf(2));
+  // auto t3=1 - 2* (xf(2) * xf(2) + xf(3)* xf(3));
+  // auto yawf = atan2(t2, t3);
+  // trajopt.AddConstraint(yawf-yaw0-orientation_diff,-eps,eps);
 
-  // //Average Velocity   NOT WORKING BECAUSE OF PITCH
-  // auto times  = trajopt.time_vars();
-  // auto total_time=times(0)+times(1);
-  // auto total_distance=times(0)*trajopt.state(0)(23)+times(1)*trajopt.state(1)(23);
-  // for (int i=2;i<trajopt.N()-1;i++) {
-  //   total_time+=times(i);
-  //   total_distance+=times(i)*trajopt.state(i)(23);
-  // }
-  // trajopt.AddConstraint(  this->speed * total_time-total_distance, -eps, eps );
+  
+  // auto roll0 = atan2(2.0 * (x0(0) * x0(1) + x0(2) * x0(3)), 1.0 - 2.0 * (x0(1) * x0(1) + x0(2) * x0(2)));
+  // auto rollf = atan2(2.0 * (xf(0) * xf(1) + xf(2) * xf(3)), 1.0 - 2.0 * (xf(1) * xf(1) + xf(2) * xf(2)));
+  // trajopt.AddConstraint(rollf-roll0,-eps,eps);
+
+  // auto pitch0 = asin(2.0 * (x0(0) * x0(2) - x0(3) * x0(1)));
+  // auto pitchf = asin(2.0 * (xf(0) * xf(2) - xf(3) * xf(1)));
+  // trajopt.AddConstraint(pitchf-pitch0,-eps,eps);
+
+
+  auto t0=2.0 * (x0(0) * x0(3) - x0(1)* x0(2));
+  auto t1=1 - 2* (x0(2) * x0(2) + x0(3)* x0(3));
+  auto yaw0 = atan2(t0, t1);
+  auto t2=2.0 * (xf(0) * xf(3) - xf(1)* xf(2));
+  auto t3=1 - 2* (xf(2) * xf(2) + xf(3)* xf(3));
+  auto yawf = atan2(t2, t3);
+  trajopt.AddConstraint(yawf-yaw0-orientation_diff,-eps,eps);
+
+  
+  auto roll0 = atan2(2.0 * (x0(0) * x0(1) - x0(2) * x0(3)), 1.0 - 2.0 * (x0(1) * x0(1) + x0(2) * x0(2)));
+  auto rollf = atan2(2.0 * (xf(0) * xf(1) - xf(2) * xf(3)), 1.0 - 2.0 * (xf(1) * xf(1) + xf(2) * xf(2)));
+  trajopt.AddConstraint(rollf-roll0,-eps,eps);
+
+  auto pitch0 = asin(2.0 * (x0(0) * x0(2) + x0(3) * x0(1)));
+  auto pitchf = asin(2.0 * (xf(0) * xf(2) + xf(3) * xf(1)));
+  trajopt.AddConstraint(pitchf-pitch0,-eps,eps);
+    
+  // getYawFromQuaternion(x0(0),x0(1),x0(2),x0(3));
+  // trajopt.AddConstraint(getYawFromQuaternion(x0(0),x0(1),x0(2),x0(3))+orientation_diff/2-getYawFromQuaternion(xf(0),xf(1),xf(2),xf(3)),-eps,eps);
+  // trajopt.AddConstraint(getRollFromQuaternion(x0(0),x0(1),x0(2),x0(3))-getRollFromQuaternion(xf(0),xf(1),xf(2),xf(3)),-eps,eps);
+  // trajopt.AddConstraint(getPitchFromQuaternion(x0(0),x0(1),x0(2),x0(3))-getPitchFromQuaternion(xf(0),xf(1),xf(2),xf(3)),-eps,eps);
+  for (int i=6;i<n_q+n_v;i++) {
+    trajopt.AddConstraint( xf(i)-x0(i),-eps, eps);
+  }
 
   //Average Velocity
   auto times  = trajopt.time_vars();
@@ -458,15 +494,14 @@ void SpiritBoundingGait<Y>::addConstraints(
     auto xi = trajopt.state(i);
     // Height
     trajopt.AddBoundingBoxConstraint( 0.15, 2, xi( positions_map.at("base_z")));
-    trajopt.AddBoundingBoxConstraint( -eps, eps, xi( n_q+velocities_map.at("base_vy")));
     if (lock_spine) trajopt.AddBoundingBoxConstraint( -eps, eps, xi( positions_map.at("joint_12")));
   }
-
+  
 }
 
 
 template <class Y>
-void SpiritBoundingGait<Y>::setUpModeSequence(){
+void SpiritTurn<Y>::setUpModeSequence(){
   this->mode_vector.clear();
   this->normal_vector.clear();
   this->offset_vector.clear();
@@ -486,7 +521,7 @@ void SpiritBoundingGait<Y>::setUpModeSequence(){
 /// \param pp_xtraj: state trajectory passed by pointer for spirit animation
 /// \param surface_vector vector of surfaces in the scene (for animation)
 template <class Y>
-void SpiritBoundingGait<Y>::run(MultibodyPlant<Y>& plant,
+void SpiritTurn<Y>::run(MultibodyPlant<Y>& plant,
                           PiecewisePolynomial<Y>* pp_xtraj,
                           std::vector<SurfaceConf>* surface_vector) {
   // Setup mode sequence
@@ -585,7 +620,7 @@ void SpiritBoundingGait<Y>::run(MultibodyPlant<Y>& plant,
   /// Save trajectory
   this->saveTrajectory(plant,trajopt,result);
   // Writing contact force data
-  // std::string contect_force_fname="/home/feng/Downloads/dairlib/examples/Spirit_spine/data/bounding_gait/test"+std::to_string(this->index)+".csv";
+  // std::string contect_force_fname="/home/feng/Downloads/dairlib/examples/Spirit_spine/data/turn/test"+std::to_string(this->index)+".csv";
   // this->saveContactForceData(this->speed,contect_force_fname);
   
   // auto x_trajs = trajopt.ReconstructDiscontinuousStateTrajectory(result);
@@ -605,7 +640,9 @@ void SpiritBoundingGait<Y>::run(MultibodyPlant<Y>& plant,
   for (int i = 0; i < static_cast<int>(breaks.size()); ++i) {
     samples[i].resize(39, 1);
     for (int j=0;j<39;j++) samples[i](j, 0) = 0;
-    samples[i](4, 0) = pp_xtraj->value(pp_xtraj->end_time())(4,0);
+    samples[i](4, 0) = pp_xtraj->value(pp_xtraj->end_time())(4,0); // x offset
+    // samples[i](5, 0) = pp_xtraj->value(pp_xtraj->end_time())(5,0); // y offset
+    // for (int j=0;j<4;j++)  samples[i](j, 0) = pp_xtraj->value(pp_xtraj->end_time())(j,0);
   }
   PiecewisePolynomial<double> ini_offset_pp = PiecewisePolynomial<double>::FirstOrderHold(breaks, samples);
   PiecewisePolynomial<double> offset_pp=ini_offset_pp;
@@ -620,6 +657,6 @@ void SpiritBoundingGait<Y>::run(MultibodyPlant<Y>& plant,
   // }
 }
 
-template class SpiritBoundingGait<double>;
+template class SpiritTurn<double>;
 }  // namespace dairlib
 

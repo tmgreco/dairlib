@@ -25,7 +25,7 @@
   cost_velocity_legs_flight: 2
   cost_actuation_legs_flight: 1
   cost_time: 1000
-  cost_work: 0
+  cost_power: 0
   mu: 100
   eps: 1e-2
   tol: 1e-1
@@ -53,7 +53,7 @@
   cost_velocity_legs_flight: 2
   cost_actuation_legs_flight: 1
   cost_time: 1000
-  cost_work: 0
+  cost_power: 0
   mu: 1
   eps: 1e-2
   tol: 1e-1
@@ -81,7 +81,7 @@
   cost_velocity_legs_flight: 2
   cost_actuation_legs_flight: 1
   cost_time: 0
-  cost_work: 0
+  cost_power: 0
   mu: 1
   eps: 1e-2
   tol: 1e-1
@@ -109,7 +109,7 @@
   cost_velocity_legs_flight: 2
   cost_actuation_legs_flight: 1
   cost_time: 0
-  cost_work: 0
+  cost_power: 0
   mu: 1
   eps: 1e-2
   tol: 1e-1
@@ -137,7 +137,7 @@
   cost_velocity_legs_flight: 0
   cost_actuation_legs_flight: 0
   cost_time: 0
-  cost_work: 100
+  cost_power: 100
   mu: 1
   eps: 1e-2
   tol: 1e-1
@@ -165,7 +165,7 @@
   cost_velocity_legs_flight: 0
   cost_actuation_legs_flight: 0
   cost_time: 0
-  cost_work: 100
+  cost_power: 100
   mu: 1
   eps: 1e-2
   tol: 1
@@ -193,7 +193,7 @@
   cost_velocity_legs_flight: 0
   cost_actuation_legs_flight: 0
   cost_time: 0
-  cost_work: 100
+  cost_power: 100
   mu: 1
   eps: 1e-2
   tol: 1e-2
@@ -221,7 +221,7 @@
   cost_velocity_legs_flight: 0
   cost_actuation_legs_flight: 0
   cost_time: 0
-  cost_work: 100
+  cost_power: 100
   mu: 0.7
   eps: 1e-2
   tol: 1e-1
@@ -249,7 +249,7 @@
   cost_velocity_legs_flight: 0
   cost_actuation_legs_flight: 0
   cost_time: 0
-  cost_work: 100
+  cost_power: 100
   mu: 0.7
   eps: 1e-2
   tol: 1e-1
@@ -277,7 +277,7 @@
   cost_velocity_legs_flight: 0
   cost_actuation_legs_flight: 0
   cost_time: 0
-  cost_work: 100
+  cost_power: 100
   mu: 0.7
   eps: 1e-2
   tol: 1e-2
@@ -305,7 +305,7 @@
   cost_velocity_legs_flight: 0
   cost_actuation_legs_flight: 0
   cost_time: 0
-  cost_work: 100
+  cost_power: 100
   mu: 0.7
   eps: 1e-2
   tol: 1e-2

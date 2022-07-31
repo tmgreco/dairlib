@@ -134,6 +134,28 @@ cc_library(
     ],
 )
 
+cc_library(
+    name = "spirit_turn",
+    srcs = ["spirit_turn.cc"],
+    hdrs = ["spirit_turn.h"],
+    data = ["spirit_with_spine_drake.urdf",
+            "spirit_drake.urdf"],
+    deps = [
+        ":animate_spirit",
+        ":spirit_utils",
+        ":spirit_behavior",
+        ":spirit_optimal_stand",
+        ":surface_conf",
+        "//common",
+        "//lcm:dircon_trajectory_saver",
+        "//multibody/kinematic",
+        "//systems/primitives",
+        "//systems/trajectory_optimization/dircon",
+        "@drake//:drake_shared_library",
+        "@gflags",
+    ],
+)
+
 
 cc_library(
     name = "spirit_trot",
@@ -234,6 +256,7 @@ cc_library(
         ":spirit_jump",
         ":spirit_bound",
         ":spirit_bounding_gait",
+        ":spirit_turn",
         ":spirit_trot",
         ":spirit_trot_half",
         ":spirit_box_jump",
@@ -271,6 +294,7 @@ cc_binary(
         ":spirit_jump",
         ":spirit_bound",
         ":spirit_bounding_gait",
+        ":spirit_turn",
         ":spirit_trot",
         ":spirit_trot_half",
         ":spirit_parkour_wall_jump",

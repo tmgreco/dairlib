@@ -4,6 +4,7 @@
 #include "examples/Spirit_spine/spirit_trot.h"
 #include "examples/Spirit_spine/spirit_trot_half.h"
 #include "examples/Spirit_spine/spirit_bounding_gait.h"
+#include "examples/Spirit_spine/spirit_turn.h"
 #include "examples/Spirit_spine/spirit_box_jump.h"
 #include "examples/Spirit_spine/spirit_parkour.h"
 #include "examples/Spirit_spine/spirit_parkour_wall.h"
@@ -156,6 +157,7 @@ template class Spirit<dairlib::SpiritBound,double>;
 template class Spirit<dairlib::SpiritTrot,double>;
 template class Spirit<dairlib::SpiritTrotHalf,double>;
 template class Spirit<dairlib::SpiritBoundingGait,double>;
+template class Spirit<dairlib::SpiritTurn,double>;
 template class Spirit<dairlib::SpiritBoxJump,double>;
 template class Spirit<dairlib::SpiritParkourJump,double>;
 template class Spirit<dairlib::SpiritParkourWallPronk,double>;

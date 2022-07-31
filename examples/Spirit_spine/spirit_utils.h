@@ -44,6 +44,26 @@ class ModeSequenceHelper {
     }
 };
 
+
+// drake::symbolic::Expression getYawFromQuaternion(
+//       Eigen::VectorBlock<const drake::solvers::VectorXDecisionVariable> w,
+//       Eigen::VectorBlock<const drake::solvers::VectorXDecisionVariable> x,
+//       Eigen::VectorBlock<const drake::solvers::VectorXDecisionVariable> y,
+//       Eigen::VectorBlock<const drake::solvers::VectorXDecisionVariable> z);
+
+
+// drake::symbolic::Expression getRollFromQuaternion(
+//       drake::solvers::VectorXDecisionVariable w,
+//       drake::solvers::VectorXDecisionVariable x,
+//       drake::solvers::VectorXDecisionVariable y,
+//       drake::solvers::VectorXDecisionVariable z);
+
+// drake::symbolic::Expression getPitchFromQuaternion(
+//       drake::solvers::VectorXDecisionVariable w,
+//       drake::solvers::VectorXDecisionVariable x,
+//       drake::solvers::VectorXDecisionVariable y,
+//       drake::solvers::VectorXDecisionVariable z);
+
 drake::math::RotationMatrix<double> normal2Rotation(Eigen::Vector3d nHat);
 
 /// Outputs a nominal stand state into the xState vector pointer based on the 

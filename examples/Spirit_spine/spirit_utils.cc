@@ -540,6 +540,37 @@ void setSpiritSymmetry(drake::multibody::MultibodyPlant<T> & plant,
 }
 //   \SETSPIRITSYMMETRY
 
+// drake::symbolic::Expression getYawFromQuaternion(
+//       Eigen::VectorBlock<const drake::solvers::VectorXDecisionVariable> w,
+//       Eigen::VectorBlock<const drake::solvers::VectorXDecisionVariable> x,
+//       Eigen::VectorBlock<const drake::solvers::VectorXDecisionVariable> y,
+//       Eigen::VectorBlock<const drake::solvers::VectorXDecisionVariable> z){
+//         // drake::symbolic::Expression t0=2.0 * (w * z + x * y);
+//         // drake::symbolic::Expression t1=1 - 2* (y * y + z * z);
+//         // drake::symbolic::Expression yaw = atan2(t0, t1);
+//         return yaw;
+//       }
+
+// drake::symbolic::Expression getRollFromQuaternion(
+//       Eigen::VectorBlock<const drake::solvers::VectorXDecisionVariable> w,
+//       Eigen::VectorBlock<const drake::solvers::VectorXDecisionVariable> x,
+//       Eigen::VectorBlock<const drake::solvers::VectorXDecisionVariable> y,
+//       Eigen::VectorBlock<const drake::solvers::VectorXDecisionVariable> z){
+//     // drake::symbolic::Expression roll = atan2(2.0 * (w * x + y * z), 1.0 - 2.0 * (x * x + y * y));
+//     drake::symbolic::Expression roll =x+y;
+//     return roll;
+//     }
+
+// drake::symbolic::Expression getPitchFromQuaternion(
+//       Eigen::VectorBlock<const drake::solvers::VectorXDecisionVariable> w,
+//       Eigen::VectorBlock<const drake::solvers::VectorXDecisionVariable> x,
+//       Eigen::VectorBlock<const drake::solvers::VectorXDecisionVariable> y,
+//       Eigen::VectorBlock<const drake::solvers::VectorXDecisionVariable> z) {
+//         // drake::symbolic::Expression pitch = asin(2.0 * (w * y - z * x));
+//         drake::symbolic::Expression pitch =x+y;
+//         return pitch;
+//       }
+
 drake::math::RotationMatrix<double> normal2Rotation(Eigen::Vector3d nHat){
   const double eps  = 1e-6;
   drake::math::RotationMatrix<double> rotMat;

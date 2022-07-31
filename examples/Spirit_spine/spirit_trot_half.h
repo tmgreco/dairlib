@@ -103,11 +103,14 @@ public:
         }
         // mode->SetDynamicsScale(
         //     {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17}, 150.0);
-        mode->SetDynamicsScale(
-            {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17,18,19}, 150.0);
-        // mode->SetDynamicsScale(7, 1000);
-        std::unordered_map<int, double> dynamic_map= mode->GetDynamicsScale();
-        for (auto const& element : dynamic_map) std::cout << element.first << " = " << element.second << std::endl;
+        if (this->spine_type=="twisting") {
+            mode->SetDynamicsScale( {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17,18, 19}, 150.0);
+        }
+        else if (this->spine_type=="rigid"){
+            mode->SetDynamicsScale( {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17,18}, 150.0);
+        }
+        // std::unordered_map<int, double> dynamic_map= mode->GetDynamicsScale();
+        // for (auto const& element : dynamic_map) std::cout << element.first << " = " << element.second << std::endl;
   
         if (mode->evaluators().num_evaluators() == 4)
         {
@@ -132,7 +135,7 @@ private:
 
     bool lock_leg_apex;
     double max_spine_magnitude;
-    bool pitch_magnitude_apex;
+    double pitch_magnitude_apex;
     double apex_height; 
     double cost_power;
     double speed;

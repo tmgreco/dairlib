@@ -220,7 +220,7 @@ void SpiritTrotHalf<Y>::addConstraints(
   // for (auto const& element : actuators_map)
   //   std::cout << element.first << " = " << element.second << std::endl;
   // std::cout<<"***************************************************"<<std::endl;
-  
+
   // General constraints
   setSpiritJointLimits(plant, trajopt);
   setSpiritActuationLimits(plant, trajopt);
@@ -241,7 +241,7 @@ void SpiritTrotHalf<Y>::addConstraints(
   if (apex_height>0) trajopt.AddBoundingBoxConstraint( this->apex_height-eps, this->apex_height+eps, x0( positions_map.at("base_z")));
 
   // velocities
-  trajopt.AddBoundingBoxConstraint(this->speed-eps, this->speed+eps, x0(n_q+velocities_map.at("base_vx")));
+  // trajopt.AddBoundingBoxConstraint(this->speed-eps, this->speed+eps, x0(n_q+velocities_map.at("base_vx")));
   trajopt.AddBoundingBoxConstraint(-eps, eps, x0(n_q+velocities_map.at("base_vy")));
   trajopt.AddBoundingBoxConstraint(-eps, eps, x0(n_q+velocities_map.at("base_vz")));
 
@@ -270,7 +270,7 @@ void SpiritTrotHalf<Y>::addConstraints(
     trajopt.AddBoundingBoxConstraint(hipSet - apex_eps, hipSet + apex_eps, x0(positions_map.at("joint_9") ) );
     trajopt.AddBoundingBoxConstraint(hipSet - apex_eps, hipSet + apex_eps, x0(positions_map.at("joint_10") ) );
     trajopt.AddBoundingBoxConstraint(hipSet - apex_eps, hipSet + apex_eps, x0(positions_map.at("joint_11") ) );
-    trajopt.AddBoundingBoxConstraint( -apex_eps, apex_eps, x0(positions_map.at("joint_12") ) );
+    if (this->spine_type=="twisting") trajopt.AddBoundingBoxConstraint( -apex_eps, apex_eps, x0(positions_map.at("joint_12") ) );
   }
 
 
@@ -349,8 +349,6 @@ void SpiritTrotHalf<Y>::addConstraints(
   /// Constraints on all points
   for (int i = 0; i < trajopt.N(); i++){
     auto xi = trajopt.state(i);
-    // // Forward speed for all states
-    // trajopt.AddBoundingBoxConstraint(this->speed-3*eps, this->speed+3*eps, xi(plant.num_positions()+velocities_map.at("base_vx")));
     // Limit roll and yaw
     trajopt.AddBoundingBoxConstraint(cos(pitch_magnitude_apex/2.0), 1, xi(positions_map.at("base_qw")));
     trajopt.AddBoundingBoxConstraint(-eps, eps, xi(positions_map.at("base_qx")));
@@ -377,7 +375,6 @@ void SpiritTrotHalf<Y>::addConstraints(
   }
 
   //Average Velocity
-
   auto times  = trajopt.time_vars();
   auto total_time=times(0)+times(1);
   for (int i=2;i<trajopt.N()-1;i++) total_time+=times(i);
@@ -557,13 +554,16 @@ void SpiritTrotHalf<Y>::run(MultibodyPlant<Y>& plant,
   /////////////////////////////////////// Build up animation ///////////////////////
   /////// Create whole-period trajectory
   PiecewisePolynomial<Y> org_x_traj=trajopt.ReconstructStateTrajectory(result);
-  PiecewisePolynomial<Y> flipped_x_traj=trajopt.ReconstructFlippedStateTrajectory(result);
+  PiecewisePolynomial<Y> flipped_x_traj=trajopt.ReconstructFlippedStateTrajectory(result,this->spine_type);
   // Create half 
   std::vector<double> breaks_half=flipped_x_traj.get_breaks();
   std::vector<Eigen::MatrixXd> samples_half(breaks_half.size());
+  int nq;
+  if (this->spine_type=="twisting") nq=39;
+  else if (this->spine_type=="rigid") nq=37;
   for (int i = 0; i < static_cast<int>(breaks_half.size()); ++i) {
-    samples_half[i].resize(39, 1);
-    for (int j=0;j<39;j++) samples_half[i](j, 0) = 0;
+    samples_half[i].resize(nq, 1);
+    for (int j=0;j<nq;j++) samples_half[i](j, 0) = 0;
     samples_half[i](4, 0) = org_x_traj.value(org_x_traj.end_time())(4,0);
   }
   PiecewisePolynomial<double> half_offset_pp = PiecewisePolynomial<double>::FirstOrderHold(breaks_half, samples_half);
@@ -576,8 +576,8 @@ void SpiritTrotHalf<Y>::run(MultibodyPlant<Y>& plant,
   std::vector<double> breaks=whole_x_traj.get_breaks();
   std::vector<Eigen::MatrixXd> samples(breaks.size());
   for (int i = 0; i < static_cast<int>(breaks.size()); ++i) {
-    samples[i].resize(39, 1);
-    for (int j=0;j<39;j++) samples[i](j, 0) = 0;
+    samples[i].resize(nq, 1);
+    for (int j=0;j<nq;j++) samples[i](j, 0) = 0;
     samples[i](4, 0) = whole_x_traj.value(whole_x_traj.end_time())(4,0);
   }
   PiecewisePolynomial<double> ini_offset_pp = PiecewisePolynomial<double>::FirstOrderHold(breaks, samples);
