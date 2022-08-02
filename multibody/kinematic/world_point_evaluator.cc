@@ -44,7 +44,7 @@ WorldPointEvaluator<T>::WorldPointEvaluator(const MultibodyPlant<T>& plant,
       pt_A_(pt_A),
       frame_A_(frame_A),
       offset_(offset),
-      rotation_(RotationMatrix<double>::MakeFromOneVector(normal, 2)) {
+      rotation_(RotationMatrix<double>::MakeFromOneVector(normal, 2).transpose()) {
   if (!tangent_active) {
     this->set_active_inds({2});  // only z is active
   }

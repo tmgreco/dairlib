@@ -583,11 +583,15 @@ void SpiritTurn<Y>::run(MultibodyPlant<Y>& plant,
   }else{
     std::cout<<"Loading decision var from file, will fail if num dec vars changed" <<std::endl;
     dairlib::DirconTrajectory loaded_traj(this->file_name_in);
+    // std::cout<<loaded_traj.GetStateDerivativeSamples(0)<<std::endl;
+    std::cout<<loaded_traj.GetDecisionVariables()<<std::endl;
     trajopt.SetInitialGuessForAllVariables(loaded_traj.GetDecisionVariables());
   }
 
+  
   addConstraints(plant, trajopt);
-
+  
+  this->addGaussionNoiseToInputStates(0,1);
   /// Setup the visualization during the optimization
   int num_ghosts = 1;// Number of ghosts in visualization. NOTE: there are limitations on number of ghosts based on modes and knotpoints
   std::vector<unsigned int> visualizer_poses; // Ghosts for visualizing during optimization
@@ -619,6 +623,7 @@ void SpiritTurn<Y>::run(MultibodyPlant<Y>& plant,
   std::cout << (result.is_success() ? "Optimization Success" : "Optimization Fail") << std::endl;
   /// Save trajectory
   this->saveTrajectory(plant,trajopt,result);
+  std::cout<<result.get_x_val()<<std::endl;
   // Writing contact force data
   // std::string contect_force_fname="/home/feng/Downloads/dairlib/examples/Spirit_spine/data/turn/test"+std::to_string(this->index)+".csv";
   // this->saveContactForceData(this->speed,contect_force_fname);
@@ -631,7 +636,6 @@ void SpiritTurn<Y>::run(MultibodyPlant<Y>& plant,
   //       result, work_binding);
   //   std::cout<<"ReLu Work = " << cost_work_val/this->cost_power << std::endl;
   // }
-
   /// Run animation of the final trajectory
   *pp_xtraj =trajopt.ReconstructStateTrajectory(result);
   /// Create offset polynomial

@@ -310,7 +310,7 @@ namespace dairlib {
 
         /// Run the optimization using your initial guess
         auto start = std::chrono::high_resolution_clock::now();
-        const auto result = Solve(trajopt, trajopt.initial_guess());
+        auto result = Solve(trajopt, trajopt.initial_guess());
         auto finish = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double> elapsed = finish - start;
         std::cout << "Solve time:" << elapsed.count() <<std::endl;

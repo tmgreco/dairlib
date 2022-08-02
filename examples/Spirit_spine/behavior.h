@@ -258,9 +258,9 @@ namespace dairlib {
                             const drake::solvers::MathematicalProgramResult& result){
             if(!file_name_out.empty()){
                 dairlib::DirconTrajectory saved_traj(
-                    plant, trajopt, result, "Jumping trajectory",
+                    plant, trajopt, result, "Optimized trajectory",
                     "Decision variables and state/input trajectories "
-                    "for jumping");
+                    "for a bahavior");
                 saved_traj.WriteToFile(file_name_out);
                 dairlib::DirconTrajectory old_traj(file_name_out);
                 this->x_traj = old_traj.ReconstructStateTrajectory();
@@ -276,18 +276,35 @@ namespace dairlib {
                 this->l_traj  = trajopt.ReconstructLambdaTrajectory(result);
             }
             auto x_trajs = trajopt.ReconstructDiscontinuousStateTrajectory(result);
-            mechanical_work=dairlib::calcMechanicalWork(plant, x_trajs, this->u_traj)/this->u_traj.end_time();
+            mechanical_work=dairlib::calcMechanicalWork(plant, x_trajs, this->u_traj);
+            double mechanical_power=dairlib::calcMechanicalWork(plant, x_trajs, this->u_traj)/this->u_traj.end_time();
             std::cout<<"Electrical Work = " << dairlib::calcElectricalWork(plant, x_trajs, this->u_traj) << std::endl;
-            std::cout<<"Mechanical Power = " <<  mechanical_work<< std::endl;
+            std::cout<<"Mechanical Work = " <<  mechanical_work<< std::endl;
+            std::cout<<"Mechanical Power = " <<  mechanical_power<< std::endl;
             //  double cost_work_acceleration = solvers::EvalCostGivenSolution(
             //      result, cost_joint_work_bindings);
             //  std::cout<<"Cost Work = " << cost_work_acceleration << std::endl;
         }
 
+        void perturbResult(MultibodyPlant<Y>& plant,
+                            dairlib::systems::trajectory_optimization::Dircon<Y>& trajopt,
+                            drake::solvers::MathematicalProgramResult& result)
+        {
+            for (int mode = 0; mode < trajopt.num_modes(); mode++) {
+                for (int j = 0; j < trajopt.mode_length(mode); j++) {
+                    drake::VectorX<Y> xk = result.GetSolution(trajopt.state_vars(mode, j));
+                    // std::cout<<"Mode: "<< mode << ", knot: "<< j <<", state: \n" << xk << std::endl;
+                    result.AddNoiseToSolution(trajopt.state_vars(mode, j),0,0.1);
+                    xk = result.GetSolution(trajopt.state_vars(mode, j));
+                    // std::cout<<"After adding noise\nMode: "<< mode << ", knot: "<< j <<", state: \n" << xk << std::endl;
+                }
+            }
+        }
+
         void saveContactForceData(double param, std::string file_path){
             std::ofstream myfile; // 
             myfile.open(file_path);
-            myfile << "fore aft displacement,"<<param << ",Mechanical work," << mechanical_work << "\n";
+            myfile << "param,"<<param << ",Mechanical work," << mechanical_work <<",Mechanical power,"<<mechanical_power << "\n";
             myfile<< "Time, Front L ,,, Front R ,,, Back L ,,, Back R ,,,, x, y, z, vx, vy, vz, joint 12, joint 12 dot, joint 12 torque \n";
             Y traj_end_time=this->u_traj.end_time();
             for (Y current_time=0;current_time<traj_end_time;current_time+=0.01){
@@ -332,6 +349,22 @@ namespace dairlib {
                 myfile <<"\n";
             }
             myfile.close(); // <- note this correction!!
+        }
+
+        void addGaussionNoiseToInputStates(double mean_scale, double var_scale){
+            /// Create offset polynomial
+            std::vector<double> breaks=this->u_traj.get_breaks();
+            std::vector<Eigen::MatrixXd> samples(breaks.size());
+            
+            auto position_dist = std::bind(std::normal_distribution<double>{mean_scale, var_scale},
+                                std::mt19937(std::random_device{}()));
+            std::cout<<"Generate random dist "<<breaks.size()<<std::endl;
+            for (int i = 0; i < static_cast<int>(breaks.size()); ++i) {
+                samples[i].resize(39, 1);
+                std::cout<<i<<": "<<position_dist()<<std::endl;
+                for (int j=0;j<39;j++) samples[i](j, 0) = 0;
+                samples[i](4, 0) = 1; // x offset
+            }
         }
     };
 }

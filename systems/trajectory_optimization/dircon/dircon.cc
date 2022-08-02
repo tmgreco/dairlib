@@ -656,10 +656,86 @@ void Dircon<T>::GetStateAndDerivativeSamples(
       int k = mode_start_[mode] + j;
 
       VectorX<T> xk = result.GetSolution(state_vars(mode, j));
+      // std::cout<<"Mode: "<< mode << ", knot: "<< j <<", state: \n" << xk << std::endl;
+      // result.AddNoiseToSolution(state_vars(mode, j),0,0.1);
+      // xk = result.GetSolution(state_vars(mode, j));
+      // std::cout<<"After adding noise\nMode: "<< mode << ", knot: "<< j <<", state: \n" << xk << std::endl;
       VectorX<T> uk = result.GetSolution(input_vars(mode, j));
       auto context = multibody::createContext<T>(plant_, xk, uk);
 
       states_i.col(j) = drake::math::DiscardGradient(xk);
+      auto xdot = get_mode(mode).evaluators().CalcTimeDerivativesWithForce(
+          context.get(), result.GetSolution(force_vars(mode, j)));
+      derivatives_i.col(j) = drake::math::DiscardGradient(xdot);
+      times_i(j) = times(k);
+    }
+    state_samples->push_back(states_i);
+    derivative_samples->push_back(derivatives_i);
+    state_breaks->push_back(times_i);
+  }
+}
+
+template <typename T>
+void Dircon<T>::GetFlippedStateAndDerivativeSamples(
+    const drake::solvers::MathematicalProgramResult& result,
+    std::vector<Eigen::MatrixXd>* state_samples,
+    std::vector<Eigen::MatrixXd>* derivative_samples,
+    std::vector<Eigen::VectorXd>* state_breaks,
+    std::string joint_type) const {
+  DRAKE_ASSERT(state_samples->empty());
+  DRAKE_ASSERT(derivative_samples->empty());
+  DRAKE_ASSERT(state_breaks->empty());
+
+  VectorXd times(GetSampleTimes(result));
+
+  for (int mode = 0; mode < num_modes(); mode++) {
+    MatrixXd states_i(num_states(), mode_length(mode));
+    MatrixXd derivatives_i(num_states(), mode_length(mode));
+    VectorXd times_i(mode_length(mode));
+    for (int j = 0; j < mode_length(mode); j++) {
+      int k = mode_start_[mode] + j;
+      ///////////////// Need modification to adapt all urdf types !!!!!!!!!!!!!!! ///////////////////////////
+      VectorX<T> org_xk = result.GetSolution(state_vars(mode, j));
+      VectorX<T> flipped_xk = org_xk;
+      if (joint_type=="twisting"){
+        flipped_xk(1)*=-1; //opposite qx
+        flipped_xk(3)*=-1; //opposite qz
+        flipped_xk(5)*=-1; //opposite y
+        flipped_xk(14)=org_xk(15); //joint 0 = jiont 4
+        flipped_xk(18)=org_xk(19); //joint 1 = jiont 5
+        flipped_xk(12)=org_xk(13); //joint 2 = jiont 6
+        flipped_xk(16)=org_xk(17); //joint 3 = jiont 7
+        flipped_xk(15)=org_xk(14); //joint 4 = jiont 0
+        flipped_xk(19)=org_xk(18); //joint 5 = jiont 1
+        flipped_xk(13)=org_xk(12); //joint 6 = jiont 2
+        flipped_xk(17)=org_xk(16); //joint 7 = jiont 3
+        flipped_xk(10)=-org_xk(11); //joint 8 = - jiont 10
+        flipped_xk(8)=-org_xk(9); //joint 9 = -jiont 11
+        flipped_xk(11)=-org_xk(10); //joint 10 = -jiont 8
+        flipped_xk(9)=-org_xk(8); //joint 11 = -jiont 9
+        flipped_xk(7)*=-1;  //Opposite Joint 12
+
+        flipped_xk(20)*=-1; //opposite wx
+        flipped_xk(22)*=-1; //opposite wz
+        flipped_xk(24)*=-1; //opposite vy
+        flipped_xk(33)=org_xk(34); //Velocities: joint 0 = jiont 4
+        flipped_xk(37)=org_xk(38); //Velocities: joint 1 = jiont 5
+        flipped_xk(31)=org_xk(32); //Velocities: joint 2 = jiont 6
+        flipped_xk(35)=org_xk(36); //Velocities: joint 3 = jiont 7
+        flipped_xk(34)=org_xk(33); //Velocities: joint 4 = jiont 0
+        flipped_xk(38)=org_xk(37); //Velocities: joint 5 = jiont 1
+        flipped_xk(32)=org_xk(31); //Velocities: joint 6 = jiont 2
+        flipped_xk(36)=org_xk(35); //Velocities: joint 7 = jiont 3
+        flipped_xk(29)=-org_xk(30); //Velocities: joint 8 = -jiont 10
+        flipped_xk(27)=-org_xk(28); //Velocities: joint 9 = -jiont 11
+        flipped_xk(30)=-org_xk(29); //Velocities: joint 10 = -jiont 8
+        flipped_xk(28)=-org_xk(27); //Velocities: joint 11 = -jiont 9
+        flipped_xk(26)*=-1;  //Velocities: Opposite Joint 12
+      }
+      VectorX<T> uk = result.GetSolution(input_vars(mode, j));
+      auto context = multibody::createContext<T>(plant_, flipped_xk, uk);
+
+      states_i.col(j) = drake::math::DiscardGradient(flipped_xk);
       auto xdot = get_mode(mode).evaluators().CalcTimeDerivativesWithForce(
           context.get(), result.GetSolution(force_vars(mode, j)));
       derivatives_i.col(j) = drake::math::DiscardGradient(xdot);
@@ -705,6 +781,28 @@ PiecewisePolynomial<double> Dircon<T>::ReconstructStateTrajectory(
   std::vector<MatrixXd> derivatives;
   std::vector<VectorXd> times;
   GetStateAndDerivativeSamples(result, &states, &derivatives, &times);
+  PiecewisePolynomial<double> state_traj =
+      PiecewisePolynomial<double>::CubicHermite(times[0], states[0],
+                                                derivatives[0]);
+  for (int mode = 1; mode < num_modes(); ++mode) {
+    // Cannot form trajectory with only a single break
+    if (mode_length(mode) < 2) {
+      continue;
+    }
+    state_traj.ConcatenateInTime(PiecewisePolynomial<double>::CubicHermite(
+        times[mode], states[mode], derivatives[mode]));
+  }
+  return state_traj;
+}
+
+template <typename T>
+PiecewisePolynomial<double> Dircon<T>::ReconstructFlippedStateTrajectory(
+    const MathematicalProgramResult& result,
+    std::string joint_type) const {
+  std::vector<MatrixXd> states;
+  std::vector<MatrixXd> derivatives;
+  std::vector<VectorXd> times;
+  GetFlippedStateAndDerivativeSamples(result, &states, &derivatives, &times,joint_type);
   PiecewisePolynomial<double> state_traj =
       PiecewisePolynomial<double>::CubicHermite(times[0], states[0],
                                                 derivatives[0]);

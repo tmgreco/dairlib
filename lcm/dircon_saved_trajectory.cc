@@ -50,7 +50,6 @@ DirconTrajectory::DirconTrajectory(
     std::vector<std::string> collocation_force_names;
 
     int num_forces = dircon.get_evaluator_set(mode).count_full();
-    std::cout<<"number of forces"<<num_forces<<std::endl;
     for (int i = 0; i < num_forces; ++i) {
       force_names.push_back("lambda_" + std::to_string(i));
       collocation_force_names.push_back("lambda_c_" + std::to_string(i));
@@ -369,7 +368,6 @@ void DirconTrajectory::LoadFromFile(const std::string& filepath) {
     //                             12, 7);
     //   lambda_[mode]->datapoints=NULL;
     // }
-    std::cout<<"load lambda"<<lambda_[mode]->datapoints<<std::endl;
     if (x_[mode]->time_vector.size() > 1) {
       try {
         lambda_c_.push_back(

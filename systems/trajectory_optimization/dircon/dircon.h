@@ -49,6 +49,16 @@ class Dircon
       std::vector<Eigen::MatrixXd>* derivative_samples,
       std::vector<Eigen::VectorXd>* state_breaks) const;
 
+  /// Developed for half-period optimization
+  /// Returns a vector of matrices containing the flipped state and derivative values at
+  /// each breakpoint at the solution for each mode of the trajectory.
+  void GetFlippedStateAndDerivativeSamples(
+      const drake::solvers::MathematicalProgramResult& result,
+      std::vector<Eigen::MatrixXd>* state_samples,
+      std::vector<Eigen::MatrixXd>* derivative_samples,
+      std::vector<Eigen::VectorXd>* state_breaks,
+      std::string joint_type) const;
+
   /// Get the input trajectory at the solution as a
   /// %drake::trajectories::PiecewisePolynomialTrajectory%.
   drake::trajectories::PiecewisePolynomial<double> ReconstructInputTrajectory(
@@ -63,7 +73,15 @@ class Dircon
   /// %drake::trajectories::PiecewisePolynomialTrajectory%.
   drake::trajectories::PiecewisePolynomial<double> ReconstructStateTrajectory(
       const drake::solvers::MathematicalProgramResult& result) const override;
-   
+
+  /// For the animation of half-period optimization
+  /// Get the flipped state trajectory at the solution as a
+  /// %drake::trajectories::PiecewisePolynomialTrajectory%.
+  drake::trajectories::PiecewisePolynomial<double> ReconstructFlippedStateTrajectory(
+      const drake::solvers::MathematicalProgramResult& result,
+    std::string joint_type) const;
+
+
   /// Get the state trajectory at the solution as a
   /// %drake::trajectories::PiecewisePolynomialTrajectory%.
   std::vector<drake::trajectories::PiecewisePolynomial<double>> ReconstructDiscontinuousStateTrajectory(
@@ -245,12 +263,12 @@ class Dircon
   void ScaleImpulseVariables(int mode, std::vector<int> idx_list, double scale);
   void ScaleKinConstraintSlackVariables(int mode, std::vector<int> idx_list,
                                         double scale);
-  //Add by Zeyuan
+  //Added by Zeyuan
   void AddVelocityCost(const double velocityCostGain);
   const int get_mode_start(int index){
     return mode_start_[index];
   }
-  //Add by Zeyuan
+  //Added by Zeyuan
   
  private:
   // Private constructor to which public constructors funnel

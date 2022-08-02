@@ -416,6 +416,7 @@ void SpiritJump<Y>::run(MultibodyPlant<Y>& plant,
   // If the optimization failed, recover by imposing and relaxing the constraints again
   
   /// Save trajectory
+  this->perturbResult(plant,trajopt,result);
   this->saveTrajectory(plant,trajopt,result);
 
   // Writing contact force data
