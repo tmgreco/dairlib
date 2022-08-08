@@ -82,16 +82,30 @@ namespace dairlib {
             this->lc_traj = old_traj.ReconstructLambdaCTrajectory();
             this->vc_traj = old_traj.ReconstructGammaCTrajectory();
         }
+
+
         /// Set up mode sequence for trajectory optimization problem. Will be defined differently in different behaviors
         virtual void setUpModeSequence()=0;
         /// Typically enable animation at the last optimization
         void enable_animate(){get_animate_info=true;}
+        void setFileNameIn(std::string name) {file_name_in=name;}
+        void setFileNameOut(std::string name) {file_name_out=name;}
+        std::string getFileNameIn(){ return file_name_in;}
+        std::string getFileNameOut(){ return file_name_out;}
+        void setMeanAndVar(double m, double v){
+            mean=m; 
+            var=v;
+        }
+        double getCost(){return mechanical_work;}
 
         std::string urdf_path;
         std::string spine_type;
+        std::string action;
     protected:
         double mechanical_work;
-
+        double mechanical_power;
+        double mean;
+        double var;
         int index;
         std::vector<int> num_knot_points; //!< Sequence of #knot points for each mode
         double mu; //!< Coefficient of friction
@@ -236,6 +250,7 @@ namespace dairlib {
                     std::cout<<"Loading decision var from file, will fail if num dec vars changed" <<std::endl;
                     dairlib::DirconTrajectory loaded_traj(file_name_in);
                     trajopt.SetInitialGuessForAllVariables(loaded_traj.GetDecisionVariables());
+                    addGaussionNoiseToInputStates(trajopt,loaded_traj);
                 }
             }
 
@@ -277,7 +292,7 @@ namespace dairlib {
             }
             auto x_trajs = trajopt.ReconstructDiscontinuousStateTrajectory(result);
             mechanical_work=dairlib::calcMechanicalWork(plant, x_trajs, this->u_traj);
-            double mechanical_power=dairlib::calcMechanicalWork(plant, x_trajs, this->u_traj)/this->u_traj.end_time();
+            mechanical_power=dairlib::calcMechanicalWork(plant, x_trajs, this->u_traj)/this->u_traj.end_time();
             std::cout<<"Electrical Work = " << dairlib::calcElectricalWork(plant, x_trajs, this->u_traj) << std::endl;
             std::cout<<"Mechanical Work = " <<  mechanical_work<< std::endl;
             std::cout<<"Mechanical Power = " <<  mechanical_power<< std::endl;
@@ -294,7 +309,7 @@ namespace dairlib {
                 for (int j = 0; j < trajopt.mode_length(mode); j++) {
                     drake::VectorX<Y> xk = result.GetSolution(trajopt.state_vars(mode, j));
                     // std::cout<<"Mode: "<< mode << ", knot: "<< j <<", state: \n" << xk << std::endl;
-                    result.AddNoiseToSolution(trajopt.state_vars(mode, j),0,0.1);
+                    result.AddNoiseToSolution(trajopt.state_vars(mode, j),mean,var);
                     xk = result.GetSolution(trajopt.state_vars(mode, j));
                     // std::cout<<"After adding noise\nMode: "<< mode << ", knot: "<< j <<", state: \n" << xk << std::endl;
                 }
@@ -351,20 +366,27 @@ namespace dairlib {
             myfile.close(); // <- note this correction!!
         }
 
-        void addGaussionNoiseToInputStates(double mean_scale, double var_scale){
+        void addGaussionNoiseToInputStates(dairlib::systems::trajectory_optimization::Dircon<Y>& trajopt,
+                                                        dairlib::DirconTrajectory& initial_guess_traj){
+            PiecewisePolynomial<Y> state_traj = initial_guess_traj.ReconstructStateTrajectory();
             /// Create offset polynomial
-            std::vector<double> breaks=this->u_traj.get_breaks();
+            std::vector<double> breaks=state_traj.get_breaks();
             std::vector<Eigen::MatrixXd> samples(breaks.size());
             
-            auto position_dist = std::bind(std::normal_distribution<double>{mean_scale, var_scale},
-                                std::mt19937(std::random_device{}()));
-            std::cout<<"Generate random dist "<<breaks.size()<<std::endl;
+            auto normal_dist = std::bind(std::normal_distribution<double>{mean, var},
+                                std::mt19937(std::random_device{}())); // Normal distribution
+            // std::cout<<"Generate "<<breaks.size()<<" random dist. "<<"mean "<<mean<<" var "<<var<<std::endl;
             for (int i = 0; i < static_cast<int>(breaks.size()); ++i) {
                 samples[i].resize(39, 1);
-                std::cout<<i<<": "<<position_dist()<<std::endl;
+                // std::cout<<i<<": "<<normal_dist()<<std::endl;
                 for (int j=0;j<39;j++) samples[i](j, 0) = 0;
-                samples[i](4, 0) = 1; // x offset
+                for (int j=4;j<7;j++) samples[i](j, 0) = normal_dist(); // x offset
             }
+            PiecewisePolynomial<Y> offset_pp = PiecewisePolynomial<Y>::FirstOrderHold(breaks, samples);
+
+            state_traj+=offset_pp;
+            trajopt.drake::systems::trajectory_optimization::MultipleShooting::
+                        SetInitialTrajectory(initial_guess_traj.ReconstructInputTrajectory(), state_traj);
         }
     };
 }

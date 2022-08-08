@@ -590,8 +590,7 @@ void SpiritTurn<Y>::run(MultibodyPlant<Y>& plant,
 
   
   addConstraints(plant, trajopt);
-  
-  this->addGaussionNoiseToInputStates(0,1);
+
   /// Setup the visualization during the optimization
   int num_ghosts = 1;// Number of ghosts in visualization. NOTE: there are limitations on number of ghosts based on modes and knotpoints
   std::vector<unsigned int> visualizer_poses; // Ghosts for visualizing during optimization
@@ -638,25 +637,25 @@ void SpiritTurn<Y>::run(MultibodyPlant<Y>& plant,
   // }
   /// Run animation of the final trajectory
   *pp_xtraj =trajopt.ReconstructStateTrajectory(result);
-  /// Create offset polynomial
-  std::vector<double> breaks=pp_xtraj->get_breaks();
-  std::vector<Eigen::MatrixXd> samples(breaks.size());
-  for (int i = 0; i < static_cast<int>(breaks.size()); ++i) {
-    samples[i].resize(39, 1);
-    for (int j=0;j<39;j++) samples[i](j, 0) = 0;
-    samples[i](4, 0) = pp_xtraj->value(pp_xtraj->end_time())(4,0); // x offset
-    // samples[i](5, 0) = pp_xtraj->value(pp_xtraj->end_time())(5,0); // y offset
-    // for (int j=0;j<4;j++)  samples[i](j, 0) = pp_xtraj->value(pp_xtraj->end_time())(j,0);
-  }
-  PiecewisePolynomial<double> ini_offset_pp = PiecewisePolynomial<double>::FirstOrderHold(breaks, samples);
-  PiecewisePolynomial<double> offset_pp=ini_offset_pp;
+  // // Create offset polynomial
+  // std::vector<double> breaks=pp_xtraj->get_breaks();
+  // std::vector<Eigen::MatrixXd> samples(breaks.size());
+  // for (int i = 0; i < static_cast<int>(breaks.size()); ++i) {
+  //   samples[i].resize(39, 1);
+  //   for (int j=0;j<39;j++) samples[i](j, 0) = 0;
+  //   samples[i](4, 0) = pp_xtraj->value(pp_xtraj->end_time())(4,0); // x offset
+  //   // samples[i](5, 0) = pp_xtraj->value(pp_xtraj->end_time())(5,0); // y offset
+  //   // for (int j=0;j<4;j++)  samples[i](j, 0) = pp_xtraj->value(pp_xtraj->end_time())(j,0);
+  // }
+  // PiecewisePolynomial<double> ini_offset_pp = PiecewisePolynomial<double>::FirstOrderHold(breaks, samples);
+  // PiecewisePolynomial<double> offset_pp=ini_offset_pp;
 
-  for (int i=0;i<10;i++){
-    PiecewisePolynomial<Y> x_traj_i=trajopt.ReconstructStateTrajectory(result)+offset_pp;
-    offset_pp+=ini_offset_pp;
-    x_traj_i.shiftRight(pp_xtraj->end_time());
-    pp_xtraj->ConcatenateInTime(x_traj_i);
-  }
+  // for (int i=0;i<10;i++){
+  //   PiecewisePolynomial<Y> x_traj_i=trajopt.ReconstructStateTrajectory(result)+offset_pp;
+  //   offset_pp+=ini_offset_pp;
+  //   x_traj_i.shiftRight(pp_xtraj->end_time());
+  //   pp_xtraj->ConcatenateInTime(x_traj_i);
+  // }
   
   // }
 }

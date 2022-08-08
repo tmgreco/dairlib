@@ -3,6 +3,9 @@
   saved_directory: /home/feng/Downloads/dairlib/examples/Spirit_spine/saved_trajectories/turn/
   spine_type: twisting
   urdf_path: examples/Spirit_spine/spirit_with_spine_drake.urdf
+  num_perturbations: 5
+  mean: 0
+  var: 0.01
 - name: turn_7
   ipopt: true
   num_knot_points:

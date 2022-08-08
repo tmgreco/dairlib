@@ -5,14 +5,26 @@
   saved_directory: /home/feng/Downloads/dairlib/examples/Spirit_spine/saved_trajectories/jump_test1/
   spine_type: twisting
   urdf_path: examples/Spirit_spine/spirit_with_spine_drake.urdf
+  num_perturbations: 5
+  mean: 0
+  var: 0.01
   iterate:
-    name: jump_4
-    iteration_variable: fore_aft_displacement
-    for:
-      start: 0.3
-      end: 1.0
-      step_size: 0.5  
-
+    -
+      name: jump_5
+      num: 1
+      iteration_variable: fore_aft_displacement
+      for:
+        start: 0.3
+        end: 1.35
+        step_size: 0.05
+    -
+      name: jump_6
+      iteration_variable: fore_aft_displacement
+      parallel_for:
+        start: 0.3
+        end: 1.35
+        step_size: 0.05
+    
 - 
   name: jump_1
   duration: 1
@@ -23,6 +35,7 @@
     - 7
     - 7
   apex_height: 0.45
+  apex_height_ratio: -1
   initial_height: 0.2
   fore_aft_displacement: 0
   lock_rotation: true
@@ -50,6 +63,7 @@
     - 7
     - 7
   apex_height: 0.45
+  apex_height_ratio: -1
   initial_height: 0.2
   fore_aft_displacement: 0.3
   lock_rotation: true
@@ -77,6 +91,7 @@
     - 7
     - 7
   apex_height: 0.45
+  apex_height_ratio: -1
   initial_height: 0.2
   fore_aft_displacement: 0.3
   lock_rotation: false
@@ -104,19 +119,79 @@
     - 7
     - 7
   apex_height: -1
+  apex_height_ratio: 0.3
+  initial_height: 0.2
+  fore_aft_displacement: 0.3
+  lock_rotation: true
+  lock_legs_apex: false
+  force_symmetry: true
+  use_nominal_stand: true
+  max_duration: 1.5
+  cost_actuation: 3
+  cost_velocity: 10
+  cost_work: 0 
+  cost_time: 0
+  mu: 1
+  eps: 3e-2
+  tol: 3e-1
+  file_name_in: jump_100cm_hq
+  file_name_out: jump_c1
+  # action: expand
+-
+  name: jump_5
+  duration: 1
+  ipopt: true
+  warm_up: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+  apex_height: -1
+  apex_height_ratio: -1
+  initial_height: 0.2
+  fore_aft_displacement: 0.3
+  lock_rotation: true
+  lock_legs_apex: false
+  force_symmetry: true
+  use_nominal_stand: true
+  max_duration: 1.5
+  cost_actuation: 3
+  cost_velocity: 10
+  cost_work: 0
+  cost_time: 1000
+  mu: 1
+  eps: 1e-2
+  tol: 3e-1
+  file_name_in: jump_c1
+  file_name_out: jump_c2
+  # action: shrink
+-
+  name: jump_6
+  duration: 1
+  ipopt: true
+  warm_up: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+  apex_height: -1
+  apex_height_ratio: -1
   initial_height: 0.2
   fore_aft_displacement: 0.3
   lock_rotation: false
   lock_legs_apex: false
-  force_symmetry: false
+  force_symmetry: true
   use_nominal_stand: true
   max_duration: 1.5
   cost_actuation: 0
-  cost_velocity: 0 
-  cost_work: 100 
+  cost_velocity: 0
+  cost_work: 100
   cost_time: 0
   mu: 1
   eps: 1e-2
   tol: 1e-1
-  file_name_out: jump_100cm_hq_work_option3
-  file_name_in: jump_100cm_hq
+  file_name_in: jump_c2
+  file_name_out: jump_c3
+  # action: shrink

@@ -5,13 +5,18 @@
   saved_directory: /home/feng/Downloads/dairlib/examples/Spirit_spine/saved_trajectories/trot_half/
   spine_type: twisting
   urdf_path: examples/Spirit_spine/spirit_with_spine_drake.urdf
+  num_perturbations: 5
+  mean: 0
+  var: 0.01
   iterate:
-    name: trot_3
-    iteration_variable: speed
-    for:
-      start: 0.1
-      end: 0.8
-      step_size: 0.1 
+    -
+      name: trot_3
+      num: 1
+      iteration_variable: speed
+      for:
+        start: 0.1
+        end: 0.8
+        step_size: 0.1 
 - 
   name: trot_1
   ipopt: true

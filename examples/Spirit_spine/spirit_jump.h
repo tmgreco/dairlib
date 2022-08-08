@@ -114,6 +114,7 @@ public:
 private:
     double duration; //!< maximum duration of the jumping behavior
     double apex_height;
+    double apex_height_ratio;
     double initial_height; //!< initial stand height
     double fore_aft_displacement; //!< how long the robot jump forward
     bool lock_rotation;
@@ -122,7 +123,7 @@ private:
     bool use_nominal_stand;
     double max_duration; //!< maximum duration of the jumping behavior
     double eps; //!< tolerance for the constraints
-
+    bool warm_up;
 };
 }
 

@@ -27,6 +27,7 @@ void SpiritJump<Y>::config(std::string yaml_path, std::string saved_directory, i
   this->ipopt=config[index]["ipopt"].as<bool>();
   this->num_knot_points=config[index]["num_knot_points"].as<std::vector<int>>();
   this->apex_height=config[index]["apex_height"].as<double>();
+  this->apex_height_ratio=config[index]["apex_height_ratio"].as<double>();
   this->initial_height=config[index]["initial_height"].as<double>();
   this->fore_aft_displacement=config[index]["fore_aft_displacement"].as<double>();
   this->lock_rotation=config[index]["lock_rotation"].as<bool>();
@@ -41,6 +42,10 @@ void SpiritJump<Y>::config(std::string yaml_path, std::string saved_directory, i
   this->mu=config[index]["mu"].as<double>();
   this->eps=config[index]["eps"].as<double>();
   this->tol=config[index]["tol"].as<double>();
+  if(config[index]["action"]) this->action=config[index]["action"].as<std::string>();
+  else this->action="";
+  if (config[index]["warm_up"]) this->warm_up=config[index]["warm_up"].as<bool>();
+  else this->warm_up=false;
 
   if(!config[index]["file_name_out"].as<std::string>().empty()) this->file_name_out=saved_directory+config[index]["file_name_out"].as<std::string>();
   if(!config[index]["file_name_in"].as<std::string>().empty()) this->file_name_in= saved_directory+config[index]["file_name_in"].as<std::string>();
@@ -81,18 +86,19 @@ void SpiritJump<Y>::generateInitialGuess(MultibodyPlant<Y>& plant){
   auto velocities_map = dairlib::multibody::makeNameToVelocitiesMap(plant);
   int num_joints = 13;
 
-  // Print joint dictionary
-  std::cout<<"**********************Joints***********************"<<std::endl;
-  for (auto const& element : positions_map)
-    std::cout << element.first << " = " << element.second << std::endl;
-  for (auto const& element : velocities_map)
-    std::cout << element.first << " = " << element.second << std::endl;
-  std::cout<<"***************************************************"<<std::endl;
+  // // Print joint dictionary
+  // std::cout<<"**********************Joints***********************"<<std::endl;
+  // for (auto const& element : positions_map)
+  //   std::cout << element.first << " = " << element.second << std::endl;
+  // for (auto const& element : velocities_map)
+  //   std::cout << element.first << " = " << element.second << std::endl;
+  // std::cout<<"***************************************************"<<std::endl;
 
   dairlib::nominalSpiritStand( plant, xInit,  0.16); //Update xInit
   dairlib::nominalSpiritStand( plant, xMid,  0.35); //Update xMid
 
   if (apex_height>0) xMid(positions_map.at("base_z"))=apex_height;
+  
 
   VectorXd deltaX(nx);
   VectorXd averageV(nx);
@@ -254,13 +260,25 @@ void SpiritJump<Y>::addConstraints(
 
   // Apex body positions conditions
   trajopt.AddBoundingBoxConstraint(-eps, eps, xapex(positions_map.at("base_y")));
-  trajopt.AddBoundingBoxConstraint(- eps, + eps, xapex(n_q + velocities_map.at("base_vz")) );
+  trajopt.AddBoundingBoxConstraint(-eps, + eps, xapex(n_q + velocities_map.at("base_vz")) );
   // trajopt.AddBoundingBoxConstraint(-eps, eps, xapex(positions_map.at("joint_12")));
   // Apex height
-  if(apex_height > 0)
-    trajopt.AddBoundingBoxConstraint(apex_height - eps, apex_height + eps, xapex(positions_map.at("base_z")) );
+  // Set maximum apex height to stablize the optimization
+  trajopt.AddBoundingBoxConstraint(0, 0.7, xapex(positions_map.at("base_z")) );
+  if(apex_height > 0) trajopt.AddBoundingBoxConstraint(apex_height - eps, apex_height + eps, xapex(positions_map.at("base_z")) );
+  else {
+    if (apex_height_ratio>0) 
+      trajopt.AddBoundingBoxConstraint(0.35+fore_aft_displacement*(apex_height_ratio-2*eps),
+                           0.35+fore_aft_displacement*(apex_height_ratio +2*eps), xapex(positions_map.at("base_z")) );
+  }
   double upperSet = 1;
   double kneeSet = 2;
+
+  // Restrict upper leg angles
+  trajopt.AddBoundingBoxConstraint(-0.5-eps, 2.5+ eps, xapex(positions_map.at("joint_0") ) );
+  trajopt.AddBoundingBoxConstraint(-0.5-eps, 2.5+ eps, xapex(positions_map.at("joint_2") ) );
+  trajopt.AddBoundingBoxConstraint(-0.5-eps, 2.5+ eps, xapex(positions_map.at("joint_4") ) );
+  trajopt.AddBoundingBoxConstraint(-0.5-eps, 2.5+ eps, xapex(positions_map.at("joint_6") ) );
 
   if(lock_legs_apex){
     //STATIC LEGS AT APEX
@@ -318,7 +336,13 @@ void SpiritJump<Y>::addConstraints(
   for (int i = 0; i < trajopt.N(); i++){
     auto xi = trajopt.state(i);
     //Orientation
-    if (lock_rotation and i != 0 and i != (trajopt.N()-1)) this->addPoseConstraints(trajopt,xi,positions_map,0,0,0,1,eps);
+    if (lock_rotation and i != 0 and i != (trajopt.N()-1)) {
+      double pitch_magnitude_apex=0.7;
+      trajopt.AddBoundingBoxConstraint(cos(pitch_magnitude_apex/2.0), 1, xi(positions_map.at("base_qw")));
+      trajopt.AddBoundingBoxConstraint(-eps, eps, xi(positions_map.at("base_qx")));
+      trajopt.AddBoundingBoxConstraint(-sin(pitch_magnitude_apex/2.0) , sin(pitch_magnitude_apex/2.0), xi(positions_map.at("base_qy")));
+      trajopt.AddBoundingBoxConstraint(-eps, eps, xi(positions_map.at("base_qz")));
+    }
     // Height
     trajopt.AddBoundingBoxConstraint( 0.15, 5, xi( positions_map.at("base_z")));
   }
@@ -382,12 +406,20 @@ void SpiritJump<Y>::run(MultibodyPlant<Y>& plant,
     trajopt.SetSolverOption(solver_id, "dual_inf_tol", this->tol*100);
     trajopt.SetSolverOption(solver_id, "constr_viol_tol", this->tol);
     trajopt.SetSolverOption(solver_id, "compl_inf_tol", this->tol);
-    trajopt.SetSolverOption(solver_id, "max_iter", 2000);
+    trajopt.SetSolverOption(solver_id, "max_iter", 1500);
     trajopt.SetSolverOption(solver_id, "nlp_lower_bound_inf", -1e6);
     trajopt.SetSolverOption(solver_id, "nlp_upper_bound_inf", 1e6);
     trajopt.SetSolverOption(solver_id, "print_timing_statistics", "yes");
     trajopt.SetSolverOption(solver_id, "print_level", 5);
 
+    if (warm_up){
+      std::cout<<"Warm start"<<std::endl;
+      trajopt.SetSolverOption(solver_id, "bound_push", 1e-8);
+      trajopt.SetSolverOption(solver_id, "warm_start_bound_push", 1e-8);
+      trajopt.SetSolverOption(solver_id, "warm_start_init_point", "yes");
+    }
+    // trajopt.SetSolverOption(solver_id, "alpha_red_factor ", 0.2);
+    // trajopt.SetSolverOption(solver_id, "warm_start_bound_push", 1e-2);
     // Set to ignore overall tolerance/dual infeasibility, but terminate when
     // primal feasible and objective fails to increase over 5 iterations.
     trajopt.SetSolverOption(solver_id, "acceptable_compl_inf_tol", this->tol);
@@ -416,7 +448,7 @@ void SpiritJump<Y>::run(MultibodyPlant<Y>& plant,
   // If the optimization failed, recover by imposing and relaxing the constraints again
   
   /// Save trajectory
-  this->perturbResult(plant,trajopt,result);
+  // this->perturbResult(plant,trajopt,result); // Perturb trajectory before saving
   this->saveTrajectory(plant,trajopt,result);
 
   // Writing contact force data
@@ -440,21 +472,7 @@ void SpiritJump<Y>::run(MultibodyPlant<Y>& plant,
 
   /// pass the final trajectory back to spirit for animation
   *pp_xtraj =trajopt.ReconstructStateTrajectory(result);
-  
-
-  // std::vector<MatrixXd> x_points;
-  // VectorXd x_const;
-
-  // dairlib::ikSpiritStand(plant, x_const, {false, false, false, false}, apex_height, 0.2, 0, 0);
-  // x_points.push_back(x_const);
-  // dairlib::ikSpiritStand(plant, x_const, {true, false, true, false}, stand_height+0.05, 0.2, 0, -pitch_lo);
-  // x_points.push_back(x_const);
-
-  // this->x_traj.push_back(PiecewisePolynomial<double>::FirstOrderHold({0 * duration/3.0, 1 * duration/3.0},x_points));
-  // x_points.clear();
-  
-
-  
+    
 }
 
 template class SpiritJump<double>;

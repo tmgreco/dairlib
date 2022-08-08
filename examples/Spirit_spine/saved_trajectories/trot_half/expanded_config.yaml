@@ -3,13 +3,17 @@
   saved_directory: /home/feng/Downloads/dairlib/examples/Spirit_spine/saved_trajectories/trot_half/
   spine_type: twisting
   urdf_path: examples/Spirit_spine/spirit_with_spine_drake.urdf
+  num_perturbations: 5
+  mean: 0
+  var: 0.01
   iterate:
-    name: trot_3
-    iteration_variable: speed
-    for:
-      start: 0.1
-      end: 0.8
-      step_size: 0.1
+    - name: trot_3
+      num: 1
+      iteration_variable: speed
+      for:
+        start: 0.1
+        end: 0.8
+        step_size: 0.1
 - name: trot_1
   ipopt: true
   num_knot_points:
@@ -92,7 +96,7 @@
   mu: 0.3
   eps: 1e-2
   tol: 1e-3
-  file_name_out: trot1_0
+  file_name_out: trot3_p1
   file_name_in: trot1
 - name: trot_3
   ipopt: true
@@ -120,8 +124,8 @@
   mu: 0.3
   eps: 1e-2
   tol: 1e-3
-  file_name_out: trot1_1
-  file_name_in: trot1_0
+  file_name_out: trot3_p2
+  file_name_in: trot3_p1
 - name: trot_3
   ipopt: true
   num_knot_points:
@@ -148,8 +152,8 @@
   mu: 0.3
   eps: 1e-2
   tol: 1e-3
-  file_name_out: trot1_2
-  file_name_in: trot1_1
+  file_name_out: trot3_p3
+  file_name_in: trot3_p2
 - name: trot_3
   ipopt: true
   num_knot_points:
@@ -176,8 +180,8 @@
   mu: 0.3
   eps: 1e-2
   tol: 1e-3
-  file_name_out: trot1_3
-  file_name_in: trot1_2
+  file_name_out: trot3_p4
+  file_name_in: trot3_p3
 - name: trot_3
   ipopt: true
   num_knot_points:
@@ -204,8 +208,8 @@
   mu: 0.3
   eps: 1e-2
   tol: 1e-3
-  file_name_out: trot1_4
-  file_name_in: trot1_3
+  file_name_out: trot3_p5
+  file_name_in: trot3_p4
 - name: trot_3
   ipopt: true
   num_knot_points:
@@ -232,8 +236,8 @@
   mu: 0.3
   eps: 1e-2
   tol: 1e-3
-  file_name_out: trot1_5
-  file_name_in: trot1_4
+  file_name_out: trot3_p6
+  file_name_in: trot3_p5
 - name: trot_3
   ipopt: true
   num_knot_points:
@@ -260,8 +264,8 @@
   mu: 0.3
   eps: 1e-2
   tol: 1e-3
-  file_name_out: trot1_6
-  file_name_in: trot1_5
+  file_name_out: trot3_p7
+  file_name_in: trot3_p6
 - name: trot_3
   ipopt: true
   num_knot_points:
@@ -289,7 +293,7 @@
   eps: 1e-2
   tol: 1e-3
   file_name_out: trot3
-  file_name_in: trot1_6
+  file_name_in: trot3_p7
 - name: trot_4
   ipopt: true
   num_knot_points:

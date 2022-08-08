@@ -40,6 +40,10 @@ public:
 
 private:
     int num_optimizations;
+    int num_perturbations;
+    double mean;
+    double var;
+    
     std::string initial_guess;
     std::string yaml_path;
     std::string saved_directory;

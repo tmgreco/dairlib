@@ -3,6 +3,9 @@
   saved_directory: /home/feng/Downloads/dairlib/examples/Spirit_spine/saved_trajectories/bound_gait/
   spine_type: twisting
   urdf_path: examples/Spirit_spine/spirit_with_spine_drake.urdf
+  num_perturbations: 5
+  mean: 0
+  var: 0.01
 - name: bound_1
   ipopt: true
   num_knot_points:
@@ -265,34 +268,6 @@
     - 7
     - 7
   initial_height: 0.2
-  pitch_magnitude_lo: 0.4
-  pitch_magnitude_apex: 0.05
-  lock_spine: false
-  apex_height: -1
-  speed: 3
-  max_duration: 1
-  lock_leg_apex: false
-  cost_actuation: 0
-  cost_velocity: 0
-  cost_velocity_legs_flight: 0
-  cost_actuation_legs_flight: 0
-  cost_time: 0
-  cost_power: 100
-  mu: 0.7
-  eps: 1e-2
-  tol: 1e-2
-  file_name_out: bounding_gait10
-  file_name_in: bounding_gait9
-- name: bound_11
-  ipopt: true
-  num_knot_points:
-    - 7
-    - 7
-    - 7
-    - 7
-    - 7
-    - 7
-  initial_height: 0.2
   pitch_magnitude_lo: 1
   pitch_magnitude_apex: 1
   lock_spine: false
@@ -308,6 +283,6 @@
   cost_power: 100
   mu: 0.7
   eps: 1e-2
-  tol: 1e-2
-  file_name_out: bounding_gait11
-  file_name_in: bounding_gait10
+  tol: 3e-2
+  file_name_out: bounding_gait10
+  file_name_in: bounding_gait9

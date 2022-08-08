@@ -30,6 +30,9 @@ Spirit<B,T>::Spirit(std::string yaml_path) :plant (std::make_unique<MultibodyPla
     
     initial_guess=config[0]["initial_guess"].as<std::string>();
     saved_directory=config[0]["saved_directory"].as<std::string>();
+    num_perturbations=config[0]["num_perturbations"].as<int>();
+    if(config[0]["mean"]) mean=config[0]["mean"].as<double>();
+    if(config[0]["var"]) var=config[0]["var"].as<double>();
     behavior.urdf_path=config[0]["urdf_path"].as<std::string>();
     behavior.spine_type=config[0]["spine_type"].as<std::string>();
     // Create saved directory if it doesn't exist
@@ -41,42 +44,70 @@ Spirit<B,T>::Spirit(std::string yaml_path) :plant (std::make_unique<MultibodyPla
     std::ofstream  dst(saved_directory+"config.yaml",   std::ios::binary);
     dst << src.rdbuf();
 
-
     // generate expanded yaml config
     std::cout<<"Start Generating Expanded Yaml File "<<std::endl;
     YAML::Node OPTIMIZATIONS;
     OPTIMIZATIONS.push_back(Clone(config[0]));
     for (std::size_t i=1;i<config.size();i++){
-      if(config[0]["iterate"]["name"]){
-        if(config[i]["name"].as<std::string>()==config[0]["iterate"]["name"].as<std::string>()){
-          std::cout<<"find iterative node: "<< config[i]["name"].as<std::string>()<<std::endl;
-          std::string name_in=config[i]["file_name_in"].as<std::string>();
-          for (std::size_t j =0; j<config[0]["iterate"]["values"].size();j++){
-            OPTIMIZATIONS.push_back(Clone(config[i]));
-            OPTIMIZATIONS[OPTIMIZATIONS.size()-1][config[0]["iterate"]["iteration_variable"].as<std::string>()]=config[0]["iterate"]["values"][j];
-            // Generate correct file names in and out
-            if (j!=0) OPTIMIZATIONS[OPTIMIZATIONS.size()-1]["file_name_in"]= name_in+"_"+std::to_string(j-1);
-            if (j<config[0]["iterate"]["values"].size()-1) OPTIMIZATIONS[OPTIMIZATIONS.size()-1]["file_name_out"]= name_in+"_"+std::to_string(j);
-          }
-          if (config[0]["iterate"]["for"].size()>0){
-            int j=0;
-            for (double v =config[0]["iterate"]["for"]["start"].as<double>(); v < config[0]["iterate"]["for"]["end"].as<double>();
-                  v += config[0]["iterate"]["for"]["step_size"].as<double>()){
+      if(config[0]["iterate"].size()>0){ // If there is iterative variable
+        bool is_iterative=false;
+        // std::cout<<config[0]["iterate"][0]["name"].as<std::string>()<<std::endl;
+        for (std::size_t ite=0;ite<config[0]["iterate"].size();ite++){
+          if(config[i]["name"].as<std::string>()==config[0]["iterate"][ite]["name"].as<std::string>()){ // If this optimization is going to be expended 
+            is_iterative=true;
+            std::cout<<"find iterative node: "<< config[i]["name"].as<std::string>()<<std::endl;
+            std::string name_in=config[i]["file_name_in"].as<std::string>();
+            for (std::size_t j =0; j<config[0]["iterate"][ite]["values"].size();j++){
               OPTIMIZATIONS.push_back(Clone(config[i]));
-              OPTIMIZATIONS[OPTIMIZATIONS.size()-1][config[0]["iterate"]["iteration_variable"].as<std::string>()]=v;
+              OPTIMIZATIONS[OPTIMIZATIONS.size()-1][config[0]["iterate"][ite]["iteration_variable"].as<std::string>()]=config[0]["iterate"][ite]["values"][j];
               // Generate correct file names in and out
-              if (v!=config[0]["iterate"]["for"]["start"].as<double>()) OPTIMIZATIONS[OPTIMIZATIONS.size()-1]["file_name_in"]= name_in+"_"+std::to_string(j-1);
-              if (v+config[0]["iterate"]["for"]["step_size"].as<double>() < config[0]["iterate"]["for"]["end"].as<double>()) {
-                OPTIMIZATIONS[OPTIMIZATIONS.size()-1]["file_name_out"]= name_in+"_"+std::to_string(j);
+              if (j!=0) OPTIMIZATIONS[OPTIMIZATIONS.size()-1]["file_name_in"]= name_in+"_"+std::to_string(j-1);
+              if (j<config[0]["iterate"][ite]["values"].size()-1) OPTIMIZATIONS[OPTIMIZATIONS.size()-1]["file_name_out"]= name_in+"_"+std::to_string(j);
+            }
+            if (config[0]["iterate"][ite]["for"].size()>0){
+              int p=1;
+              int num=config[0]["iterate"][ite]["num"].as<int>();
+              for (double v =config[0]["iterate"][ite]["for"]["start"].as<double>(); v < config[0]["iterate"][ite]["for"]["end"].as<double>();
+                    v += config[0]["iterate"][ite]["for"]["step_size"].as<double>()){
+                // Need another nested for loop here. Push back the following configs 
+                for (std::size_t k=i; k<i+num;k++){
+                  OPTIMIZATIONS.push_back(Clone(config[k]));
+                  OPTIMIZATIONS[OPTIMIZATIONS.size()-1][config[0]["iterate"][ite]["iteration_variable"].as<std::string>()]=v;
+
+                  // Generate correct file names in and out
+                  if (!(v==config[0]["iterate"][ite]["for"]["start"].as<double>() && k==i)) {
+                    if (k==i) OPTIMIZATIONS[OPTIMIZATIONS.size()-1]["file_name_in"]= config[i+num-1]["file_name_out"].as<std::string>()+"_p"+std::to_string(p-1);
+                    else OPTIMIZATIONS[OPTIMIZATIONS.size()-1]["file_name_in"]= config[k-1]["file_name_out"].as<std::string>()+"_p"+std::to_string(p);
+                  }
+                  if (!(v+config[0]["iterate"][ite]["for"]["step_size"].as<double>() >= config[0]["iterate"][ite]["for"]["end"].as<double>() 
+                      && k==i+num-1)) {
+                    OPTIMIZATIONS[OPTIMIZATIONS.size()-1]["file_name_out"]= config[k]["file_name_out"].as<std::string>()+"_p"+std::to_string(p);
+                  }
+                }
+                p++;
               }
-              j++;
+              i+=num-1; // need to increase i by iterate[num]
+            }
+            // For the parallel for loop grammar
+            if (config[0]["iterate"][ite]["parallel_for"].size()>0){
+              int p=1;
+              for (double v =config[0]["iterate"][ite]["parallel_for"]["start"].as<double>(); v < config[0]["iterate"][ite]["parallel_for"]["end"].as<double>();
+                    v += config[0]["iterate"][ite]["parallel_for"]["step_size"].as<double>()){
+                OPTIMIZATIONS.push_back(Clone(config[i]));
+                OPTIMIZATIONS[OPTIMIZATIONS.size()-1][config[0]["iterate"][ite]["iteration_variable"].as<std::string>()]=v;
+
+                // Generate correct file names in and out
+                if (!(v+config[0]["iterate"][ite]["parallel_for"]["step_size"].as<double>() >= config[0]["iterate"][ite]["parallel_for"]["end"].as<double>()))
+                  OPTIMIZATIONS[OPTIMIZATIONS.size()-1]["file_name_in"] =config[i]["file_name_in"].as<std::string>()+"_p"+std::to_string(p);
+                OPTIMIZATIONS[OPTIMIZATIONS.size()-1]["file_name_out"] =config[i]["file_name_out"].as<std::string>()+ "_p"+std::to_string(p);
+                p++;
+              }
+            }
+
           }
-          }
-          
         }
-        else{
-          OPTIMIZATIONS.push_back(Clone(config[i]));
-        }
+        if (!is_iterative) OPTIMIZATIONS.push_back(Clone(config[i]));
+
       }
       else OPTIMIZATIONS.push_back(Clone(config[i]));
     }
@@ -84,6 +115,7 @@ Spirit<B,T>::Spirit(std::string yaml_path) :plant (std::make_unique<MultibodyPla
     std::ofstream fout(saved_directory+"expanded_config.yaml");
     fout << OPTIMIZATIONS;
     this->yaml_path=saved_directory+"expanded_config.yaml"; //set yaml path to the new generated one
+
 
     ///init plant
     Parser parser(plant.get());
@@ -141,15 +173,63 @@ void Spirit<B,T>::animate(){
 
 template <template<class> class B,class T>
 void Spirit<B,T>::run(){
+  behavior.setMeanAndVar(0,0);
   for (int i=FLAGS_skip_to;i<=num_optimizations;i++){
-      std::cout<<"Running optimization "<<i<<std::endl;
-      if (i==num_optimizations) behavior.enable_animate();   
-      behavior.config(yaml_path,saved_directory,i,plant.get());
-      if (i==FLAGS_skip_to){
-        if(initial_guess=="") behavior.generateInitialGuess(*plant); //If we don't have a file for initial guess, then generate one.
-        else behavior.loadOldTrajectory(initial_guess); //Otherwise, use the trajectory file we have.
-      } 
-      behavior.run(*plant,&pp_xtraj,&surface_vector);
+    std::cout<<"Running optimization "<<i<<std::endl;
+    if (i==num_optimizations) behavior.enable_animate();   
+    behavior.config(yaml_path,saved_directory,i,plant.get());
+    if (i==FLAGS_skip_to){
+      if(initial_guess=="") behavior.generateInitialGuess(*plant); //If we don't have a file for initial guess, then generate one.
+      else behavior.loadOldTrajectory(initial_guess); //Otherwise, use the trajectory file we have.
+    } 
+    std::cout<<"ith action: "<<behavior.action<<std::endl;
+    if (behavior.action=="expand"){
+      std::string org_file_name_out=behavior.getFileNameOut();
+      for (int j=0;j<num_perturbations;j++){
+        behavior.setFileNameOut(org_file_name_out+"_s"+std::to_string(j+1));
+        if (j!=0) behavior.setMeanAndVar(mean,var);
+        std::cout<<"!!!!!!!!!!!!!!!!!!!!!!!!!!!!"<<j<<"  "<<mean <<" " << var<<std::endl;
+        behavior.run(*plant,&pp_xtraj,&surface_vector);
+      }
+      behavior.setMeanAndVar(0,0);
+      behavior.setFileNameOut(org_file_name_out);
+      // Copy and paste the first unperturbed trajectory
+      std::ifstream  src(org_file_name_out+"_s1", std::ios::binary);
+      std::ofstream  dst(org_file_name_out,   std::ios::binary);
+      dst << src.rdbuf();
+    }
+    else if (behavior.action=="keep"){
+      std::string org_file_name_in=behavior.getFileNameIn();
+      std::string org_file_name_out=behavior.getFileNameOut();
+      behavior.setMeanAndVar(0,0);
+      for (int j=0;j<num_perturbations;j++){
+        behavior.setFileNameIn(org_file_name_in+"_s"+std::to_string(j+1));
+        behavior.setFileNameOut(org_file_name_out+"_s"+std::to_string(j+1));
+        behavior.run(*plant,&pp_xtraj,&surface_vector);
+      }
+    }
+    else if (behavior.action=="shrink"){
+      std::string org_file_name_in=behavior.getFileNameIn();
+      std::string org_file_name_out=behavior.getFileNameOut();
+      behavior.setMeanAndVar(0,0);
+
+      // Create array of optimal costs
+      double costs[num_perturbations];
+      const int N = sizeof(costs) / sizeof(double);
+
+      for (int j=0;j<num_perturbations;j++){
+        behavior.setFileNameIn(org_file_name_in+"_s"+std::to_string(j+1));
+        behavior.setFileNameOut(org_file_name_out+"_s"+std::to_string(j+1));
+        behavior.run(*plant,&pp_xtraj,&surface_vector);
+        costs[j]=behavior.getCost();
+      }
+      // Copy the best traj to saved directory
+      int best_index=std::distance(costs, std::min_element(costs, costs + N));
+      std::ifstream  src(org_file_name_out+"_s"+std::to_string(best_index+1), std::ios::binary);
+      std::ofstream  dst(org_file_name_out,   std::ios::binary);
+      dst << src.rdbuf();
+    }
+    else behavior.run(*plant,&pp_xtraj,&surface_vector);
   }
 }
 template class Spirit<dairlib::SpiritJump,double>;
