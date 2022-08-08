@@ -10,6 +10,10 @@ cc_library(
     deps = [
         "//common",
         "//multibody:visualization_utils",
+        ":spirit_utils",
+        ":spirit_behavior",
+        "//lcm:dircon_trajectory_saver",
+        "//multibody/kinematic",
         "//systems/primitives",
         "//systems/trajectory_optimization/dircon",
         "@drake//:drake_shared_library",
@@ -17,6 +21,24 @@ cc_library(
     ],
 )
 
+cc_binary(
+    name = "animate_traj",
+    srcs = ["animte_traj.cc"],
+    data = ["spirit_with_spine_drake.urdf",
+            "spirit_drake.urdf"],
+    deps = [
+        ":animate_spirit",
+        ":spirit_utils",
+        ":spirit_behavior",
+        "//common",
+        "//lcm:dircon_trajectory_saver",
+        "//multibody/kinematic",
+        "//systems/primitives",
+        "//systems/trajectory_optimization/dircon",
+        "@drake//:drake_shared_library",
+        "@gflags",
+    ],
+)
 cc_library(
     name = "spirit_utils",
     srcs = ["spirit_utils.cc"],

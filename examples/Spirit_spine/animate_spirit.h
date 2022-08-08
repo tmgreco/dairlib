@@ -1,5 +1,26 @@
 #pragma once
+#include <memory>
+#include <chrono>
+#include <unistd.h>
+#include <gflags/gflags.h>
+#include <string.h>
 
+#include "drake/solvers/snopt_solver.h"
+#include "drake/systems/analysis/simulator.h"
+#include "drake/systems/framework/diagram.h"
+#include "drake/systems/framework/diagram_builder.h"
+#include "drake/multibody/parsing/parser.h"
+#include "drake/geometry/drake_visualizer.h"
+#include "drake/solvers/solve.h"
+
+#include "common/find_resource.h"
+#include "systems/trajectory_optimization/dircon/dircon.h"
+#include "multibody/kinematic/world_point_evaluator.h"
+#include "multibody/multibody_utils.h"
+#include "multibody/visualization_utils.h"
+#include "multibody/kinematic/kinematic_constraints.h"
+#include "systems/trajectory_optimization/dircon/dircon.h"
+#include "lcm/dircon_saved_trajectory.h"
 namespace dairlib {
 
   /// See runAnimate(
@@ -19,4 +40,6 @@ void runAnimate(
     drake::trajectories::PiecewisePolynomial<double> pp_xtraj,
     double real_time_factor = 1
     ) ;
+
+void animateTraj(std::string& urdf_path,int num_period,double real_time_rate);
 }  // dairlib namespace

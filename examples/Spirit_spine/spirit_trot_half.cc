@@ -288,11 +288,11 @@ void SpiritTrotHalf<Y>::addConstraints(
   double upperLegLength=0.206;
   double lowerLegLength=0.206;
   // Toe 2
-  trajopt.AddConstraint(x0(positions_map.at("base_z"))-upperLegLength*sin(x0(positions_map.at("joint_2")))
-                        -lowerLegLength*sin(x0(positions_map.at("joint_3"))-x0(positions_map.at("joint_2"))),toe_height-eps, toe_height+0.08);
+  trajopt.AddConstraint(x0(positions_map.at("base_z"))-cos(x0(positions_map.at("joint_9")))*(upperLegLength*sin(x0(positions_map.at("joint_2")))
+                        +lowerLegLength*sin(x0(positions_map.at("joint_3"))-x0(positions_map.at("joint_2")))),toe_height-eps, toe_height+0.08);
   // Toe 3
-  trajopt.AddConstraint(x0(positions_map.at("base_z"))-upperLegLength*sin(x0(positions_map.at("joint_4")))
-                        -lowerLegLength*sin(x0(positions_map.at("joint_5"))-x0(positions_map.at("joint_4"))),toe_height-eps, toe_height+0.08);
+  trajopt.AddConstraint(x0(positions_map.at("base_z"))-cos(x0(positions_map.at("joint_10")))*(upperLegLength*sin(x0(positions_map.at("joint_4")))
+                        +lowerLegLength*sin(x0(positions_map.at("joint_5"))-x0(positions_map.at("joint_4")))),toe_height-eps, toe_height+0.08);
 
 
 
@@ -361,17 +361,18 @@ void SpiritTrotHalf<Y>::addConstraints(
 
     //Toes
     // Toe 1
-    trajopt.AddConstraint(xi(positions_map.at("base_z"))-upperLegLength*sin(xi(positions_map.at("joint_0")))
-                          -lowerLegLength*sin(xi(positions_map.at("joint_1"))-xi(positions_map.at("joint_0"))),0, 0.15);
+    if (i< trajopt.N()-2)
+    trajopt.AddConstraint(xi(positions_map.at("base_z"))-cos(xi(positions_map.at("joint_8")))*(upperLegLength*sin(xi(positions_map.at("joint_0")))
+                          +lowerLegLength*sin(xi(positions_map.at("joint_1"))-xi(positions_map.at("joint_0")))),0, 0.15);
     // Toe 2
-    trajopt.AddConstraint(xi(positions_map.at("base_z"))-upperLegLength*sin(xi(positions_map.at("joint_2")))
-                          -lowerLegLength*sin(xi(positions_map.at("joint_3"))-xi(positions_map.at("joint_2"))),0, 0.15);
+    trajopt.AddConstraint(xi(positions_map.at("base_z"))-cos(xi(positions_map.at("joint_9")))*(upperLegLength*sin(xi(positions_map.at("joint_2")))
+                          +lowerLegLength*sin(xi(positions_map.at("joint_3"))-xi(positions_map.at("joint_2")))),0.03, 0.15);
     // Toe 3
-    trajopt.AddConstraint(xi(positions_map.at("base_z"))-upperLegLength*sin(xi(positions_map.at("joint_4")))
-                          -lowerLegLength*sin(xi(positions_map.at("joint_5"))-xi(positions_map.at("joint_4"))),0, 0.15);                      
+    trajopt.AddConstraint(xi(positions_map.at("base_z"))-cos(xi(positions_map.at("joint_10")))*(upperLegLength*sin(xi(positions_map.at("joint_4")))
+                          +lowerLegLength*sin(xi(positions_map.at("joint_5"))-xi(positions_map.at("joint_4")))),0.03, 0.15);                      
     // Toe 4
-    trajopt.AddConstraint(xi(positions_map.at("base_z"))-upperLegLength*sin(xi(positions_map.at("joint_6")))
-                          -lowerLegLength*sin(xi(positions_map.at("joint_7"))-xi(positions_map.at("joint_6"))),0, 0.15);
+    trajopt.AddConstraint(xi(positions_map.at("base_z"))-cos(xi(positions_map.at("joint_11")))*(upperLegLength*sin(xi(positions_map.at("joint_6")))
+                          +lowerLegLength*sin(xi(positions_map.at("joint_7"))-xi(positions_map.at("joint_6")))),0, 0.15);
   }
 
   //Average Velocity

@@ -158,7 +158,7 @@ void Spirit<B,T>::animate(){
   // bool save=false;
   while (1) {
     drake::systems::Simulator<double> simulator(*diagram);
-    simulator.set_target_realtime_rate(0.2);
+    simulator.set_target_realtime_rate(1);
     simulator.Initialize();
     simulator.AdvanceTo(pp_xtraj.end_time());
     // if (!save){
