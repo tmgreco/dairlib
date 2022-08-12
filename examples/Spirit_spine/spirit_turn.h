@@ -123,7 +123,7 @@ public:
 
 private:
     vector<PiecewisePolynomial<Y>> x_traj; //!< vector of initial and solution state trajectory
-
+    PiecewisePolynomial<Y> states_traj;
     bool lock_leg_apex;
     bool lock_spine;
     double pitch_magnitude_apex;

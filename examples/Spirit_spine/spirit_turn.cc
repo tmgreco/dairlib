@@ -364,6 +364,12 @@ void SpiritTurn<Y>::addConstraints(
   trajopt.AddBoundingBoxConstraint( -eps, eps, x0( positions_map.at("base_y")));
   if (apex_height>0) trajopt.AddBoundingBoxConstraint( this->apex_height-eps, this->apex_height+eps, x0( positions_map.at("base_z")));
 
+
+  // Set initial state to be identical with the input traj
+  for (int i=0;i<n_q+n_v;i++){
+    trajopt.AddBoundingBoxConstraint(states_traj.value(0)(i,0)-0.1*eps, states_traj.value(0)(i,0)+0.1*eps, x0(i));
+  }
+
   // velocities
   // trajopt.AddBoundingBoxConstraint(this->speed-eps, this->speed+eps, x0(plant.num_positions()+velocities_map.at("base_vx")));
   // trajopt.AddBoundingBoxConstraint(-eps, eps, x0(plant.num_positions()+velocities_map.at("base_vy")));
@@ -491,22 +497,48 @@ void SpiritTurn<Y>::addConstraints(
   trajopt.AddConstraint(roll0,-0.3,0.3);
   trajopt.AddConstraint(pitch0,-0.4,0.4);
 
-  // getYawFromQuaternion(x0(0),x0(1),x0(2),x0(3));
-  // trajopt.AddConstraint(getYawFromQuaternion(x0(0),x0(1),x0(2),x0(3))+orientation_diff/2-getYawFromQuaternion(xf(0),xf(1),xf(2),xf(3)),-eps,eps);
-  // trajopt.AddConstraint(getRollFromQuaternion(x0(0),x0(1),x0(2),x0(3))-getRollFromQuaternion(xf(0),xf(1),xf(2),xf(3)),-eps,eps);
-  // trajopt.AddConstraint(getPitchFromQuaternion(x0(0),x0(1),x0(2),x0(3))-getPitchFromQuaternion(xf(0),xf(1),xf(2),xf(3)),-eps,eps);
-  for (int i=6;i<n_q;i++) {
-    trajopt.AddConstraint( xf(i)-x0(i),-eps, eps);
-  } // Same joint positions
+  
+  
+  if (this->spine_type=="rigid") {
+    for (int i=7;i<n_q;i++) {
+      trajopt.AddConstraint( xf(i)-x0(i),-10*eps, 10*eps);
+    } // Same joint positions
+    trajopt.AddConstraint( xf(6)-x0(6),-eps, eps);// same z
 
-  trajopt.AddConstraint( xf(n_q)-x0(n_q),-eps, eps); // same wx
-  trajopt.AddConstraint( xf(n_q+1)-x0(n_q+1),-eps, eps); // same wy
-  trajopt.AddConstraint( x0(n_q+2),-eps, eps); // zero initial wz
-  trajopt.AddConstraint( xf(n_q+3)-x0(n_q+3),-eps, eps); // same vx
-  trajopt.AddConstraint( x0(n_q+4),-eps, eps); // zero initial vy
-  trajopt.AddConstraint( xf(n_q+5)-x0(n_q+5),-eps, eps); // same zero vz
-  for (int i=n_q+6;i<n_q+n_v;i++) {
-    trajopt.AddConstraint( xf(i)-x0(i),-eps, eps);
+    trajopt.AddConstraint( xf(n_q)-x0(n_q),-eps, eps); // same wx
+    trajopt.AddConstraint( xf(n_q+1)-x0(n_q+1),-eps, eps); // same wy
+    trajopt.AddConstraint( x0(n_q+2),-eps, eps); // zero initial wz
+    trajopt.AddConstraint( xf(n_q+3)-x0(n_q+3),-eps, eps); // same vx
+    trajopt.AddConstraint( x0(n_q+4),-eps, eps); // zero initial vy
+    trajopt.AddConstraint( xf(n_q+4),-speed*sin(orientation_diff)*0.1-eps, speed*sin(orientation_diff)*0.1+eps); // small final vy
+    trajopt.AddConstraint( xf(n_q+5)-x0(n_q+5),-eps, eps); // same zero vz
+    for (int i=n_q+6;i<n_q+n_v;i++) {
+      trajopt.AddConstraint( xf(i)-x0(i),-10*eps, 10*eps);
+    }
+  }
+  else if (this->spine_type=="twisting") {
+    for (int i=8;i<n_q;i++) {
+      trajopt.AddConstraint( xf(i)-x0(i),-10*eps, 10*eps);
+    } // Almost the same joint positions
+    trajopt.AddConstraint( xf(6)-x0(6),-eps, eps);// same z
+
+    trajopt.AddConstraint( xf(n_q)-x0(n_q),-eps, eps); // same wx
+    trajopt.AddConstraint( xf(n_q+1)-x0(n_q+1),-eps, eps); // same wy
+    trajopt.AddConstraint( x0(n_q+2),-eps, eps); // zero initial wz
+    trajopt.AddConstraint( xf(n_q+3)-x0(n_q+3),-eps, eps); // same vx
+    trajopt.AddConstraint( x0(n_q+4),-eps, eps); // zero initial vy
+    trajopt.AddConstraint( xf(n_q+4),-speed*sin(orientation_diff)*0.1-eps, speed*sin(orientation_diff)*0.1+eps); // small final vy
+    trajopt.AddConstraint( xf(n_q+5)-x0(n_q+5),-eps, eps); // same zero vz
+
+    // Contraints on spine
+    // trajopt.AddBoundingBoxConstraint(-0.2,0.2, x0(7));
+    trajopt.AddConstraint( xf(7)-x0(7),-10*eps, 10*eps);
+    // trajopt.AddBoundingBoxConstraint(-0.5,0.5, x0(n_q+7));
+    trajopt.AddConstraint( xf(n_q+7)-x0(n_q+7),-30*eps, 30*eps);
+
+    for (int i=n_q+7;i<n_q+n_v;i++) {
+      trajopt.AddConstraint( xf(i)-x0(i),-10*eps, 10*eps); // Almost the same joint velocities
+    }
   }
 
   // //Average Velocity
@@ -543,7 +575,8 @@ void SpiritTurn<Y>::addConstraints(
     }
   }
   trajopt.AddConstraint(  this->speed * total_time-total_distance, -eps, eps );
-  
+  // Final state y  FOR TESTING PURPOSE
+  trajopt.AddConstraint( xf( positions_map.at("base_y"))/(total_distance*sin(orientation_diff)),0.4,1.4);
 }
 
 
@@ -636,6 +669,7 @@ void SpiritTurn<Y>::run(MultibodyPlant<Y>& plant,
     dairlib::DirconTrajectory loaded_traj(this->file_name_in);
     // std::cout<<loaded_traj.GetStateDerivativeSamples(0)<<std::endl;
     // std::cout<<loaded_traj.GetDecisionVariables()<<std::endl;
+    states_traj=loaded_traj.ReconstructStateTrajectory();
     trajopt.SetInitialGuessForAllVariables(loaded_traj.GetDecisionVariables());
   }
 
@@ -678,7 +712,7 @@ void SpiritTurn<Y>::run(MultibodyPlant<Y>& plant,
   // Writing contact force data
   std::string contact_force_fname="/home/feng/Downloads/dairlib/examples/Spirit_spine/data/turn/rigid/turn_"+std::to_string(this->speed)+"_"+
                 std::to_string(this->orientation_diff)+".csv";
-  this->saveContactForceData(this->orientation_diff,contact_force_fname,result.is_success());
+  this->saveContactForceData(this->orientation_diff,contact_force_fname,result.is_success() && result.get_optimal_cost()<10000);
   
   // auto x_trajs = trajopt.ReconstructDiscontinuousStateTrajectory(result);
   // std::cout<<"Work = " << dairlib::calcElectricalWork(plant, x_trajs, this->u_traj) << std::endl;

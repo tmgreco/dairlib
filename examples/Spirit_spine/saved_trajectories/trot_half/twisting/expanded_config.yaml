@@ -12,25 +12,25 @@
       iteration_variable: speed
       for:
         start: 0.1
-        end: 1
+        end: 1.6
         step_size: 0.1
     - name: trot_4
       iteration_variable: speed
       parallel_for:
         start: 0.1
-        end: 1
+        end: 1.6
         step_size: 0.1
     - name: trot_5
       iteration_variable: speed
       parallel_for:
         start: 0.1
-        end: 1
+        end: 1.6
         step_size: 0.1
     - name: trot_6
       iteration_variable: speed
       parallel_for:
         start: 0.1
-        end: 1
+        end: 1.6
         step_size: 0.1
 - name: trot_1
   ipopt: true
@@ -366,8 +366,148 @@
   mu: 0.3
   eps: 1e-2
   tol: 1e-2
-  file_name_out: trot3
+  file_name_out: trot3_p10
   file_name_in: trot3_p9
+- name: trot_3
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  pitch_magnitude_lo: 0.1
+  pitch_magnitude_apex: 0.1
+  max_spine_magnitude: 0
+  apex_height: 0.38
+  speed: 1.1
+  max_duration: 0.7
+  min_duration: 0.3
+  lock_leg_apex: true
+  cost_actuation: 3
+  cost_velocity: 10
+  cost_velocity_legs_flight: 100
+  cost_actuation_legs_flight: 100
+  cost_time: 1000
+  cost_power: 0
+  mu: 0.3
+  eps: 1e-2
+  tol: 1e-2
+  file_name_out: trot3_p11
+  file_name_in: trot3_p10
+- name: trot_3
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  pitch_magnitude_lo: 0.1
+  pitch_magnitude_apex: 0.1
+  max_spine_magnitude: 0
+  apex_height: 0.38
+  speed: 1.2
+  max_duration: 0.7
+  min_duration: 0.3
+  lock_leg_apex: true
+  cost_actuation: 3
+  cost_velocity: 10
+  cost_velocity_legs_flight: 100
+  cost_actuation_legs_flight: 100
+  cost_time: 1000
+  cost_power: 0
+  mu: 0.3
+  eps: 1e-2
+  tol: 1e-2
+  file_name_out: trot3_p12
+  file_name_in: trot3_p11
+- name: trot_3
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  pitch_magnitude_lo: 0.1
+  pitch_magnitude_apex: 0.1
+  max_spine_magnitude: 0
+  apex_height: 0.38
+  speed: 1.3
+  max_duration: 0.7
+  min_duration: 0.3
+  lock_leg_apex: true
+  cost_actuation: 3
+  cost_velocity: 10
+  cost_velocity_legs_flight: 100
+  cost_actuation_legs_flight: 100
+  cost_time: 1000
+  cost_power: 0
+  mu: 0.3
+  eps: 1e-2
+  tol: 1e-2
+  file_name_out: trot3_p13
+  file_name_in: trot3_p12
+- name: trot_3
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  pitch_magnitude_lo: 0.1
+  pitch_magnitude_apex: 0.1
+  max_spine_magnitude: 0
+  apex_height: 0.38
+  speed: 1.4
+  max_duration: 0.7
+  min_duration: 0.3
+  lock_leg_apex: true
+  cost_actuation: 3
+  cost_velocity: 10
+  cost_velocity_legs_flight: 100
+  cost_actuation_legs_flight: 100
+  cost_time: 1000
+  cost_power: 0
+  mu: 0.3
+  eps: 1e-2
+  tol: 1e-2
+  file_name_out: trot3_p14
+  file_name_in: trot3_p13
+- name: trot_3
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  pitch_magnitude_lo: 0.1
+  pitch_magnitude_apex: 0.1
+  max_spine_magnitude: 0
+  apex_height: 0.38
+  speed: 1.5
+  max_duration: 0.7
+  min_duration: 0.3
+  lock_leg_apex: true
+  cost_actuation: 3
+  cost_velocity: 10
+  cost_velocity_legs_flight: 100
+  cost_actuation_legs_flight: 100
+  cost_time: 1000
+  cost_power: 0
+  mu: 0.3
+  eps: 1e-2
+  tol: 1e-2
+  file_name_out: trot3
+  file_name_in: trot3_p14
 - name: trot_4
   ipopt: true
   num_knot_points:
@@ -646,6 +786,146 @@
   mu: 0.3
   eps: 1e-2
   tol: 1e-2
+  file_name_out: trot4_p10
+  file_name_in: trot3_p10
+- name: trot_4
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  pitch_magnitude_lo: 0.1
+  pitch_magnitude_apex: 0.1
+  max_spine_magnitude: 0
+  apex_height: 0.38
+  speed: 1.1
+  max_duration: 0.7
+  min_duration: 0.25
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 0
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.3
+  eps: 1e-2
+  tol: 1e-2
+  file_name_out: trot4_p11
+  file_name_in: trot3_p11
+- name: trot_4
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  pitch_magnitude_lo: 0.1
+  pitch_magnitude_apex: 0.1
+  max_spine_magnitude: 0
+  apex_height: 0.38
+  speed: 1.2
+  max_duration: 0.7
+  min_duration: 0.25
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 0
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.3
+  eps: 1e-2
+  tol: 1e-2
+  file_name_out: trot4_p12
+  file_name_in: trot3_p12
+- name: trot_4
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  pitch_magnitude_lo: 0.1
+  pitch_magnitude_apex: 0.1
+  max_spine_magnitude: 0
+  apex_height: 0.38
+  speed: 1.3
+  max_duration: 0.7
+  min_duration: 0.25
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 0
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.3
+  eps: 1e-2
+  tol: 1e-2
+  file_name_out: trot4_p13
+  file_name_in: trot3_p13
+- name: trot_4
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  pitch_magnitude_lo: 0.1
+  pitch_magnitude_apex: 0.1
+  max_spine_magnitude: 0
+  apex_height: 0.38
+  speed: 1.4
+  max_duration: 0.7
+  min_duration: 0.25
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 0
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.3
+  eps: 1e-2
+  tol: 1e-2
+  file_name_out: trot4_p14
+  file_name_in: trot3_p14
+- name: trot_4
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  pitch_magnitude_lo: 0.1
+  pitch_magnitude_apex: 0.1
+  max_spine_magnitude: 0
+  apex_height: 0.38
+  speed: 1.5
+  max_duration: 0.7
+  min_duration: 0.25
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 0
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.3
+  eps: 1e-2
+  tol: 1e-2
   file_name_out: trot4
   file_name_in: trot3
 - name: trot_5
@@ -673,7 +953,7 @@
   cost_power: 100
   mu: 0.3
   eps: 1e-2
-  tol: 1e-2
+  tol: 1e-1
   file_name_out: trot5_p1
   file_name_in: trot4_p1
 - name: trot_5
@@ -701,7 +981,7 @@
   cost_power: 100
   mu: 0.3
   eps: 1e-2
-  tol: 1e-2
+  tol: 1e-1
   file_name_out: trot5_p2
   file_name_in: trot4_p2
 - name: trot_5
@@ -729,7 +1009,7 @@
   cost_power: 100
   mu: 0.3
   eps: 1e-2
-  tol: 1e-2
+  tol: 1e-1
   file_name_out: trot5_p3
   file_name_in: trot4_p3
 - name: trot_5
@@ -757,7 +1037,7 @@
   cost_power: 100
   mu: 0.3
   eps: 1e-2
-  tol: 1e-2
+  tol: 1e-1
   file_name_out: trot5_p4
   file_name_in: trot4_p4
 - name: trot_5
@@ -785,7 +1065,7 @@
   cost_power: 100
   mu: 0.3
   eps: 1e-2
-  tol: 1e-2
+  tol: 1e-1
   file_name_out: trot5_p5
   file_name_in: trot4_p5
 - name: trot_5
@@ -813,7 +1093,7 @@
   cost_power: 100
   mu: 0.3
   eps: 1e-2
-  tol: 1e-2
+  tol: 1e-1
   file_name_out: trot5_p6
   file_name_in: trot4_p6
 - name: trot_5
@@ -841,7 +1121,7 @@
   cost_power: 100
   mu: 0.3
   eps: 1e-2
-  tol: 1e-2
+  tol: 1e-1
   file_name_out: trot5_p7
   file_name_in: trot4_p7
 - name: trot_5
@@ -869,7 +1149,7 @@
   cost_power: 100
   mu: 0.3
   eps: 1e-2
-  tol: 1e-2
+  tol: 1e-1
   file_name_out: trot5_p8
   file_name_in: trot4_p8
 - name: trot_5
@@ -897,7 +1177,7 @@
   cost_power: 100
   mu: 0.3
   eps: 1e-2
-  tol: 1e-2
+  tol: 1e-1
   file_name_out: trot5_p9
   file_name_in: trot4_p9
 - name: trot_5
@@ -925,7 +1205,147 @@
   cost_power: 100
   mu: 0.3
   eps: 1e-2
-  tol: 1e-2
+  tol: 1e-1
+  file_name_out: trot5_p10
+  file_name_in: trot4_p10
+- name: trot_5
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  pitch_magnitude_lo: 0.1
+  pitch_magnitude_apex: 0.1
+  max_spine_magnitude: 0.1
+  apex_height: 0.38
+  speed: 1.1
+  max_duration: 0.7
+  min_duration: 0.25
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 0
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.3
+  eps: 1e-2
+  tol: 1e-1
+  file_name_out: trot5_p11
+  file_name_in: trot4_p11
+- name: trot_5
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  pitch_magnitude_lo: 0.1
+  pitch_magnitude_apex: 0.1
+  max_spine_magnitude: 0.1
+  apex_height: 0.38
+  speed: 1.2
+  max_duration: 0.7
+  min_duration: 0.25
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 0
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.3
+  eps: 1e-2
+  tol: 1e-1
+  file_name_out: trot5_p12
+  file_name_in: trot4_p12
+- name: trot_5
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  pitch_magnitude_lo: 0.1
+  pitch_magnitude_apex: 0.1
+  max_spine_magnitude: 0.1
+  apex_height: 0.38
+  speed: 1.3
+  max_duration: 0.7
+  min_duration: 0.25
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 0
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.3
+  eps: 1e-2
+  tol: 1e-1
+  file_name_out: trot5_p13
+  file_name_in: trot4_p13
+- name: trot_5
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  pitch_magnitude_lo: 0.1
+  pitch_magnitude_apex: 0.1
+  max_spine_magnitude: 0.1
+  apex_height: 0.38
+  speed: 1.4
+  max_duration: 0.7
+  min_duration: 0.25
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 0
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.3
+  eps: 1e-2
+  tol: 1e-1
+  file_name_out: trot5_p14
+  file_name_in: trot4_p14
+- name: trot_5
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  pitch_magnitude_lo: 0.1
+  pitch_magnitude_apex: 0.1
+  max_spine_magnitude: 0.1
+  apex_height: 0.38
+  speed: 1.5
+  max_duration: 0.7
+  min_duration: 0.25
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 0
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.3
+  eps: 1e-2
+  tol: 1e-1
   file_name_out: trot5
   file_name_in: trot4
 - name: trot_6
@@ -1194,6 +1614,146 @@
   max_spine_magnitude: 0.4
   apex_height: -1
   speed: 0.9999999999999999
+  max_duration: 0.7
+  min_duration: 0.3
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 0
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.3
+  eps: 1e-2
+  tol: 3e-2
+  file_name_out: trot6_p10
+  file_name_in: trot5_p10
+- name: trot_6
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  pitch_magnitude_lo: 0.1
+  pitch_magnitude_apex: 0.1
+  max_spine_magnitude: 0.4
+  apex_height: -1
+  speed: 1.1
+  max_duration: 0.7
+  min_duration: 0.3
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 0
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.3
+  eps: 1e-2
+  tol: 3e-2
+  file_name_out: trot6_p11
+  file_name_in: trot5_p11
+- name: trot_6
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  pitch_magnitude_lo: 0.1
+  pitch_magnitude_apex: 0.1
+  max_spine_magnitude: 0.4
+  apex_height: -1
+  speed: 1.2
+  max_duration: 0.7
+  min_duration: 0.3
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 0
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.3
+  eps: 1e-2
+  tol: 3e-2
+  file_name_out: trot6_p12
+  file_name_in: trot5_p12
+- name: trot_6
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  pitch_magnitude_lo: 0.1
+  pitch_magnitude_apex: 0.1
+  max_spine_magnitude: 0.4
+  apex_height: -1
+  speed: 1.3
+  max_duration: 0.7
+  min_duration: 0.3
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 0
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.3
+  eps: 1e-2
+  tol: 3e-2
+  file_name_out: trot6_p13
+  file_name_in: trot5_p13
+- name: trot_6
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  pitch_magnitude_lo: 0.1
+  pitch_magnitude_apex: 0.1
+  max_spine_magnitude: 0.4
+  apex_height: -1
+  speed: 1.4
+  max_duration: 0.7
+  min_duration: 0.3
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 0
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.3
+  eps: 1e-2
+  tol: 3e-2
+  file_name_out: trot6_p14
+  file_name_in: trot5_p14
+- name: trot_6
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  pitch_magnitude_lo: 0.1
+  pitch_magnitude_apex: 0.1
+  max_spine_magnitude: 0.4
+  apex_height: -1
+  speed: 1.5
   max_duration: 0.7
   min_duration: 0.3
   lock_leg_apex: false

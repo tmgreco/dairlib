@@ -363,9 +363,14 @@ namespace dairlib {
                 }
                 myfile<<",";
                 for (int i=4;i<7;i++) myfile << this->x_traj.value(current_time)(i,0) << ",";
-                for (int i=3;i<6;i++) myfile << this->x_traj.value(current_time)(20+i,0) << ",";
-                myfile << this->x_traj.value(current_time)(7,0) << ","<< this->x_traj.value(current_time)(26,0) << ","<<
-                         this->u_traj.value(current_time)(0,0)<<",";
+                if (spine_type=="twisting"){
+                    for (int i=3;i<6;i++) myfile << this->x_traj.value(current_time)(20+i,0) << ",";
+                    myfile << this->x_traj.value(current_time)(7,0) << ","<< this->x_traj.value(current_time)(26,0) << ","<<
+                            this->u_traj.value(current_time)(0,0)<<",";
+                    }
+                else{
+                    for (int i=3;i<6;i++) myfile << this->x_traj.value(current_time)(19+i,0) << ",";
+                }
                 myfile <<"\n";
             }
             myfile.close(); // <- note this correction!!

@@ -1,0 +1,347 @@
+# YAML spirit jump configuration
+-
+  num_optimizations: 1
+  initial_guess: ""  #if it is empty, the program will generate initial guess. Otherwise, we use the file given here as the initial guess
+  saved_directory: /home/feng/Downloads/dairlib/examples/Spirit_spine/saved_trajectories/bound_gait/twisting/
+  spine_type: twisting
+  urdf_path: examples/Spirit_spine/spirit_with_spine_drake.urdf
+  num_perturbations: 5
+  mean: 0
+  var: 0.01
+  iterate:
+    -
+      name: bound_3
+      num: 1
+      iteration_variable: speed
+      for:
+        start: 0.1
+        end: 2.5
+        step_size: 0.2
+    -
+      name: bound_4
+      iteration_variable: speed
+      parallel_for:
+        start: 0.1
+        end: 2.5
+        step_size: 0.2
+    -
+      name: bound_5
+      iteration_variable: speed
+      parallel_for:
+        start: 0.1
+        end: 2.5
+        step_size: 0.2
+    -
+      name: bound_6
+      iteration_variable: speed
+      parallel_for:
+        start: 0.1
+        end: 2.5
+        step_size: 0.2
+
+- 
+  name: bound_1
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.35
+  time_symmetry: true
+  pitch_magnitude_lo: 0.1
+  pitch_magnitude_apex: 0.1
+  lock_spine: true
+  apex_height: 0.4
+  speed: 0
+  min_duration: 0.4
+  max_duration: 1
+  lock_leg_apex: true
+  cost_actuation: 3
+  cost_velocity: 10 
+  cost_velocity_legs_flight: 2
+  cost_actuation_legs_flight: 1
+  cost_time: 1000
+  cost_power: 0 
+  mu: 100
+  eps: 1e-2
+  tol: 1e-1
+  file_name_out: bounding_gait1
+  file_name_in: ""
+
+- 
+  name: bound_2
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  time_symmetry: true
+  pitch_magnitude_lo: 0.1
+  pitch_magnitude_apex: 0.1
+  lock_spine: true
+  apex_height: 0.4
+  speed: 0
+  min_duration: 0.6
+  max_duration: 1
+  lock_leg_apex: false
+  cost_actuation: 3
+  cost_velocity: 10 
+  cost_velocity_legs_flight: 2
+  cost_actuation_legs_flight: 1
+  cost_time: 1000
+  cost_power: 0 
+  mu: 1
+  eps: 1e-2
+  tol: 1e-1
+  file_name_out: bounding_gait2
+  file_name_in: bounding_gait1
+ 
+- 
+  name: bound_3
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  time_symmetry: true
+  pitch_magnitude_lo: 0.2
+  pitch_magnitude_apex: 0.2
+  lock_spine: true
+  apex_height: -1
+  speed: 0.3
+  min_duration: 0.4
+  max_duration: 1
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: 500
+  cost_power: 100 
+  mu: 0.5
+  eps: 1e-2
+  tol: 1e-1
+  file_name_out: bounding_gait3
+  file_name_in: bounding_gait2
+
+- 
+  name: bound_4
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  time_symmetry: false
+  pitch_magnitude_lo: 0.5
+  pitch_magnitude_apex: 0.2
+  lock_spine: true
+  apex_height: -1
+  speed: 0.6
+  min_duration: 0.3
+  max_duration: 0.8
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0 
+  cost_velocity_legs_flight: 0
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.5
+  eps: 1e-2
+  tol: 1e-1
+  file_name_out: bounding_gait4
+  file_name_in: bounding_gait3
+
+# - 
+#   name: bound_5
+#   ipopt: true
+#   warm_up: true
+#   num_knot_points:
+#     - 7
+#     - 7
+#     - 7
+#     - 7
+#     - 7
+#     - 7
+#   initial_height: 0.2
+#   pitch_magnitude_lo: 0.2
+#   pitch_magnitude_apex: 0.1
+#   lock_spine: true
+#   apex_height: -1
+#   speed: 1
+#   max_duration: 1.2
+#   lock_leg_apex: false
+#   cost_actuation: 0
+#   cost_velocity: 0
+#   cost_velocity_legs_flight: 0
+#   cost_actuation_legs_flight: 0
+#   cost_time: 0
+#   cost_power: 100 
+#   mu: 1
+#   eps: 1e-2
+#   tol: 1e-1
+#   file_name_out: bounding_gait5
+#   file_name_in: bounding_gait4
+
+# - 
+#   name: bound_6
+#   ipopt: true
+#   num_knot_points:
+#     - 7
+#     - 7
+#     - 7
+#     - 7
+#     - 7
+#     - 7
+#   initial_height: 0.2
+#   pitch_magnitude_lo: 0.3
+#   pitch_magnitude_apex: 0.3
+#   lock_spine: true
+#   apex_height: 0.42
+#   speed: 1.5
+#   max_duration: 1
+#   lock_leg_apex: false
+#   cost_actuation: 0
+#   cost_velocity: 0
+#   cost_velocity_legs_flight: 0
+#   cost_actuation_legs_flight: 0
+#   cost_time: 0
+#   cost_power: 100 
+#   mu: 1
+#   eps: 1e-2
+#   tol: 1e-1
+#   file_name_out: bounding_gait6
+#   file_name_in: bounding_gait5
+# - 
+#   name: bound_7
+#   ipopt: true
+#   num_knot_points:
+#     - 7
+#     - 7
+#     - 7
+#     - 7
+#     - 7
+#     - 7
+#   initial_height: 0.2
+#   pitch_magnitude_lo: 0.1
+#   pitch_magnitude_apex: 0.05
+#   lock_spine: true
+#   apex_height: -1
+#   speed: 2
+#   max_duration: 1
+#   lock_leg_apex: false
+#   cost_actuation: 0
+#   cost_velocity: 0
+#   cost_velocity_legs_flight: 0
+#   cost_actuation_legs_flight: 0
+#   cost_time: 0
+#   cost_power: 100 
+#   mu: 1
+#   eps: 1e-2
+#   tol: 1e-2
+#   file_name_out: bounding_gait7
+#   file_name_in: bounding_gait6
+
+# - 
+#   name: bound_8
+#   ipopt: true
+#   num_knot_points:
+#     - 7
+#     - 7
+#     - 7
+#     - 7
+#     - 7
+#     - 7
+#   initial_height: 0.2
+#   pitch_magnitude_lo: 0.2
+#   pitch_magnitude_apex: 0.05
+#   lock_spine: false
+#   apex_height: -1
+#   speed: 2.5
+#   max_duration: 1
+#   lock_leg_apex: false
+#   cost_actuation: 0
+#   cost_velocity: 0
+#   cost_velocity_legs_flight: 0
+#   cost_actuation_legs_flight: 0
+#   cost_time: 0
+#   cost_power: 100 
+#   mu: 0.7
+#   eps: 1e-2
+#   tol: 1e-1
+#   file_name_out: bounding_gait8
+#   file_name_in: bounding_gait7
+# - 
+#   name: bound_9
+#   ipopt: true
+#   num_knot_points:
+#     - 7
+#     - 7
+#     - 7
+#     - 7
+#     - 7
+#     - 7
+#   initial_height: 0.2
+#   pitch_magnitude_lo: 0.4
+#   pitch_magnitude_apex: 0.05
+#   lock_spine: false
+#   apex_height: -1
+#   speed: 3
+#   max_duration: 1
+#   lock_leg_apex: false
+#   cost_actuation: 0
+#   cost_velocity: 0
+#   cost_velocity_legs_flight: 0
+#   cost_actuation_legs_flight: 0
+#   cost_time: 0
+#   cost_power: 100 
+#   mu: 0.7
+#   eps: 1e-2
+#   tol: 1e-1
+#   file_name_out: bounding_gait9
+#   file_name_in: bounding_gait8
+
+# - 
+#   name: bound_10
+#   ipopt: true
+#   num_knot_points:
+#     - 7
+#     - 7
+#     - 7
+#     - 7
+#     - 7
+#     - 7
+#   initial_height: 0.2
+#   pitch_magnitude_lo: 1
+#   pitch_magnitude_apex: 1
+#   lock_spine: false
+#   apex_height: -1
+#   speed: 3
+#   max_duration: 1
+#   lock_leg_apex: false
+#   cost_actuation: 0
+#   cost_velocity: 0
+#   cost_velocity_legs_flight: 0
+#   cost_actuation_legs_flight: 0
+#   cost_time: 0
+#   cost_power: 100 
+#   mu: 0.7
+#   eps: 1e-2
+#   tol: 3e-2
+#   file_name_out: bounding_gait10
+#   file_name_in: bounding_gait9

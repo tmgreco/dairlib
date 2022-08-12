@@ -83,7 +83,7 @@ void animateTraj(std::string& urdf_path,int num_period,double real_time_rate) {
   Parser parser(plant.get());
   Parser parser_vis(plant_vis.get(), scene_graph_ptr.get());
   std::string full_name =
-      dairlib::FindResourceOrThrow("examples/Spirit_spine/spirit_drake.urdf");
+      dairlib::FindResourceOrThrow("examples/Spirit_spine/spirit_with_spine_drake.urdf");
 
   parser.AddModelFromFile(full_name);
   parser_vis.AddModelFromFile(full_name);
