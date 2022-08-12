@@ -127,6 +127,8 @@ private:
     bool lock_leg_apex;
     bool lock_spine;
     double pitch_magnitude_apex;
+    double max_roll;
+    double max_pitch;
     double orientation_diff;
     double cost_power;
     double apex_height; 
