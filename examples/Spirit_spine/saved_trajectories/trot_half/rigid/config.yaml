@@ -15,28 +15,28 @@
       iteration_variable: speed
       for:
         start: 0.1
-        end: 1
+        end: 1.6
         step_size: 0.1
     -
       name: trot_4
       iteration_variable: speed
       parallel_for:
         start: 0.1
-        end: 1
+        end: 1.6
         step_size: 0.1
     -
       name: trot_5
       iteration_variable: speed
       parallel_for:
         start: 0.1
-        end: 1
+        end: 1.6
         step_size: 0.1
     -
       name: trot_6
       iteration_variable: speed
       parallel_for:
         start: 0.1
-        end: 1
+        end: 1.6
         step_size: 0.1
 - 
   name: trot_1
@@ -181,7 +181,7 @@
   cost_power: 100 
   mu: 0.3
   eps: 1e-2
-  tol: 1e-2
+  tol: 1e-1
   file_name_out: trot5
   file_name_in: trot4
 - 
