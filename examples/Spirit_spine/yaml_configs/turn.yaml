@@ -15,7 +15,7 @@
       iteration_variable: orientation_diff
       for:
         start: 0.1
-        end: 0.6
+        end: 0.9
         step_size: 0.1
     -
       name: turn_2
@@ -23,7 +23,7 @@
       iteration_variable: orientation_diff
       for:
         start: 0.1
-        end: 0.6
+        end: 0.9
         step_size: 0.1
     -
       name: turn_3
@@ -31,7 +31,7 @@
       iteration_variable: orientation_diff
       for:
         start: 0.1
-        end: 0.6
+        end: 0.9
         step_size: 0.1
     -
       name: turn_4
@@ -39,7 +39,7 @@
       iteration_variable: orientation_diff
       for:
         start: 0.1
-        end: 0.6
+        end: 0.9
         step_size: 0.1
 
 - 
@@ -121,7 +121,7 @@
   initial_height: 0.2
   pitch_magnitude_lo: 0.5
   pitch_magnitude_apex: 0.2
-  max_roll: 0.6
+  max_roll: 0.7
   max_pitch: 0.6
   orientation_diff: 0.3
   lock_spine: false
@@ -153,8 +153,8 @@
   initial_height: 0.2
   pitch_magnitude_lo: 0.5
   pitch_magnitude_apex: 0.2
-  max_roll: 0.7
-  max_pitch: 0.6
+  max_roll: 0.8
+  max_pitch: 0.7
   orientation_diff: 0.3
   lock_spine: false
   apex_height: -1

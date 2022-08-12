@@ -489,7 +489,7 @@ void SpiritTurn<Y>::addConstraints(
   ///constraint initial roll yaw pitch
   trajopt.AddConstraint(yaw0,-eps,eps);
   trajopt.AddConstraint(roll0,-0.3,0.3);
-  trajopt.AddConstraint(roll0,-0.5,0.5);
+  trajopt.AddConstraint(pitch0,-0.4,0.4);
 
   // getYawFromQuaternion(x0(0),x0(1),x0(2),x0(3));
   // trajopt.AddConstraint(getYawFromQuaternion(x0(0),x0(1),x0(2),x0(3))+orientation_diff/2-getYawFromQuaternion(xf(0),xf(1),xf(2),xf(3)),-eps,eps);
@@ -509,12 +509,18 @@ void SpiritTurn<Y>::addConstraints(
     trajopt.AddConstraint( xf(i)-x0(i),-eps, eps);
   }
 
+  // //Average Velocity
+  // auto times  = trajopt.time_vars();
+  // auto total_time=times(0)+times(1);
+  // for (int i=2;i<trajopt.N()-1;i++) total_time+=times(i);
+  // trajopt.AddConstraint(  this->speed * total_time+x0(positions_map.at("base_x")) -xf(positions_map.at("base_x")),-eps, eps );
+
   //Average Velocity
   auto times  = trajopt.time_vars();
   auto total_time=times(0)+times(1);
-  for (int i=2;i<trajopt.N()-1;i++) total_time+=times(i);
-  trajopt.AddConstraint(  this->speed * total_time+x0(positions_map.at("base_x")) -xf(positions_map.at("base_x")),-eps, eps );
-
+  int vx_index=n_q + velocities_map.at("base_vx");
+  auto total_distance=(times(0)*trajopt.state(0)(vx_index)+times(1)*trajopt.state(1)(vx_index))*cos(pitch0);
+  
   /// Constraints on all points
   for (int i = 0; i < trajopt.N(); i++){
     auto xi = trajopt.state(i);
@@ -525,11 +531,18 @@ void SpiritTurn<Y>::addConstraints(
     trajopt.AddConstraint(pitchi,-max_pitch-eps, max_pitch+eps);
 
     // x velocity almost constant
-    trajopt.AddBoundingBoxConstraint(this->speed*0.8, this->speed*1.2, xi(n_q + velocities_map.at("base_vx")));
+    trajopt.AddBoundingBoxConstraint(this->speed*0.9, this->speed*1.1, xi(n_q + velocities_map.at("base_vx")));
     // Height
     trajopt.AddBoundingBoxConstraint( 0.15, 2, xi( positions_map.at("base_z")));
     if (lock_spine && this->spine_type=="twisting") trajopt.AddBoundingBoxConstraint( -eps, eps, xi( positions_map.at("joint_12")));
+
+    //Average velocity
+    if (i>=2 && i<(trajopt.N()-1)) {
+      total_time+=times(i);
+      total_distance+=times(i)*trajopt.state(i)(vx_index)*cos(rolli);
+    }
   }
+  trajopt.AddConstraint(  this->speed * total_time-total_distance, -eps, eps );
   
 }
 
