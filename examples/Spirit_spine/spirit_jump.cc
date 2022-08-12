@@ -453,7 +453,7 @@ void SpiritJump<Y>::run(MultibodyPlant<Y>& plant,
 
   // Writing contact force data
   std::string contect_force_fname="/home/feng/Downloads/dairlib/examples/Spirit_spine/data/test"+std::to_string(this->index)+".csv";
-  this->saveContactForceData(this->fore_aft_displacement,contect_force_fname);
+  this->saveContactForceData(this->fore_aft_displacement,contect_force_fname,result.is_success());
   
 
   // auto context = plant.CreateDefaultContext();

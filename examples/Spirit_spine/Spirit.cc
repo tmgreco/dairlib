@@ -97,9 +97,10 @@ Spirit<B,T>::Spirit(std::string yaml_path) :plant (std::make_unique<MultibodyPla
                 OPTIMIZATIONS[OPTIMIZATIONS.size()-1][config[0]["iterate"][ite]["iteration_variable"].as<std::string>()]=v;
 
                 // Generate correct file names in and out
-                if (!(v+config[0]["iterate"][ite]["parallel_for"]["step_size"].as<double>() >= config[0]["iterate"][ite]["parallel_for"]["end"].as<double>()))
+                if (!(v+config[0]["iterate"][ite]["parallel_for"]["step_size"].as<double>() >= config[0]["iterate"][ite]["parallel_for"]["end"].as<double>())){
                   OPTIMIZATIONS[OPTIMIZATIONS.size()-1]["file_name_in"] =config[i]["file_name_in"].as<std::string>()+"_p"+std::to_string(p);
-                OPTIMIZATIONS[OPTIMIZATIONS.size()-1]["file_name_out"] =config[i]["file_name_out"].as<std::string>()+ "_p"+std::to_string(p);
+                  OPTIMIZATIONS[OPTIMIZATIONS.size()-1]["file_name_out"] =config[i]["file_name_out"].as<std::string>()+ "_p"+std::to_string(p);
+                }
                 p++;
               }
             }
@@ -158,7 +159,7 @@ void Spirit<B,T>::animate(){
   // bool save=false;
   while (1) {
     drake::systems::Simulator<double> simulator(*diagram);
-    simulator.set_target_realtime_rate(1);
+    simulator.set_target_realtime_rate(0.25);
     simulator.Initialize();
     simulator.AdvanceTo(pp_xtraj.end_time());
     // if (!save){

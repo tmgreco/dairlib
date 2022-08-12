@@ -30,9 +30,11 @@ void SpiritBoundingGait<Y>::config(std::string yaml_path, std::string saved_dire
   this->pitch_magnitude_lo=config[index]["pitch_magnitude_lo"].as<double>();
   this->pitch_magnitude_apex=config[index]["pitch_magnitude_apex"].as<double>();
   this->lock_spine=config[index]["lock_spine"].as<bool>();
+  this->time_symmetry=config[index]["time_symmetry"].as<bool>();
   this->apex_height=config[index]["apex_height"].as<double>();
   this->speed=config[index]["speed"].as<double>();
   this->max_duration=config[index]["max_duration"].as<double>();
+  this->min_duration=config[index]["min_duration"].as<double>();
   this->lock_leg_apex=config[index]["lock_leg_apex"].as<bool>();
   this->cost_actuation=config[index]["cost_actuation"].as<double>();
   this->cost_velocity=config[index]["cost_velocity"].as<double>();
@@ -43,6 +45,8 @@ void SpiritBoundingGait<Y>::config(std::string yaml_path, std::string saved_dire
   this->mu=config[index]["mu"].as<double>();
   this->eps=config[index]["eps"].as<double>();
   this->tol=config[index]["tol"].as<double>();
+  if (config[index]["warm_up"]) this->warm_up=config[index]["warm_up"].as<bool>();
+  else this->warm_up=false;
 
   if(!config[index]["file_name_out"].as<std::string>().empty()) this->file_name_out=saved_directory+config[index]["file_name_out"].as<std::string>();
   if(!config[index]["file_name_in"].as<std::string>().empty()) this->file_name_in= saved_directory+config[index]["file_name_in"].as<std::string>();
@@ -342,7 +346,7 @@ void SpiritBoundingGait<Y>::addConstraints(
   // General constraints
   setSpiritJointLimits(plant, trajopt);
   setSpiritActuationLimits(plant, trajopt);
-  trajopt.AddDurationBounds(0, max_duration);
+  trajopt.AddDurationBounds(min_duration, max_duration);
 
   /// Setup all the optimization constraints
   int n_q = plant.num_positions();
@@ -353,6 +357,8 @@ void SpiritBoundingGait<Y>::addConstraints(
   auto xlo  =  trajopt.state_vars(4,0);
   auto xf  = trajopt.final_state();
 
+
+  if (time_symmetry) trajopt.AddPeriodicTimeIntervalsConstraints();
 
   /// Initial constraint
 
@@ -459,7 +465,13 @@ void SpiritBoundingGait<Y>::addConstraints(
     // Height
     trajopt.AddBoundingBoxConstraint( 0.15, 2, xi( positions_map.at("base_z")));
     trajopt.AddBoundingBoxConstraint( -eps, eps, xi( n_q+velocities_map.at("base_vy")));
-    if (lock_spine) trajopt.AddBoundingBoxConstraint( -eps, eps, xi( positions_map.at("joint_12")));
+    if (lock_spine && this->spine_type=="twisting") trajopt.AddBoundingBoxConstraint( -eps, eps, xi( positions_map.at("joint_12")));
+
+    // Limit magnitude of pitch
+    trajopt.AddBoundingBoxConstraint(cos(pitch_magnitude_apex/2.0), 1, xi(positions_map.at("base_qw")));
+    trajopt.AddBoundingBoxConstraint(-eps, eps, xi(positions_map.at("base_qx")));
+    trajopt.AddBoundingBoxConstraint(-sin(pitch_magnitude_apex/2.0) , sin(pitch_magnitude_apex/2.0), xi(positions_map.at("base_qy")));
+    trajopt.AddBoundingBoxConstraint(-eps, eps, xi(positions_map.at("base_qz")));
   }
 
 }
@@ -473,12 +485,12 @@ void SpiritBoundingGait<Y>::setUpModeSequence(){
   this->minT_vector.clear();
   this->maxT_vector.clear();
   //                          mode name   normal                  world offset            minT  maxT
-  this->addModeToSequenceVector("flight",Eigen::Vector3d::UnitZ(),Eigen::Vector3d::Zero(),0.04, 0.5);
+  this->addModeToSequenceVector("flight",Eigen::Vector3d::UnitZ(),Eigen::Vector3d::Zero(),0.02, 0.5);
   this->addModeToSequenceVector("front_stance",Eigen::Vector3d::UnitZ(),Eigen::Vector3d::Zero(),0.02, 1);
-  this->addModeToSequenceVector("flight",Eigen::Vector3d::UnitZ(),Eigen::Vector3d::Zero(),0.04, 1);
-  this->addModeToSequenceVector("flight",Eigen::Vector3d::UnitZ(),Eigen::Vector3d::Zero(),0.04, 1);
+  this->addModeToSequenceVector("flight",Eigen::Vector3d::UnitZ(),Eigen::Vector3d::Zero(),0.02, 1);
+  this->addModeToSequenceVector("flight",Eigen::Vector3d::UnitZ(),Eigen::Vector3d::Zero(),0.02, 1);
   this->addModeToSequenceVector("rear_stance",Eigen::Vector3d::UnitZ(),Eigen::Vector3d::Zero(),0.02, 1);
-  this->addModeToSequenceVector("flight",Eigen::Vector3d::UnitZ(),Eigen::Vector3d::Zero(),0.04, 0.1);
+  this->addModeToSequenceVector("flight",Eigen::Vector3d::UnitZ(),Eigen::Vector3d::Zero(),0.02, 0.1);
 }
 
 /// Runs a trajectory optimization problem for spirit bounding on flat ground
@@ -499,24 +511,29 @@ void SpiritBoundingGait<Y>::run(MultibodyPlant<Y>& plant,
 
   if (this->ipopt) {
     // Ipopt settings adapted from CaSaDi and FROST
-    auto id = drake::solvers::IpoptSolver::id();
-    trajopt.SetSolverOption(id, "tol", this->tol);
-    trajopt.SetSolverOption(id, "dual_inf_tol", this->tol);
-    trajopt.SetSolverOption(id, "constr_viol_tol", this->tol);
-    trajopt.SetSolverOption(id, "compl_inf_tol", this->tol);
-    trajopt.SetSolverOption(id, "max_iter", 1000000);
-    trajopt.SetSolverOption(id, "nlp_lower_bound_inf", -1e6);
-    trajopt.SetSolverOption(id, "nlp_upper_bound_inf", 1e6);
-    trajopt.SetSolverOption(id, "print_timing_statistics", "yes");
-    trajopt.SetSolverOption(id, "print_level", 5);
+    drake::solvers::SolverId solver_id = drake::solvers::IpoptSolver().id();
+    trajopt.SetSolverOption(solver_id, "tol", this->tol);
+    trajopt.SetSolverOption(solver_id, "dual_inf_tol", this->tol*100);
+    trajopt.SetSolverOption(solver_id, "constr_viol_tol", this->tol);
+    trajopt.SetSolverOption(solver_id, "compl_inf_tol", this->tol);
+    trajopt.SetSolverOption(solver_id, "max_iter", 1500);
+    trajopt.SetSolverOption(solver_id, "nlp_lower_bound_inf", -1e6);
+    trajopt.SetSolverOption(solver_id, "nlp_upper_bound_inf", 1e6);
+    trajopt.SetSolverOption(solver_id, "print_timing_statistics", "yes");
+    trajopt.SetSolverOption(solver_id, "print_level", 5);
 
-    // Set to ignore overall tolerance/dual infeasibility, but terminate when
-    // primal feasible and objective fails to increase over 5 iterations.
-    trajopt.SetSolverOption(id, "acceptable_compl_inf_tol", this->tol);
-    trajopt.SetSolverOption(id, "acceptable_constr_viol_tol", this->tol);
-    trajopt.SetSolverOption(id, "acceptable_obj_change_tol", this->tol);
-    trajopt.SetSolverOption(id, "acceptable_tol", this->tol * 10);
-    trajopt.SetSolverOption(id, "acceptable_iter", 5);
+    if (warm_up){
+      std::cout<<"Warm start"<<std::endl;
+      trajopt.SetSolverOption(solver_id, "bound_push", 1e-8);
+      trajopt.SetSolverOption(solver_id, "warm_start_bound_push", 1e-8);
+      trajopt.SetSolverOption(solver_id, "warm_start_init_point", "yes");
+    }
+    trajopt.SetSolverOption(solver_id, "acceptable_compl_inf_tol", this->tol);
+    trajopt.SetSolverOption(solver_id, "acceptable_constr_viol_tol", this->tol);
+    trajopt.SetSolverOption(solver_id, "acceptable_obj_change_tol", this->tol);
+    trajopt.SetSolverOption(solver_id, "acceptable_tol", this->tol * 10);
+    trajopt.SetSolverOption(solver_id, "acceptable_iter", 5);
+    std::cout << "\nChose manually: " << solver_id.name() << std::endl;
   } else {
     // Set up Trajectory Optimization options
     trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(),
@@ -560,7 +577,7 @@ void SpiritBoundingGait<Y>::run(MultibodyPlant<Y>& plant,
       visualizer_poses.push_back(num_ghosts); 
   }
   trajopt.CreateVisualizationCallback(
-      dairlib::FindResourceOrThrow("examples/Spirit_spine/spirit_with_spine_drake.urdf"),
+      dairlib::FindResourceOrThrow(this->urdf_path),
       visualizer_poses, 0.2); // setup which URDF, how many poses, and alpha transparency 
 
   drake::solvers::SolverId solver_id("");
@@ -585,8 +602,8 @@ void SpiritBoundingGait<Y>::run(MultibodyPlant<Y>& plant,
   /// Save trajectory
   this->saveTrajectory(plant,trajopt,result);
   // Writing contact force data
-  // std::string contect_force_fname="/home/feng/Downloads/dairlib/examples/Spirit_spine/data/bounding_gait/test"+std::to_string(this->index)+".csv";
-  // this->saveContactForceData(this->speed,contect_force_fname);
+  std::string contect_force_fname="/home/feng/Downloads/dairlib/examples/Spirit_spine/data/bounding_gait/rigid/bounding_gait_"+std::to_string(this->speed)+".csv";
+  this->saveContactForceData(this->speed,contect_force_fname,result.is_success());
   
   // auto x_trajs = trajopt.ReconstructDiscontinuousStateTrajectory(result);
   // std::cout<<"Work = " << dairlib::calcElectricalWork(plant, x_trajs, this->u_traj) << std::endl;

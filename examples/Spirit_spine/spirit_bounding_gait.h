@@ -126,6 +126,8 @@ private:
 
     bool lock_leg_apex;
     bool lock_spine;
+    bool warm_up;
+    bool time_symmetry;
     double pitch_magnitude_apex;
     double cost_power;
     double apex_height; 
@@ -134,6 +136,7 @@ private:
     double initial_height; //!< initial stand height
     double pitch_magnitude_lo; //!< maximum pitch magnitude at lift off
     double max_duration; //!< maximum duration of the bounding behavior
+    double min_duration;
 };
 }
 

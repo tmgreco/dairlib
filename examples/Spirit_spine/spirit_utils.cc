@@ -973,17 +973,35 @@ void JointPowerCost::EvaluateCost(const Eigen::Ref<const drake::VectorX<double>>
   for (int i =0;i<N_-1;i++){
     ht+=x(i+4);
   }
-  // double work_low = cost_work_ * relu_smooth(u_i * v_i + Q_ * u_i * u_i);
-  // double work_up = cost_work_ * relu_smooth(u_ip * v_ip + Q_ * u_ip * u_ip);
-  double work_low = cost_work_ * abs(u_i * v_i + Q_ * u_i * u_i);
-  double work_up = cost_work_ * abs(u_ip * v_ip + Q_ * u_ip * u_ip);
 
-  drake::VectorX<double> rv(1);
+  //////////////////////////////////////////// FOR MECHANICAL POWER ///////////////////////////////////////////
+  // // double work_low = cost_work_ * relu_smooth(u_i * v_i + Q_ * u_i * u_i);
+  // // double work_up = cost_work_ * relu_smooth(u_ip * v_ip + Q_ * u_ip * u_ip);
+  // double work_low = cost_work_ * abs(u_i * v_i + Q_ * u_i * u_i);
+  // double work_up = cost_work_ * abs(u_ip * v_ip + Q_ * u_ip * u_ip);
+
+  // drake::VectorX<double> rv(1);
+  // // rv[0] = 1/2.0 * h_i/ht *(work_low + work_up);
   // rv[0] = 1/2.0 * h_i/ht *(work_low + work_up);
-  rv[0] = 1/2.0 * h_i/ht *(work_low + work_up);
-  (*y) = rv;
-};
+  // (*y) = rv;
+  //////////////////////////////////////////// FOR MECHANICAL POWER ///////////////////////////////////////////
 
+  //////////////////////////////////////////// FOR ELETRICAL POWER ///////////////////////////////////////////
+  double efficiency=0;
+
+  double pow_low = cost_work_ * (u_i * v_i + Q_ * u_i * u_i);
+  double pow_up = cost_work_ * (u_ip * v_ip + Q_ * u_ip * u_ip);
+
+  double battery_pow_low = positivePart(pow_low) - efficiency * negativePart(pow_low);
+  double battery_pow_up = positivePart(pow_up) - efficiency * negativePart(pow_up);
+  drake::VectorX<double> rv(1);
+  rv[0]= 1/2.0 * h_i/ht *(battery_pow_low + battery_pow_up);
+  (*y) = rv;
+  //////////////////////////////////////////// FOR ELETRICAL POWER ///////////////////////////////////////////
+};
+double JointPowerCost::relu_smooth(const double x) const{
+  return  x>5 ? x : 1/alpha_ * log(1 + exp(alpha_ * x));
+}
 double positivePart(double x){
   return(std::max(x,0.0));
 }

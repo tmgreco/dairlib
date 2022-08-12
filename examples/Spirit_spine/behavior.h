@@ -104,6 +104,8 @@ namespace dairlib {
     protected:
         double mechanical_work;
         double mechanical_power;
+        double electrical_work;
+        double electrical_power;
         double mean;
         double var;
         int index;
@@ -293,8 +295,11 @@ namespace dairlib {
             auto x_trajs = trajopt.ReconstructDiscontinuousStateTrajectory(result);
             mechanical_work=dairlib::calcMechanicalWork(plant, x_trajs, this->u_traj);
             mechanical_power=dairlib::calcMechanicalWork(plant, x_trajs, this->u_traj)/this->u_traj.end_time();
-            std::cout<<"Electrical Work = " << dairlib::calcElectricalWork(plant, x_trajs, this->u_traj) << std::endl;
+            electrical_work=dairlib::calcElectricalWork(plant, x_trajs, this->u_traj, 0);
+            electrical_power=electrical_work/this->u_traj.end_time();
+            std::cout<<"Electrical Work = " << electrical_work << std::endl;
             std::cout<<"Mechanical Work = " <<  mechanical_work<< std::endl;
+            std::cout<<"Electrical power = " << electrical_power << std::endl;
             std::cout<<"Mechanical Power = " <<  mechanical_power<< std::endl;
             //  double cost_work_acceleration = solvers::EvalCostGivenSolution(
             //      result, cost_joint_work_bindings);
@@ -316,10 +321,10 @@ namespace dairlib {
             }
         }
 
-        void saveContactForceData(double param, std::string file_path){
+        void saveContactForceData(double param, std::string file_path, bool is_success){
             std::ofstream myfile; // 
             myfile.open(file_path);
-            myfile << "param,"<<param << ",Mechanical work," << mechanical_work <<",Mechanical power,"<<mechanical_power << "\n";
+            myfile << "param,"<<param << ",Electrical work," << electrical_work <<",Electrical power,"<<electrical_power <<",success?,"<<is_success<< "\n";
             myfile<< "Time, Front L ,,, Front R ,,, Back L ,,, Back R ,,,, x, y, z, vx, vy, vz, joint 12, joint 12 dot, joint 12 torque \n";
             Y traj_end_time=this->u_traj.end_time();
             for (Y current_time=0;current_time<traj_end_time;current_time+=0.01){

@@ -277,21 +277,32 @@ void SpiritTrotHalf<Y>::addConstraints(
   /// Touch down constraint
 
   // Limit magnitude of pitch
-  trajopt.AddBoundingBoxConstraint(cos(pitch_magnitude_lo/2.0), 1, xtd(positions_map.at("base_qw")));
-  trajopt.AddBoundingBoxConstraint(-eps, eps, xtd(positions_map.at("base_qx")));
-  trajopt.AddBoundingBoxConstraint(-sin(pitch_magnitude_lo/2.0) , sin(pitch_magnitude_lo/2.0), xtd(positions_map.at("base_qy")));
-  trajopt.AddBoundingBoxConstraint(-eps, eps, xtd(positions_map.at("base_qz")));
+  
+  trajopt.AddBoundingBoxConstraint(cos(pitch_magnitude_lo/2.0)*cos(max_spine_magnitude/4), 1, xtd(positions_map.at("base_qw")));
+  trajopt.AddBoundingBoxConstraint(-sin(max_spine_magnitude/4)*cos(pitch_magnitude_lo/2.0), sin(max_spine_magnitude/4)*cos(pitch_magnitude_lo/2.0), xtd(positions_map.at("base_qx")));
+  trajopt.AddBoundingBoxConstraint(-cos(max_spine_magnitude/4)*sin(pitch_magnitude_lo/2.0) , cos(max_spine_magnitude/4)*sin(pitch_magnitude_lo/2.0), xtd(positions_map.at("base_qy")));
+  trajopt.AddBoundingBoxConstraint(-sin(max_spine_magnitude/4)*sin(pitch_magnitude_lo/2.0) , sin(max_spine_magnitude/4)*sin(pitch_magnitude_lo/2.0), xtd(positions_map.at("base_qz")));
 
 
   // /// Toes constraints
   toe_height=0.06;
   double upperLegLength=0.206;
   double lowerLegLength=0.206;
+  double bodyWidth=0.24;
+  // Compute roll angle
+  auto roll = atan2(2.0 * (x0(0) * x0(1) + x0(2) * x0(3)), 1.0 - 2.0 * (x0(1) * x0(1) + x0(2) * x0(2)));
   // Toe 2
-  trajopt.AddConstraint(x0(positions_map.at("base_z"))-cos(x0(positions_map.at("joint_9")))*(upperLegLength*sin(x0(positions_map.at("joint_2")))
-                        +lowerLegLength*sin(x0(positions_map.at("joint_3"))-x0(positions_map.at("joint_2")))),toe_height-eps, toe_height+0.08);
+  trajopt.AddConstraint(x0(positions_map.at("base_z"))+0.5*bodyWidth*sin(roll)-cos(x0(positions_map.at("joint_9"))+roll)*
+                        (upperLegLength*sin(x0(positions_map.at("joint_2")))+lowerLegLength*sin(x0(positions_map.at("joint_3"))
+                        -x0(positions_map.at("joint_2")))),toe_height-eps, toe_height+0.08);
   // Toe 3
-  trajopt.AddConstraint(x0(positions_map.at("base_z"))-cos(x0(positions_map.at("joint_10")))*(upperLegLength*sin(x0(positions_map.at("joint_4")))
+  if (this->spine_type=="twisting") 
+    trajopt.AddConstraint(x0(positions_map.at("base_z"))-0.5*bodyWidth*sin(x0(positions_map.at("joint_12"))+roll)
+                        -cos(x0(positions_map.at("joint_10"))+x0(positions_map.at("joint_12"))+roll)*(upperLegLength*sin(x0(positions_map.at("joint_4")))
+                        +lowerLegLength*sin(x0(positions_map.at("joint_5"))-x0(positions_map.at("joint_4")))),toe_height-eps, toe_height+0.08);
+  else 
+    trajopt.AddConstraint(x0(positions_map.at("base_z"))-0.5*bodyWidth*sin(roll)
+                        -cos(x0(positions_map.at("joint_10"))+roll)*(upperLegLength*sin(x0(positions_map.at("joint_4")))
                         +lowerLegLength*sin(x0(positions_map.at("joint_5"))-x0(positions_map.at("joint_4")))),toe_height-eps, toe_height+0.08);
 
 
@@ -350,10 +361,10 @@ void SpiritTrotHalf<Y>::addConstraints(
   for (int i = 0; i < trajopt.N(); i++){
     auto xi = trajopt.state(i);
     // Limit roll and yaw
-    trajopt.AddBoundingBoxConstraint(cos(pitch_magnitude_apex/2.0), 1, xi(positions_map.at("base_qw")));
-    trajopt.AddBoundingBoxConstraint(-eps, eps, xi(positions_map.at("base_qx")));
-    trajopt.AddBoundingBoxConstraint(-sin(pitch_magnitude_apex*2.0) , sin(pitch_magnitude_apex*2.0), xi(positions_map.at("base_qy")));
-    trajopt.AddBoundingBoxConstraint(-eps, eps, xi(positions_map.at("base_qz")));
+    trajopt.AddBoundingBoxConstraint(cos(pitch_magnitude_lo/2.0)*cos(max_spine_magnitude/4), 1, xi(positions_map.at("base_qw")));
+    trajopt.AddBoundingBoxConstraint(-sin(max_spine_magnitude/4)*cos(pitch_magnitude_lo/2.0), sin(max_spine_magnitude/4)*cos(pitch_magnitude_lo/2.0), xi(positions_map.at("base_qx")));
+    trajopt.AddBoundingBoxConstraint(-cos(max_spine_magnitude/4)*sin(pitch_magnitude_lo/2.0) , cos(max_spine_magnitude/4)*sin(pitch_magnitude_lo/2.0), xi(positions_map.at("base_qy")));
+    trajopt.AddBoundingBoxConstraint(-sin(max_spine_magnitude/4)*sin(pitch_magnitude_lo/2.0) , sin(max_spine_magnitude/4)*sin(pitch_magnitude_lo/2.0), xi(positions_map.at("base_qz")));
     // Height
     trajopt.AddBoundingBoxConstraint( 0.15, 2, xi( positions_map.at("base_z")));
     trajopt.AddBoundingBoxConstraint( -eps, eps, xi( n_q+velocities_map.at("base_vy")));
@@ -361,18 +372,38 @@ void SpiritTrotHalf<Y>::addConstraints(
 
     //Toes
     // Toe 1
-    if (i< trajopt.N()-2)
-    trajopt.AddConstraint(xi(positions_map.at("base_z"))-cos(xi(positions_map.at("joint_8")))*(upperLegLength*sin(xi(positions_map.at("joint_0")))
-                          +lowerLegLength*sin(xi(positions_map.at("joint_1"))-xi(positions_map.at("joint_0")))),0, 0.15);
+    if (i< trajopt.N()-2){
+    // trajopt.AddConstraint(xi(positions_map.at("base_z"))-cos(xi(positions_map.at("joint_8")))*(upperLegLength*sin(xi(positions_map.at("joint_0")))
+    //                       +lowerLegLength*sin(xi(positions_map.at("joint_1"))-xi(positions_map.at("joint_0")))),0, 0.15);
+  
+    // Compute roll angle
+    auto roll_i = atan2(2.0 * (xi(0) * xi(1) + xi(2) * xi(3)), 1.0 - 2.0 * (xi(1) * xi(1) + xi(2) * xi(2)));
     // Toe 2
-    trajopt.AddConstraint(xi(positions_map.at("base_z"))-cos(xi(positions_map.at("joint_9")))*(upperLegLength*sin(xi(positions_map.at("joint_2")))
-                          +lowerLegLength*sin(xi(positions_map.at("joint_3"))-xi(positions_map.at("joint_2")))),0.03, 0.15);
+    trajopt.AddConstraint(xi(positions_map.at("base_z"))+0.5*bodyWidth*sin(roll_i)-cos(xi(positions_map.at("joint_9"))+roll_i)*
+                          (upperLegLength*sin(xi(positions_map.at("joint_2")))+lowerLegLength*sin(xi(positions_map.at("joint_3"))
+                          -xi(positions_map.at("joint_2")))),0.03, 0.15);
     // Toe 3
-    trajopt.AddConstraint(xi(positions_map.at("base_z"))-cos(xi(positions_map.at("joint_10")))*(upperLegLength*sin(xi(positions_map.at("joint_4")))
-                          +lowerLegLength*sin(xi(positions_map.at("joint_5"))-xi(positions_map.at("joint_4")))),0.03, 0.15);                      
-    // Toe 4
-    trajopt.AddConstraint(xi(positions_map.at("base_z"))-cos(xi(positions_map.at("joint_11")))*(upperLegLength*sin(xi(positions_map.at("joint_6")))
-                          +lowerLegLength*sin(xi(positions_map.at("joint_7"))-xi(positions_map.at("joint_6")))),0, 0.15);
+    if (this->spine_type=="twisting")
+      trajopt.AddConstraint(xi(positions_map.at("base_z"))-0.5*bodyWidth*sin(xi(positions_map.at("joint_12"))+roll_i)
+                            -cos(xi(positions_map.at("joint_10"))+xi(positions_map.at("joint_12"))+roll_i)*(upperLegLength*sin(xi(positions_map.at("joint_4")))
+                            +lowerLegLength*sin(xi(positions_map.at("joint_5"))-xi(positions_map.at("joint_4")))),0.03, 0.15);
+    else 
+      trajopt.AddConstraint(xi(positions_map.at("base_z"))-0.5*bodyWidth*sin(roll_i)
+                            -cos(xi(positions_map.at("joint_10"))+roll_i)*(upperLegLength*sin(xi(positions_map.at("joint_4")))
+                            +lowerLegLength*sin(xi(positions_map.at("joint_5"))-xi(positions_map.at("joint_4")))),0.03, 0.15);
+
+    //// Toes should not cross the central line
+    trajopt.AddConstraint(sin(xi(positions_map.at("joint_9"))+roll_i)*
+                          (upperLegLength*sin(xi(positions_map.at("joint_2")))+lowerLegLength*sin(xi(positions_map.at("joint_3"))
+                          -xi(positions_map.at("joint_2")))),-0.5*bodyWidth, 0.15);
+    // Toe 3
+    if (this->spine_type=="twisting") 
+      trajopt.AddConstraint(sin(xi(positions_map.at("joint_10"))+xi(positions_map.at("joint_12"))+roll_i)*(upperLegLength*sin(xi(positions_map.at("joint_4")))
+                          +lowerLegLength*sin(xi(positions_map.at("joint_5"))-xi(positions_map.at("joint_4")))),-0.15, 0.5*bodyWidth);
+    else 
+      trajopt.AddConstraint(sin(xi(positions_map.at("joint_10"))+roll_i)*(upperLegLength*sin(xi(positions_map.at("joint_4")))
+                          +lowerLegLength*sin(xi(positions_map.at("joint_5"))-xi(positions_map.at("joint_4")))),-0.15, 0.5*bodyWidth);
+    }
   }
 
   //Average Velocity
@@ -514,7 +545,7 @@ void SpiritTrotHalf<Y>::run(MultibodyPlant<Y>& plant,
       visualizer_poses.push_back(num_ghosts); 
   }
   trajopt.CreateVisualizationCallback(
-      dairlib::FindResourceOrThrow("examples/Spirit_spine/spirit_with_spine_drake.urdf"),
+      dairlib::FindResourceOrThrow(this->urdf_path),
       visualizer_poses, 0.2); // setup which URDF, how many poses, and alpha transparency 
 
   drake::solvers::SolverId solver_id("");
@@ -539,8 +570,11 @@ void SpiritTrotHalf<Y>::run(MultibodyPlant<Y>& plant,
   /// Save trajectory
   this->saveTrajectory(plant,trajopt,result);
   // Writing contact force data
-  // std::string contect_force_fname="/home/feng/Downloads/dairlib/examples/Spirit_spine/data/bounding_gait/test"+std::to_string(this->index)+".csv";
+  // std::string contect_force_fname="/home/feng/Downloads/dairlib/examples/Spirit_spine/data/trot_half/twisting/"+this->file_name_out+".csv";
   // this->saveContactForceData(this->speed,contect_force_fname);
+  // Writing contact force data
+  std::string contect_force_fname="/home/feng/Downloads/dairlib/examples/Spirit_spine/data/trot_half/twisting/trot_"+std::to_string(floorf(this->speed * 100) / 100)+".csv";
+  this->saveContactForceData(this->speed,contect_force_fname,result.is_success());
   
   // auto x_trajs = trajopt.ReconstructDiscontinuousStateTrajectory(result);
   // std::cout<<"Work = " << dairlib::calcElectricalWork(plant, x_trajs, this->u_traj) << std::endl;
@@ -592,9 +626,7 @@ void SpiritTrotHalf<Y>::run(MultibodyPlant<Y>& plant,
     pp_xtraj->ConcatenateInTime(x_traj_i);
   }
 
-  // Writing contact force data
-  std::string contect_force_fname="/home/feng/Downloads/dairlib/examples/Spirit_spine/data/trot_half/test"+std::to_string(this->index)+".csv";
-  this->saveContactForceData(this->speed,contect_force_fname);
+  
   
 }
 

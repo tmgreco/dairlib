@@ -494,7 +494,7 @@ void SpiritTurn<Y>::addConstraints(
     auto xi = trajopt.state(i);
     // Height
     trajopt.AddBoundingBoxConstraint( 0.15, 2, xi( positions_map.at("base_z")));
-    if (lock_spine) trajopt.AddBoundingBoxConstraint( -eps, eps, xi( positions_map.at("joint_12")));
+    if (lock_spine && this->spine_type=="twisting") trajopt.AddBoundingBoxConstraint( -eps, eps, xi( positions_map.at("joint_12")));
   }
   
 }
@@ -598,7 +598,7 @@ void SpiritTurn<Y>::run(MultibodyPlant<Y>& plant,
       visualizer_poses.push_back(num_ghosts); 
   }
   trajopt.CreateVisualizationCallback(
-      dairlib::FindResourceOrThrow("examples/Spirit_spine/spirit_with_spine_drake.urdf"),
+      dairlib::FindResourceOrThrow(this->urdf_path),
       visualizer_poses, 0.2); // setup which URDF, how many poses, and alpha transparency 
 
   drake::solvers::SolverId solver_id("");

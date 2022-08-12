@@ -8,187 +8,25 @@
   num_perturbations: 5
   mean: 0
   var: 0.01
-# - 
-#   name: turn_1
-#   ipopt: true
-#   num_knot_points:
-#     - 7
-#     - 7
-#     - 7
-#     - 7
-#     - 7
-#     - 7
-#   initial_height: 0.35
-#   pitch_magnitude_lo: 0.1
-#   pitch_magnitude_apex: 0.1
-#   lock_spine: true
-#   apex_height: 0.4
-#   speed: 0
-#   max_duration: 1
-#   lock_leg_apex: true
-#   cost_actuation: 3
-#   cost_velocity: 10 
-#   cost_velocity_legs_flight: 2
-#   cost_actuation_legs_flight: 1
-#   cost_time: 1000
-#   cost_power: 0 
-#   mu: 100
-#   eps: 1e-2
-#   tol: 1e-1
-#   file_name_out: turn1
-#   file_name_in: bounding_gait1
-
-# - 
-#   name: turn_2
-#   ipopt: true
-#   num_knot_points:
-#     - 7
-#     - 7
-#     - 7
-#     - 7
-#     - 7
-#     - 7
-#   initial_height: 0.2
-#   pitch_magnitude_lo: 0.1
-#   pitch_magnitude_apex: 0.0001
-#   lock_spine: true
-#   apex_height: 0.4
-#   speed: 0
-#   max_duration: 1
-#   lock_leg_apex: false
-#   cost_actuation: 3
-#   cost_velocity: 10 
-#   cost_velocity_legs_flight: 2
-#   cost_actuation_legs_flight: 1
-#   cost_time: 1000
-#   cost_power: 0 
-#   mu: 1
-#   eps: 1e-2
-#   tol: 1e-1
-#   file_name_out: turn2
-#   file_name_in: turn1
- 
-# - 
-#   name: turn_3
-#   ipopt: true
-#   num_knot_points:
-#     - 7
-#     - 7
-#     - 7
-#     - 7
-#     - 7
-#     - 7
-#   initial_height: 0.2
-#   pitch_magnitude_lo: 0.1
-#   pitch_magnitude_apex: 0.01
-#   lock_spine: true
-#   apex_height: 0.4
-#   speed: 0.3
-#   max_duration: 1
-#   lock_leg_apex: false
-#   cost_actuation: 3
-#   cost_velocity: 10 
-#   cost_velocity_legs_flight: 2
-#   cost_actuation_legs_flight: 1
-#   cost_time: 0
-#   cost_power: 0 
-#   mu: 1
-#   eps: 1e-2
-#   tol: 1e-1
-#   file_name_out: turn3
-#   file_name_in: turn2
-
-# - 
-#   name: turn_4
-#   ipopt: true
-#   num_knot_points:
-#     - 7
-#     - 7
-#     - 7
-#     - 7
-#     - 7
-#     - 7
-#   initial_height: 0.2
-#   pitch_magnitude_lo: 0.1
-#   pitch_magnitude_apex: 0.03
-#   lock_spine: true
-#   apex_height: -1
-#   speed: 0.6
-#   max_duration: 1
-#   lock_leg_apex: false
-#   cost_actuation: 3
-#   cost_velocity: 10 
-#   cost_velocity_legs_flight: 2
-#   cost_actuation_legs_flight: 1
-#   cost_time: 0
-#   cost_power: 0 
-#   mu: 1
-#   eps: 1e-2
-#   tol: 1e-1
-#   file_name_out: turn4
-#   file_name_in: turn3
-
-# - 
-#   name: turn_5
-#   ipopt: true
-#   num_knot_points:
-#     - 7
-#     - 7
-#     - 7
-#     - 7
-#     - 7
-#     - 7
-#   initial_height: 0.2
-#   pitch_magnitude_lo: 0.2
-#   pitch_magnitude_apex: 0.1
-#   lock_spine: true
-#   apex_height: -1
-#   speed: 1
-#   max_duration: 1
-#   lock_leg_apex: false
-#   cost_actuation: 0
-#   cost_velocity: 0
-#   cost_velocity_legs_flight: 0
-#   cost_actuation_legs_flight: 0
-#   cost_time: 0
-#   cost_power: 100 
-#   mu: 1
-#   eps: 1e-2
-#   tol: 1e-1
-#   file_name_out: turn5
-#   file_name_in: turn4
-
-# - 
-#   name: turn_6
-#   ipopt: true
-#   num_knot_points:
-#     - 7
-#     - 7
-#     - 7
-#     - 7
-#     - 7
-#     - 7
-#   initial_height: 0.2
-#   pitch_magnitude_lo: 0.15
-#   pitch_magnitude_apex: 0.05
-#   lock_spine: true
-#   apex_height: -1
-#   speed: 1.5
-#   max_duration: 1
-#   lock_leg_apex: false
-#   cost_actuation: 0
-#   cost_velocity: 0
-#   cost_velocity_legs_flight: 0
-#   cost_actuation_legs_flight: 0
-#   cost_time: 0
-#   cost_power: 100 
-#   mu: 1
-#   eps: 1e-2
-#   tol: 1
-#   file_name_out: turn6
-#   file_name_in: turn5
+  iterate:
+    -
+      name: turn_1
+      num: 1
+      iteration_variable: orientation_diff
+      for:
+        start: 0.05
+        end: 0.5
+        step_size: 0.05
+    -
+      name: turn_2
+      num: 1
+      iteration_variable: orientation_diff
+      for:
+        start: 0.05
+        end: 0.5
+        step_size: 0.05
 - 
-  name: turn_7
+  name: turn_1
   ipopt: true
   num_knot_points:
     - 7
@@ -215,8 +53,9 @@
   mu: 1
   eps: 1e-2
   tol: 1e-1
-  file_name_out: turn7
-  file_name_in: bounding_gait7
+  file_name_in: bounding_gait4_p1
+  file_name_out: turn_1
+  
 
 # - 
 #   name: turn_8
