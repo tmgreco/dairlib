@@ -49,7 +49,8 @@ void SpiritTurn<Y>::config(std::string yaml_path, std::string saved_directory, i
 
   if(!config[index]["file_name_out"].as<std::string>().empty()) this->file_name_out=saved_directory+config[index]["file_name_out"].as<std::string>();
   if(!config[index]["file_name_in"].as<std::string>().empty()) this->file_name_in= saved_directory+config[index]["file_name_in"].as<std::string>();
-
+  if(config[index]["action"]) this->action=config[index]["action"].as<std::string>();
+  else this->action="";
 }
 
 

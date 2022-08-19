@@ -2,7 +2,8 @@
 #include "examples/Spirit_spine/animate_spirit.h"
 #include <gflags/gflags.h>
 DEFINE_string(traj_path, "temp", "path to trajectory to be viz"); 
-
+DEFINE_int32(num_period, 1, "How many periods to be visualized"); 
+DEFINE_double(real_time_rate,0.25,"Display speed");
 using drake::AutoDiffXd;
 using drake::multibody::MultibodyPlant;
 using drake::geometry::SceneGraph;
@@ -64,7 +65,7 @@ void runAnimate(
   }
 }
 
-void animateTraj(std::string& urdf_path,int num_period,double real_time_rate) {
+void animateTraj(std::string& urdf_path) {
   // auto plant_vis = std::make_unique<drake::multibody::MultibodyPlant<double>>(0.0);
   // auto scene_graph_ptr = std::make_unique<SceneGraph<double>>();
   // drake::systems::DiagramBuilder<double> builder;
@@ -97,7 +98,7 @@ void animateTraj(std::string& urdf_path,int num_period,double real_time_rate) {
   dairlib::DirconTrajectory old_traj(FLAGS_traj_path);
   PiecewisePolynomial<double> pp_xtraj = old_traj.ReconstructStateTrajectory();
   
-  if (num_period>1){
+  if (FLAGS_num_period>1){
     /// Create offset polynomial
     std::vector<double> breaks=pp_xtraj.get_breaks();
     std::vector<Eigen::MatrixXd> samples(breaks.size());
@@ -108,7 +109,7 @@ void animateTraj(std::string& urdf_path,int num_period,double real_time_rate) {
     }
     PiecewisePolynomial<double> ini_offset_pp = PiecewisePolynomial<double>::FirstOrderHold(breaks, samples);
     PiecewisePolynomial<double> offset_pp=ini_offset_pp;
-    for (int i=0;i<10;i++){
+    for (int i=0;i<FLAGS_num_period;i++){
       PiecewisePolynomial<double> x_traj_i=old_traj.ReconstructStateTrajectory()+offset_pp;
       offset_pp+=ini_offset_pp;
       x_traj_i.shiftRight(pp_xtraj.end_time());
@@ -121,10 +122,10 @@ void animateTraj(std::string& urdf_path,int num_period,double real_time_rate) {
       &builder, &scene_graph, pp_xtraj);
   auto diagram = builder.Build();
   // bool save=false;
-  std::cout<<"Start running animation with real time factor = "<< real_time_rate<<std::endl;
+  std::cout<<"Start running animation with real time factor = "<< FLAGS_real_time_rate<<std::endl;
   while (1) {
     drake::systems::Simulator<double> simulator(*diagram);
-    simulator.set_target_realtime_rate(real_time_rate);
+    simulator.set_target_realtime_rate(FLAGS_real_time_rate);
     simulator.Initialize();
     simulator.AdvanceTo(pp_xtraj.end_time());
     sleep(2);

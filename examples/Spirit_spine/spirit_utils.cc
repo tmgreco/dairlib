@@ -694,6 +694,7 @@ double calcElectricalWork(
   int n_q = plant.num_positions();
 
   double work = 0;
+  double thermal_loss=0;
   double Q;
   for(const auto& x_traj : x_trajs) {
     std::vector<double> knot_points = x_traj.get_segment_times();
@@ -725,9 +726,15 @@ double calcElectricalWork(
 
         // trapazoidal integration
         work += (knot_points[knot_index + 1] - knot_points[knot_index]) / 2.0 * (battery_pow_low + battery_pow_up);
+
+
+        double pow_loss_low = Q * actuation_low * actuation_low;
+        double pow_loss_up =  Q * actuation_up * actuation_up;
+        thermal_loss += (knot_points[knot_index + 1] - knot_points[knot_index]) / 2.0 * (pow_loss_low + pow_loss_up);
       }
     }
   }
+  std::cout<<"Thermal loss: "<< thermal_loss<< std::endl;
   return work;
 }
 
@@ -924,22 +931,20 @@ void JointWorkCost::EvaluateCost(const Eigen::Ref<const drake::VectorX<double>> 
 
 
 double h_i = x(0);
-//auto u_i_all = x.segment(1, n_u_);
-//auto u_ip_all = x.segment(1+n_u_, n_u_);
-//auto x_i_all = x.segment(1+n_u_+n_u_, n_q_+n_v_);
-//auto x_ip_all = x.segment(1+n_u_+n_u_+n_q_+n_v_, n_q_+n_v_);
 
 double u_i = x(1);
 double u_ip = x(2);
 double v_i = x(3);
 double v_ip = x(4);
-// double work_low = cost_work_ * relu_smooth(u_i * v_i + Q_ * u_i * u_i);
-// double work_up = cost_work_ * relu_smooth(u_ip * v_ip + Q_ * u_ip * u_ip);
-double work_low = cost_work_ * abs(u_i * v_i + Q_ * u_i * u_i);
-double work_up = cost_work_ * abs(u_ip * v_ip + Q_ * u_ip * u_ip);
-
+double work_low = cost_work_ * relu_smooth(u_i * v_i + Q_ * u_i * u_i);
+double work_up = cost_work_ * relu_smooth(u_ip * v_ip + Q_ * u_ip * u_ip);
+double efficiency=0;
+// double work_low = cost_work_ * (u_i * v_i + Q_ * u_i * u_i);
+// double work_up = cost_work_ * (u_ip * v_ip + Q_ * u_ip * u_ip);
+double battery_pow_low = positivePart(work_low) + efficiency * negativePart(work_low);
+double battery_pow_up = positivePart(work_up) + efficiency * negativePart(work_up);
 drake::VectorX<double> rv(1);
-rv[0] = 1/2.0 * h_i *(work_low + work_up);
+rv[0] = 1/2.0 * h_i *(battery_pow_low + battery_pow_up);
 (*y) = rv;
 };
 
@@ -974,7 +979,7 @@ void JointPowerCost::EvaluateCost(const Eigen::Ref<const drake::VectorX<double>>
     ht+=x(i+4);
   }
 
-  //////////////////////////////////////////// FOR MECHANICAL POWER ///////////////////////////////////////////
+  ////////////////////////////////////////// FOR MECHANICAL POWER ///////////////////////////////////////////
   // // double work_low = cost_work_ * relu_smooth(u_i * v_i + Q_ * u_i * u_i);
   // // double work_up = cost_work_ * relu_smooth(u_ip * v_ip + Q_ * u_ip * u_ip);
   // double work_low = cost_work_ * abs(u_i * v_i + Q_ * u_i * u_i);
@@ -992,8 +997,8 @@ void JointPowerCost::EvaluateCost(const Eigen::Ref<const drake::VectorX<double>>
   double pow_low = cost_work_ * (u_i * v_i + Q_ * u_i * u_i);
   double pow_up = cost_work_ * (u_ip * v_ip + Q_ * u_ip * u_ip);
 
-  double battery_pow_low = positivePart(pow_low) - efficiency * negativePart(pow_low);
-  double battery_pow_up = positivePart(pow_up) - efficiency * negativePart(pow_up);
+  double battery_pow_low = positivePart(pow_low) + efficiency * negativePart(pow_low);
+  double battery_pow_up = positivePart(pow_up) + efficiency * negativePart(pow_up);
   drake::VectorX<double> rv(1);
   rv[0]= 1/2.0 * h_i/ht *(battery_pow_low + battery_pow_up);
   (*y) = rv;

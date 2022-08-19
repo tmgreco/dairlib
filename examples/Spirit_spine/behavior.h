@@ -239,7 +239,8 @@ namespace dairlib {
             }
         /// Initialize trajectory
         /// \param trajopt trajectory optimization problem to be solved
-        void initTrajectory(dairlib::systems::trajectory_optimization::Dircon<Y>& trajopt,
+        void initTrajectory(MultibodyPlant<Y>& plant,
+                                dairlib::systems::trajectory_optimization::Dircon<Y>& trajopt,
                                 DirconModeSequence<Y>& sequence){
                 if (file_name_in.empty()){
                     trajopt.drake::systems::trajectory_optimization::MultipleShooting::
@@ -252,7 +253,8 @@ namespace dairlib {
                     std::cout<<"Loading decision var from file, will fail if num dec vars changed" <<std::endl;
                     dairlib::DirconTrajectory loaded_traj(file_name_in);
                     trajopt.SetInitialGuessForAllVariables(loaded_traj.GetDecisionVariables());
-                    addGaussionNoiseToInputStates(trajopt,loaded_traj);
+                    addGaussionNoiseToInputTraj(plant,trajopt,loaded_traj);
+                    addGaussionNoiseToStateTraj(plant,trajopt,loaded_traj);
                 }
             }
 
@@ -367,36 +369,113 @@ namespace dairlib {
                     for (int i=3;i<6;i++) myfile << this->x_traj.value(current_time)(20+i,0) << ",";
                     myfile << this->x_traj.value(current_time)(7,0) << ","<< this->x_traj.value(current_time)(26,0) << ","<<
                             this->u_traj.value(current_time)(0,0)<<",";
+                    myfile<<",,,";
+                    for (int i=0;i<39;i++) myfile << this->x_traj.value(current_time)(i,0) << ",";
+                    myfile<<",,";
+                    for (int i=0;i<13;i++) myfile << this->u_traj.value(current_time)(i,0) << ",";
                     }
                 else{
                     for (int i=3;i<6;i++) myfile << this->x_traj.value(current_time)(19+i,0) << ",";
+                    myfile<<",,,";
+                    for (int i=0;i<39;i++) myfile << this->x_traj.value(current_time)(i,0) << ",";
+                    myfile<<",,";
+                    for (int i=0;i<13;i++) myfile << this->u_traj.value(current_time)(i,0) << ",";
                 }
                 myfile <<"\n";
             }
             myfile.close(); // <- note this correction!!
         }
 
-        void addGaussionNoiseToInputStates(dairlib::systems::trajectory_optimization::Dircon<Y>& trajopt,
-                                                        dairlib::DirconTrajectory& initial_guess_traj){
+        void addGaussionNoiseToStateTraj(MultibodyPlant<Y>& plant,
+                                            dairlib::systems::trajectory_optimization::Dircon<Y>& trajopt,
+                                            dairlib::DirconTrajectory& initial_guess_traj){
             PiecewisePolynomial<Y> state_traj = initial_guess_traj.ReconstructStateTrajectory();
             /// Create offset polynomial
             std::vector<double> breaks=state_traj.get_breaks();
             std::vector<Eigen::MatrixXd> samples(breaks.size());
-            
-            auto normal_dist = std::bind(std::normal_distribution<double>{mean, var},
+            int num_states=plant.num_positions()+plant.num_velocities();
+            auto normal_dist = std::bind(std::normal_distribution<double>{mean, var/10},
+                                std::mt19937(std::random_device{}())); // Normal distribution
+            auto normal_dist_joints = std::bind(std::normal_distribution<double>{mean, var},
                                 std::mt19937(std::random_device{}())); // Normal distribution
             // std::cout<<"Generate "<<breaks.size()<<" random dist. "<<"mean "<<mean<<" var "<<var<<std::endl;
             for (int i = 0; i < static_cast<int>(breaks.size()); ++i) {
-                samples[i].resize(39, 1);
+                samples[i].resize(num_states, 1);
+                double scaling=normal_dist();
                 // std::cout<<i<<": "<<normal_dist()<<std::endl;
-                for (int j=0;j<39;j++) samples[i](j, 0) = 0;
-                for (int j=4;j<7;j++) samples[i](j, 0) = normal_dist(); // x offset
+                for (int j=0;j<num_states;j++) samples[i](j, 0) = 1;
+                for (int j=4;j<7;j++) samples[i](j, 0) = scaling; // x offset
+                for (int j=7;j<20;j++) samples[i](j, 0) = normal_dist_joints();
             }
             PiecewisePolynomial<Y> offset_pp = PiecewisePolynomial<Y>::FirstOrderHold(breaks, samples);
 
-            state_traj+=offset_pp;
+            state_traj*=offset_pp;
             trajopt.drake::systems::trajectory_optimization::MultipleShooting::
                         SetInitialTrajectory(initial_guess_traj.ReconstructInputTrajectory(), state_traj);
+        }
+        void addGaussionNoiseToVelocitiesTraj(MultibodyPlant<Y>& plant,
+                                            dairlib::systems::trajectory_optimization::Dircon<Y>& trajopt,
+                                            dairlib::DirconTrajectory& initial_guess_traj){
+            PiecewisePolynomial<Y> state_traj = initial_guess_traj.ReconstructStateTrajectory();
+            /// Create offset polynomial
+            std::vector<double> breaks=state_traj.get_breaks();
+            std::vector<Eigen::MatrixXd> samples(breaks.size());
+            int num_states=plant.num_positions()+plant.num_velocities();
+            auto normal_dist = std::bind(std::normal_distribution<double>{mean, var},
+                                std::mt19937(std::random_device{}())); // Normal distribution
+            auto normal_dist_joints = std::bind(std::normal_distribution<double>{mean, var},
+                                std::mt19937(std::random_device{}())); // Normal distribution
+            // std::cout<<"Generate "<<breaks.size()<<" random dist. "<<"mean "<<mean<<" var "<<var<<std::endl;
+            for (int i = 0; i < static_cast<int>(breaks.size()); ++i) {
+                samples[i].resize(num_states, 1);
+                double scaling=normal_dist();
+                // std::cout<<i<<": "<<normal_dist()<<std::endl;
+                for (int j=0;j<num_states;j++) samples[i](j, 0) = 1;
+                for (int j=20;j<26;j++) samples[i](j, 0) = scaling; // x offset
+                for (int j=26;j<num_states;j++) samples[i](j, 0) = normal_dist_joints();
+            }
+            PiecewisePolynomial<Y> offset_pp = PiecewisePolynomial<Y>::FirstOrderHold(breaks, samples);
+
+            state_traj*=offset_pp;
+            trajopt.drake::systems::trajectory_optimization::MultipleShooting::
+                        SetInitialTrajectory(initial_guess_traj.ReconstructInputTrajectory(), state_traj);
+        }
+
+        void addGaussionNoiseToInputTraj(MultibodyPlant<Y>& plant,
+                                            dairlib::systems::trajectory_optimization::Dircon<Y>& trajopt,
+                                            dairlib::DirconTrajectory& initial_guess_traj){
+            PiecewisePolynomial<Y> input_traj = initial_guess_traj.ReconstructInputTrajectory();
+            auto actuators_map = multibody::makeNameToActuatorsMap(plant);
+            int num_actuators=plant.num_actuators();
+            /// Create offset polynomial
+            std::vector<double> breaks=input_traj.get_breaks();
+            std::vector<Eigen::MatrixXd> samples(breaks.size());
+            auto normal_dist_hip_set = std::bind(std::normal_distribution<double>{mean, var/4},std::mt19937(std::random_device{}())); // Normal distribution
+            auto normal_dist_upper_set = std::bind(std::normal_distribution<double>{mean, var},std::mt19937(std::random_device{}())); // Normal distribution
+            auto normal_dist_knee_set = std::bind(std::normal_distribution<double>{mean, var*4},std::mt19937(std::random_device{}())); // Normal distribution
+            // std::cout<<"Generate "<<breaks.size()<<" random dist. "<<"mean "<<mean<<" var "<<var<<std::endl;
+            for (int i = 0; i < static_cast<int>(breaks.size()); ++i) {
+                samples[i].resize(num_actuators, 1);
+                for (int j=0;j<num_actuators;j++) samples[i](j, 0) = 1;
+                samples[i](actuators_map.at("motor_0"), 0) = normal_dist_upper_set(); 
+                samples[i](actuators_map.at("motor_2"), 0) = normal_dist_upper_set(); 
+                samples[i](actuators_map.at("motor_4"), 0) = normal_dist_upper_set(); 
+                samples[i](actuators_map.at("motor_6"), 0) = normal_dist_upper_set(); 
+                samples[i](actuators_map.at("motor_1"), 0) = normal_dist_knee_set(); 
+                samples[i](actuators_map.at("motor_3"), 0) = normal_dist_knee_set(); 
+                samples[i](actuators_map.at("motor_5"), 0) = normal_dist_knee_set(); 
+                samples[i](actuators_map.at("motor_7"), 0) = normal_dist_knee_set(); 
+                samples[i](actuators_map.at("motor_8"), 0) = normal_dist_hip_set(); 
+                samples[i](actuators_map.at("motor_9"), 0) = normal_dist_hip_set();
+                samples[i](actuators_map.at("motor_10"), 0) = normal_dist_hip_set();
+                samples[i](actuators_map.at("motor_11"), 0) = normal_dist_hip_set();
+                if (this->spine_type=="twisting") samples[i](actuators_map.at("motor_12"), 0) = normal_dist_hip_set();
+            }
+            PiecewisePolynomial<Y> offset_pp = PiecewisePolynomial<Y>::FirstOrderHold(breaks, samples);
+
+            input_traj*=offset_pp;
+            trajopt.drake::systems::trajectory_optimization::MultipleShooting::
+                        SetInitialTrajectory(input_traj ,initial_guess_traj.ReconstructStateTrajectory());
         }
     };
 }

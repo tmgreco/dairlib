@@ -98,11 +98,19 @@ public:
             mode->MakeConstraintRelative(i,1);
             }
             mode->SetDynamicsScale(
-                {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17}, 200);
+                {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19}, 200);
+            mode->SetDynamicsScale(
+                {16, 17, 18, 19}, 2000);   // Set Dynamic Scale For Knees To Address Leg Jiggling
+            mode->SetDynamicsScale(
+                {35, 36, 37, 38}, 10);   // Set Dynamic Scale For Knees To Address Leg Jiggling
+            // mode->SetDynamicsScale(
+            //     {12, 13, 14, 15}, 50);   // Set Dynamic Scale For Knees To Address Leg Jiggling
             if (mode->evaluators().num_evaluators() > 0)
             {
             mode->SetKinVelocityScale(
                 {0, 1, 2, 3}, {0, 1, 2}, 1);
+            // mode->SetKinAccelerationScale(
+            //     {0, 1, 2, 3}, {0, 1, 2}, 0.01);    // For Addressing Leg Jiggling
             mode->SetKinPositionScale(
                 {0, 1, 2, 3}, {0, 1, 2}, 200);
             }

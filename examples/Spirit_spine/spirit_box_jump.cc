@@ -465,7 +465,7 @@ void SpiritBoxJump<Y>::run(MultibodyPlant<Y>& plant,
   addConstraints(plant, trajopt);
 
   // Initialize the trajectory control state and forces
-  this->initTrajectory(trajopt,sequence);
+  this->initTrajectory(plant,trajopt,sequence);
 
 
   /// Setup the visualization during the optimization

@@ -174,7 +174,7 @@ void Spirit<B,T>::animate(){
 
 template <template<class> class B,class T>
 void Spirit<B,T>::run(){
-  behavior.setMeanAndVar(0,0);
+  behavior.setMeanAndVar(1,0);
   for (int i=FLAGS_skip_to;i<=num_optimizations;i++){
     std::cout<<"Running optimization "<<i<<std::endl;
     if (i==num_optimizations) behavior.enable_animate();   
@@ -183,16 +183,18 @@ void Spirit<B,T>::run(){
       if(initial_guess=="") behavior.generateInitialGuess(*plant); //If we don't have a file for initial guess, then generate one.
       else behavior.loadOldTrajectory(initial_guess); //Otherwise, use the trajectory file we have.
     } 
-    std::cout<<"ith action: "<<behavior.action<<std::endl;
+    
     if (behavior.action=="expand"){
       std::string org_file_name_out=behavior.getFileNameOut();
       for (int j=0;j<num_perturbations;j++){
+        std::cout<<"Running "<<j+1<<"(th) trail in "<<i<<"(th) optimization; action: "<<behavior.action<<std::endl;
+        std::cout<<"Mean: "<< mean <<"; Var: "<< var << std::endl;
         behavior.setFileNameOut(org_file_name_out+"_s"+std::to_string(j+1));
         if (j!=0) behavior.setMeanAndVar(mean,var);
-        std::cout<<"!!!!!!!!!!!!!!!!!!!!!!!!!!!!"<<j<<"  "<<mean <<" " << var<<std::endl;
+        // std::cout<<"!!!!!!!!!!!!!!!!!!!!!!!!!!!!"<<j<<"  "<<mean <<" " << var<<std::endl;
         behavior.run(*plant,&pp_xtraj,&surface_vector);
       }
-      behavior.setMeanAndVar(0,0);
+      behavior.setMeanAndVar(1,0);
       behavior.setFileNameOut(org_file_name_out);
       // Copy and paste the first unperturbed trajectory
       std::ifstream  src(org_file_name_out+"_s1", std::ios::binary);
@@ -202,8 +204,9 @@ void Spirit<B,T>::run(){
     else if (behavior.action=="keep"){
       std::string org_file_name_in=behavior.getFileNameIn();
       std::string org_file_name_out=behavior.getFileNameOut();
-      behavior.setMeanAndVar(0,0);
+      behavior.setMeanAndVar(1,0);
       for (int j=0;j<num_perturbations;j++){
+        std::cout<<"Running "<<j+1<<"(th) trail in "<<i<<"(th) optimization; action: "<<behavior.action<<std::endl;
         behavior.setFileNameIn(org_file_name_in+"_s"+std::to_string(j+1));
         behavior.setFileNameOut(org_file_name_out+"_s"+std::to_string(j+1));
         behavior.run(*plant,&pp_xtraj,&surface_vector);
@@ -212,18 +215,21 @@ void Spirit<B,T>::run(){
     else if (behavior.action=="shrink"){
       std::string org_file_name_in=behavior.getFileNameIn();
       std::string org_file_name_out=behavior.getFileNameOut();
-      behavior.setMeanAndVar(0,0);
+      behavior.setMeanAndVar(1,0);
 
       // Create array of optimal costs
       double costs[num_perturbations];
       const int N = sizeof(costs) / sizeof(double);
 
       for (int j=0;j<num_perturbations;j++){
+        std::cout<<"Running "<<j+1<<"(th) trail in "<<i<<"(th) optimization; action: "<<behavior.action<<std::endl;
+        if (j!=0) behavior.setMeanAndVar(mean,var);
         behavior.setFileNameIn(org_file_name_in+"_s"+std::to_string(j+1));
         behavior.setFileNameOut(org_file_name_out+"_s"+std::to_string(j+1));
         behavior.run(*plant,&pp_xtraj,&surface_vector);
         costs[j]=behavior.getCost();
       }
+      behavior.setMeanAndVar(1,0);
       // Copy the best traj to saved directory
       int best_index=std::distance(costs, std::min_element(costs, costs + N));
       std::ifstream  src(org_file_name_out+"_s"+std::to_string(best_index+1), std::ios::binary);

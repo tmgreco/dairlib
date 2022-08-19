@@ -6,8 +6,8 @@
   spine_type: twisting
   urdf_path: examples/Spirit_spine/spirit_with_spine_drake.urdf
   num_perturbations: 5
-  mean: 0
-  var: 0.01
+  mean: 1
+  var: 0.1
   iterate:
     -
       name: jump_5
@@ -139,7 +139,7 @@
   # action: expand
 -
   name: jump_5
-  duration: 1
+  duration: 1.5
   ipopt: true
   warm_up: true
   num_knot_points:
@@ -165,7 +165,7 @@
   tol: 3e-1
   file_name_in: jump_c1
   file_name_out: jump_c2
-  # action: shrink
+  action: expand
 -
   name: jump_6
   duration: 1
@@ -194,4 +194,4 @@
   tol: 1e-1
   file_name_in: jump_c2
   file_name_out: jump_c3
-  # action: shrink
+  action: shrink

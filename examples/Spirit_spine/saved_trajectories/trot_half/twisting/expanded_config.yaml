@@ -4,8 +4,8 @@
   spine_type: twisting
   urdf_path: examples/Spirit_spine/spirit_with_spine_drake.urdf
   num_perturbations: 5
-  mean: 0
-  var: 0.01
+  mean: 1
+  var: 0.1
   iterate:
     - name: trot_3
       num: 1
@@ -116,6 +116,7 @@
   tol: 1e-2
   file_name_out: trot3_p1
   file_name_in: trot1
+  action: expand
 - name: trot_3
   ipopt: true
   num_knot_points:
@@ -144,6 +145,7 @@
   tol: 1e-2
   file_name_out: trot3_p2
   file_name_in: trot3_p1
+  action: expand
 - name: trot_3
   ipopt: true
   num_knot_points:
@@ -172,6 +174,7 @@
   tol: 1e-2
   file_name_out: trot3_p3
   file_name_in: trot3_p2
+  action: expand
 - name: trot_3
   ipopt: true
   num_knot_points:
@@ -200,6 +203,7 @@
   tol: 1e-2
   file_name_out: trot3_p4
   file_name_in: trot3_p3
+  action: expand
 - name: trot_3
   ipopt: true
   num_knot_points:
@@ -228,6 +232,7 @@
   tol: 1e-2
   file_name_out: trot3_p5
   file_name_in: trot3_p4
+  action: expand
 - name: trot_3
   ipopt: true
   num_knot_points:
@@ -256,6 +261,7 @@
   tol: 1e-2
   file_name_out: trot3_p6
   file_name_in: trot3_p5
+  action: expand
 - name: trot_3
   ipopt: true
   num_knot_points:
@@ -284,6 +290,7 @@
   tol: 1e-2
   file_name_out: trot3_p7
   file_name_in: trot3_p6
+  action: expand
 - name: trot_3
   ipopt: true
   num_knot_points:
@@ -312,6 +319,7 @@
   tol: 1e-2
   file_name_out: trot3_p8
   file_name_in: trot3_p7
+  action: expand
 - name: trot_3
   ipopt: true
   num_knot_points:
@@ -340,6 +348,7 @@
   tol: 1e-2
   file_name_out: trot3_p9
   file_name_in: trot3_p8
+  action: expand
 - name: trot_3
   ipopt: true
   num_knot_points:
@@ -368,6 +377,7 @@
   tol: 1e-2
   file_name_out: trot3_p10
   file_name_in: trot3_p9
+  action: expand
 - name: trot_3
   ipopt: true
   num_knot_points:
@@ -396,6 +406,7 @@
   tol: 1e-2
   file_name_out: trot3_p11
   file_name_in: trot3_p10
+  action: expand
 - name: trot_3
   ipopt: true
   num_knot_points:
@@ -424,6 +435,7 @@
   tol: 1e-2
   file_name_out: trot3_p12
   file_name_in: trot3_p11
+  action: expand
 - name: trot_3
   ipopt: true
   num_knot_points:
@@ -452,6 +464,7 @@
   tol: 1e-2
   file_name_out: trot3_p13
   file_name_in: trot3_p12
+  action: expand
 - name: trot_3
   ipopt: true
   num_knot_points:
@@ -480,6 +493,7 @@
   tol: 1e-2
   file_name_out: trot3_p14
   file_name_in: trot3_p13
+  action: expand
 - name: trot_3
   ipopt: true
   num_knot_points:
@@ -508,6 +522,7 @@
   tol: 1e-2
   file_name_out: trot3
   file_name_in: trot3_p14
+  action: expand
 - name: trot_4
   ipopt: true
   num_knot_points:
@@ -536,6 +551,7 @@
   tol: 1e-2
   file_name_out: trot4_p1
   file_name_in: trot3_p1
+  action: keep
 - name: trot_4
   ipopt: true
   num_knot_points:
@@ -564,6 +580,7 @@
   tol: 1e-2
   file_name_out: trot4_p2
   file_name_in: trot3_p2
+  action: keep
 - name: trot_4
   ipopt: true
   num_knot_points:
@@ -592,6 +609,7 @@
   tol: 1e-2
   file_name_out: trot4_p3
   file_name_in: trot3_p3
+  action: keep
 - name: trot_4
   ipopt: true
   num_knot_points:
@@ -620,6 +638,7 @@
   tol: 1e-2
   file_name_out: trot4_p4
   file_name_in: trot3_p4
+  action: keep
 - name: trot_4
   ipopt: true
   num_knot_points:
@@ -648,6 +667,7 @@
   tol: 1e-2
   file_name_out: trot4_p5
   file_name_in: trot3_p5
+  action: keep
 - name: trot_4
   ipopt: true
   num_knot_points:
@@ -676,6 +696,7 @@
   tol: 1e-2
   file_name_out: trot4_p6
   file_name_in: trot3_p6
+  action: keep
 - name: trot_4
   ipopt: true
   num_knot_points:
@@ -704,6 +725,7 @@
   tol: 1e-2
   file_name_out: trot4_p7
   file_name_in: trot3_p7
+  action: keep
 - name: trot_4
   ipopt: true
   num_knot_points:
@@ -732,6 +754,7 @@
   tol: 1e-2
   file_name_out: trot4_p8
   file_name_in: trot3_p8
+  action: keep
 - name: trot_4
   ipopt: true
   num_knot_points:
@@ -760,6 +783,7 @@
   tol: 1e-2
   file_name_out: trot4_p9
   file_name_in: trot3_p9
+  action: keep
 - name: trot_4
   ipopt: true
   num_knot_points:
@@ -788,6 +812,7 @@
   tol: 1e-2
   file_name_out: trot4_p10
   file_name_in: trot3_p10
+  action: keep
 - name: trot_4
   ipopt: true
   num_knot_points:
@@ -816,6 +841,7 @@
   tol: 1e-2
   file_name_out: trot4_p11
   file_name_in: trot3_p11
+  action: keep
 - name: trot_4
   ipopt: true
   num_knot_points:
@@ -844,6 +870,7 @@
   tol: 1e-2
   file_name_out: trot4_p12
   file_name_in: trot3_p12
+  action: keep
 - name: trot_4
   ipopt: true
   num_knot_points:
@@ -872,6 +899,7 @@
   tol: 1e-2
   file_name_out: trot4_p13
   file_name_in: trot3_p13
+  action: keep
 - name: trot_4
   ipopt: true
   num_knot_points:
@@ -900,6 +928,7 @@
   tol: 1e-2
   file_name_out: trot4_p14
   file_name_in: trot3_p14
+  action: keep
 - name: trot_4
   ipopt: true
   num_knot_points:
@@ -928,6 +957,7 @@
   tol: 1e-2
   file_name_out: trot4
   file_name_in: trot3
+  action: keep
 - name: trot_5
   ipopt: true
   num_knot_points:
@@ -956,6 +986,7 @@
   tol: 1e-1
   file_name_out: trot5_p1
   file_name_in: trot4_p1
+  action: keep
 - name: trot_5
   ipopt: true
   num_knot_points:
@@ -984,6 +1015,7 @@
   tol: 1e-1
   file_name_out: trot5_p2
   file_name_in: trot4_p2
+  action: keep
 - name: trot_5
   ipopt: true
   num_knot_points:
@@ -1012,6 +1044,7 @@
   tol: 1e-1
   file_name_out: trot5_p3
   file_name_in: trot4_p3
+  action: keep
 - name: trot_5
   ipopt: true
   num_knot_points:
@@ -1040,6 +1073,7 @@
   tol: 1e-1
   file_name_out: trot5_p4
   file_name_in: trot4_p4
+  action: keep
 - name: trot_5
   ipopt: true
   num_knot_points:
@@ -1068,6 +1102,7 @@
   tol: 1e-1
   file_name_out: trot5_p5
   file_name_in: trot4_p5
+  action: keep
 - name: trot_5
   ipopt: true
   num_knot_points:
@@ -1096,6 +1131,7 @@
   tol: 1e-1
   file_name_out: trot5_p6
   file_name_in: trot4_p6
+  action: keep
 - name: trot_5
   ipopt: true
   num_knot_points:
@@ -1124,6 +1160,7 @@
   tol: 1e-1
   file_name_out: trot5_p7
   file_name_in: trot4_p7
+  action: keep
 - name: trot_5
   ipopt: true
   num_knot_points:
@@ -1152,6 +1189,7 @@
   tol: 1e-1
   file_name_out: trot5_p8
   file_name_in: trot4_p8
+  action: keep
 - name: trot_5
   ipopt: true
   num_knot_points:
@@ -1180,6 +1218,7 @@
   tol: 1e-1
   file_name_out: trot5_p9
   file_name_in: trot4_p9
+  action: keep
 - name: trot_5
   ipopt: true
   num_knot_points:
@@ -1208,6 +1247,7 @@
   tol: 1e-1
   file_name_out: trot5_p10
   file_name_in: trot4_p10
+  action: keep
 - name: trot_5
   ipopt: true
   num_knot_points:
@@ -1236,6 +1276,7 @@
   tol: 1e-1
   file_name_out: trot5_p11
   file_name_in: trot4_p11
+  action: keep
 - name: trot_5
   ipopt: true
   num_knot_points:
@@ -1264,6 +1305,7 @@
   tol: 1e-1
   file_name_out: trot5_p12
   file_name_in: trot4_p12
+  action: keep
 - name: trot_5
   ipopt: true
   num_knot_points:
@@ -1292,6 +1334,7 @@
   tol: 1e-1
   file_name_out: trot5_p13
   file_name_in: trot4_p13
+  action: keep
 - name: trot_5
   ipopt: true
   num_knot_points:
@@ -1320,6 +1363,7 @@
   tol: 1e-1
   file_name_out: trot5_p14
   file_name_in: trot4_p14
+  action: keep
 - name: trot_5
   ipopt: true
   num_knot_points:
@@ -1348,6 +1392,7 @@
   tol: 1e-1
   file_name_out: trot5
   file_name_in: trot4
+  action: keep
 - name: trot_6
   ipopt: true
   num_knot_points:
@@ -1376,6 +1421,7 @@
   tol: 3e-2
   file_name_out: trot6_p1
   file_name_in: trot5_p1
+  action: shrink
 - name: trot_6
   ipopt: true
   num_knot_points:
@@ -1404,6 +1450,7 @@
   tol: 3e-2
   file_name_out: trot6_p2
   file_name_in: trot5_p2
+  action: shrink
 - name: trot_6
   ipopt: true
   num_knot_points:
@@ -1432,6 +1479,7 @@
   tol: 3e-2
   file_name_out: trot6_p3
   file_name_in: trot5_p3
+  action: shrink
 - name: trot_6
   ipopt: true
   num_knot_points:
@@ -1460,6 +1508,7 @@
   tol: 3e-2
   file_name_out: trot6_p4
   file_name_in: trot5_p4
+  action: shrink
 - name: trot_6
   ipopt: true
   num_knot_points:
@@ -1488,6 +1537,7 @@
   tol: 3e-2
   file_name_out: trot6_p5
   file_name_in: trot5_p5
+  action: shrink
 - name: trot_6
   ipopt: true
   num_knot_points:
@@ -1516,6 +1566,7 @@
   tol: 3e-2
   file_name_out: trot6_p6
   file_name_in: trot5_p6
+  action: shrink
 - name: trot_6
   ipopt: true
   num_knot_points:
@@ -1544,6 +1595,7 @@
   tol: 3e-2
   file_name_out: trot6_p7
   file_name_in: trot5_p7
+  action: shrink
 - name: trot_6
   ipopt: true
   num_knot_points:
@@ -1572,6 +1624,7 @@
   tol: 3e-2
   file_name_out: trot6_p8
   file_name_in: trot5_p8
+  action: shrink
 - name: trot_6
   ipopt: true
   num_knot_points:
@@ -1600,6 +1653,7 @@
   tol: 3e-2
   file_name_out: trot6_p9
   file_name_in: trot5_p9
+  action: shrink
 - name: trot_6
   ipopt: true
   num_knot_points:
@@ -1628,6 +1682,7 @@
   tol: 3e-2
   file_name_out: trot6_p10
   file_name_in: trot5_p10
+  action: shrink
 - name: trot_6
   ipopt: true
   num_knot_points:
@@ -1656,6 +1711,7 @@
   tol: 3e-2
   file_name_out: trot6_p11
   file_name_in: trot5_p11
+  action: shrink
 - name: trot_6
   ipopt: true
   num_knot_points:
@@ -1684,6 +1740,7 @@
   tol: 3e-2
   file_name_out: trot6_p12
   file_name_in: trot5_p12
+  action: shrink
 - name: trot_6
   ipopt: true
   num_knot_points:
@@ -1712,6 +1769,7 @@
   tol: 3e-2
   file_name_out: trot6_p13
   file_name_in: trot5_p13
+  action: shrink
 - name: trot_6
   ipopt: true
   num_knot_points:
@@ -1740,6 +1798,7 @@
   tol: 3e-2
   file_name_out: trot6_p14
   file_name_in: trot5_p14
+  action: shrink
 - name: trot_6
   ipopt: true
   num_knot_points:
@@ -1768,3 +1827,4 @@
   tol: 3e-2
   file_name_out: trot6
   file_name_in: trot5
+  action: shrink

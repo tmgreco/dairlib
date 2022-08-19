@@ -56,6 +56,8 @@ void SpiritParkourWallPronk<Y>::config(
   if(!config[index]["file_name_out"].as<std::string>().empty()) this->file_name_out=saved_directory+config[index]["file_name_out"].as<std::string>();
   if(!config[index]["file_name_in"].as<std::string>().empty()) this->file_name_in= saved_directory+config[index]["file_name_in"].as<std::string>();
   
+  if(config[index]["action"]) this->action=config[index]["action"].as<std::string>();
+  else this->action="";
 
   Eigen::Vector3d initial_normal =  config[index]["initial_stand"][0].as<double>() *Eigen::Vector3d::UnitX()+
                             config[index]["initial_stand"][1].as<double>() *Eigen::Vector3d::UnitY()+

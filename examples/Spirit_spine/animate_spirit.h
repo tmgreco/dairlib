@@ -41,5 +41,5 @@ void runAnimate(
     double real_time_factor = 1
     ) ;
 
-void animateTraj(std::string& urdf_path,int num_period,double real_time_rate);
+void animateTraj(std::string& urdf_path);
 }  // dairlib namespace

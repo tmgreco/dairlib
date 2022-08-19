@@ -47,6 +47,8 @@ void SpiritTrotHalf<Y>::config(std::string yaml_path, std::string saved_director
 
   if(!config[index]["file_name_out"].as<std::string>().empty()) this->file_name_out=saved_directory+config[index]["file_name_out"].as<std::string>();
   if(!config[index]["file_name_in"].as<std::string>().empty()) this->file_name_in= saved_directory+config[index]["file_name_in"].as<std::string>();
+  if(config[index]["action"]) this->action=config[index]["action"].as<std::string>();
+  else this->action="";
 
 }
 
@@ -285,25 +287,30 @@ void SpiritTrotHalf<Y>::addConstraints(
 
 
   // /// Toes constraints
-  toe_height=0.06;
+  toe_height=0.05;
   double upperLegLength=0.206;
   double lowerLegLength=0.206;
   double bodyWidth=0.24;
+  double abOffs=0.10098;
+  double bodyLength=0.335;
   // Compute roll angle
   auto roll = atan2(2.0 * (x0(0) * x0(1) + x0(2) * x0(3)), 1.0 - 2.0 * (x0(1) * x0(1) + x0(2) * x0(2)));
+  auto pitch = asin(2.0 * (x0(0) * x0(2) + x0(3) * x0(1)));
   // Toe 2
-  trajopt.AddConstraint(x0(positions_map.at("base_z"))+0.5*bodyWidth*sin(roll)-cos(x0(positions_map.at("joint_9"))+roll)*
+  trajopt.AddConstraint(x0(positions_map.at("base_z"))+0.5*bodyWidth*sin(roll)+0.5*bodyLength*sin(pitch)-cos(x0(positions_map.at("joint_9"))+roll)*
                         (upperLegLength*sin(x0(positions_map.at("joint_2")))+lowerLegLength*sin(x0(positions_map.at("joint_3"))
-                        -x0(positions_map.at("joint_2")))),toe_height-eps, toe_height+0.08);
+                        -x0(positions_map.at("joint_2"))))+abOffs*sin(x0(positions_map.at("joint_9"))),toe_height, toe_height+0.08);
   // Toe 3
   if (this->spine_type=="twisting") 
-    trajopt.AddConstraint(x0(positions_map.at("base_z"))-0.5*bodyWidth*sin(x0(positions_map.at("joint_12"))+roll)
+    trajopt.AddConstraint(x0(positions_map.at("base_z"))-0.5*bodyWidth*sin(x0(positions_map.at("joint_12"))+roll)-0.5*bodyLength*sin(pitch)
                         -cos(x0(positions_map.at("joint_10"))+x0(positions_map.at("joint_12"))+roll)*(upperLegLength*sin(x0(positions_map.at("joint_4")))
-                        +lowerLegLength*sin(x0(positions_map.at("joint_5"))-x0(positions_map.at("joint_4")))),toe_height-eps, toe_height+0.08);
+                        +lowerLegLength*sin(x0(positions_map.at("joint_5"))-x0(positions_map.at("joint_4"))))
+                        -abOffs*sin(x0(positions_map.at("joint_10"))),toe_height, toe_height+0.1);
   else 
-    trajopt.AddConstraint(x0(positions_map.at("base_z"))-0.5*bodyWidth*sin(roll)
+    trajopt.AddConstraint(x0(positions_map.at("base_z"))-0.5*bodyWidth*sin(roll)-0.5*bodyLength*sin(pitch)
                         -cos(x0(positions_map.at("joint_10"))+roll)*(upperLegLength*sin(x0(positions_map.at("joint_4")))
-                        +lowerLegLength*sin(x0(positions_map.at("joint_5"))-x0(positions_map.at("joint_4")))),toe_height-eps, toe_height+0.08);
+                        +lowerLegLength*sin(x0(positions_map.at("joint_5"))-x0(positions_map.at("joint_4"))))
+                        -abOffs*sin(x0(positions_map.at("joint_10"))),toe_height, toe_height+0.1);
 
 
 
@@ -357,6 +364,10 @@ void SpiritTrotHalf<Y>::addConstraints(
   }
   ///Constraint joints
 
+  // For knee angular acceleration
+  auto times  = trajopt.time_vars();
+  double a_knee_max=1000;
+
   /// Constraints on all points
   for (int i = 0; i < trajopt.N(); i++){
     auto xi = trajopt.state(i);
@@ -378,21 +389,25 @@ void SpiritTrotHalf<Y>::addConstraints(
   
     // Compute roll angle
     auto roll_i = atan2(2.0 * (xi(0) * xi(1) + xi(2) * xi(3)), 1.0 - 2.0 * (xi(1) * xi(1) + xi(2) * xi(2)));
-    // Toe 2
-    trajopt.AddConstraint(xi(positions_map.at("base_z"))+0.5*bodyWidth*sin(roll_i)-cos(xi(positions_map.at("joint_9"))+roll_i)*
+    auto pitch_i = asin(2.0 * (xi(0) * xi(2) + xi(3) * xi(1)));
+    // Toe 2 
+    trajopt.AddConstraint(xi(positions_map.at("base_z"))+0.5*bodyWidth*sin(roll_i)+0.5*bodyLength*sin(pitch_i)-cos(xi(positions_map.at("joint_9"))+roll_i)*
                           (upperLegLength*sin(xi(positions_map.at("joint_2")))+lowerLegLength*sin(xi(positions_map.at("joint_3"))
-                          -xi(positions_map.at("joint_2")))),0.03, 0.15);
+                          -xi(positions_map.at("joint_2")))) +abOffs*sin(xi(positions_map.at("joint_9"))),0.0, 0.15);
     // Toe 3
     if (this->spine_type=="twisting")
-      trajopt.AddConstraint(xi(positions_map.at("base_z"))-0.5*bodyWidth*sin(xi(positions_map.at("joint_12"))+roll_i)
+      trajopt.AddConstraint(xi(positions_map.at("base_z"))-0.5*bodyWidth*sin(xi(positions_map.at("joint_12"))+roll_i)-0.5*bodyLength*sin(pitch_i)
                             -cos(xi(positions_map.at("joint_10"))+xi(positions_map.at("joint_12"))+roll_i)*(upperLegLength*sin(xi(positions_map.at("joint_4")))
-                            +lowerLegLength*sin(xi(positions_map.at("joint_5"))-xi(positions_map.at("joint_4")))),0.03, 0.15);
+                            +lowerLegLength*sin(xi(positions_map.at("joint_5"))-xi(positions_map.at("joint_4"))))
+                            -abOffs*sin(xi(positions_map.at("joint_10"))),0.0, 0.15);
     else 
-      trajopt.AddConstraint(xi(positions_map.at("base_z"))-0.5*bodyWidth*sin(roll_i)
+      trajopt.AddConstraint(xi(positions_map.at("base_z"))-0.5*bodyWidth*sin(roll_i)-0.5*bodyLength*sin(pitch_i)
                             -cos(xi(positions_map.at("joint_10"))+roll_i)*(upperLegLength*sin(xi(positions_map.at("joint_4")))
-                            +lowerLegLength*sin(xi(positions_map.at("joint_5"))-xi(positions_map.at("joint_4")))),0.03, 0.15);
+                            +lowerLegLength*sin(xi(positions_map.at("joint_5"))-xi(positions_map.at("joint_4"))))
+                            -abOffs*sin(xi(positions_map.at("joint_10"))),0.0, 0.15);
 
     //// Toes should not cross the central line
+    // Toe 2
     trajopt.AddConstraint(sin(xi(positions_map.at("joint_9"))+roll_i)*
                           (upperLegLength*sin(xi(positions_map.at("joint_2")))+lowerLegLength*sin(xi(positions_map.at("joint_3"))
                           -xi(positions_map.at("joint_2")))),-0.5*bodyWidth, 0.15);
@@ -404,10 +419,20 @@ void SpiritTrotHalf<Y>::addConstraints(
       trajopt.AddConstraint(sin(xi(positions_map.at("joint_10"))+roll_i)*(upperLegLength*sin(xi(positions_map.at("joint_4")))
                           +lowerLegLength*sin(xi(positions_map.at("joint_5"))-xi(positions_map.at("joint_4")))),-0.15, 0.5*bodyWidth);
     }
+    // Limit knee joints' angular accelerations
+    if(i>0){
+        // auto fi=trajopt.input(i);
+        // auto fim1=trajopt.input(i-1);
+        auto xim1=trajopt.state(i-1);
+        trajopt.AddConstraint((xi(n_q+velocities_map.at("joint_1dot"))-xim1(n_q+velocities_map.at("joint_1dot")))/times(i-1),-a_knee_max,a_knee_max);
+        trajopt.AddConstraint((xi(n_q+velocities_map.at("joint_3dot"))-xim1(n_q+velocities_map.at("joint_3dot")))/times(i-1),-a_knee_max,a_knee_max);
+        trajopt.AddConstraint((xi(n_q+velocities_map.at("joint_5dot"))-xim1(n_q+velocities_map.at("joint_5dot")))/times(i-1),-a_knee_max,a_knee_max);
+        trajopt.AddConstraint((xi(n_q+velocities_map.at("joint_7dot"))-xim1(n_q+velocities_map.at("joint_7dot")))/times(i-1),-a_knee_max,a_knee_max);
+    }
+
   }
 
   //Average Velocity
-  auto times  = trajopt.time_vars();
   auto total_time=times(0)+times(1);
   for (int i=2;i<trajopt.N()-1;i++) total_time+=times(i);
   trajopt.AddConstraint(  this->speed * total_time+x0(positions_map.at("base_x")) -xf(positions_map.at("base_x")),-eps, eps );
@@ -461,9 +486,9 @@ void SpiritTrotHalf<Y>::setUpModeSequence(){
   this->minT_vector.clear();
   this->maxT_vector.clear();
   //                          mode name   normal                  world offset            minT  maxT
-  this->addModeToSequenceVector("flight",Eigen::Vector3d::UnitZ(),Eigen::Vector3d::Zero(),0.001,0.1);
+  this->addModeToSequenceVector("flight",Eigen::Vector3d::UnitZ(),Eigen::Vector3d::Zero(),0.001,0.2);
   this->addModeToSequenceVector("diag1",Eigen::Vector3d::UnitZ(),Eigen::Vector3d::Zero(),0.3, 0.7);
-  this->addModeToSequenceVector("flight",Eigen::Vector3d::UnitZ(),Eigen::Vector3d::Zero(),0.001, 0.1);
+  this->addModeToSequenceVector("flight",Eigen::Vector3d::UnitZ(),Eigen::Vector3d::Zero(),0.001, 0.2);
 }
 
 /// Runs a trajectory optimization problem for spirit bounding on flat ground
@@ -534,6 +559,9 @@ void SpiritTrotHalf<Y>::run(MultibodyPlant<Y>& plant,
     std::cout<<"Loading decision var from file, will fail if num dec vars changed" <<std::endl;
     dairlib::DirconTrajectory loaded_traj(this->file_name_in);
     trajopt.SetInitialGuessForAllVariables(loaded_traj.GetDecisionVariables());
+    this->addGaussionNoiseToInputTraj(plant,trajopt,loaded_traj);
+    this->addGaussionNoiseToVelocitiesTraj(plant,trajopt,loaded_traj);
+    this->addGaussionNoiseToStateTraj(plant,trajopt,loaded_traj);
   }
 
   addConstraints(plant, trajopt);
@@ -573,8 +601,13 @@ void SpiritTrotHalf<Y>::run(MultibodyPlant<Y>& plant,
   // std::string contect_force_fname="/home/feng/Downloads/dairlib/examples/Spirit_spine/data/trot_half/twisting/"+this->file_name_out+".csv";
   // this->saveContactForceData(this->speed,contect_force_fname);
   // Writing contact force data
-  std::string contect_force_fname="/home/feng/Downloads/dairlib/examples/Spirit_spine/data/trot_half/rigid/trot_"+std::to_string(floorf(this->speed * 100) / 100)+".csv";
-  this->saveContactForceData(this->speed,contect_force_fname,result.is_success());
+  // std::stringstream stream;
+  // stream << std::fixed << std::setprecision(2) << this->speed;
+  // std::string contect_force_fname="/home/feng/Downloads/dairlib/examples/Spirit_spine/data/trot_half/twisting_p5/trot_"+stream.str()+".csv";
+  int beginIdx = this->file_name_out.rfind('/');
+  std::string filename = this->file_name_out.substr(beginIdx + 1);
+  std::string contact_force_fname="/home/feng/Downloads/dairlib/examples/Spirit_spine/data/trot_half/twisting_p5/trot_"+filename +".csv";
+  this->saveContactForceData(this->speed,contact_force_fname,result.is_success());
   
   // auto x_trajs = trajopt.ReconstructDiscontinuousStateTrajectory(result);
   // std::cout<<"Work = " << dairlib::calcElectricalWork(plant, x_trajs, this->u_traj) << std::endl;

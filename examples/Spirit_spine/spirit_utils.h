@@ -444,4 +444,5 @@ double negativePart(double x);
 const double Q_knee = .249;
 const double Q_not_knee = .561;
 
+
 } //namespace dairlib
