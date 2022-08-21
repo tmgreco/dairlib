@@ -377,7 +377,7 @@ void SpiritTrotHalf<Y>::addConstraints(
     trajopt.AddBoundingBoxConstraint(-cos(max_spine_magnitude/4)*sin(pitch_magnitude_lo/2.0) , cos(max_spine_magnitude/4)*sin(pitch_magnitude_lo/2.0), xi(positions_map.at("base_qy")));
     trajopt.AddBoundingBoxConstraint(-sin(max_spine_magnitude/4)*sin(pitch_magnitude_lo/2.0) , sin(max_spine_magnitude/4)*sin(pitch_magnitude_lo/2.0), xi(positions_map.at("base_qz")));
     // Height
-    trajopt.AddBoundingBoxConstraint( 0.15, 2, xi( positions_map.at("base_z")));
+    trajopt.AddBoundingBoxConstraint( 0.25, 2, xi( positions_map.at("base_z")));
     trajopt.AddBoundingBoxConstraint( -eps, eps, xi( n_q+velocities_map.at("base_vy")));
     if (this->spine_type=="twisting") trajopt.AddBoundingBoxConstraint( -max_spine_magnitude-eps, max_spine_magnitude+eps, xi( positions_map.at("joint_12")));
 

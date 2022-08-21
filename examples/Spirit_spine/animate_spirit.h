@@ -41,5 +41,9 @@ void runAnimate(
     double real_time_factor = 1
     ) ;
 
+template <typename T>
+void addGaussionNoiseToStateTraj(drake::multibody::MultibodyPlant<T>& plant,
+                                drake::trajectories::PiecewisePolynomial<T>& state_traj);
+
 void animateTraj(std::string& urdf_path);
 }  // dairlib namespace

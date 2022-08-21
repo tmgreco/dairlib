@@ -97,6 +97,8 @@ void animateTraj(std::string& urdf_path) {
 
   dairlib::DirconTrajectory old_traj(FLAGS_traj_path);
   PiecewisePolynomial<double> pp_xtraj = old_traj.ReconstructStateTrajectory();
+
+  addGaussionNoiseToStateTraj(*plant,pp_xtraj);
   
   if (FLAGS_num_period>1){
     /// Create offset polynomial
@@ -132,6 +134,49 @@ void animateTraj(std::string& urdf_path) {
   }
 }
 
+template <typename T>
+void addGaussionNoiseToStateTraj(MultibodyPlant<T>& plant,
+                                drake::trajectories::PiecewisePolynomial<T>& state_traj){
+
+  drake::trajectories::PiecewisePolynomial<T> org_pp=state_traj;
+
+  /// Create offset polynomial
+  double mean=1;
+  double var=1;
+  std::vector<double> breaks=state_traj.get_breaks();
+  std::vector<Eigen::MatrixXd> samples(breaks.size());
+  int num_states=plant.num_positions()+plant.num_velocities();
+  auto normal_dist = std::bind(std::normal_distribution<double>{mean, var},
+                      std::mt19937(std::random_device{}())); // Normal distribution
+  auto normal_dist_joints = std::bind(std::normal_distribution<double>{mean, var},
+                      std::mt19937(std::random_device{}())); // Normal distribution
+
+  // std::cout<<"State at t=0: \n";
+  // for (int i=0;i<num_states;i++) std::cout<<state_traj.value(0)(i,0)<<std::endl;
+  // std::cout<<"State at t=0.5: \n";
+  // for (int i=0;i<num_states;i++) std::cout<<state_traj.value(0.5)(i,0)<<std::endl;
+  std::cout<<"State traj pp"<<state_traj.getPolynomialMatrix(1)<<std::endl;
+  for (int i = 0; i < static_cast<int>(breaks.size()); ++i) {
+    drake::MatrixX<drake::Polynomial<T>> org_matrix=state_traj.getPolynomialMatrix(i);
+    drake::Polynomial<T> scalar_poly(2);
+    std::cout<<"!!!\n"<<org_matrix(4)<<"\n"<<scalar_poly<<std::endl;
+    org_matrix(4)*=scalar_poly;
+    std::cout<<"new matrix"<<org_matrix<<std::endl;
+    state_traj.setPolynomialMatrixBlock(org_matrix,i);
+      // samples[i].resize(num_states, 1);
+      // double scaling=normal_dist();
+      // // std::cout<<i<<": "<<normal_dist()<<std::endl;
+      // for (int j=0;j<num_states;j++) {
+      //   samples[i](j, 0) = 1;
+      // }
+      // for (int j=4;j<5;j++) samples[i](j, 0) = 3; // x offset
+      // for (int j=7;j<20;j++) samples[i](j, 0) = normal_dist_joints();
+  }
+  
+  std::cout<<"State at t=0.5 after perturbation: \n";
+  for (int i=0;i<num_states;i++) std::cout<<diff_pp.value(0.5)(i,0)<<std::endl;
+}
+
 template void runAnimate(
     std::unique_ptr<drake::multibody::MultibodyPlant<double>> plant_ptr,
     drake::multibody::MultibodyPlant<double> *plant_double_ptr,
@@ -140,4 +185,6 @@ template void runAnimate(
     double real_time_factor
 ); //NOLINT
 
+template void addGaussionNoiseToStateTraj(MultibodyPlant<double>& plant,
+                                drake::trajectories::PiecewisePolynomial<double>& state_traj);
 }// namespace dairlib
