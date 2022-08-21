@@ -155,14 +155,18 @@ void addGaussionNoiseToStateTraj(MultibodyPlant<T>& plant,
   // for (int i=0;i<num_states;i++) std::cout<<state_traj.value(0)(i,0)<<std::endl;
   // std::cout<<"State at t=0.5: \n";
   // for (int i=0;i<num_states;i++) std::cout<<state_traj.value(0.5)(i,0)<<std::endl;
-  std::cout<<"State traj pp"<<state_traj.getPolynomialMatrix(1)<<std::endl;
-  for (int i = 0; i < static_cast<int>(breaks.size()); ++i) {
+  // std::cout<<"Break size: "<<static_cast<int>(breaks.size())<<"\n"<<state_traj.getPolynomialMatrix(24)<<std::endl;
+  
+  for (int i = 0; i < static_cast<int>(breaks.size())-1; ++i) {
     drake::MatrixX<drake::Polynomial<T>> org_matrix=state_traj.getPolynomialMatrix(i);
+    std::cout<<"old matrix "<<i<<"\n"<<org_matrix<<std::endl;
     drake::Polynomial<T> scalar_poly(2);
     std::cout<<"!!!\n"<<org_matrix(4)<<"\n"<<scalar_poly<<std::endl;
     org_matrix(4)*=scalar_poly;
-    std::cout<<"new matrix"<<org_matrix<<std::endl;
+    org_matrix(23)*=scalar_poly;
+    
     state_traj.setPolynomialMatrixBlock(org_matrix,i);
+    std::cout<<"new matrix "<<i<<"\n"<<org_matrix<<std::endl;
       // samples[i].resize(num_states, 1);
       // double scaling=normal_dist();
       // // std::cout<<i<<": "<<normal_dist()<<std::endl;
@@ -172,9 +176,7 @@ void addGaussionNoiseToStateTraj(MultibodyPlant<T>& plant,
       // for (int j=4;j<5;j++) samples[i](j, 0) = 3; // x offset
       // for (int j=7;j<20;j++) samples[i](j, 0) = normal_dist_joints();
   }
-  
-  std::cout<<"State at t=0.5 after perturbation: \n";
-  for (int i=0;i<num_states;i++) std::cout<<diff_pp.value(0.5)(i,0)<<std::endl;
+  std::cout<<"FINISHED"<<std::endl;
 }
 
 template void runAnimate(
