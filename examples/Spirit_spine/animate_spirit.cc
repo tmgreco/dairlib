@@ -167,14 +167,6 @@ void addGaussionNoiseToStateTraj(MultibodyPlant<T>& plant,
     
     state_traj.setPolynomialMatrixBlock(org_matrix,i);
     std::cout<<"new matrix "<<i<<"\n"<<org_matrix<<std::endl;
-      // samples[i].resize(num_states, 1);
-      // double scaling=normal_dist();
-      // // std::cout<<i<<": "<<normal_dist()<<std::endl;
-      // for (int j=0;j<num_states;j++) {
-      //   samples[i](j, 0) = 1;
-      // }
-      // for (int j=4;j<5;j++) samples[i](j, 0) = 3; // x offset
-      // for (int j=7;j<20;j++) samples[i](j, 0) = normal_dist_joints();
   }
   std::cout<<"FINISHED"<<std::endl;
 }

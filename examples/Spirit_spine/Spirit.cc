@@ -204,7 +204,7 @@ void Spirit<B,T>::run(){
     else if (behavior.action=="keep"){
       std::string org_file_name_in=behavior.getFileNameIn();
       std::string org_file_name_out=behavior.getFileNameOut();
-      behavior.setMeanAndVar(mean,var);
+      behavior.setMeanAndVar(1,0);
       for (int j=0;j<num_perturbations;j++){
         std::cout<<"Running "<<j+1<<"(th) trail in "<<i<<"(th) optimization; action: "<<behavior.action<<std::endl;
         behavior.setFileNameIn(org_file_name_in+"_s"+std::to_string(j+1));

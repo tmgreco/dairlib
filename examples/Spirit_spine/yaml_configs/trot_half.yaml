@@ -7,7 +7,7 @@
   urdf_path: examples/Spirit_spine/spirit_with_spine_drake.urdf
   num_perturbations: 5
   mean: 1
-  var: 0.1
+  var: 0.01
   iterate:
     -
       name: trot_3
@@ -199,7 +199,7 @@
     - 7
   pitch_magnitude_lo: 0.1
   pitch_magnitude_apex: 0.1
-  max_spine_magnitude: 0.4
+  max_spine_magnitude: 1.5
   apex_height: -1
   speed: 0.7
   max_duration: 0.7

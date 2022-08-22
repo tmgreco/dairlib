@@ -31,6 +31,7 @@ void SpiritBoundingGait<Y>::config(std::string yaml_path, std::string saved_dire
   this->pitch_magnitude_apex=config[index]["pitch_magnitude_apex"].as<double>();
   this->lock_spine=config[index]["lock_spine"].as<bool>();
   this->time_symmetry=config[index]["time_symmetry"].as<bool>();
+  this->force_symmetry=config[index]["force_symmetry"].as<bool>();
   this->apex_height=config[index]["apex_height"].as<double>();
   this->speed=config[index]["speed"].as<double>();
   this->max_duration=config[index]["max_duration"].as<double>();
@@ -360,6 +361,7 @@ void SpiritBoundingGait<Y>::addConstraints(
 
 
   if (time_symmetry) trajopt.AddPeriodicTimeIntervalsConstraints();
+  if (force_symmetry) setSpiritSymmetry(plant, trajopt);
 
   /// Initial constraint
 
@@ -525,8 +527,8 @@ void SpiritBoundingGait<Y>::run(MultibodyPlant<Y>& plant,
 
     if (warm_up){
       std::cout<<"Warm start"<<std::endl;
-      trajopt.SetSolverOption(solver_id, "bound_push", 1e-8);
-      trajopt.SetSolverOption(solver_id, "warm_start_bound_push", 1e-8);
+      trajopt.SetSolverOption(solver_id, "bound_push", 1e-10);
+      trajopt.SetSolverOption(solver_id, "warm_start_bound_push", 1e-10);
       trajopt.SetSolverOption(solver_id, "warm_start_init_point", "yes");
     }
     trajopt.SetSolverOption(solver_id, "acceptable_compl_inf_tol", this->tol);
@@ -603,8 +605,8 @@ void SpiritBoundingGait<Y>::run(MultibodyPlant<Y>& plant,
   /// Save trajectory
   this->saveTrajectory(plant,trajopt,result);
   // Writing contact force data
-  std::string contect_force_fname="/home/feng/Downloads/dairlib/examples/Spirit_spine/data/bounding_gait/rigid/bounding_gait_"+std::to_string(this->speed)+".csv";
-  this->saveContactForceData(this->speed,contect_force_fname,result.is_success());
+  std::string contact_force_fname="/home/feng/Downloads/dairlib/examples/Spirit_spine/data/bounding_gait/twisting/bounding_gait_"+std::to_string(this->speed)+".csv";
+  this->saveContactForceData(this->speed,contact_force_fname,result.is_success());
   
   // auto x_trajs = trajopt.ReconstructDiscontinuousStateTrajectory(result);
   // std::cout<<"Work = " << dairlib::calcElectricalWork(plant, x_trajs, this->u_traj) << std::endl;

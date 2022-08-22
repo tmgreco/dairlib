@@ -59,8 +59,8 @@ for p in range(1,14):
       for lines in csvFile:
         if counter==0:
           displacement=float(lines[1])
-          if best_work>float(lines[3]): best_work=float(lines[3])
-          if s==1: work=float(lines[3])
+          if best_work>float(lines[5]): best_work=float(lines[5])
+          if s==1: work=float(lines[5])
         counter+=1
         continue
   works.append(work)
@@ -72,8 +72,8 @@ plt.figure()
 # plt.plot(displacements2,np.array(works)-np.array(works2),'b')
 plt.plot(displacements,works,'b')
 plt.plot(displacements,works2,'r')
-plt.show()
-# plt.savefig("./figs/long jump/electrical_work_5_inputs")
+# plt.show()
+plt.savefig("./figs/trot_half/electrical_work_5_perturbed_trajs")
 
     
     

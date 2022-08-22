@@ -128,6 +128,7 @@ private:
     bool lock_spine;
     bool warm_up;
     bool time_symmetry;
+    bool force_symmetry;
     double pitch_magnitude_apex;
     double cost_power;
     double apex_height; 
