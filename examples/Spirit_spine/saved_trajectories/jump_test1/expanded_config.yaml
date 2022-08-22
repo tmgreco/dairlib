@@ -24,10 +24,10 @@
   duration: 1
   ipopt: true
   num_knot_points:
+    - 5
     - 7
     - 7
-    - 7
-    - 7
+    - 5
   apex_height: 0.45
   apex_height_ratio: -1
   initial_height: 0.2

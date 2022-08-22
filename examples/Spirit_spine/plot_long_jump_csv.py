@@ -73,7 +73,7 @@ plt.figure()
 plt.plot(displacements,works,'b')
 plt.plot(displacements,works2,'r')
 # plt.show()
-plt.savefig("./figs/trot_half/electrical_work_5_perturbed_trajs")
+plt.savefig("./figs/bounding_gait/electrical_work_10_perturbed_trajs")
 
     
     

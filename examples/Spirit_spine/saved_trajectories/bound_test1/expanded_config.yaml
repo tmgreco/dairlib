@@ -1,15 +1,20 @@
 - num_optimizations: 4
   initial_guess: ""
   saved_directory: /home/feng/Downloads/dairlib/examples/Spirit_spine/saved_trajectories/bound_test1/
+  spine_type: twisting
+  urdf_path: examples/Spirit_spine/spirit_with_spine_drake.urdf
+  num_perturbations: 5
+  mean: 1
+  var: 0.1
 - name: bound_1
   ipopt: true
   num_knot_points:
+    - 4
+    - 4
     - 7
     - 7
-    - 7
-    - 7
-    - 7
-    - 7
+    - 4
+    - 4
   initial_height: 0.2
   pitch_magnitude_lo: 0.6
   pitch_magnitude_apex: 0.1
@@ -30,12 +35,12 @@
 - name: bound_2
   ipopt: true
   num_knot_points:
+    - 4
+    - 4
     - 7
     - 7
-    - 7
-    - 7
-    - 7
-    - 7
+    - 4
+    - 4
   initial_height: 0.2
   pitch_magnitude_lo: 1.0
   pitch_magnitude_apex: 0.3
@@ -56,12 +61,12 @@
 - name: bound_3
   ipopt: true
   num_knot_points:
+    - 4
+    - 4
     - 7
     - 7
-    - 7
-    - 7
-    - 7
-    - 7
+    - 4
+    - 4
   initial_height: 0.2
   pitch_magnitude_lo: 1
   pitch_magnitude_apex: 0.3
@@ -82,12 +87,12 @@
 - name: bound_4
   ipopt: true
   num_knot_points:
+    - 4
+    - 4
     - 7
     - 7
-    - 7
-    - 7
-    - 7
-    - 7
+    - 4
+    - 4
   initial_height: 0.2
   pitch_magnitude_lo: 1
   pitch_magnitude_apex: 0.3

@@ -105,7 +105,7 @@ public:
     getModeSequence(MultibodyPlant<Y>& plant,
                     DirconModeSequence<Y>& sequence){
     for (int i=0;i<nJumps*5+1;i++){
-        if (i%5==3 || i%5==4) this->num_knot_points.push_back(nKnotpoints_flight);
+        if (i%5==2 || i%5==3) this->num_knot_points.push_back(nKnotpoints_flight);
         else this->num_knot_points.push_back(nKnotpoints_stances);
     }
     
@@ -120,7 +120,7 @@ public:
         mode->MakeConstraintRelative(i,1);
         }
         mode->SetDynamicsScale(
-            {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19}, 150.0);
+            {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20}, 150.0);
         if (mode->evaluators().num_evaluators() == 4)
         {
         mode->SetKinVelocityScale(
@@ -152,16 +152,18 @@ private:
     double max_pitch_magnitude; //!< ax pitch magnitude at stances
     double initial_height; //!< initial stance height
     double fore_aft_displacement; //!< how long the robot jump forward
-    bool lock_rotation;
-    bool lock_legs_apex; //!< reach a specific legs configuration at apex
-    bool force_symmetry;
+    bool pose_ref;
     bool use_nominal_stand;
     double max_duration; //!< maximum duration of the bounding behavior
     double eps;  //!< tolerance for the constraints
     double work_constraint_scale;
+    double roll_ref;
+    double pitch_ref;
+    double yaw_ref;
     int nJumps; //!< number of jumps
     double xtol; //!< tolerace of transformed x axis displacement where robot land on the transition surfaces
     std::vector<double> apex_heights;
+    bool warm_up;
 public:
     dairlib::OptimalSpiritStand initialStand;
     dairlib::OptimalSpiritStand finalStand;
