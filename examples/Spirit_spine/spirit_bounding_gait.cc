@@ -462,6 +462,11 @@ void SpiritBoundingGait<Y>::addConstraints(
   for (int i=2;i<trajopt.N()-1;i++) total_time+=times(i);
   trajopt.AddConstraint(  this->speed * total_time+x0(positions_map.at("base_x")) -xf(positions_map.at("base_x")),-eps, eps );
 
+  double a_knee_max=1000;
+  double bodyLength=0.4;
+
+  if (this->var!=0) pitch_magnitude_apex*=(float) std::rand()/RAND_MAX;
+  std::cout<<"MAX PITCH MAGNITUDE: "<<pitch_magnitude_apex<<std::endl;
   /// Constraints on all points
   for (int i = 0; i < trajopt.N(); i++){
     auto xi = trajopt.state(i);
@@ -469,12 +474,27 @@ void SpiritBoundingGait<Y>::addConstraints(
     trajopt.AddBoundingBoxConstraint( 0.15, 2, xi( positions_map.at("base_z")));
     trajopt.AddBoundingBoxConstraint( -eps, eps, xi( n_q+velocities_map.at("base_vy")));
     if (lock_spine && this->spine_type=="twisting") trajopt.AddBoundingBoxConstraint( -eps, eps, xi( positions_map.at("joint_12")));
-
+    // Limit vx at all knot points
+    trajopt.AddBoundingBoxConstraint( 0.6*this->speed, 1.4*this->speed, xi( n_q+velocities_map.at("base_vx")));
     // Limit magnitude of pitch
     trajopt.AddBoundingBoxConstraint(cos(pitch_magnitude_apex/2.0), 1, xi(positions_map.at("base_qw")));
     trajopt.AddBoundingBoxConstraint(-eps, eps, xi(positions_map.at("base_qx")));
     trajopt.AddBoundingBoxConstraint(-sin(pitch_magnitude_apex/2.0) , sin(pitch_magnitude_apex/2.0), xi(positions_map.at("base_qy")));
     trajopt.AddBoundingBoxConstraint(-eps, eps, xi(positions_map.at("base_qz")));
+
+    // Limit knee joints' angular accelerations
+    if(i>0){
+        auto xim1=trajopt.state(i-1);
+        trajopt.AddConstraint((xi(n_q+velocities_map.at("joint_1dot"))-xim1(n_q+velocities_map.at("joint_1dot")))/times(i-1),-a_knee_max,a_knee_max);
+        trajopt.AddConstraint((xi(n_q+velocities_map.at("joint_3dot"))-xim1(n_q+velocities_map.at("joint_3dot")))/times(i-1),-a_knee_max,a_knee_max);
+        trajopt.AddConstraint((xi(n_q+velocities_map.at("joint_5dot"))-xim1(n_q+velocities_map.at("joint_5dot")))/times(i-1),-a_knee_max,a_knee_max);
+        trajopt.AddConstraint((xi(n_q+velocities_map.at("joint_7dot"))-xim1(n_q+velocities_map.at("joint_7dot")))/times(i-1),-a_knee_max,a_knee_max);
+    }
+
+    // Torso height
+    auto pitch = asin(2.0 * (xi(0) * xi(2) + xi(3) * xi(1)));   // Up -> negative    Down -> positive
+    trajopt.AddConstraint(  xi( positions_map.at("base_z"))+0.5*bodyLength*sin(pitch),0.15, 2);
+    trajopt.AddConstraint(  xi( positions_map.at("base_z"))-0.5*bodyLength*sin(pitch),0.15, 2);
   }
 
 }
@@ -527,8 +547,14 @@ void SpiritBoundingGait<Y>::run(MultibodyPlant<Y>& plant,
 
     if (warm_up){
       std::cout<<"Warm start"<<std::endl;
-      trajopt.SetSolverOption(solver_id, "bound_push", 1e-10);
-      trajopt.SetSolverOption(solver_id, "warm_start_bound_push", 1e-10);
+      // trajopt.SetSolverOption(solver_id, "nlp_scaling_method", "none"); 
+      
+
+      trajopt.SetSolverOption(solver_id, "warm_start_bound_frac", 1e-12);
+      trajopt.SetSolverOption(solver_id, "warm_start_bound_push", 1e-12);
+      trajopt.SetSolverOption(solver_id, "warm_start_mult_bound_push", 1e-12);
+      trajopt.SetSolverOption(solver_id, "warm_start_slack_bound_frac", 1e-12);
+      trajopt.SetSolverOption(solver_id, "warm_start_slack_bound_push", 1e-12);
       trajopt.SetSolverOption(solver_id, "warm_start_init_point", "yes");
     }
     trajopt.SetSolverOption(solver_id, "acceptable_compl_inf_tol", this->tol);
@@ -569,6 +595,9 @@ void SpiritBoundingGait<Y>::run(MultibodyPlant<Y>& plant,
     std::cout<<"Loading decision var from file, will fail if num dec vars changed" <<std::endl;
     dairlib::DirconTrajectory loaded_traj(this->file_name_in);
     trajopt.SetInitialGuessForAllVariables(loaded_traj.GetDecisionVariables());
+    this->addGaussionNoiseToInputTraj(plant,trajopt,loaded_traj);
+    this->addGaussionNoiseToVelocitiesTraj(plant,trajopt,loaded_traj);
+    this->addGaussionNoiseToStateTraj(plant,trajopt,loaded_traj);
   }
 
   addConstraints(plant, trajopt);
@@ -605,7 +634,9 @@ void SpiritBoundingGait<Y>::run(MultibodyPlant<Y>& plant,
   /// Save trajectory
   this->saveTrajectory(plant,trajopt,result);
   // Writing contact force data
-  std::string contact_force_fname="/home/feng/Downloads/dairlib/examples/Spirit_spine/data/bounding_gait/twisting/bounding_gait_"+std::to_string(this->speed)+".csv";
+  int beginIdx = this->file_name_out.rfind('/');
+  std::string filename = this->file_name_out.substr(beginIdx + 1);
+  std::string contact_force_fname="/home/feng/Downloads/dairlib/examples/Spirit_spine/data/bounding_gait/twisting/"+filename+".csv";
   this->saveContactForceData(this->speed,contact_force_fname,result.is_success());
   
   // auto x_trajs = trajopt.ReconstructDiscontinuousStateTrajectory(result);

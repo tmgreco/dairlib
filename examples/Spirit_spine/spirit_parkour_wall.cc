@@ -81,17 +81,30 @@ void SpiritParkourWallPronk<Y>::config(
   this->initial_height=this->initialStand.height();
 
   this->transitionSurfaces.clear();
-  
-  for (std::size_t i=0;i<config[index]["transition_surface"].size();i++){
-    Eigen::Vector3d surface_normal=config[index]["transition_surface"][i][0].as<double>()*Eigen::Vector3d::UnitX()+
-                                              config[index]["transition_surface"][i][1].as<double>()*Eigen::Vector3d::UnitY()+
-                                              config[index]["transition_surface"][i][2].as<double>()*Eigen::Vector3d::UnitZ();
-    surface_normal = surface_normal/surface_normal.norm();                                          
-    this->transitionSurfaces.push_back(std::make_tuple(surface_normal,
-                                            config[index]["transition_surface"][i][3].as<double>()*Eigen::Vector3d::UnitX()+
-                                              config[index]["transition_surface"][i][4].as<double>()*Eigen::Vector3d::UnitY()+
-                                              config[index]["transition_surface"][i][5].as<double>()*Eigen::Vector3d::UnitZ(),
-                                            std::numeric_limits<double>::infinity()));
+  if (config[index]["transition_surface"]){
+    for (std::size_t i=0;i<config[index]["transition_surface"].size();i++){
+      Eigen::Vector3d surface_normal=config[index]["transition_surface"][i][0].as<double>()*Eigen::Vector3d::UnitX()+
+                                                config[index]["transition_surface"][i][1].as<double>()*Eigen::Vector3d::UnitY()+
+                                                config[index]["transition_surface"][i][2].as<double>()*Eigen::Vector3d::UnitZ();
+      surface_normal = surface_normal/surface_normal.norm();                                          
+      this->transitionSurfaces.push_back(std::make_tuple(surface_normal,
+                                              config[index]["transition_surface"][i][3].as<double>()*Eigen::Vector3d::UnitX()+
+                                                config[index]["transition_surface"][i][4].as<double>()*Eigen::Vector3d::UnitY()+
+                                                config[index]["transition_surface"][i][5].as<double>()*Eigen::Vector3d::UnitZ(),
+                                              std::numeric_limits<double>::infinity()));
+    }
+  }
+  else{
+    double fore_aft_displacement=config[index]["final_stand"][3].as<double>();
+    Eigen::Vector3d surface_normal=Eigen::Vector3d::UnitY();
+    Eigen::Vector3d surface_offset=fore_aft_displacement*0.5*Eigen::Vector3d::UnitX()+
+                                  (fore_aft_displacement*(-0.25)-0.3)*Eigen::Vector3d::UnitY()
+                                  +(0.25+fore_aft_displacement*0.25)*Eigen::Vector3d::UnitZ();
+    std::cout<<"NORMAL: "<<surface_normal<<"\n OFFSET: "<<surface_offset<<std::endl;
+    this->transitionSurfaces.push_back(std::make_tuple(surface_normal,surface_offset,std::numeric_limits<double>::infinity()));
+    this->apex_heights.clear();
+    this->apex_heights.push_back(0.25+fore_aft_displacement*0.25);
+    this->apex_heights.push_back(0.25+fore_aft_displacement*0.25);
   }
   
 }
@@ -464,6 +477,15 @@ void SpiritParkourWallPronk<Y>::addConstraints(
       auto xtd_rear_s = trajopt.state_vars(interiorStanceModeIndex, 0);
       auto xlo_front_s = trajopt.state_vars(interiorStanceModeIndex+1, 0);
       auto xlo_rear_s = trajopt.state_vars(interiorStanceModeIndex+2, 0);
+      for (int j=interiorStanceModeIndex-1;j<interiorStanceModeIndex+3;j++){
+        for (int k=0;k<nKnotpoints_stances;k++){
+          auto xi = trajopt.state_vars(j,k);
+          trajopt.AddBoundingBoxConstraint(M_PI/1.9-eps, M_PI, xi(positions_map.at("joint_1") ) );
+          trajopt.AddBoundingBoxConstraint(M_PI/1.9-eps, M_PI, xi(positions_map.at("joint_3") ) );
+          trajopt.AddBoundingBoxConstraint(M_PI/1.9-eps, M_PI, xi(positions_map.at("joint_5") ) );
+          trajopt.AddBoundingBoxConstraint(M_PI/1.9-eps, M_PI, xi(positions_map.at("joint_7") ) );
+        }
+      }
       std::tie(sNormal,sOffset,std::ignore) = transitionSurfaces[iJump-1];
 
       this->offsetConstraint(plant, trajopt, xbot, sNormal,sOffset);

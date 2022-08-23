@@ -98,7 +98,7 @@ void animateTraj(std::string& urdf_path) {
   dairlib::DirconTrajectory old_traj(FLAGS_traj_path);
   PiecewisePolynomial<double> pp_xtraj = old_traj.ReconstructStateTrajectory();
 
-  addGaussionNoiseToStateTraj(*plant,pp_xtraj);
+  // addGaussionNoiseToStateTraj(*plant,pp_xtraj);
   
   if (FLAGS_num_period>1){
     /// Create offset polynomial

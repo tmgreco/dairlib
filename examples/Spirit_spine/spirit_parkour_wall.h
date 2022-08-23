@@ -4,6 +4,7 @@
 #include <cmath>
 #include <experimental/filesystem>
 #include <filesystem>
+#include <math.h>
 
 #include "common/find_resource.h"
 #include "systems/trajectory_optimization/dircon/dircon.h"

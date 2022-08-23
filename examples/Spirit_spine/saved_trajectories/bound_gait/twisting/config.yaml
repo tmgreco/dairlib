@@ -5,7 +5,7 @@
   saved_directory: /home/feng/Downloads/dairlib/examples/Spirit_spine/saved_trajectories/bound_gait/twisting/
   spine_type: twisting
   urdf_path: examples/Spirit_spine/spirit_with_spine_drake.urdf
-  num_perturbations: 10
+  num_perturbations: 5
   mean: 1
   var: 0.01
   iterate:
@@ -185,8 +185,8 @@
     - 7
     - 7
   initial_height: 0.2
-  time_symmetry: false
-  force_symmetry: false
+  time_symmetry: true
+  force_symmetry: true
   pitch_magnitude_lo: 1.0
   pitch_magnitude_apex: 1.0
   lock_spine: false
