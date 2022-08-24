@@ -77,22 +77,15 @@
           - 0  #offset y
           - 0  #offset z
           - false #rerun
-        - 
-          - 0  #normal x
-          - 0  #normal y
-          - 1  #normal z
-          - 2.4  #offset x
-          - 0  #offset y
-          - 0  #offset z
-          - false #rerun
-        - 
-          - 0  #normal x
-          - 0  #normal y
-          - 1  #normal z
-          - 2.6  #offset x
-          - 0  #offset y
-          - 0  #offset z
-          - false #rerun
+        # - 
+        #   - 0  #normal x
+        #   - 0  #normal y
+        #   - 1  #normal z
+        #   - 2.4  #offset x
+        #   - 0  #offset y
+        #   - 0  #offset z
+        #   - false #rerun
+        
 
 - 
   name: parkour_pronk_1

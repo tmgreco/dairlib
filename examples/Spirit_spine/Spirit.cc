@@ -35,6 +35,8 @@ Spirit<B,T>::Spirit(std::string yaml_path) :plant (std::make_unique<MultibodyPla
     if(config[0]["var"]) var=config[0]["var"].as<double>();
     behavior.urdf_path=config[0]["urdf_path"].as<std::string>();
     behavior.spine_type=config[0]["spine_type"].as<std::string>();
+    behavior.data_directory=config[0]["data_directory"].as<std::string>();
+    
     // Create saved directory if it doesn't exist
     if (!std::experimental::filesystem::is_directory(saved_directory) || !std::experimental::filesystem::exists(saved_directory)) { 
         std::experimental::filesystem::create_directory(saved_directory); 

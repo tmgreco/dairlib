@@ -607,7 +607,7 @@ void SpiritTrotHalf<Y>::run(MultibodyPlant<Y>& plant,
   // std::string contect_force_fname="/home/feng/Downloads/dairlib/examples/Spirit_spine/data/trot_half/twisting_p5/trot_"+stream.str()+".csv";
   int beginIdx = this->file_name_out.rfind('/');
   std::string filename = this->file_name_out.substr(beginIdx + 1);
-  std::string contact_force_fname="/home/feng/Downloads/dairlib/examples/Spirit_spine/data/trot_half/twisting_p5/"+filename +".csv";
+  std::string contact_force_fname=this->data_directory+filename +".csv";
   this->saveContactForceData(this->speed,contact_force_fname,result.is_success());
   
   // auto x_trajs = trajopt.ReconstructDiscontinuousStateTrajectory(result);

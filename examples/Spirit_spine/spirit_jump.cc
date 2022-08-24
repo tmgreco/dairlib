@@ -576,7 +576,7 @@ void SpiritJump<Y>::run(MultibodyPlant<Y>& plant,
   int beginIdx = this->file_name_out.rfind('/');
   std::string filename = this->file_name_out.substr(beginIdx + 1);
 
-  std::string contact_force_fname="/home/feng/Downloads/dairlib/examples/Spirit_spine/data/long_jump/5_perturbed_trajs2/"+filename+".csv";
+  std::string contact_force_fname=this->data_directory+filename+".csv";
   this->saveContactForceData(this->fore_aft_displacement,contact_force_fname,result.is_success());
   
 

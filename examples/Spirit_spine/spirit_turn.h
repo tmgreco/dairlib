@@ -137,6 +137,72 @@ private:
     double initial_height; //!< initial stand height
     double pitch_magnitude_lo; //!< maximum pitch magnitude at lift off
     double max_duration; //!< maximum duration of the bounding behavior
+
+    void saveContactForceData(dairlib::systems::trajectory_optimization::Dircon<Y>& trajopt,
+                            const drake::solvers::MathematicalProgramResult& result,
+                            double orientation_diff, double speed,std::string file_path, bool is_success){
+            drake::trajectories::PiecewisePolynomial<Y> state_traj=trajopt.ReconstructStateTrajectory(result);
+            std::ofstream myfile; // 
+            myfile.open(file_path);
+            myfile << "orientation_diff,"<<orientation_diff<<",speed,"<<speed << ",Electrical work," << this->electrical_work <<",Electrical power,"<<this->electrical_power <<",success?,"<<is_success<< "\n";
+            myfile<< "Time, Front L ,,, Front R ,,, Back L ,,, Back R ,,,, x, y, z, vx, vy, vz, joint 12, joint 12 dot, joint 12 torque \n";
+            Y traj_end_time=this->u_traj.end_time();
+            for (Y current_time=0;current_time<traj_end_time;current_time+=0.01){
+                int mode=-1;
+                for (int i=0;i<this->mode_vector.size();i++){
+                Y start_time=this->l_traj[i].start_time();
+                Y end_time=this->l_traj[i].end_time();
+                if (abs(start_time)!=std::numeric_limits<Y>::infinity() && abs(end_time)!=std::numeric_limits<Y>::infinity() 
+                    && current_time>=start_time && current_time<end_time){
+                    mode=i;
+                }
+                }
+                myfile << current_time << ",";
+                if (mode==-1){
+                    for (int i = 0; i < 12; i++) myfile << 0 << ",";
+                }
+                else{
+                    // leg order: front left, rare left, front right, rare left
+                    Eigen::Matrix<bool,1,4> contact_bool;
+                    if (this->mode_vector[mode]=="stance") contact_bool<< true,  true,  true,  true;
+                    else if (this->mode_vector[mode]=="flight") contact_bool<< false, false, false, false;
+                    else if (this->mode_vector[mode]=="rear_stance") contact_bool<<false, true, false, true;
+                    else if (this->mode_vector[mode]=="front_stance") contact_bool<< true, false, true ,false;
+                    else if (this->mode_vector[mode]=="diag1") contact_bool<< true, false, false, true ;
+                    else if (this->mode_vector[mode]=="diag2") contact_bool<<  false,true,true, false ;
+                    int temp_index=0;
+                    for (int j=0;j<4;j++){
+                        if (contact_bool(1,j)){
+                            for (int k=0;k<3;k++) myfile << this->l_traj[mode].value(current_time)(temp_index+k,0) << ",";
+                            temp_index+=3;
+                        }
+                        else{
+                            for (int k=0;k<3;k++) myfile << 0 << ",";
+                        }
+                    }
+                }
+                myfile<<",";
+                for (int i=4;i<7;i++) myfile << state_traj.value(current_time)(i,0) << ",";
+                if (this->spine_type=="twisting"){
+                    for (int i=3;i<6;i++) myfile << state_traj.value(current_time)(20+i,0) << ",";
+                    myfile << state_traj.value(current_time)(7,0) << ","<< state_traj.value(current_time)(26,0) << ","<<
+                            this->u_traj.value(current_time)(0,0)<<",";
+                    myfile<<",,,";
+                    for (int i=0;i<39;i++) myfile << state_traj.value(current_time)(i,0) << ",";
+                    myfile<<",,";
+                    for (int i=0;i<13;i++) myfile << this->u_traj.value(current_time)(i,0) << ",";
+                    }
+                else{
+                    for (int i=3;i<6;i++) myfile << state_traj.value(current_time)(19+i,0) << ",";
+                    myfile<<",,,";
+                    for (int i=0;i<37;i++) myfile << state_traj.value(current_time)(i,0) << ",";
+                    myfile<<",,";
+                    for (int i=0;i<12;i++) myfile << this->u_traj.value(current_time)(i,0) << ",";
+                }
+                myfile <<"\n";
+            }
+            myfile.close(); // <- note this correction!!
+        }
 };
 }
 

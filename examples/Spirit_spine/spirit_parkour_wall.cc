@@ -99,7 +99,7 @@ void SpiritParkourWallPronk<Y>::config(
     Eigen::Vector3d surface_normal=Eigen::Vector3d::UnitY();
     Eigen::Vector3d surface_offset=fore_aft_displacement*0.5*Eigen::Vector3d::UnitX()+
                                   (fore_aft_displacement*(-0.25)-0.3)*Eigen::Vector3d::UnitY()
-                                  +(0.25+fore_aft_displacement*0.25)*Eigen::Vector3d::UnitZ();
+                                  +(0.25+fore_aft_displacement*0.2)*Eigen::Vector3d::UnitZ();
     std::cout<<"NORMAL: "<<surface_normal<<"\n OFFSET: "<<surface_offset<<std::endl;
     this->transitionSurfaces.push_back(std::make_tuple(surface_normal,surface_offset,std::numeric_limits<double>::infinity()));
     this->apex_heights.clear();
@@ -510,7 +510,7 @@ void SpiritParkourWallPronk<Y>::addConstraints(
   // The "leg angle" = (pi/2 - theta0)
 
   auto times  = trajopt.time_vars();
-  double a_knee_max=1000;
+  double a_knee_max=800;
   /// Constraints on all points
   for (int i = 0; i < trajopt.N(); i++){
     auto xi = trajopt.state(i);
@@ -648,6 +648,9 @@ void SpiritParkourWallPronk<Y>::run(MultibodyPlant<Y>& plant,
     std::cout<<"Loading decision var from file." <<std::endl;
     dairlib::DirconTrajectory loaded_traj(this->file_name_in);
     trajopt.SetInitialGuessForAllVariables(loaded_traj.GetDecisionVariables());
+    this->addGaussionNoiseToInputTraj(plant,trajopt,loaded_traj);
+    this->addGaussionNoiseToVelocitiesTraj(plant,trajopt,loaded_traj);
+    this->addGaussionNoiseToStateTraj(plant,trajopt,loaded_traj);
   }
 
 
@@ -681,8 +684,10 @@ void SpiritParkourWallPronk<Y>::run(MultibodyPlant<Y>& plant,
 
 
   this->saveTrajectory(plant,trajopt,result);
-  std::string contect_force_fname="/home/feng/Downloads/dairlib/examples/Spirit_spine/data/optimization"+std::to_string(this->index)+".csv";
-  this->saveContactForceData(this->finalStand.offset()[0],contect_force_fname,result.is_success());
+  int beginIdx = this->file_name_out.rfind('/');
+  std::string filename = this->file_name_out.substr(beginIdx + 1);
+  std::string contact_force_fname=this->data_directory+filename+".csv";
+  this->saveContactForceData(this->finalStand.offset()[0],contact_force_fname,result.is_success());
   // const auto& toe_frame = dairlib::getSpiritToeFrame(plant, toe);
   // std::cout<< "x traj 0.4"<<std::endl;
   // std::cout<< this->x_traj.value(0.4)<<std::endl;

@@ -1,6 +1,7 @@
 - num_optimizations: 1
   initial_guess: ""
   saved_directory: /home/feng/Downloads/dairlib/examples/Spirit_spine/saved_trajectories/turn/rigid/
+  data_directory: /home/feng/Downloads/dairlib/examples/Spirit_spine/data/turn/rigid/
   spine_type: rigid
   urdf_path: examples/Spirit_spine/spirit_drake.urdf
   num_perturbations: 5
@@ -64,8 +65,9 @@
   mu: 0.5
   eps: 1e-2
   tol: 9e-2
-  file_name_in: bounding_gait3_p3
+  file_name_in: bounding_gait5_p3
   file_name_out: turn_3_p1
+  action: expand
 - name: turn_1
   ipopt: true
   num_knot_points:
@@ -97,6 +99,7 @@
   tol: 9e-2
   file_name_in: turn_3_p1
   file_name_out: turn_3_p2
+  action: expand
 - name: turn_1
   ipopt: true
   num_knot_points:
@@ -128,6 +131,7 @@
   tol: 9e-2
   file_name_in: turn_3_p2
   file_name_out: turn_3_p3
+  action: expand
 - name: turn_1
   ipopt: true
   num_knot_points:
@@ -159,6 +163,7 @@
   tol: 9e-2
   file_name_in: turn_3_p3
   file_name_out: turn_3_p4
+  action: expand
 - name: turn_1
   ipopt: true
   num_knot_points:
@@ -190,6 +195,7 @@
   tol: 9e-2
   file_name_in: turn_3_p4
   file_name_out: turn_3_p5
+  action: expand
 - name: turn_1
   ipopt: true
   num_knot_points:
@@ -221,6 +227,7 @@
   tol: 9e-2
   file_name_in: turn_3_p5
   file_name_out: turn_3_p6
+  action: expand
 - name: turn_1
   ipopt: true
   num_knot_points:
@@ -252,6 +259,7 @@
   tol: 9e-2
   file_name_in: turn_3_p6
   file_name_out: turn_3_p7
+  action: expand
 - name: turn_1
   ipopt: true
   num_knot_points:
@@ -283,6 +291,7 @@
   tol: 9e-2
   file_name_in: turn_3_p7
   file_name_out: turn_3_p8
+  action: expand
 - name: turn_1
   ipopt: true
   num_knot_points:
@@ -314,6 +323,7 @@
   tol: 9e-2
   file_name_in: turn_3_p8
   file_name_out: turn_3_p9
+  action: expand
 - name: turn_1
   ipopt: true
   num_knot_points:
@@ -345,6 +355,7 @@
   tol: 9e-2
   file_name_in: turn_3_p9
   file_name_out: turn_3_p10
+  action: expand
 - name: turn_1
   ipopt: true
   num_knot_points:
@@ -376,6 +387,7 @@
   tol: 9e-2
   file_name_in: turn_3_p10
   file_name_out: turn_3_p11
+  action: expand
 - name: turn_1
   ipopt: true
   num_knot_points:
@@ -407,6 +419,7 @@
   tol: 9e-2
   file_name_in: turn_3_p11
   file_name_out: turn_3_p12
+  action: expand
 - name: turn_1
   ipopt: true
   num_knot_points:
@@ -438,6 +451,7 @@
   tol: 9e-2
   file_name_in: turn_3_p12
   file_name_out: turn_3_p13
+  action: expand
 - name: turn_1
   ipopt: true
   num_knot_points:
@@ -469,6 +483,7 @@
   tol: 9e-2
   file_name_in: turn_3_p13
   file_name_out: turn_3_p14
+  action: expand
 - name: turn_1
   ipopt: true
   num_knot_points:
@@ -500,6 +515,1447 @@
   tol: 9e-2
   file_name_in: turn_3_p14
   file_name_out: turn_3
+  action: expand
+- name: turn_1
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 0.5
+  pitch_magnitude_apex: 0.2
+  max_roll: 0.3
+  max_pitch: 0.3
+  orientation_diff: 0.1
+  lock_spine: false
+  apex_height: -1
+  speed: 0.7
+  max_duration: 0.6
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.5
+  eps: 1e-2
+  tol: 9e-2
+  file_name_in: bounding_gait5_p4
+  file_name_out: turn_4_p1
+  action: expand
+- name: turn_1
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 0.5
+  pitch_magnitude_apex: 0.2
+  max_roll: 0.3
+  max_pitch: 0.3
+  orientation_diff: 0.2
+  lock_spine: false
+  apex_height: -1
+  speed: 0.7
+  max_duration: 0.6
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.5
+  eps: 1e-2
+  tol: 9e-2
+  file_name_in: turn_4_p1
+  file_name_out: turn_4_p2
+  action: expand
+- name: turn_1
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 0.5
+  pitch_magnitude_apex: 0.2
+  max_roll: 0.3
+  max_pitch: 0.3
+  orientation_diff: 0.3
+  lock_spine: false
+  apex_height: -1
+  speed: 0.7
+  max_duration: 0.6
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.5
+  eps: 1e-2
+  tol: 9e-2
+  file_name_in: turn_4_p2
+  file_name_out: turn_4_p3
+  action: expand
+- name: turn_1
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 0.5
+  pitch_magnitude_apex: 0.2
+  max_roll: 0.3
+  max_pitch: 0.3
+  orientation_diff: 0.4
+  lock_spine: false
+  apex_height: -1
+  speed: 0.7
+  max_duration: 0.6
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.5
+  eps: 1e-2
+  tol: 9e-2
+  file_name_in: turn_4_p3
+  file_name_out: turn_4_p4
+  action: expand
+- name: turn_1
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 0.5
+  pitch_magnitude_apex: 0.2
+  max_roll: 0.3
+  max_pitch: 0.3
+  orientation_diff: 0.5
+  lock_spine: false
+  apex_height: -1
+  speed: 0.7
+  max_duration: 0.6
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.5
+  eps: 1e-2
+  tol: 9e-2
+  file_name_in: turn_4_p4
+  file_name_out: turn_4_p5
+  action: expand
+- name: turn_1
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 0.5
+  pitch_magnitude_apex: 0.2
+  max_roll: 0.3
+  max_pitch: 0.3
+  orientation_diff: 0.6
+  lock_spine: false
+  apex_height: -1
+  speed: 0.7
+  max_duration: 0.6
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.5
+  eps: 1e-2
+  tol: 9e-2
+  file_name_in: turn_4_p5
+  file_name_out: turn_4_p6
+  action: expand
+- name: turn_1
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 0.5
+  pitch_magnitude_apex: 0.2
+  max_roll: 0.3
+  max_pitch: 0.3
+  orientation_diff: 0.7
+  lock_spine: false
+  apex_height: -1
+  speed: 0.7
+  max_duration: 0.6
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.5
+  eps: 1e-2
+  tol: 9e-2
+  file_name_in: turn_4_p6
+  file_name_out: turn_4_p7
+  action: expand
+- name: turn_1
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 0.5
+  pitch_magnitude_apex: 0.2
+  max_roll: 0.3
+  max_pitch: 0.3
+  orientation_diff: 0.7999999999999999
+  lock_spine: false
+  apex_height: -1
+  speed: 0.7
+  max_duration: 0.6
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.5
+  eps: 1e-2
+  tol: 9e-2
+  file_name_in: turn_4_p7
+  file_name_out: turn_4_p8
+  action: expand
+- name: turn_1
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 0.5
+  pitch_magnitude_apex: 0.2
+  max_roll: 0.3
+  max_pitch: 0.3
+  orientation_diff: 0.8999999999999999
+  lock_spine: false
+  apex_height: -1
+  speed: 0.7
+  max_duration: 0.6
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.5
+  eps: 1e-2
+  tol: 9e-2
+  file_name_in: turn_4_p8
+  file_name_out: turn_4_p9
+  action: expand
+- name: turn_1
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 0.5
+  pitch_magnitude_apex: 0.2
+  max_roll: 0.3
+  max_pitch: 0.3
+  orientation_diff: 0.9999999999999999
+  lock_spine: false
+  apex_height: -1
+  speed: 0.7
+  max_duration: 0.6
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.5
+  eps: 1e-2
+  tol: 9e-2
+  file_name_in: turn_4_p9
+  file_name_out: turn_4_p10
+  action: expand
+- name: turn_1
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 0.5
+  pitch_magnitude_apex: 0.2
+  max_roll: 0.3
+  max_pitch: 0.3
+  orientation_diff: 1.1
+  lock_spine: false
+  apex_height: -1
+  speed: 0.7
+  max_duration: 0.6
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.5
+  eps: 1e-2
+  tol: 9e-2
+  file_name_in: turn_4_p10
+  file_name_out: turn_4_p11
+  action: expand
+- name: turn_1
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 0.5
+  pitch_magnitude_apex: 0.2
+  max_roll: 0.3
+  max_pitch: 0.3
+  orientation_diff: 1.2
+  lock_spine: false
+  apex_height: -1
+  speed: 0.7
+  max_duration: 0.6
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.5
+  eps: 1e-2
+  tol: 9e-2
+  file_name_in: turn_4_p11
+  file_name_out: turn_4_p12
+  action: expand
+- name: turn_1
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 0.5
+  pitch_magnitude_apex: 0.2
+  max_roll: 0.3
+  max_pitch: 0.3
+  orientation_diff: 1.3
+  lock_spine: false
+  apex_height: -1
+  speed: 0.7
+  max_duration: 0.6
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.5
+  eps: 1e-2
+  tol: 9e-2
+  file_name_in: turn_4_p12
+  file_name_out: turn_4_p13
+  action: expand
+- name: turn_1
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 0.5
+  pitch_magnitude_apex: 0.2
+  max_roll: 0.3
+  max_pitch: 0.3
+  orientation_diff: 1.4
+  lock_spine: false
+  apex_height: -1
+  speed: 0.7
+  max_duration: 0.6
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.5
+  eps: 1e-2
+  tol: 9e-2
+  file_name_in: turn_4_p13
+  file_name_out: turn_4_p14
+  action: expand
+- name: turn_1
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 0.5
+  pitch_magnitude_apex: 0.2
+  max_roll: 0.3
+  max_pitch: 0.3
+  orientation_diff: 1.5
+  lock_spine: false
+  apex_height: -1
+  speed: 0.7
+  max_duration: 0.6
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.5
+  eps: 1e-2
+  tol: 9e-2
+  file_name_in: turn_4_p14
+  file_name_out: turn_4
+  action: expand
+- name: turn_1
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 0.5
+  pitch_magnitude_apex: 0.2
+  max_roll: 0.3
+  max_pitch: 0.3
+  orientation_diff: 0.1
+  lock_spine: false
+  apex_height: -1
+  speed: 0.9
+  max_duration: 0.6
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.5
+  eps: 1e-2
+  tol: 9e-2
+  file_name_in: bounding_gait5_p5
+  file_name_out: turn_5_p1
+  action: expand
+- name: turn_1
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 0.5
+  pitch_magnitude_apex: 0.2
+  max_roll: 0.3
+  max_pitch: 0.3
+  orientation_diff: 0.2
+  lock_spine: false
+  apex_height: -1
+  speed: 0.9
+  max_duration: 0.6
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.5
+  eps: 1e-2
+  tol: 9e-2
+  file_name_in: turn_5_p1
+  file_name_out: turn_5_p2
+  action: expand
+- name: turn_1
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 0.5
+  pitch_magnitude_apex: 0.2
+  max_roll: 0.3
+  max_pitch: 0.3
+  orientation_diff: 0.3
+  lock_spine: false
+  apex_height: -1
+  speed: 0.9
+  max_duration: 0.6
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.5
+  eps: 1e-2
+  tol: 9e-2
+  file_name_in: turn_5_p2
+  file_name_out: turn_5_p3
+  action: expand
+- name: turn_1
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 0.5
+  pitch_magnitude_apex: 0.2
+  max_roll: 0.3
+  max_pitch: 0.3
+  orientation_diff: 0.4
+  lock_spine: false
+  apex_height: -1
+  speed: 0.9
+  max_duration: 0.6
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.5
+  eps: 1e-2
+  tol: 9e-2
+  file_name_in: turn_5_p3
+  file_name_out: turn_5_p4
+  action: expand
+- name: turn_1
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 0.5
+  pitch_magnitude_apex: 0.2
+  max_roll: 0.3
+  max_pitch: 0.3
+  orientation_diff: 0.5
+  lock_spine: false
+  apex_height: -1
+  speed: 0.9
+  max_duration: 0.6
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.5
+  eps: 1e-2
+  tol: 9e-2
+  file_name_in: turn_5_p4
+  file_name_out: turn_5_p5
+  action: expand
+- name: turn_1
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 0.5
+  pitch_magnitude_apex: 0.2
+  max_roll: 0.3
+  max_pitch: 0.3
+  orientation_diff: 0.6
+  lock_spine: false
+  apex_height: -1
+  speed: 0.9
+  max_duration: 0.6
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.5
+  eps: 1e-2
+  tol: 9e-2
+  file_name_in: turn_5_p5
+  file_name_out: turn_5_p6
+  action: expand
+- name: turn_1
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 0.5
+  pitch_magnitude_apex: 0.2
+  max_roll: 0.3
+  max_pitch: 0.3
+  orientation_diff: 0.7
+  lock_spine: false
+  apex_height: -1
+  speed: 0.9
+  max_duration: 0.6
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.5
+  eps: 1e-2
+  tol: 9e-2
+  file_name_in: turn_5_p6
+  file_name_out: turn_5_p7
+  action: expand
+- name: turn_1
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 0.5
+  pitch_magnitude_apex: 0.2
+  max_roll: 0.3
+  max_pitch: 0.3
+  orientation_diff: 0.7999999999999999
+  lock_spine: false
+  apex_height: -1
+  speed: 0.9
+  max_duration: 0.6
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.5
+  eps: 1e-2
+  tol: 9e-2
+  file_name_in: turn_5_p7
+  file_name_out: turn_5_p8
+  action: expand
+- name: turn_1
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 0.5
+  pitch_magnitude_apex: 0.2
+  max_roll: 0.3
+  max_pitch: 0.3
+  orientation_diff: 0.8999999999999999
+  lock_spine: false
+  apex_height: -1
+  speed: 0.9
+  max_duration: 0.6
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.5
+  eps: 1e-2
+  tol: 9e-2
+  file_name_in: turn_5_p8
+  file_name_out: turn_5_p9
+  action: expand
+- name: turn_1
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 0.5
+  pitch_magnitude_apex: 0.2
+  max_roll: 0.3
+  max_pitch: 0.3
+  orientation_diff: 0.9999999999999999
+  lock_spine: false
+  apex_height: -1
+  speed: 0.9
+  max_duration: 0.6
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.5
+  eps: 1e-2
+  tol: 9e-2
+  file_name_in: turn_5_p9
+  file_name_out: turn_5_p10
+  action: expand
+- name: turn_1
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 0.5
+  pitch_magnitude_apex: 0.2
+  max_roll: 0.3
+  max_pitch: 0.3
+  orientation_diff: 1.1
+  lock_spine: false
+  apex_height: -1
+  speed: 0.9
+  max_duration: 0.6
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.5
+  eps: 1e-2
+  tol: 9e-2
+  file_name_in: turn_5_p10
+  file_name_out: turn_5_p11
+  action: expand
+- name: turn_1
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 0.5
+  pitch_magnitude_apex: 0.2
+  max_roll: 0.3
+  max_pitch: 0.3
+  orientation_diff: 1.2
+  lock_spine: false
+  apex_height: -1
+  speed: 0.9
+  max_duration: 0.6
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.5
+  eps: 1e-2
+  tol: 9e-2
+  file_name_in: turn_5_p11
+  file_name_out: turn_5_p12
+  action: expand
+- name: turn_1
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 0.5
+  pitch_magnitude_apex: 0.2
+  max_roll: 0.3
+  max_pitch: 0.3
+  orientation_diff: 1.3
+  lock_spine: false
+  apex_height: -1
+  speed: 0.9
+  max_duration: 0.6
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.5
+  eps: 1e-2
+  tol: 9e-2
+  file_name_in: turn_5_p12
+  file_name_out: turn_5_p13
+  action: expand
+- name: turn_1
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 0.5
+  pitch_magnitude_apex: 0.2
+  max_roll: 0.3
+  max_pitch: 0.3
+  orientation_diff: 1.4
+  lock_spine: false
+  apex_height: -1
+  speed: 0.9
+  max_duration: 0.6
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.5
+  eps: 1e-2
+  tol: 9e-2
+  file_name_in: turn_5_p13
+  file_name_out: turn_5_p14
+  action: expand
+- name: turn_1
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 0.5
+  pitch_magnitude_apex: 0.2
+  max_roll: 0.3
+  max_pitch: 0.3
+  orientation_diff: 1.5
+  lock_spine: false
+  apex_height: -1
+  speed: 0.9
+  max_duration: 0.6
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.5
+  eps: 1e-2
+  tol: 9e-2
+  file_name_in: turn_5_p14
+  file_name_out: turn_5
+  action: expand
+- name: turn_1
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 0.5
+  pitch_magnitude_apex: 0.2
+  max_roll: 0.3
+  max_pitch: 0.3
+  orientation_diff: 0.1
+  lock_spine: false
+  apex_height: -1
+  speed: 1.1
+  max_duration: 0.6
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.5
+  eps: 1e-2
+  tol: 9e-2
+  file_name_in: bounding_gait5_p6
+  file_name_out: turn_6_p1
+  action: expand
+- name: turn_1
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 0.5
+  pitch_magnitude_apex: 0.2
+  max_roll: 0.3
+  max_pitch: 0.3
+  orientation_diff: 0.2
+  lock_spine: false
+  apex_height: -1
+  speed: 1.1
+  max_duration: 0.6
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.5
+  eps: 1e-2
+  tol: 9e-2
+  file_name_in: turn_6_p1
+  file_name_out: turn_6_p2
+  action: expand
+- name: turn_1
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 0.5
+  pitch_magnitude_apex: 0.2
+  max_roll: 0.3
+  max_pitch: 0.3
+  orientation_diff: 0.3
+  lock_spine: false
+  apex_height: -1
+  speed: 1.1
+  max_duration: 0.6
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.5
+  eps: 1e-2
+  tol: 9e-2
+  file_name_in: turn_6_p2
+  file_name_out: turn_6_p3
+  action: expand
+- name: turn_1
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 0.5
+  pitch_magnitude_apex: 0.2
+  max_roll: 0.3
+  max_pitch: 0.3
+  orientation_diff: 0.4
+  lock_spine: false
+  apex_height: -1
+  speed: 1.1
+  max_duration: 0.6
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.5
+  eps: 1e-2
+  tol: 9e-2
+  file_name_in: turn_6_p3
+  file_name_out: turn_6_p4
+  action: expand
+- name: turn_1
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 0.5
+  pitch_magnitude_apex: 0.2
+  max_roll: 0.3
+  max_pitch: 0.3
+  orientation_diff: 0.5
+  lock_spine: false
+  apex_height: -1
+  speed: 1.1
+  max_duration: 0.6
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.5
+  eps: 1e-2
+  tol: 9e-2
+  file_name_in: turn_6_p4
+  file_name_out: turn_6_p5
+  action: expand
+- name: turn_1
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 0.5
+  pitch_magnitude_apex: 0.2
+  max_roll: 0.3
+  max_pitch: 0.3
+  orientation_diff: 0.6
+  lock_spine: false
+  apex_height: -1
+  speed: 1.1
+  max_duration: 0.6
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.5
+  eps: 1e-2
+  tol: 9e-2
+  file_name_in: turn_6_p5
+  file_name_out: turn_6_p6
+  action: expand
+- name: turn_1
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 0.5
+  pitch_magnitude_apex: 0.2
+  max_roll: 0.3
+  max_pitch: 0.3
+  orientation_diff: 0.7
+  lock_spine: false
+  apex_height: -1
+  speed: 1.1
+  max_duration: 0.6
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.5
+  eps: 1e-2
+  tol: 9e-2
+  file_name_in: turn_6_p6
+  file_name_out: turn_6_p7
+  action: expand
+- name: turn_1
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 0.5
+  pitch_magnitude_apex: 0.2
+  max_roll: 0.3
+  max_pitch: 0.3
+  orientation_diff: 0.7999999999999999
+  lock_spine: false
+  apex_height: -1
+  speed: 1.1
+  max_duration: 0.6
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.5
+  eps: 1e-2
+  tol: 9e-2
+  file_name_in: turn_6_p7
+  file_name_out: turn_6_p8
+  action: expand
+- name: turn_1
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 0.5
+  pitch_magnitude_apex: 0.2
+  max_roll: 0.3
+  max_pitch: 0.3
+  orientation_diff: 0.8999999999999999
+  lock_spine: false
+  apex_height: -1
+  speed: 1.1
+  max_duration: 0.6
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.5
+  eps: 1e-2
+  tol: 9e-2
+  file_name_in: turn_6_p8
+  file_name_out: turn_6_p9
+  action: expand
+- name: turn_1
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 0.5
+  pitch_magnitude_apex: 0.2
+  max_roll: 0.3
+  max_pitch: 0.3
+  orientation_diff: 0.9999999999999999
+  lock_spine: false
+  apex_height: -1
+  speed: 1.1
+  max_duration: 0.6
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.5
+  eps: 1e-2
+  tol: 9e-2
+  file_name_in: turn_6_p9
+  file_name_out: turn_6_p10
+  action: expand
+- name: turn_1
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 0.5
+  pitch_magnitude_apex: 0.2
+  max_roll: 0.3
+  max_pitch: 0.3
+  orientation_diff: 1.1
+  lock_spine: false
+  apex_height: -1
+  speed: 1.1
+  max_duration: 0.6
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.5
+  eps: 1e-2
+  tol: 9e-2
+  file_name_in: turn_6_p10
+  file_name_out: turn_6_p11
+  action: expand
+- name: turn_1
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 0.5
+  pitch_magnitude_apex: 0.2
+  max_roll: 0.3
+  max_pitch: 0.3
+  orientation_diff: 1.2
+  lock_spine: false
+  apex_height: -1
+  speed: 1.1
+  max_duration: 0.6
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.5
+  eps: 1e-2
+  tol: 9e-2
+  file_name_in: turn_6_p11
+  file_name_out: turn_6_p12
+  action: expand
+- name: turn_1
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 0.5
+  pitch_magnitude_apex: 0.2
+  max_roll: 0.3
+  max_pitch: 0.3
+  orientation_diff: 1.3
+  lock_spine: false
+  apex_height: -1
+  speed: 1.1
+  max_duration: 0.6
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.5
+  eps: 1e-2
+  tol: 9e-2
+  file_name_in: turn_6_p12
+  file_name_out: turn_6_p13
+  action: expand
+- name: turn_1
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 0.5
+  pitch_magnitude_apex: 0.2
+  max_roll: 0.3
+  max_pitch: 0.3
+  orientation_diff: 1.4
+  lock_spine: false
+  apex_height: -1
+  speed: 1.1
+  max_duration: 0.6
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.5
+  eps: 1e-2
+  tol: 9e-2
+  file_name_in: turn_6_p13
+  file_name_out: turn_6_p14
+  action: expand
+- name: turn_1
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 0.5
+  pitch_magnitude_apex: 0.2
+  max_roll: 0.3
+  max_pitch: 0.3
+  orientation_diff: 1.5
+  lock_spine: false
+  apex_height: -1
+  speed: 1.1
+  max_duration: 0.6
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.5
+  eps: 1e-2
+  tol: 9e-2
+  file_name_in: turn_6_p14
+  file_name_out: turn_6
+  action: expand
 - name: turn_2
   ipopt: true
   num_knot_points:
@@ -526,11 +1982,12 @@
   cost_actuation_legs_flight: 0
   cost_time: 0
   cost_power: 100
-  mu: 0.3
+  mu: 0.4
   eps: 1e-2
   tol: 9e-2
-  file_name_in: bounding_gait4_p7
+  file_name_in: bounding_gait5_p7
   file_name_out: turn_7_p1
+  action: expand
 - name: turn_2
   ipopt: true
   num_knot_points:
@@ -557,11 +2014,12 @@
   cost_actuation_legs_flight: 0
   cost_time: 0
   cost_power: 100
-  mu: 0.3
+  mu: 0.4
   eps: 1e-2
   tol: 9e-2
   file_name_in: turn_7_p1
   file_name_out: turn_7_p2
+  action: expand
 - name: turn_2
   ipopt: true
   num_knot_points:
@@ -588,11 +2046,12 @@
   cost_actuation_legs_flight: 0
   cost_time: 0
   cost_power: 100
-  mu: 0.3
+  mu: 0.4
   eps: 1e-2
   tol: 9e-2
   file_name_in: turn_7_p2
   file_name_out: turn_7_p3
+  action: expand
 - name: turn_2
   ipopt: true
   num_knot_points:
@@ -619,11 +2078,12 @@
   cost_actuation_legs_flight: 0
   cost_time: 0
   cost_power: 100
-  mu: 0.3
+  mu: 0.4
   eps: 1e-2
   tol: 9e-2
   file_name_in: turn_7_p3
   file_name_out: turn_7_p4
+  action: expand
 - name: turn_2
   ipopt: true
   num_knot_points:
@@ -650,11 +2110,12 @@
   cost_actuation_legs_flight: 0
   cost_time: 0
   cost_power: 100
-  mu: 0.3
+  mu: 0.4
   eps: 1e-2
   tol: 9e-2
   file_name_in: turn_7_p4
   file_name_out: turn_7_p5
+  action: expand
 - name: turn_2
   ipopt: true
   num_knot_points:
@@ -681,11 +2142,12 @@
   cost_actuation_legs_flight: 0
   cost_time: 0
   cost_power: 100
-  mu: 0.3
+  mu: 0.4
   eps: 1e-2
   tol: 9e-2
   file_name_in: turn_7_p5
   file_name_out: turn_7_p6
+  action: expand
 - name: turn_2
   ipopt: true
   num_knot_points:
@@ -712,11 +2174,12 @@
   cost_actuation_legs_flight: 0
   cost_time: 0
   cost_power: 100
-  mu: 0.3
+  mu: 0.4
   eps: 1e-2
   tol: 9e-2
   file_name_in: turn_7_p6
   file_name_out: turn_7_p7
+  action: expand
 - name: turn_2
   ipopt: true
   num_knot_points:
@@ -743,11 +2206,12 @@
   cost_actuation_legs_flight: 0
   cost_time: 0
   cost_power: 100
-  mu: 0.3
+  mu: 0.4
   eps: 1e-2
   tol: 9e-2
   file_name_in: turn_7_p7
   file_name_out: turn_7_p8
+  action: expand
 - name: turn_2
   ipopt: true
   num_knot_points:
@@ -774,11 +2238,12 @@
   cost_actuation_legs_flight: 0
   cost_time: 0
   cost_power: 100
-  mu: 0.3
+  mu: 0.4
   eps: 1e-2
   tol: 9e-2
   file_name_in: turn_7_p8
   file_name_out: turn_7_p9
+  action: expand
 - name: turn_2
   ipopt: true
   num_knot_points:
@@ -805,11 +2270,12 @@
   cost_actuation_legs_flight: 0
   cost_time: 0
   cost_power: 100
-  mu: 0.3
+  mu: 0.4
   eps: 1e-2
   tol: 9e-2
   file_name_in: turn_7_p9
   file_name_out: turn_7_p10
+  action: expand
 - name: turn_2
   ipopt: true
   num_knot_points:
@@ -836,11 +2302,12 @@
   cost_actuation_legs_flight: 0
   cost_time: 0
   cost_power: 100
-  mu: 0.3
+  mu: 0.4
   eps: 1e-2
   tol: 9e-2
   file_name_in: turn_7_p10
   file_name_out: turn_7_p11
+  action: expand
 - name: turn_2
   ipopt: true
   num_knot_points:
@@ -867,11 +2334,12 @@
   cost_actuation_legs_flight: 0
   cost_time: 0
   cost_power: 100
-  mu: 0.3
+  mu: 0.4
   eps: 1e-2
   tol: 9e-2
   file_name_in: turn_7_p11
   file_name_out: turn_7_p12
+  action: expand
 - name: turn_2
   ipopt: true
   num_knot_points:
@@ -898,11 +2366,12 @@
   cost_actuation_legs_flight: 0
   cost_time: 0
   cost_power: 100
-  mu: 0.3
+  mu: 0.4
   eps: 1e-2
   tol: 9e-2
   file_name_in: turn_7_p12
   file_name_out: turn_7_p13
+  action: expand
 - name: turn_2
   ipopt: true
   num_knot_points:
@@ -929,11 +2398,12 @@
   cost_actuation_legs_flight: 0
   cost_time: 0
   cost_power: 100
-  mu: 0.3
+  mu: 0.4
   eps: 1e-2
   tol: 9e-2
   file_name_in: turn_7_p13
   file_name_out: turn_7_p14
+  action: expand
 - name: turn_2
   ipopt: true
   num_knot_points:
@@ -960,11 +2430,1452 @@
   cost_actuation_legs_flight: 0
   cost_time: 0
   cost_power: 100
-  mu: 0.3
+  mu: 0.4
   eps: 1e-2
   tol: 9e-2
   file_name_in: turn_7_p14
   file_name_out: turn_7
+  action: expand
+- name: turn_2
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 0.5
+  pitch_magnitude_apex: 0.2
+  max_roll: 0.5
+  max_pitch: 0.5
+  orientation_diff: 0.1
+  lock_spine: false
+  apex_height: -1
+  speed: 1.5
+  max_duration: 0.6
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.4
+  eps: 1e-2
+  tol: 9e-2
+  file_name_in: bounding_gait5_p8
+  file_name_out: turn_8_p1
+  action: expand
+- name: turn_2
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 0.5
+  pitch_magnitude_apex: 0.2
+  max_roll: 0.5
+  max_pitch: 0.5
+  orientation_diff: 0.2
+  lock_spine: false
+  apex_height: -1
+  speed: 1.5
+  max_duration: 0.6
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.4
+  eps: 1e-2
+  tol: 9e-2
+  file_name_in: turn_8_p1
+  file_name_out: turn_8_p2
+  action: expand
+- name: turn_2
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 0.5
+  pitch_magnitude_apex: 0.2
+  max_roll: 0.5
+  max_pitch: 0.5
+  orientation_diff: 0.3
+  lock_spine: false
+  apex_height: -1
+  speed: 1.5
+  max_duration: 0.6
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.4
+  eps: 1e-2
+  tol: 9e-2
+  file_name_in: turn_8_p2
+  file_name_out: turn_8_p3
+  action: expand
+- name: turn_2
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 0.5
+  pitch_magnitude_apex: 0.2
+  max_roll: 0.5
+  max_pitch: 0.5
+  orientation_diff: 0.4
+  lock_spine: false
+  apex_height: -1
+  speed: 1.5
+  max_duration: 0.6
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.4
+  eps: 1e-2
+  tol: 9e-2
+  file_name_in: turn_8_p3
+  file_name_out: turn_8_p4
+  action: expand
+- name: turn_2
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 0.5
+  pitch_magnitude_apex: 0.2
+  max_roll: 0.5
+  max_pitch: 0.5
+  orientation_diff: 0.5
+  lock_spine: false
+  apex_height: -1
+  speed: 1.5
+  max_duration: 0.6
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.4
+  eps: 1e-2
+  tol: 9e-2
+  file_name_in: turn_8_p4
+  file_name_out: turn_8_p5
+  action: expand
+- name: turn_2
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 0.5
+  pitch_magnitude_apex: 0.2
+  max_roll: 0.5
+  max_pitch: 0.5
+  orientation_diff: 0.6
+  lock_spine: false
+  apex_height: -1
+  speed: 1.5
+  max_duration: 0.6
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.4
+  eps: 1e-2
+  tol: 9e-2
+  file_name_in: turn_8_p5
+  file_name_out: turn_8_p6
+  action: expand
+- name: turn_2
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 0.5
+  pitch_magnitude_apex: 0.2
+  max_roll: 0.5
+  max_pitch: 0.5
+  orientation_diff: 0.7
+  lock_spine: false
+  apex_height: -1
+  speed: 1.5
+  max_duration: 0.6
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.4
+  eps: 1e-2
+  tol: 9e-2
+  file_name_in: turn_8_p6
+  file_name_out: turn_8_p7
+  action: expand
+- name: turn_2
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 0.5
+  pitch_magnitude_apex: 0.2
+  max_roll: 0.5
+  max_pitch: 0.5
+  orientation_diff: 0.7999999999999999
+  lock_spine: false
+  apex_height: -1
+  speed: 1.5
+  max_duration: 0.6
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.4
+  eps: 1e-2
+  tol: 9e-2
+  file_name_in: turn_8_p7
+  file_name_out: turn_8_p8
+  action: expand
+- name: turn_2
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 0.5
+  pitch_magnitude_apex: 0.2
+  max_roll: 0.5
+  max_pitch: 0.5
+  orientation_diff: 0.8999999999999999
+  lock_spine: false
+  apex_height: -1
+  speed: 1.5
+  max_duration: 0.6
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.4
+  eps: 1e-2
+  tol: 9e-2
+  file_name_in: turn_8_p8
+  file_name_out: turn_8_p9
+  action: expand
+- name: turn_2
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 0.5
+  pitch_magnitude_apex: 0.2
+  max_roll: 0.5
+  max_pitch: 0.5
+  orientation_diff: 0.9999999999999999
+  lock_spine: false
+  apex_height: -1
+  speed: 1.5
+  max_duration: 0.6
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.4
+  eps: 1e-2
+  tol: 9e-2
+  file_name_in: turn_8_p9
+  file_name_out: turn_8_p10
+  action: expand
+- name: turn_2
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 0.5
+  pitch_magnitude_apex: 0.2
+  max_roll: 0.5
+  max_pitch: 0.5
+  orientation_diff: 1.1
+  lock_spine: false
+  apex_height: -1
+  speed: 1.5
+  max_duration: 0.6
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.4
+  eps: 1e-2
+  tol: 9e-2
+  file_name_in: turn_8_p10
+  file_name_out: turn_8_p11
+  action: expand
+- name: turn_2
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 0.5
+  pitch_magnitude_apex: 0.2
+  max_roll: 0.5
+  max_pitch: 0.5
+  orientation_diff: 1.2
+  lock_spine: false
+  apex_height: -1
+  speed: 1.5
+  max_duration: 0.6
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.4
+  eps: 1e-2
+  tol: 9e-2
+  file_name_in: turn_8_p11
+  file_name_out: turn_8_p12
+  action: expand
+- name: turn_2
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 0.5
+  pitch_magnitude_apex: 0.2
+  max_roll: 0.5
+  max_pitch: 0.5
+  orientation_diff: 1.3
+  lock_spine: false
+  apex_height: -1
+  speed: 1.5
+  max_duration: 0.6
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.4
+  eps: 1e-2
+  tol: 9e-2
+  file_name_in: turn_8_p12
+  file_name_out: turn_8_p13
+  action: expand
+- name: turn_2
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 0.5
+  pitch_magnitude_apex: 0.2
+  max_roll: 0.5
+  max_pitch: 0.5
+  orientation_diff: 1.4
+  lock_spine: false
+  apex_height: -1
+  speed: 1.5
+  max_duration: 0.6
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.4
+  eps: 1e-2
+  tol: 9e-2
+  file_name_in: turn_8_p13
+  file_name_out: turn_8_p14
+  action: expand
+- name: turn_2
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 0.5
+  pitch_magnitude_apex: 0.2
+  max_roll: 0.5
+  max_pitch: 0.5
+  orientation_diff: 1.5
+  lock_spine: false
+  apex_height: -1
+  speed: 1.5
+  max_duration: 0.6
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.4
+  eps: 1e-2
+  tol: 9e-2
+  file_name_in: turn_8_p14
+  file_name_out: turn_8
+  action: expand
+- name: turn_2
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 0.5
+  pitch_magnitude_apex: 0.2
+  max_roll: 0.5
+  max_pitch: 0.5
+  orientation_diff: 0.1
+  lock_spine: false
+  apex_height: -1
+  speed: 1.7
+  max_duration: 0.6
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.4
+  eps: 1e-2
+  tol: 9e-2
+  file_name_in: bounding_gait5_p9
+  file_name_out: turn_9_p1
+  action: expand
+- name: turn_2
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 0.5
+  pitch_magnitude_apex: 0.2
+  max_roll: 0.5
+  max_pitch: 0.5
+  orientation_diff: 0.2
+  lock_spine: false
+  apex_height: -1
+  speed: 1.7
+  max_duration: 0.6
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.4
+  eps: 1e-2
+  tol: 9e-2
+  file_name_in: turn_9_p1
+  file_name_out: turn_9_p2
+  action: expand
+- name: turn_2
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 0.5
+  pitch_magnitude_apex: 0.2
+  max_roll: 0.5
+  max_pitch: 0.5
+  orientation_diff: 0.3
+  lock_spine: false
+  apex_height: -1
+  speed: 1.7
+  max_duration: 0.6
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.4
+  eps: 1e-2
+  tol: 9e-2
+  file_name_in: turn_9_p2
+  file_name_out: turn_9_p3
+  action: expand
+- name: turn_2
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 0.5
+  pitch_magnitude_apex: 0.2
+  max_roll: 0.5
+  max_pitch: 0.5
+  orientation_diff: 0.4
+  lock_spine: false
+  apex_height: -1
+  speed: 1.7
+  max_duration: 0.6
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.4
+  eps: 1e-2
+  tol: 9e-2
+  file_name_in: turn_9_p3
+  file_name_out: turn_9_p4
+  action: expand
+- name: turn_2
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 0.5
+  pitch_magnitude_apex: 0.2
+  max_roll: 0.5
+  max_pitch: 0.5
+  orientation_diff: 0.5
+  lock_spine: false
+  apex_height: -1
+  speed: 1.7
+  max_duration: 0.6
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.4
+  eps: 1e-2
+  tol: 9e-2
+  file_name_in: turn_9_p4
+  file_name_out: turn_9_p5
+  action: expand
+- name: turn_2
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 0.5
+  pitch_magnitude_apex: 0.2
+  max_roll: 0.5
+  max_pitch: 0.5
+  orientation_diff: 0.6
+  lock_spine: false
+  apex_height: -1
+  speed: 1.7
+  max_duration: 0.6
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.4
+  eps: 1e-2
+  tol: 9e-2
+  file_name_in: turn_9_p5
+  file_name_out: turn_9_p6
+  action: expand
+- name: turn_2
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 0.5
+  pitch_magnitude_apex: 0.2
+  max_roll: 0.5
+  max_pitch: 0.5
+  orientation_diff: 0.7
+  lock_spine: false
+  apex_height: -1
+  speed: 1.7
+  max_duration: 0.6
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.4
+  eps: 1e-2
+  tol: 9e-2
+  file_name_in: turn_9_p6
+  file_name_out: turn_9_p7
+  action: expand
+- name: turn_2
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 0.5
+  pitch_magnitude_apex: 0.2
+  max_roll: 0.5
+  max_pitch: 0.5
+  orientation_diff: 0.7999999999999999
+  lock_spine: false
+  apex_height: -1
+  speed: 1.7
+  max_duration: 0.6
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.4
+  eps: 1e-2
+  tol: 9e-2
+  file_name_in: turn_9_p7
+  file_name_out: turn_9_p8
+  action: expand
+- name: turn_2
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 0.5
+  pitch_magnitude_apex: 0.2
+  max_roll: 0.5
+  max_pitch: 0.5
+  orientation_diff: 0.8999999999999999
+  lock_spine: false
+  apex_height: -1
+  speed: 1.7
+  max_duration: 0.6
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.4
+  eps: 1e-2
+  tol: 9e-2
+  file_name_in: turn_9_p8
+  file_name_out: turn_9_p9
+  action: expand
+- name: turn_2
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 0.5
+  pitch_magnitude_apex: 0.2
+  max_roll: 0.5
+  max_pitch: 0.5
+  orientation_diff: 0.9999999999999999
+  lock_spine: false
+  apex_height: -1
+  speed: 1.7
+  max_duration: 0.6
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.4
+  eps: 1e-2
+  tol: 9e-2
+  file_name_in: turn_9_p9
+  file_name_out: turn_9_p10
+  action: expand
+- name: turn_2
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 0.5
+  pitch_magnitude_apex: 0.2
+  max_roll: 0.5
+  max_pitch: 0.5
+  orientation_diff: 1.1
+  lock_spine: false
+  apex_height: -1
+  speed: 1.7
+  max_duration: 0.6
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.4
+  eps: 1e-2
+  tol: 9e-2
+  file_name_in: turn_9_p10
+  file_name_out: turn_9_p11
+  action: expand
+- name: turn_2
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 0.5
+  pitch_magnitude_apex: 0.2
+  max_roll: 0.5
+  max_pitch: 0.5
+  orientation_diff: 1.2
+  lock_spine: false
+  apex_height: -1
+  speed: 1.7
+  max_duration: 0.6
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.4
+  eps: 1e-2
+  tol: 9e-2
+  file_name_in: turn_9_p11
+  file_name_out: turn_9_p12
+  action: expand
+- name: turn_2
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 0.5
+  pitch_magnitude_apex: 0.2
+  max_roll: 0.5
+  max_pitch: 0.5
+  orientation_diff: 1.3
+  lock_spine: false
+  apex_height: -1
+  speed: 1.7
+  max_duration: 0.6
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.4
+  eps: 1e-2
+  tol: 9e-2
+  file_name_in: turn_9_p12
+  file_name_out: turn_9_p13
+  action: expand
+- name: turn_2
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 0.5
+  pitch_magnitude_apex: 0.2
+  max_roll: 0.5
+  max_pitch: 0.5
+  orientation_diff: 1.4
+  lock_spine: false
+  apex_height: -1
+  speed: 1.7
+  max_duration: 0.6
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.4
+  eps: 1e-2
+  tol: 9e-2
+  file_name_in: turn_9_p13
+  file_name_out: turn_9_p14
+  action: expand
+- name: turn_2
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 0.5
+  pitch_magnitude_apex: 0.2
+  max_roll: 0.5
+  max_pitch: 0.5
+  orientation_diff: 1.5
+  lock_spine: false
+  apex_height: -1
+  speed: 1.7
+  max_duration: 0.6
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.4
+  eps: 1e-2
+  tol: 9e-2
+  file_name_in: turn_9_p14
+  file_name_out: turn_9
+  action: expand
+- name: turn_2
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 0.5
+  pitch_magnitude_apex: 0.2
+  max_roll: 0.5
+  max_pitch: 0.5
+  orientation_diff: 0.1
+  lock_spine: false
+  apex_height: -1
+  speed: 2.1
+  max_duration: 0.6
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.4
+  eps: 1e-2
+  tol: 9e-2
+  file_name_in: bounding_gait5_p11
+  file_name_out: turn_11_p1
+  action: expand
+- name: turn_2
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 0.5
+  pitch_magnitude_apex: 0.2
+  max_roll: 0.5
+  max_pitch: 0.5
+  orientation_diff: 0.2
+  lock_spine: false
+  apex_height: -1
+  speed: 2.1
+  max_duration: 0.6
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.4
+  eps: 1e-2
+  tol: 9e-2
+  file_name_in: turn_11_p1
+  file_name_out: turn_11_p2
+  action: expand
+- name: turn_2
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 0.5
+  pitch_magnitude_apex: 0.2
+  max_roll: 0.5
+  max_pitch: 0.5
+  orientation_diff: 0.3
+  lock_spine: false
+  apex_height: -1
+  speed: 2.1
+  max_duration: 0.6
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.4
+  eps: 1e-2
+  tol: 9e-2
+  file_name_in: turn_11_p2
+  file_name_out: turn_11_p3
+  action: expand
+- name: turn_2
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 0.5
+  pitch_magnitude_apex: 0.2
+  max_roll: 0.5
+  max_pitch: 0.5
+  orientation_diff: 0.4
+  lock_spine: false
+  apex_height: -1
+  speed: 2.1
+  max_duration: 0.6
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.4
+  eps: 1e-2
+  tol: 9e-2
+  file_name_in: turn_11_p3
+  file_name_out: turn_11_p4
+  action: expand
+- name: turn_2
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 0.5
+  pitch_magnitude_apex: 0.2
+  max_roll: 0.5
+  max_pitch: 0.5
+  orientation_diff: 0.5
+  lock_spine: false
+  apex_height: -1
+  speed: 2.1
+  max_duration: 0.6
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.4
+  eps: 1e-2
+  tol: 9e-2
+  file_name_in: turn_11_p4
+  file_name_out: turn_11_p5
+  action: expand
+- name: turn_2
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 0.5
+  pitch_magnitude_apex: 0.2
+  max_roll: 0.5
+  max_pitch: 0.5
+  orientation_diff: 0.6
+  lock_spine: false
+  apex_height: -1
+  speed: 2.1
+  max_duration: 0.6
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.4
+  eps: 1e-2
+  tol: 9e-2
+  file_name_in: turn_11_p5
+  file_name_out: turn_11_p6
+  action: expand
+- name: turn_2
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 0.5
+  pitch_magnitude_apex: 0.2
+  max_roll: 0.5
+  max_pitch: 0.5
+  orientation_diff: 0.7
+  lock_spine: false
+  apex_height: -1
+  speed: 2.1
+  max_duration: 0.6
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.4
+  eps: 1e-2
+  tol: 9e-2
+  file_name_in: turn_11_p6
+  file_name_out: turn_11_p7
+  action: expand
+- name: turn_2
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 0.5
+  pitch_magnitude_apex: 0.2
+  max_roll: 0.5
+  max_pitch: 0.5
+  orientation_diff: 0.7999999999999999
+  lock_spine: false
+  apex_height: -1
+  speed: 2.1
+  max_duration: 0.6
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.4
+  eps: 1e-2
+  tol: 9e-2
+  file_name_in: turn_11_p7
+  file_name_out: turn_11_p8
+  action: expand
+- name: turn_2
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 0.5
+  pitch_magnitude_apex: 0.2
+  max_roll: 0.5
+  max_pitch: 0.5
+  orientation_diff: 0.8999999999999999
+  lock_spine: false
+  apex_height: -1
+  speed: 2.1
+  max_duration: 0.6
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.4
+  eps: 1e-2
+  tol: 9e-2
+  file_name_in: turn_11_p8
+  file_name_out: turn_11_p9
+  action: expand
+- name: turn_2
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 0.5
+  pitch_magnitude_apex: 0.2
+  max_roll: 0.5
+  max_pitch: 0.5
+  orientation_diff: 0.9999999999999999
+  lock_spine: false
+  apex_height: -1
+  speed: 2.1
+  max_duration: 0.6
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.4
+  eps: 1e-2
+  tol: 9e-2
+  file_name_in: turn_11_p9
+  file_name_out: turn_11_p10
+  action: expand
+- name: turn_2
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 0.5
+  pitch_magnitude_apex: 0.2
+  max_roll: 0.5
+  max_pitch: 0.5
+  orientation_diff: 1.1
+  lock_spine: false
+  apex_height: -1
+  speed: 2.1
+  max_duration: 0.6
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.4
+  eps: 1e-2
+  tol: 9e-2
+  file_name_in: turn_11_p10
+  file_name_out: turn_11_p11
+  action: expand
+- name: turn_2
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 0.5
+  pitch_magnitude_apex: 0.2
+  max_roll: 0.5
+  max_pitch: 0.5
+  orientation_diff: 1.2
+  lock_spine: false
+  apex_height: -1
+  speed: 2.1
+  max_duration: 0.6
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.4
+  eps: 1e-2
+  tol: 9e-2
+  file_name_in: turn_11_p11
+  file_name_out: turn_11_p12
+  action: expand
+- name: turn_2
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 0.5
+  pitch_magnitude_apex: 0.2
+  max_roll: 0.5
+  max_pitch: 0.5
+  orientation_diff: 1.3
+  lock_spine: false
+  apex_height: -1
+  speed: 2.1
+  max_duration: 0.6
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.4
+  eps: 1e-2
+  tol: 9e-2
+  file_name_in: turn_11_p12
+  file_name_out: turn_11_p13
+  action: expand
+- name: turn_2
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 0.5
+  pitch_magnitude_apex: 0.2
+  max_roll: 0.5
+  max_pitch: 0.5
+  orientation_diff: 1.4
+  lock_spine: false
+  apex_height: -1
+  speed: 2.1
+  max_duration: 0.6
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.4
+  eps: 1e-2
+  tol: 9e-2
+  file_name_in: turn_11_p13
+  file_name_out: turn_11_p14
+  action: expand
+- name: turn_2
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 0.5
+  pitch_magnitude_apex: 0.2
+  max_roll: 0.5
+  max_pitch: 0.5
+  orientation_diff: 1.5
+  lock_spine: false
+  apex_height: -1
+  speed: 2.1
+  max_duration: 0.6
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.4
+  eps: 1e-2
+  tol: 9e-2
+  file_name_in: turn_11_p14
+  file_name_out: turn_11
+  action: expand
 - name: turn_3
   ipopt: true
   num_knot_points:
@@ -977,7 +3888,7 @@
   initial_height: 0.2
   pitch_magnitude_lo: 0.5
   pitch_magnitude_apex: 0.2
-  max_roll: 0.4
+  max_roll: 0.5
   max_pitch: 0.5
   orientation_diff: 0.1
   lock_spine: false
@@ -994,8 +3905,9 @@
   mu: 0.4
   eps: 1e-2
   tol: 1e-1
-  file_name_in: bounding_gait4
+  file_name_in: bounding_gait5
   file_name_out: turn_12_p1
+  action: expand
 - name: turn_3
   ipopt: true
   num_knot_points:
@@ -1008,7 +3920,7 @@
   initial_height: 0.2
   pitch_magnitude_lo: 0.5
   pitch_magnitude_apex: 0.2
-  max_roll: 0.4
+  max_roll: 0.5
   max_pitch: 0.5
   orientation_diff: 0.2
   lock_spine: false
@@ -1027,6 +3939,7 @@
   tol: 1e-1
   file_name_in: turn_12_p1
   file_name_out: turn_12_p2
+  action: expand
 - name: turn_3
   ipopt: true
   num_knot_points:
@@ -1039,7 +3952,7 @@
   initial_height: 0.2
   pitch_magnitude_lo: 0.5
   pitch_magnitude_apex: 0.2
-  max_roll: 0.4
+  max_roll: 0.5
   max_pitch: 0.5
   orientation_diff: 0.3
   lock_spine: false
@@ -1058,6 +3971,7 @@
   tol: 1e-1
   file_name_in: turn_12_p2
   file_name_out: turn_12_p3
+  action: expand
 - name: turn_3
   ipopt: true
   num_knot_points:
@@ -1070,7 +3984,7 @@
   initial_height: 0.2
   pitch_magnitude_lo: 0.5
   pitch_magnitude_apex: 0.2
-  max_roll: 0.4
+  max_roll: 0.5
   max_pitch: 0.5
   orientation_diff: 0.4
   lock_spine: false
@@ -1089,6 +4003,7 @@
   tol: 1e-1
   file_name_in: turn_12_p3
   file_name_out: turn_12_p4
+  action: expand
 - name: turn_3
   ipopt: true
   num_knot_points:
@@ -1101,7 +4016,7 @@
   initial_height: 0.2
   pitch_magnitude_lo: 0.5
   pitch_magnitude_apex: 0.2
-  max_roll: 0.4
+  max_roll: 0.5
   max_pitch: 0.5
   orientation_diff: 0.5
   lock_spine: false
@@ -1120,6 +4035,7 @@
   tol: 1e-1
   file_name_in: turn_12_p4
   file_name_out: turn_12_p5
+  action: expand
 - name: turn_3
   ipopt: true
   num_knot_points:
@@ -1132,7 +4048,7 @@
   initial_height: 0.2
   pitch_magnitude_lo: 0.5
   pitch_magnitude_apex: 0.2
-  max_roll: 0.4
+  max_roll: 0.5
   max_pitch: 0.5
   orientation_diff: 0.6
   lock_spine: false
@@ -1151,6 +4067,7 @@
   tol: 1e-1
   file_name_in: turn_12_p5
   file_name_out: turn_12_p6
+  action: expand
 - name: turn_3
   ipopt: true
   num_knot_points:
@@ -1163,7 +4080,7 @@
   initial_height: 0.2
   pitch_magnitude_lo: 0.5
   pitch_magnitude_apex: 0.2
-  max_roll: 0.4
+  max_roll: 0.5
   max_pitch: 0.5
   orientation_diff: 0.7
   lock_spine: false
@@ -1182,6 +4099,7 @@
   tol: 1e-1
   file_name_in: turn_12_p6
   file_name_out: turn_12_p7
+  action: expand
 - name: turn_3
   ipopt: true
   num_knot_points:
@@ -1194,7 +4112,7 @@
   initial_height: 0.2
   pitch_magnitude_lo: 0.5
   pitch_magnitude_apex: 0.2
-  max_roll: 0.4
+  max_roll: 0.5
   max_pitch: 0.5
   orientation_diff: 0.7999999999999999
   lock_spine: false
@@ -1213,6 +4131,7 @@
   tol: 1e-1
   file_name_in: turn_12_p7
   file_name_out: turn_12_p8
+  action: expand
 - name: turn_3
   ipopt: true
   num_knot_points:
@@ -1225,7 +4144,7 @@
   initial_height: 0.2
   pitch_magnitude_lo: 0.5
   pitch_magnitude_apex: 0.2
-  max_roll: 0.4
+  max_roll: 0.5
   max_pitch: 0.5
   orientation_diff: 0.8999999999999999
   lock_spine: false
@@ -1244,6 +4163,7 @@
   tol: 1e-1
   file_name_in: turn_12_p8
   file_name_out: turn_12_p9
+  action: expand
 - name: turn_3
   ipopt: true
   num_knot_points:
@@ -1256,7 +4176,7 @@
   initial_height: 0.2
   pitch_magnitude_lo: 0.5
   pitch_magnitude_apex: 0.2
-  max_roll: 0.4
+  max_roll: 0.5
   max_pitch: 0.5
   orientation_diff: 0.9999999999999999
   lock_spine: false
@@ -1275,6 +4195,7 @@
   tol: 1e-1
   file_name_in: turn_12_p9
   file_name_out: turn_12_p10
+  action: expand
 - name: turn_3
   ipopt: true
   num_knot_points:
@@ -1287,7 +4208,7 @@
   initial_height: 0.2
   pitch_magnitude_lo: 0.5
   pitch_magnitude_apex: 0.2
-  max_roll: 0.4
+  max_roll: 0.5
   max_pitch: 0.5
   orientation_diff: 1.1
   lock_spine: false
@@ -1306,6 +4227,7 @@
   tol: 1e-1
   file_name_in: turn_12_p10
   file_name_out: turn_12_p11
+  action: expand
 - name: turn_3
   ipopt: true
   num_knot_points:
@@ -1318,7 +4240,7 @@
   initial_height: 0.2
   pitch_magnitude_lo: 0.5
   pitch_magnitude_apex: 0.2
-  max_roll: 0.4
+  max_roll: 0.5
   max_pitch: 0.5
   orientation_diff: 1.2
   lock_spine: false
@@ -1337,6 +4259,7 @@
   tol: 1e-1
   file_name_in: turn_12_p11
   file_name_out: turn_12_p12
+  action: expand
 - name: turn_3
   ipopt: true
   num_knot_points:
@@ -1349,7 +4272,7 @@
   initial_height: 0.2
   pitch_magnitude_lo: 0.5
   pitch_magnitude_apex: 0.2
-  max_roll: 0.4
+  max_roll: 0.5
   max_pitch: 0.5
   orientation_diff: 1.3
   lock_spine: false
@@ -1368,6 +4291,7 @@
   tol: 1e-1
   file_name_in: turn_12_p12
   file_name_out: turn_12_p13
+  action: expand
 - name: turn_3
   ipopt: true
   num_knot_points:
@@ -1380,7 +4304,7 @@
   initial_height: 0.2
   pitch_magnitude_lo: 0.5
   pitch_magnitude_apex: 0.2
-  max_roll: 0.4
+  max_roll: 0.5
   max_pitch: 0.5
   orientation_diff: 1.4
   lock_spine: false
@@ -1399,6 +4323,7 @@
   tol: 1e-1
   file_name_in: turn_12_p13
   file_name_out: turn_12_p14
+  action: expand
 - name: turn_3
   ipopt: true
   num_knot_points:
@@ -1411,7 +4336,7 @@
   initial_height: 0.2
   pitch_magnitude_lo: 0.5
   pitch_magnitude_apex: 0.2
-  max_roll: 0.4
+  max_roll: 0.5
   max_pitch: 0.5
   orientation_diff: 1.5
   lock_spine: false
@@ -1430,3 +4355,4 @@
   tol: 1e-1
   file_name_in: turn_12_p14
   file_name_out: turn_12
+  action: expand

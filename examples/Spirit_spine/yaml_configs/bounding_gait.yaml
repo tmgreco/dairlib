@@ -2,9 +2,14 @@
 -
   num_optimizations: 1
   initial_guess: ""  #if it is empty, the program will generate initial guess. Otherwise, we use the file given here as the initial guess
-  saved_directory: /home/feng/Downloads/dairlib/examples/Spirit_spine/saved_trajectories/bound_gait/twisting/
-  spine_type: twisting
-  urdf_path: examples/Spirit_spine/spirit_with_spine_drake.urdf
+  # saved_directory: /home/feng/Downloads/dairlib/examples/Spirit_spine/saved_trajectories/bound_gait/twisting/
+  # data_directory: /home/feng/Downloads/dairlib/examples/Spirit_spine/data/bounding_gait/twisting/
+  # spine_type: twisting
+  # urdf_path: examples/Spirit_spine/spirit_with_spine_drake.urdf
+  saved_directory: /home/feng/Downloads/dairlib/examples/Spirit_spine/saved_trajectories/bound_gait/rigid/
+  data_directory: /home/feng/Downloads/dairlib/examples/Spirit_spine/data/bounding_gait/rigid/
+  spine_type: rigid
+  urdf_path: examples/Spirit_spine/spirit_drake.urdf
   num_perturbations: 5
   mean: 1
   var: 0.01
@@ -197,7 +202,7 @@
   lock_leg_apex: false
   cost_actuation: 0
   cost_velocity: 0
-  cost_velocity_legs_flight: 0
+  cost_velocity_legs_flight: 1
   cost_actuation_legs_flight: 0
   cost_time: 0
   cost_power: 100 

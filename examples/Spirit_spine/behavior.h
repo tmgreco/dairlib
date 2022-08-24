@@ -101,6 +101,7 @@ namespace dairlib {
         std::string urdf_path;
         std::string spine_type;
         std::string action;
+        std::string data_directory;
     protected:
         double mechanical_work;
         double mechanical_power;
