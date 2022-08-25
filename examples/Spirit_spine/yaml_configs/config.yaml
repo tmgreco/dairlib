@@ -2,7 +2,8 @@
 -
   num_optimizations: 4
   initial_guess: ""  #if it is empty, the program will generate initial guess. Otherwise, we use the file given here as the initial guess
-  saved_directory: /home/feng/Downloads/dairlib/examples/Spirit_spine/saved_trajectories/jump_test1/
+  saved_directory: examples/Spirit_spine/saved_trajectories/jump_test1/
+  data_directory: examples/Spirit_spine/data/long_jump/twisting/
   spine_type: twisting
   urdf_path: examples/Spirit_spine/spirit_with_spine_drake.urdf
   num_perturbations: 5

@@ -20,29 +20,29 @@ using drake::trajectories::PiecewisePolynomial;
 using drake::geometry::SceneGraph;
 namespace dairlib {
 template <template<class> class B,class T>
-Spirit<B,T>::Spirit(std::string yaml_path) :plant (std::make_unique<MultibodyPlant<T>>(0.0)),
+Spirit<B,T>::Spirit(std::string dairlib_path, std::string yaml_path) :plant (std::make_unique<MultibodyPlant<T>>(0.0)),
                     plant_vis (std::make_unique<MultibodyPlant<T>>(0.0)),
                     scene_graph_ptr (std::make_unique<SceneGraph<T>>()),
                     behavior()
     {
-    this->yaml_path=yaml_path;
-    YAML::Node config = YAML::LoadFile(yaml_path);
+    this->yaml_path=dairlib_path+yaml_path;
+    YAML::Node config = YAML::LoadFile(this->yaml_path);
     
     initial_guess=config[0]["initial_guess"].as<std::string>();
-    saved_directory=config[0]["saved_directory"].as<std::string>();
+    saved_directory=dairlib_path+config[0]["saved_directory"].as<std::string>();
     num_perturbations=config[0]["num_perturbations"].as<int>();
     if(config[0]["mean"]) mean=config[0]["mean"].as<double>();
     if(config[0]["var"]) var=config[0]["var"].as<double>();
     behavior.urdf_path=config[0]["urdf_path"].as<std::string>();
     behavior.spine_type=config[0]["spine_type"].as<std::string>();
-    behavior.data_directory=config[0]["data_directory"].as<std::string>();
+    behavior.data_directory=dairlib_path+config[0]["data_directory"].as<std::string>();
     
     // Create saved directory if it doesn't exist
     if (!std::experimental::filesystem::is_directory(saved_directory) || !std::experimental::filesystem::exists(saved_directory)) { 
         std::experimental::filesystem::create_directory(saved_directory); 
     }
     // Copy current yaml to saved directory
-    std::ifstream  src(yaml_path, std::ios::binary);
+    std::ifstream  src(this->yaml_path, std::ios::binary);
     std::ofstream  dst(saved_directory+"config.yaml",   std::ios::binary);
     dst << src.rdbuf();
 

@@ -34,7 +34,7 @@ template <template<class> class B,class T>
 class Spirit {
 
 public:
-    Spirit(std::string yaml_path);
+    Spirit(std::string dairlib_path,std::string yaml_path);
     void run();
     void animate();
 
