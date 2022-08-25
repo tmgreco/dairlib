@@ -73,7 +73,7 @@
   mu: 0.5
   eps: 1e-2
   tol: 9e-2
-  file_name_in: bounding_gait5_p3
+  file_name_in: bounding_gait4_p3
   file_name_out: turn_3
   action: expand
 
@@ -107,7 +107,7 @@
   mu: 0.5
   eps: 1e-2
   tol: 9e-2
-  file_name_in: bounding_gait5_p4
+  file_name_in: bounding_gait4_p4
   file_name_out: turn_4
   action: expand
 - 
@@ -140,7 +140,7 @@
   mu: 0.5
   eps: 1e-2
   tol: 9e-2
-  file_name_in: bounding_gait5_p5
+  file_name_in: bounding_gait4_p5
   file_name_out: turn_5
   action: expand
 
@@ -174,7 +174,7 @@
   mu: 0.5
   eps: 1e-2
   tol: 9e-2
-  file_name_in: bounding_gait5_p6
+  file_name_in: bounding_gait4_p6
   file_name_out: turn_6
   action: expand
 
@@ -208,7 +208,7 @@
   mu: 0.4
   eps: 1e-2
   tol: 9e-2
-  file_name_in: bounding_gait5_p7
+  file_name_in: bounding_gait4_p7
   file_name_out: turn_7
   action: expand
 - 
@@ -241,7 +241,7 @@
   mu: 0.4
   eps: 1e-2
   tol: 9e-2
-  file_name_in: bounding_gait5_p8
+  file_name_in: bounding_gait4_p8
   file_name_out: turn_8
   action: expand
 - 
@@ -274,7 +274,7 @@
   mu: 0.4
   eps: 1e-2
   tol: 9e-2
-  file_name_in: bounding_gait5_p9
+  file_name_in: bounding_gait4_p9
   file_name_out: turn_9
   action: expand
 - 
@@ -307,7 +307,7 @@
   mu: 0.4
   eps: 1e-2
   tol: 9e-2
-  file_name_in: bounding_gait5_p11
+  file_name_in: bounding_gait4_p11
   file_name_out: turn_11
   action: expand
 - 
@@ -340,6 +340,6 @@
   mu: 0.4
   eps: 1e-2
   tol: 1e-1
-  file_name_in: bounding_gait5
+  file_name_in: bounding_gait4
   file_name_out: turn_12
   action: expand

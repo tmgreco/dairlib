@@ -732,6 +732,39 @@ void Dircon<T>::GetFlippedStateAndDerivativeSamples(
         flipped_xk(28)=-org_xk(27); //Velocities: joint 11 = -jiont 9
         flipped_xk(26)*=-1;  //Velocities: Opposite Joint 12
       }
+      else if (joint_type=="rigid"){
+        flipped_xk(1)*=-1; //opposite qx
+        flipped_xk(3)*=-1; //opposite qz
+        flipped_xk(5)*=-1; //opposite y
+        flipped_xk(13)=org_xk(14); //joint 0 = jiont 4
+        flipped_xk(17)=org_xk(18); //joint 1 = jiont 5
+        flipped_xk(11)=org_xk(12); //joint 2 = jiont 6
+        flipped_xk(15)=org_xk(16); //joint 3 = jiont 7
+        flipped_xk(14)=org_xk(13); //joint 4 = jiont 0
+        flipped_xk(18)=org_xk(17); //joint 5 = jiont 1
+        flipped_xk(12)=org_xk(11); //joint 6 = jiont 2
+        flipped_xk(16)=org_xk(15); //joint 7 = jiont 3
+        flipped_xk(9)=-org_xk(10); //joint 8 = - jiont 10
+        flipped_xk(7)=-org_xk(8); //joint 9 = -jiont 11
+        flipped_xk(10)=-org_xk(9); //joint 10 = -jiont 8
+        flipped_xk(8)=-org_xk(7); //joint 11 = -jiont 9
+
+        flipped_xk(19)*=-1; //opposite wx
+        flipped_xk(21)*=-1; //opposite wz
+        flipped_xk(23)*=-1; //opposite vy
+        flipped_xk(31)=org_xk(32); //Velocities: joint 0 = jiont 4
+        flipped_xk(35)=org_xk(36); //Velocities: joint 1 = jiont 5
+        flipped_xk(29)=org_xk(30); //Velocities: joint 2 = jiont 6
+        flipped_xk(33)=org_xk(34); //Velocities: joint 3 = jiont 7
+        flipped_xk(32)=org_xk(31); //Velocities: joint 4 = jiont 0
+        flipped_xk(36)=org_xk(35); //Velocities: joint 5 = jiont 1
+        flipped_xk(30)=org_xk(29); //Velocities: joint 6 = jiont 2
+        flipped_xk(34)=org_xk(33); //Velocities: joint 7 = jiont 3
+        flipped_xk(27)=-org_xk(28); //Velocities: joint 8 = -jiont 10
+        flipped_xk(25)=-org_xk(26); //Velocities: joint 9 = -jiont 11
+        flipped_xk(28)=-org_xk(27); //Velocities: joint 10 = -jiont 8
+        flipped_xk(26)=-org_xk(25); //Velocities: joint 11 = -jiont 9
+      }
       VectorX<T> uk = result.GetSolution(input_vars(mode, j));
       auto context = multibody::createContext<T>(plant_, flipped_xk, uk);
 
