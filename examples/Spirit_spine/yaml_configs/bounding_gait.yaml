@@ -167,7 +167,7 @@
   lock_leg_apex: false
   cost_actuation: 0
   cost_velocity: 0 
-  cost_velocity_legs_flight: 1
+  cost_velocity_legs_flight: 0
   cost_actuation_legs_flight: 0
   cost_time: 0
   cost_power: 100
@@ -176,7 +176,7 @@
   tol: 1e-1
   file_name_out: bounding_gait4
   file_name_in: bounding_gait3
-  action: expand
+  # action: expand
 
 - 
   name: bound_5

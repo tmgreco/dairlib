@@ -1,7 +1,7 @@
 - num_optimizations: 1
   initial_guess: ""
-  saved_directory: /home/feng/Downloads/dairlib/examples/Spirit_spine/saved_trajectories/bound_gait/rigid/
-  data_directory: /home/feng/Downloads/dairlib/examples/Spirit_spine/data/bounding_gait/rigid/
+  saved_directory: examples/Spirit_spine/saved_trajectories/bound_gait/rigid/
+  data_directory: examples/Spirit_spine/data/bounding_gait/rigid/
   spine_type: rigid
   urdf_path: examples/Spirit_spine/spirit_drake.urdf
   num_perturbations: 5
@@ -489,7 +489,7 @@
   lock_leg_apex: false
   cost_actuation: 0
   cost_velocity: 0
-  cost_velocity_legs_flight: 1
+  cost_velocity_legs_flight: 0
   cost_actuation_legs_flight: 0
   cost_time: 0
   cost_power: 100
@@ -498,7 +498,6 @@
   tol: 1e-1
   file_name_out: bounding_gait4_p1
   file_name_in: bounding_gait3_p1
-  action: expand
 - name: bound_4
   ipopt: true
   num_knot_points:
@@ -521,7 +520,7 @@
   lock_leg_apex: false
   cost_actuation: 0
   cost_velocity: 0
-  cost_velocity_legs_flight: 1
+  cost_velocity_legs_flight: 0
   cost_actuation_legs_flight: 0
   cost_time: 0
   cost_power: 100
@@ -530,7 +529,6 @@
   tol: 1e-1
   file_name_out: bounding_gait4_p2
   file_name_in: bounding_gait3_p2
-  action: expand
 - name: bound_4
   ipopt: true
   num_knot_points:
@@ -553,7 +551,7 @@
   lock_leg_apex: false
   cost_actuation: 0
   cost_velocity: 0
-  cost_velocity_legs_flight: 1
+  cost_velocity_legs_flight: 0
   cost_actuation_legs_flight: 0
   cost_time: 0
   cost_power: 100
@@ -562,7 +560,6 @@
   tol: 1e-1
   file_name_out: bounding_gait4_p3
   file_name_in: bounding_gait3_p3
-  action: expand
 - name: bound_4
   ipopt: true
   num_knot_points:
@@ -585,7 +582,7 @@
   lock_leg_apex: false
   cost_actuation: 0
   cost_velocity: 0
-  cost_velocity_legs_flight: 1
+  cost_velocity_legs_flight: 0
   cost_actuation_legs_flight: 0
   cost_time: 0
   cost_power: 100
@@ -594,7 +591,6 @@
   tol: 1e-1
   file_name_out: bounding_gait4_p4
   file_name_in: bounding_gait3_p4
-  action: expand
 - name: bound_4
   ipopt: true
   num_knot_points:
@@ -617,7 +613,7 @@
   lock_leg_apex: false
   cost_actuation: 0
   cost_velocity: 0
-  cost_velocity_legs_flight: 1
+  cost_velocity_legs_flight: 0
   cost_actuation_legs_flight: 0
   cost_time: 0
   cost_power: 100
@@ -626,7 +622,6 @@
   tol: 1e-1
   file_name_out: bounding_gait4_p5
   file_name_in: bounding_gait3_p5
-  action: expand
 - name: bound_4
   ipopt: true
   num_knot_points:
@@ -649,7 +644,7 @@
   lock_leg_apex: false
   cost_actuation: 0
   cost_velocity: 0
-  cost_velocity_legs_flight: 1
+  cost_velocity_legs_flight: 0
   cost_actuation_legs_flight: 0
   cost_time: 0
   cost_power: 100
@@ -658,7 +653,6 @@
   tol: 1e-1
   file_name_out: bounding_gait4_p6
   file_name_in: bounding_gait3_p6
-  action: expand
 - name: bound_4
   ipopt: true
   num_knot_points:
@@ -681,7 +675,7 @@
   lock_leg_apex: false
   cost_actuation: 0
   cost_velocity: 0
-  cost_velocity_legs_flight: 1
+  cost_velocity_legs_flight: 0
   cost_actuation_legs_flight: 0
   cost_time: 0
   cost_power: 100
@@ -690,7 +684,6 @@
   tol: 1e-1
   file_name_out: bounding_gait4_p7
   file_name_in: bounding_gait3_p7
-  action: expand
 - name: bound_4
   ipopt: true
   num_knot_points:
@@ -713,7 +706,7 @@
   lock_leg_apex: false
   cost_actuation: 0
   cost_velocity: 0
-  cost_velocity_legs_flight: 1
+  cost_velocity_legs_flight: 0
   cost_actuation_legs_flight: 0
   cost_time: 0
   cost_power: 100
@@ -722,7 +715,6 @@
   tol: 1e-1
   file_name_out: bounding_gait4_p8
   file_name_in: bounding_gait3_p8
-  action: expand
 - name: bound_4
   ipopt: true
   num_knot_points:
@@ -745,7 +737,7 @@
   lock_leg_apex: false
   cost_actuation: 0
   cost_velocity: 0
-  cost_velocity_legs_flight: 1
+  cost_velocity_legs_flight: 0
   cost_actuation_legs_flight: 0
   cost_time: 0
   cost_power: 100
@@ -754,7 +746,6 @@
   tol: 1e-1
   file_name_out: bounding_gait4_p9
   file_name_in: bounding_gait3_p9
-  action: expand
 - name: bound_4
   ipopt: true
   num_knot_points:
@@ -777,7 +768,7 @@
   lock_leg_apex: false
   cost_actuation: 0
   cost_velocity: 0
-  cost_velocity_legs_flight: 1
+  cost_velocity_legs_flight: 0
   cost_actuation_legs_flight: 0
   cost_time: 0
   cost_power: 100
@@ -786,7 +777,6 @@
   tol: 1e-1
   file_name_out: bounding_gait4_p10
   file_name_in: bounding_gait3_p10
-  action: expand
 - name: bound_4
   ipopt: true
   num_knot_points:
@@ -809,7 +799,7 @@
   lock_leg_apex: false
   cost_actuation: 0
   cost_velocity: 0
-  cost_velocity_legs_flight: 1
+  cost_velocity_legs_flight: 0
   cost_actuation_legs_flight: 0
   cost_time: 0
   cost_power: 100
@@ -818,7 +808,6 @@
   tol: 1e-1
   file_name_out: bounding_gait4_p11
   file_name_in: bounding_gait3_p11
-  action: expand
 - name: bound_4
   ipopt: true
   num_knot_points:
@@ -841,7 +830,7 @@
   lock_leg_apex: false
   cost_actuation: 0
   cost_velocity: 0
-  cost_velocity_legs_flight: 1
+  cost_velocity_legs_flight: 0
   cost_actuation_legs_flight: 0
   cost_time: 0
   cost_power: 100
@@ -850,7 +839,6 @@
   tol: 1e-1
   file_name_out: bounding_gait4
   file_name_in: bounding_gait3
-  action: expand
 - name: bound_5
   ipopt: true
   warm_up: true

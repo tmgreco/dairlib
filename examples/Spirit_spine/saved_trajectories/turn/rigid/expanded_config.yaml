@@ -1,7 +1,7 @@
 - num_optimizations: 1
   initial_guess: ""
   saved_directory: examples/Spirit_spine/saved_trajectories/turn/rigid/
-  data_directory: examples/Spirit_spine/data/turn/test/
+  data_directory: examples/Spirit_spine/data/turn/rigid/
   spine_type: rigid
   urdf_path: examples/Spirit_spine/spirit_drake.urdf
   num_perturbations: 5

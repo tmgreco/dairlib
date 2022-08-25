@@ -1,7 +1,7 @@
 /*
- * File: spirit_bound.h
+ * File: spirit_bounding_gait.h
  * ----------------
- * This interface for spirit jumping behaviors.
+ * This interface for spirit bounding behaviors.
  * Date: 2021-10-30
  */
 
