@@ -1,6 +1,6 @@
 # YAML spirit jump configuration
 -
-  num_optimizations: 1
+  num_optimizations: 1 
   initial_guess: ""  #if it is empty, the program will generate initial guess. Otherwise, we use the file given here as the initial guess
   # saved_directory: examples/Spirit_spine/saved_trajectories/bound_gait/twisting/
   # data_directory: examples/Spirit_spine/data/bounding_gait/twisting/
