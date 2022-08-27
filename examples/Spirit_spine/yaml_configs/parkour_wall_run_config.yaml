@@ -1,0 +1,288 @@
+# YAML spirit parkour jump configuration
+-
+  num_optimizations: 2
+  initial_guess: ""  #if it is empty, the program will generate initial guess. Otherwise, we use the file given here as the initial guess
+  spine_type: twisting
+  urdf_path: examples/Spirit_spine/spirit_with_spine_drake.urdf
+  saved_directory: examples/Spirit_spine/saved_trajectories/parkour_wall_run_test1/
+  data_directory: examples/Spirit_spine/data/parkour_run/twisting/
+  num_perturbations: 10
+  mean: 1
+  var: 0.01
+  iterate:
+    # -
+    #   name: parkour_pronk_7
+    #   iteration_variable: final_stand
+    #   values:
+    #     - 
+    #       - 0  #normal x
+    #       - 0  #normal y
+    #       - 1  #normal z
+    #       - 0.8  #offset x
+    #       - 0  #offset y
+    #       - 0  #offset z
+    #       - false #rerun
+    #     - 
+    #       - 0  #normal x
+    #       - 0  #normal y
+    #       - 1  #normal z
+    #       - 1.0  #offset x
+    #       - 0  #offset y
+    #       - 0  #offset z
+    #       - false #rerun
+    #     - 
+    #       - 0  #normal x
+    #       - 0  #normal y
+    #       - 1  #normal z
+    #       - 1.2  #offset x
+    #       - 0  #offset y
+    #       - 0  #offset z
+    #       - false #rerun
+    #     - 
+    #       - 0  #normal x
+    #       - 0  #normal y
+    #       - 1  #normal z
+    #       - 1.4  #offset x
+    #       - 0  #offset y
+    #       - 0  #offset z
+    #       - false #rerun
+    #     - 
+    #       - 0  #normal x
+    #       - 0  #normal y
+    #       - 1  #normal z
+    #       - 1.6  #offset x
+    #       - 0  #offset y
+    #       - 0  #offset z
+    #       - false #rerun
+    #     - 
+    #       - 0  #normal x
+    #       - 0  #normal y
+    #       - 1  #normal z
+    #       - 1.8  #offset x
+    #       - 0  #offset y
+    #       - 0  #offset z
+    #       - false #rerun
+    #     - 
+    #       - 0  #normal x
+    #       - 0  #normal y
+    #       - 1  #normal z
+    #       - 2.0  #offset x
+    #       - 0  #offset y
+    #       - 0  #offset z
+    #       - false #rerun
+    #     - 
+    #       - 0  #normal x
+    #       - 0  #normal y
+    #       - 1  #normal z
+    #       - 2.2  #offset x
+    #       - 0  #offset y
+    #       - 0  #offset z
+    #       - false #rerun
+        
+
+- 
+  name: parkour_pronk_1
+  surfaces:
+    - 
+      - 0     #normal x
+      - 0     #normal y
+      - 1     #normal z
+      - 0     #offset x
+      - 0     #offset y
+      - 0     #offset z
+    - 
+      - 0     #normal x
+      - 0     #normal y
+      - 1     #normal z
+      - 0.3     #offset x
+      - -0.3     #offset y
+      - 0     #offset z
+    - 
+      - 0     #normal x
+      - 0     #normal y
+      - 1     #normal z
+      - 0.6     #offset x
+      - 0     #offset y
+      - 0     #offset z
+  distance: 0.6
+  time_symmetry: true
+  nominal_stance: true
+  lock_legs_apex: true
+  stand_height: 0.23
+  nKnotpoints_flight: 7
+  nKnotpoints_stances: 4
+  apex_heights: 
+    - 0.7
+    - 0.7
+  pose_ref: true
+  roll_ref: 0.4
+  yaw_ref: 0.6
+  pitch_ref: 0.5
+  max_duration: 2
+  cost_actuation: 3
+  cost_velocity: 10 
+  cost_velocity_legs_flight: 2 
+  cost_actuation_legs_flight: 1 
+  cost_time: 0
+  cost_power: 0 
+  mu: 100
+  eps: 1e-2
+  tol: 1
+  xtol: 1e-2
+  file_name_in: ""
+  file_name_out: simple_parkour_2_1
+- 
+  name: parkour_pronk_2
+  surfaces:
+    - 
+      - 0     #normal x
+      - 0     #normal y
+      - 1     #normal z
+      - 0     #offset x
+      - 0     #offset y
+      - 0     #offset z
+    - 
+      - 0     #normal x
+      - 0     #normal y
+      - 1     #normal z
+      - 0.3     #offset x
+      - -0.3     #offset y
+      - 0     #offset z
+    - 
+      - 0     #normal x
+      - 0     #normal y
+      - 1     #normal z
+      - 0.6     #offset x
+      - 0     #offset y
+      - 0     #offset z
+  distance: 0.6
+  time_symmetry: true
+  lock_legs_apex: true
+  nominal_stance: true
+  stand_height: 0.23
+  nKnotpoints_flight: 7
+  nKnotpoints_stances: 4
+  apex_heights: 
+    - 0.7
+    - 0.7
+  pose_ref: true
+  roll_ref: 0.4
+  yaw_ref: 0.6
+  pitch_ref: 0.5
+  max_duration: 2
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 2 
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100 
+  mu: 1
+  eps: 1e-2
+  tol: 1
+  xtol: 1e-2
+  file_name_in: simple_parkour_2_1
+  file_name_out: simple_parkour_2_2
+  
+- 
+  name: parkour_pronk_3
+  surfaces:
+    - 
+      - 0     #normal x
+      - -0.3     #normal y
+      - 0.8     #normal z
+      - 0     #offset x
+      - 0     #offset y
+      - 0.1     #offset z
+    - 
+      - 0     #normal x
+      - 0.3     #normal y
+      - 0.8     #normal z
+      - 0.6     #offset x
+      - -0.5     #offset y
+      - 0.1     #offset z
+    - 
+      - 0     #normal x
+      - -0.3     #normal y
+      - 0.8     #normal z
+      - 1.2     #offset x
+      - 0     #offset y
+      - 0.1     #offset z
+  distance: 1.2
+  time_symmetry: true
+  lock_legs_apex: true
+  nominal_stance: true
+  stand_height: 0.23
+  nKnotpoints_flight: 7
+  nKnotpoints_stances: 4
+  apex_heights: 
+    - 0.6
+    - 0.6
+  pose_ref: true
+  roll_ref: 0.6
+  yaw_ref: 0.6
+  pitch_ref: 0.5
+  max_duration: 2
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10 
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100 
+  mu: 1
+  eps: 1e-2
+  tol: 1
+  xtol: 1e-2
+  file_name_in: simple_parkour_2_2
+  file_name_out: simple_parkour_2_3
+
+- 
+  name: parkour_pronk_4
+  surfaces:
+    - 
+      - 0     #normal x
+      - -0.5     #normal y
+      - 0.5     #normal z
+      - 0     #offset x
+      - 0     #offset y
+      - 0.05     #offset z
+    - 
+      - 0     #normal x
+      - 0.5     #normal y
+      - 0.5     #normal z
+      - 0.6     #offset x
+      - -0.7     #offset y
+      - 0.05     #offset z
+    - 
+      - 0     #normal x
+      - -0.5     #normal y
+      - 0.5     #normal z
+      - 1.2     #offset x
+      - 0     #offset y
+      - 0.05     #offset z
+  distance: 1.2
+  time_symmetry: true
+  lock_legs_apex: true
+  nominal_stance: true
+  stand_height: 0.23
+  nKnotpoints_flight: 7
+  nKnotpoints_stances: 4
+  apex_heights: 
+    - 0.6
+    - 0.6
+  pose_ref: true
+  roll_ref: 0.7
+  yaw_ref: 0.4
+  pitch_ref: 0.6
+  max_duration: 2
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 20 
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100 
+  mu: 1
+  eps: 1e-2
+  tol: 1
+  xtol: 1e-2
+  file_name_in: simple_parkour_2_3
+  file_name_out: simple_parkour_2_4

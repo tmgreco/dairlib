@@ -117,6 +117,7 @@ namespace dairlib {
         double cost_actuation; //!< Cost coefficient of actuation
         double cost_velocity; //!< Cost coefficient of velocity
         double cost_work; //!< Cost coefficient of work
+        double cost_power; //!< Cost coefficient of average power
         double cost_velocity_legs_flight; //!< Cost coefficient of velocity for legs during flight
         double cost_actuation_legs_flight; //!< Cost coefficient of actuation for legs during flight
         double cost_time; //!< Cost coefficient of time

@@ -8,6 +8,7 @@
 #include "examples/Spirit_spine/spirit_box_jump.h"
 #include "examples/Spirit_spine/spirit_parkour.h"
 #include "examples/Spirit_spine/spirit_parkour_wall.h"
+#include "examples/Spirit_spine/spirit_parkour_wall_run.h"
 #include <yaml-cpp/yaml.h>
 #include <fstream>
 #include <gflags/gflags.h>
@@ -40,6 +41,9 @@ Spirit<B,T>::Spirit(std::string dairlib_path, std::string yaml_path) :plant (std
     // Create saved directory if it doesn't exist
     if (!std::experimental::filesystem::is_directory(saved_directory) || !std::experimental::filesystem::exists(saved_directory)) { 
         std::experimental::filesystem::create_directory(saved_directory); 
+    }
+    if (!std::experimental::filesystem::is_directory(behavior.data_directory) || !std::experimental::filesystem::exists(behavior.data_directory)) { 
+        std::experimental::filesystem::create_directory(behavior.data_directory); 
     }
     // Copy current yaml to saved directory
     std::ifstream  src(this->yaml_path, std::ios::binary);
@@ -249,5 +253,6 @@ template class Spirit<dairlib::SpiritBoundingGait,double>;
 template class Spirit<dairlib::SpiritTurn,double>;
 template class Spirit<dairlib::SpiritBoxJump,double>;
 template class Spirit<dairlib::SpiritParkourJump,double>;
+template class Spirit<dairlib::SpiritParkourWallRun,double>;
 template class Spirit<dairlib::SpiritParkourWallPronk,double>;
 }

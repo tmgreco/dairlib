@@ -444,17 +444,16 @@ void SpiritParkourWallPronk<Y>::addConstraints(
         auto t0=2.0 * (x_flight_up(0) * x_flight_up(3) - x_flight_up(1)* x_flight_up(2));
         auto t1=1 - 2* (x_flight_up(2) * x_flight_up(2) + x_flight_up(3)* x_flight_up(3));
         auto yaw_flight_up = atan2(t0, t1);
-        auto roll_flight_up = atan2(2.0 * (xlo_1(0) * xlo_1(1) - xlo_1(2) * xlo_1(3)), 1.0 - 2.0 * (xlo_1(1) * xlo_1(1) + xlo_1(2) * xlo_1(2)));
-        auto pitch_flight_up = asin(2.0 * (xlo_1(0) * xlo_1(2) + xlo_1(3) * xlo_1(1)));
+        auto roll_flight_up = atan2(2.0 * (x_flight_up(0) * x_flight_up(1) - x_flight_up(2) * x_flight_up(3)),
+                           1.0 - 2.0 * (x_flight_up(1) * x_flight_up(1) + x_flight_up(2) * x_flight_up(2)));
+        auto pitch_flight_up = asin(2.0 * (x_flight_up(0) * x_flight_up(2) + x_flight_up(3) * x_flight_up(1)));
         if (pose_ref){
           if (iJump%2==0){
-            int a=1;
             trajopt.AddConstraint(yaw_flight_up,-yaw_ref,yaw_ref/5);
             trajopt.AddConstraint(roll_flight_up,-roll_ref,-roll_ref/4);
             trajopt.AddConstraint(pitch_flight_up,-pitch_ref,pitch_ref/5);
           }
           else{
-            int a=1;
             trajopt.AddConstraint(yaw_flight_up,-yaw_ref/5,yaw_ref);
             trajopt.AddConstraint(roll_flight_up,-roll_ref,roll_ref/4);
             trajopt.AddConstraint(pitch_flight_up,-pitch_ref*3/5,pitch_ref);

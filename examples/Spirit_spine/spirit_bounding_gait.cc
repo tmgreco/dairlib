@@ -27,7 +27,7 @@ void SpiritBoundingGait<Y>::config(std::string yaml_path, std::string saved_dire
   this->ipopt=config[index]["ipopt"].as<bool>();
   this->num_knot_points=config[index]["num_knot_points"].as<std::vector<int>>();
   this->initial_height=config[index]["initial_height"].as<double>();
-  this->pitch_magnitude_lo=config[index]["pitch_magnitude_lo"].as<double>();
+  this->pitch_magnitude=config[index]["pitch_magnitude"].as<double>();
   this->pitch_magnitude_apex=config[index]["pitch_magnitude_apex"].as<double>();
   this->lock_spine=config[index]["lock_spine"].as<bool>();
   this->time_symmetry=config[index]["time_symmetry"].as<bool>();
@@ -413,12 +413,6 @@ void SpiritBoundingGait<Y>::addConstraints(
 
   /// Touch down constraint
 
-  // Limit magnitude of pitch
-  trajopt.AddBoundingBoxConstraint(cos(pitch_magnitude_lo/2.0), 1, xtd(positions_map.at("base_qw")));
-  trajopt.AddBoundingBoxConstraint(-eps, eps, xtd(positions_map.at("base_qx")));
-  trajopt.AddBoundingBoxConstraint(-sin(pitch_magnitude_lo/2.0) , sin(pitch_magnitude_lo/2.0), xtd(positions_map.at("base_qy")));
-  trajopt.AddBoundingBoxConstraint(-eps, eps, xtd(positions_map.at("base_qz")));
-
 
   /// Flight 2 constraint
   
@@ -432,13 +426,6 @@ void SpiritBoundingGait<Y>::addConstraints(
   // // Apex height
   // if (apex_height>0) trajopt.AddBoundingBoxConstraint(apex_height-eps,apex_height+ eps, xapex(positions_map.at("base_z")));
 
-
-  /// LO constraints
-  // Limit magnitude of pitch
-  trajopt.AddBoundingBoxConstraint(cos(pitch_magnitude_lo/2.0), 1, xlo(positions_map.at("base_qw")));
-  trajopt.AddBoundingBoxConstraint(-eps, eps, xlo(positions_map.at("base_qx")));
-  trajopt.AddBoundingBoxConstraint(-sin(pitch_magnitude_lo/2.0) , sin(pitch_magnitude_lo/2.0), xlo(positions_map.at("base_qy")));
-  trajopt.AddBoundingBoxConstraint(-eps, eps, xlo(positions_map.at("base_qz")));
 
 
   /// Final constraints
@@ -463,7 +450,7 @@ void SpiritBoundingGait<Y>::addConstraints(
   trajopt.AddConstraint(  this->speed * total_time+x0(positions_map.at("base_x")) -xf(positions_map.at("base_x")),-eps, eps );
 
   double a_knee_max=1000;
-  double bodyLength=0.4;
+  double bodyLength=0.33;
   double upperLegLength=0.206;
   double lowerLegLength=0.206;
   double bodyWidth=0.24;
@@ -471,8 +458,15 @@ void SpiritBoundingGait<Y>::addConstraints(
   double minToeHeight=0.03;
   double minElbowHeight=0.05;
 
-  if (this->var!=0) pitch_magnitude_apex*=(float) std::rand()/RAND_MAX;
-  std::cout<<"MAX PITCH MAGNITUDE: "<<pitch_magnitude_apex<<std::endl;
+  if (this->var!=0) {
+    // double suggested_magnitude=0.3+0.25*sqrt(this->speed);
+    // auto normal_dist = std::bind(std::normal_distribution<double>{1, this->var*10},
+    //                             std::mt19937(std::random_device{}()));
+    // pitch_magnitude=suggested_magnitude*normal_dist();
+    pitch_magnitude*=(((double)rand()) / ((double)RAND_MAX) / 2.0+1);
+    std::cout<<"MAX PITCH MAGNITUDE: "<<pitch_magnitude<<std::endl;
+  }
+  
   /// Constraints on all points
   for (int i = 0; i < trajopt.N(); i++){
     auto xi = trajopt.state(i);
@@ -483,9 +477,9 @@ void SpiritBoundingGait<Y>::addConstraints(
     // Limit vx at all knot points
     trajopt.AddBoundingBoxConstraint( 0.6*this->speed, 1.4*this->speed, xi( n_q+velocities_map.at("base_vx")));
     // Limit magnitude of pitch
-    trajopt.AddBoundingBoxConstraint(cos(pitch_magnitude_apex/2.0), 1, xi(positions_map.at("base_qw")));
+    trajopt.AddBoundingBoxConstraint(cos(pitch_magnitude/2.0), 1, xi(positions_map.at("base_qw")));
     trajopt.AddBoundingBoxConstraint(-eps, eps, xi(positions_map.at("base_qx")));
-    trajopt.AddBoundingBoxConstraint(-sin(pitch_magnitude_apex/2.0) , sin(pitch_magnitude_apex/2.0), xi(positions_map.at("base_qy")));
+    trajopt.AddBoundingBoxConstraint(-sin(pitch_magnitude/2.0) , sin(pitch_magnitude/2.0), xi(positions_map.at("base_qy")));
     trajopt.AddBoundingBoxConstraint(-eps, eps, xi(positions_map.at("base_qz")));
 
     // Limit knee joints' angular accelerations
@@ -499,8 +493,8 @@ void SpiritBoundingGait<Y>::addConstraints(
 
     // Torso height
     auto pitch = asin(2.0 * (xi(0) * xi(2) + xi(3) * xi(1)));   // Up -> negative    Down -> positive
-    trajopt.AddConstraint(  xi( positions_map.at("base_z"))+0.5*bodyLength*sin(pitch),0.15, 2);
-    trajopt.AddConstraint(  xi( positions_map.at("base_z"))-0.5*bodyLength*sin(pitch),0.15, 2);
+    trajopt.AddConstraint(  xi( positions_map.at("base_z"))+0.5*(bodyLength+0.07)*sin(pitch),0.15, 2);
+    trajopt.AddConstraint(  xi( positions_map.at("base_z"))-0.5*(bodyLength+0.07)*sin(pitch),0.15, 2);
 
 
     // Elbow 1
@@ -698,7 +692,7 @@ void SpiritBoundingGait<Y>::run(MultibodyPlant<Y>& plant,
   int beginIdx = this->file_name_out.rfind('/');
   std::string filename = this->file_name_out.substr(beginIdx + 1);
   std::string contact_force_fname=this->data_directory+filename+".csv";
-  this->saveContactForceData(this->speed,contact_force_fname,result.is_success());
+  this->saveContactForceData(trajopt,result,this->speed,pitch_magnitude,contact_force_fname,result.is_success());
   
   // auto x_trajs = trajopt.ReconstructDiscontinuousStateTrajectory(result);
   // std::cout<<"Work = " << dairlib::calcElectricalWork(plant, x_trajs, this->u_traj) << std::endl;

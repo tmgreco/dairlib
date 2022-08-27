@@ -267,6 +267,28 @@ cc_library(
 )
 
 cc_library(
+    name = "spirit_parkour_wall_run",
+    srcs = ["spirit_parkour_wall_run.cc"],
+    hdrs = ["spirit_parkour_wall_run.h"],
+    data = ["spirit_with_spine_drake.urdf",
+            "spirit_drake.urdf"],
+    deps = [
+        ":animate_spirit",
+        ":spirit_utils",
+        ":spirit_behavior",
+        ":spirit_optimal_stand",
+        ":surface_conf",
+        "//systems/trajectory_optimization/dircon",
+        "//lcm:dircon_trajectory_saver",
+        "//multibody/kinematic",
+        "//common",
+        "//systems/primitives",
+        "@drake//:drake_shared_library",
+        "@gflags",
+    ],
+)
+
+cc_library(
     name = "Spirit",
     linkopts =["-lstdc++fs"],
     srcs = ["Spirit.cc"],
@@ -284,6 +306,7 @@ cc_library(
         ":spirit_box_jump",
         ":spirit_parkour_jump",
         ":spirit_parkour_wall_jump",
+        ":spirit_parkour_wall_run",
         ":spirit_utils",
         "//common",
         "//lcm:dircon_trajectory_saver",
@@ -320,6 +343,7 @@ cc_binary(
         ":spirit_trot",
         ":spirit_trot_half",
         ":spirit_parkour_wall_jump",
+        ":spirit_parkour_wall_run",
         ":Spirit",
         "//common",
         "//lcm:dircon_trajectory_saver",

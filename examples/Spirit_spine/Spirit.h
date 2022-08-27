@@ -25,6 +25,7 @@
 #include "examples/Spirit_spine/spirit_box_jump.h"
 #include "examples/Spirit_spine/spirit_parkour.h"
 #include "examples/Spirit_spine/spirit_parkour_wall.h"
+#include "examples/Spirit_spine/spirit_parkour_wall_run.h"
 using drake::multibody::MultibodyPlant;
 using drake::trajectories::PiecewisePolynomial;
 using drake::geometry::SceneGraph;

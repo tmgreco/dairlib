@@ -4,7 +4,7 @@
   data_directory: examples/Spirit_spine/data/bounding_gait/rigid/
   spine_type: rigid
   urdf_path: examples/Spirit_spine/spirit_drake.urdf
-  num_perturbations: 5
+  num_perturbations: 20
   mean: 1
   var: 0.01
   iterate:
@@ -14,25 +14,19 @@
       for:
         start: 0.1
         end: 2.5
-        step_size: 0.2
+        step_size: 0.1
     - name: bound_4
       iteration_variable: speed
       parallel_for:
         start: 0.1
         end: 2.5
-        step_size: 0.2
+        step_size: 0.1
     - name: bound_5
       iteration_variable: speed
       parallel_for:
         start: 0.1
         end: 2.5
-        step_size: 0.2
-    - name: bound_6
-      iteration_variable: speed
-      parallel_for:
-        start: 0.1
-        end: 2.5
-        step_size: 0.2
+        step_size: 0.1
 - name: bound_1
   ipopt: true
   num_knot_points:
@@ -45,7 +39,7 @@
   initial_height: 0.35
   time_symmetry: true
   force_symmetry: true
-  pitch_magnitude_lo: 0.1
+  pitch_magnitude: 0.1
   pitch_magnitude_apex: 0.1
   lock_spine: true
   apex_height: 0.4
@@ -57,7 +51,7 @@
   cost_velocity: 10
   cost_velocity_legs_flight: 2
   cost_actuation_legs_flight: 1
-  cost_time: 1000
+  cost_time: -1000
   cost_power: 0
   mu: 100
   eps: 1e-2
@@ -76,7 +70,7 @@
   initial_height: 0.2
   time_symmetry: true
   force_symmetry: true
-  pitch_magnitude_lo: 0.1
+  pitch_magnitude: 0.1
   pitch_magnitude_apex: 0.1
   lock_spine: true
   apex_height: 0.4
@@ -88,7 +82,7 @@
   cost_velocity: 10
   cost_velocity_legs_flight: 2
   cost_actuation_legs_flight: 1
-  cost_time: 1000
+  cost_time: -1000
   cost_power: 0
   mu: 1
   eps: 1e-2
@@ -107,8 +101,8 @@
   initial_height: 0.2
   time_symmetry: true
   force_symmetry: true
-  pitch_magnitude_lo: 0.2
-  pitch_magnitude_apex: 0.2
+  pitch_magnitude: 0.4
+  pitch_magnitude_apex: 0.05
   lock_spine: true
   apex_height: -1
   speed: 0.1
@@ -119,7 +113,7 @@
   cost_velocity: 0
   cost_velocity_legs_flight: 10
   cost_actuation_legs_flight: 0
-  cost_time: 500
+  cost_time: -1000
   cost_power: 100
   mu: 0.5
   eps: 1e-2
@@ -138,11 +132,11 @@
   initial_height: 0.2
   time_symmetry: true
   force_symmetry: true
-  pitch_magnitude_lo: 0.2
-  pitch_magnitude_apex: 0.2
+  pitch_magnitude: 0.4
+  pitch_magnitude_apex: 0.05
   lock_spine: true
   apex_height: -1
-  speed: 0.3
+  speed: 0.2
   min_duration: 0.4
   max_duration: 1
   lock_leg_apex: false
@@ -150,7 +144,7 @@
   cost_velocity: 0
   cost_velocity_legs_flight: 10
   cost_actuation_legs_flight: 0
-  cost_time: 500
+  cost_time: -1000
   cost_power: 100
   mu: 0.5
   eps: 1e-2
@@ -169,11 +163,11 @@
   initial_height: 0.2
   time_symmetry: true
   force_symmetry: true
-  pitch_magnitude_lo: 0.2
-  pitch_magnitude_apex: 0.2
+  pitch_magnitude: 0.4
+  pitch_magnitude_apex: 0.05
   lock_spine: true
   apex_height: -1
-  speed: 0.5
+  speed: 0.3
   min_duration: 0.4
   max_duration: 1
   lock_leg_apex: false
@@ -181,7 +175,7 @@
   cost_velocity: 0
   cost_velocity_legs_flight: 10
   cost_actuation_legs_flight: 0
-  cost_time: 500
+  cost_time: -1000
   cost_power: 100
   mu: 0.5
   eps: 1e-2
@@ -200,11 +194,11 @@
   initial_height: 0.2
   time_symmetry: true
   force_symmetry: true
-  pitch_magnitude_lo: 0.2
-  pitch_magnitude_apex: 0.2
+  pitch_magnitude: 0.4
+  pitch_magnitude_apex: 0.05
   lock_spine: true
   apex_height: -1
-  speed: 0.7
+  speed: 0.4
   min_duration: 0.4
   max_duration: 1
   lock_leg_apex: false
@@ -212,7 +206,7 @@
   cost_velocity: 0
   cost_velocity_legs_flight: 10
   cost_actuation_legs_flight: 0
-  cost_time: 500
+  cost_time: -1000
   cost_power: 100
   mu: 0.5
   eps: 1e-2
@@ -231,11 +225,11 @@
   initial_height: 0.2
   time_symmetry: true
   force_symmetry: true
-  pitch_magnitude_lo: 0.2
-  pitch_magnitude_apex: 0.2
+  pitch_magnitude: 0.4
+  pitch_magnitude_apex: 0.05
   lock_spine: true
   apex_height: -1
-  speed: 0.8999999999999999
+  speed: 0.5
   min_duration: 0.4
   max_duration: 1
   lock_leg_apex: false
@@ -243,7 +237,7 @@
   cost_velocity: 0
   cost_velocity_legs_flight: 10
   cost_actuation_legs_flight: 0
-  cost_time: 500
+  cost_time: -1000
   cost_power: 100
   mu: 0.5
   eps: 1e-2
@@ -262,11 +256,11 @@
   initial_height: 0.2
   time_symmetry: true
   force_symmetry: true
-  pitch_magnitude_lo: 0.2
-  pitch_magnitude_apex: 0.2
+  pitch_magnitude: 0.4
+  pitch_magnitude_apex: 0.05
   lock_spine: true
   apex_height: -1
-  speed: 1.1
+  speed: 0.6
   min_duration: 0.4
   max_duration: 1
   lock_leg_apex: false
@@ -274,7 +268,7 @@
   cost_velocity: 0
   cost_velocity_legs_flight: 10
   cost_actuation_legs_flight: 0
-  cost_time: 500
+  cost_time: -1000
   cost_power: 100
   mu: 0.5
   eps: 1e-2
@@ -293,11 +287,11 @@
   initial_height: 0.2
   time_symmetry: true
   force_symmetry: true
-  pitch_magnitude_lo: 0.2
-  pitch_magnitude_apex: 0.2
+  pitch_magnitude: 0.4
+  pitch_magnitude_apex: 0.05
   lock_spine: true
   apex_height: -1
-  speed: 1.3
+  speed: 0.7
   min_duration: 0.4
   max_duration: 1
   lock_leg_apex: false
@@ -305,7 +299,7 @@
   cost_velocity: 0
   cost_velocity_legs_flight: 10
   cost_actuation_legs_flight: 0
-  cost_time: 500
+  cost_time: -1000
   cost_power: 100
   mu: 0.5
   eps: 1e-2
@@ -324,11 +318,11 @@
   initial_height: 0.2
   time_symmetry: true
   force_symmetry: true
-  pitch_magnitude_lo: 0.2
-  pitch_magnitude_apex: 0.2
+  pitch_magnitude: 0.4
+  pitch_magnitude_apex: 0.05
   lock_spine: true
   apex_height: -1
-  speed: 1.5
+  speed: 0.7999999999999999
   min_duration: 0.4
   max_duration: 1
   lock_leg_apex: false
@@ -336,7 +330,7 @@
   cost_velocity: 0
   cost_velocity_legs_flight: 10
   cost_actuation_legs_flight: 0
-  cost_time: 500
+  cost_time: -1000
   cost_power: 100
   mu: 0.5
   eps: 1e-2
@@ -355,11 +349,11 @@
   initial_height: 0.2
   time_symmetry: true
   force_symmetry: true
-  pitch_magnitude_lo: 0.2
-  pitch_magnitude_apex: 0.2
+  pitch_magnitude: 0.4
+  pitch_magnitude_apex: 0.05
   lock_spine: true
   apex_height: -1
-  speed: 1.7
+  speed: 0.8999999999999999
   min_duration: 0.4
   max_duration: 1
   lock_leg_apex: false
@@ -367,7 +361,7 @@
   cost_velocity: 0
   cost_velocity_legs_flight: 10
   cost_actuation_legs_flight: 0
-  cost_time: 500
+  cost_time: -1000
   cost_power: 100
   mu: 0.5
   eps: 1e-2
@@ -386,11 +380,11 @@
   initial_height: 0.2
   time_symmetry: true
   force_symmetry: true
-  pitch_magnitude_lo: 0.2
-  pitch_magnitude_apex: 0.2
+  pitch_magnitude: 0.4
+  pitch_magnitude_apex: 0.05
   lock_spine: true
   apex_height: -1
-  speed: 1.9
+  speed: 0.9999999999999999
   min_duration: 0.4
   max_duration: 1
   lock_leg_apex: false
@@ -398,7 +392,7 @@
   cost_velocity: 0
   cost_velocity_legs_flight: 10
   cost_actuation_legs_flight: 0
-  cost_time: 500
+  cost_time: -1000
   cost_power: 100
   mu: 0.5
   eps: 1e-2
@@ -417,11 +411,11 @@
   initial_height: 0.2
   time_symmetry: true
   force_symmetry: true
-  pitch_magnitude_lo: 0.2
-  pitch_magnitude_apex: 0.2
+  pitch_magnitude: 0.4
+  pitch_magnitude_apex: 0.05
   lock_spine: true
   apex_height: -1
-  speed: 2.1
+  speed: 1.1
   min_duration: 0.4
   max_duration: 1
   lock_leg_apex: false
@@ -429,7 +423,7 @@
   cost_velocity: 0
   cost_velocity_legs_flight: 10
   cost_actuation_legs_flight: 0
-  cost_time: 500
+  cost_time: -1000
   cost_power: 100
   mu: 0.5
   eps: 1e-2
@@ -448,11 +442,11 @@
   initial_height: 0.2
   time_symmetry: true
   force_symmetry: true
-  pitch_magnitude_lo: 0.2
-  pitch_magnitude_apex: 0.2
+  pitch_magnitude: 0.4
+  pitch_magnitude_apex: 0.05
   lock_spine: true
   apex_height: -1
-  speed: 2.3
+  speed: 1.2
   min_duration: 0.4
   max_duration: 1
   lock_leg_apex: false
@@ -460,13 +454,385 @@
   cost_velocity: 0
   cost_velocity_legs_flight: 10
   cost_actuation_legs_flight: 0
-  cost_time: 500
+  cost_time: -1000
+  cost_power: 100
+  mu: 0.5
+  eps: 1e-2
+  tol: 1e-1
+  file_name_out: bounding_gait3_p12
+  file_name_in: bounding_gait3_p11
+- name: bound_3
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  time_symmetry: true
+  force_symmetry: true
+  pitch_magnitude: 0.4
+  pitch_magnitude_apex: 0.05
+  lock_spine: true
+  apex_height: -1
+  speed: 1.3
+  min_duration: 0.4
+  max_duration: 1
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: -1000
+  cost_power: 100
+  mu: 0.5
+  eps: 1e-2
+  tol: 1e-1
+  file_name_out: bounding_gait3_p13
+  file_name_in: bounding_gait3_p12
+- name: bound_3
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  time_symmetry: true
+  force_symmetry: true
+  pitch_magnitude: 0.4
+  pitch_magnitude_apex: 0.05
+  lock_spine: true
+  apex_height: -1
+  speed: 1.4
+  min_duration: 0.4
+  max_duration: 1
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: -1000
+  cost_power: 100
+  mu: 0.5
+  eps: 1e-2
+  tol: 1e-1
+  file_name_out: bounding_gait3_p14
+  file_name_in: bounding_gait3_p13
+- name: bound_3
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  time_symmetry: true
+  force_symmetry: true
+  pitch_magnitude: 0.4
+  pitch_magnitude_apex: 0.05
+  lock_spine: true
+  apex_height: -1
+  speed: 1.5
+  min_duration: 0.4
+  max_duration: 1
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: -1000
+  cost_power: 100
+  mu: 0.5
+  eps: 1e-2
+  tol: 1e-1
+  file_name_out: bounding_gait3_p15
+  file_name_in: bounding_gait3_p14
+- name: bound_3
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  time_symmetry: true
+  force_symmetry: true
+  pitch_magnitude: 0.4
+  pitch_magnitude_apex: 0.05
+  lock_spine: true
+  apex_height: -1
+  speed: 1.6
+  min_duration: 0.4
+  max_duration: 1
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: -1000
+  cost_power: 100
+  mu: 0.5
+  eps: 1e-2
+  tol: 1e-1
+  file_name_out: bounding_gait3_p16
+  file_name_in: bounding_gait3_p15
+- name: bound_3
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  time_symmetry: true
+  force_symmetry: true
+  pitch_magnitude: 0.4
+  pitch_magnitude_apex: 0.05
+  lock_spine: true
+  apex_height: -1
+  speed: 1.7
+  min_duration: 0.4
+  max_duration: 1
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: -1000
+  cost_power: 100
+  mu: 0.5
+  eps: 1e-2
+  tol: 1e-1
+  file_name_out: bounding_gait3_p17
+  file_name_in: bounding_gait3_p16
+- name: bound_3
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  time_symmetry: true
+  force_symmetry: true
+  pitch_magnitude: 0.4
+  pitch_magnitude_apex: 0.05
+  lock_spine: true
+  apex_height: -1
+  speed: 1.8
+  min_duration: 0.4
+  max_duration: 1
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: -1000
+  cost_power: 100
+  mu: 0.5
+  eps: 1e-2
+  tol: 1e-1
+  file_name_out: bounding_gait3_p18
+  file_name_in: bounding_gait3_p17
+- name: bound_3
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  time_symmetry: true
+  force_symmetry: true
+  pitch_magnitude: 0.4
+  pitch_magnitude_apex: 0.05
+  lock_spine: true
+  apex_height: -1
+  speed: 1.900000000000001
+  min_duration: 0.4
+  max_duration: 1
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: -1000
+  cost_power: 100
+  mu: 0.5
+  eps: 1e-2
+  tol: 1e-1
+  file_name_out: bounding_gait3_p19
+  file_name_in: bounding_gait3_p18
+- name: bound_3
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  time_symmetry: true
+  force_symmetry: true
+  pitch_magnitude: 0.4
+  pitch_magnitude_apex: 0.05
+  lock_spine: true
+  apex_height: -1
+  speed: 2
+  min_duration: 0.4
+  max_duration: 1
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: -1000
+  cost_power: 100
+  mu: 0.5
+  eps: 1e-2
+  tol: 1e-1
+  file_name_out: bounding_gait3_p20
+  file_name_in: bounding_gait3_p19
+- name: bound_3
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  time_symmetry: true
+  force_symmetry: true
+  pitch_magnitude: 0.4
+  pitch_magnitude_apex: 0.05
+  lock_spine: true
+  apex_height: -1
+  speed: 2.100000000000001
+  min_duration: 0.4
+  max_duration: 1
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: -1000
+  cost_power: 100
+  mu: 0.5
+  eps: 1e-2
+  tol: 1e-1
+  file_name_out: bounding_gait3_p21
+  file_name_in: bounding_gait3_p20
+- name: bound_3
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  time_symmetry: true
+  force_symmetry: true
+  pitch_magnitude: 0.4
+  pitch_magnitude_apex: 0.05
+  lock_spine: true
+  apex_height: -1
+  speed: 2.200000000000001
+  min_duration: 0.4
+  max_duration: 1
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: -1000
+  cost_power: 100
+  mu: 0.5
+  eps: 1e-2
+  tol: 1e-1
+  file_name_out: bounding_gait3_p22
+  file_name_in: bounding_gait3_p21
+- name: bound_3
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  time_symmetry: true
+  force_symmetry: true
+  pitch_magnitude: 0.4
+  pitch_magnitude_apex: 0.05
+  lock_spine: true
+  apex_height: -1
+  speed: 2.300000000000001
+  min_duration: 0.4
+  max_duration: 1
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: -1000
+  cost_power: 100
+  mu: 0.5
+  eps: 1e-2
+  tol: 1e-1
+  file_name_out: bounding_gait3_p23
+  file_name_in: bounding_gait3_p22
+- name: bound_3
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  time_symmetry: true
+  force_symmetry: true
+  pitch_magnitude: 0.4
+  pitch_magnitude_apex: 0.05
+  lock_spine: true
+  apex_height: -1
+  speed: 2.400000000000001
+  min_duration: 0.4
+  max_duration: 1
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: -1000
   cost_power: 100
   mu: 0.5
   eps: 1e-2
   tol: 1e-1
   file_name_out: bounding_gait3
-  file_name_in: bounding_gait3_p11
+  file_name_in: bounding_gait3_p23
 - name: bound_4
   ipopt: true
   num_knot_points:
@@ -479,8 +845,8 @@
   initial_height: 0.2
   time_symmetry: true
   force_symmetry: true
-  pitch_magnitude_lo: 0.5
-  pitch_magnitude_apex: 0.2
+  pitch_magnitude: 0.5
+  pitch_magnitude_apex: 0.1
   lock_spine: true
   apex_height: -1
   speed: 0.1
@@ -489,7 +855,7 @@
   lock_leg_apex: false
   cost_actuation: 0
   cost_velocity: 0
-  cost_velocity_legs_flight: 0
+  cost_velocity_legs_flight: 1
   cost_actuation_legs_flight: 0
   cost_time: 0
   cost_power: 100
@@ -510,17 +876,17 @@
   initial_height: 0.2
   time_symmetry: true
   force_symmetry: true
-  pitch_magnitude_lo: 0.5
-  pitch_magnitude_apex: 0.2
+  pitch_magnitude: 0.5
+  pitch_magnitude_apex: 0.1
   lock_spine: true
   apex_height: -1
-  speed: 0.3
+  speed: 0.2
   min_duration: 0.3
   max_duration: 0.8
   lock_leg_apex: false
   cost_actuation: 0
   cost_velocity: 0
-  cost_velocity_legs_flight: 0
+  cost_velocity_legs_flight: 1
   cost_actuation_legs_flight: 0
   cost_time: 0
   cost_power: 100
@@ -541,17 +907,17 @@
   initial_height: 0.2
   time_symmetry: true
   force_symmetry: true
-  pitch_magnitude_lo: 0.5
-  pitch_magnitude_apex: 0.2
+  pitch_magnitude: 0.5
+  pitch_magnitude_apex: 0.1
   lock_spine: true
   apex_height: -1
-  speed: 0.5
+  speed: 0.3
   min_duration: 0.3
   max_duration: 0.8
   lock_leg_apex: false
   cost_actuation: 0
   cost_velocity: 0
-  cost_velocity_legs_flight: 0
+  cost_velocity_legs_flight: 1
   cost_actuation_legs_flight: 0
   cost_time: 0
   cost_power: 100
@@ -572,17 +938,17 @@
   initial_height: 0.2
   time_symmetry: true
   force_symmetry: true
-  pitch_magnitude_lo: 0.5
-  pitch_magnitude_apex: 0.2
+  pitch_magnitude: 0.5
+  pitch_magnitude_apex: 0.1
   lock_spine: true
   apex_height: -1
-  speed: 0.7
+  speed: 0.4
   min_duration: 0.3
   max_duration: 0.8
   lock_leg_apex: false
   cost_actuation: 0
   cost_velocity: 0
-  cost_velocity_legs_flight: 0
+  cost_velocity_legs_flight: 1
   cost_actuation_legs_flight: 0
   cost_time: 0
   cost_power: 100
@@ -603,17 +969,17 @@
   initial_height: 0.2
   time_symmetry: true
   force_symmetry: true
-  pitch_magnitude_lo: 0.5
-  pitch_magnitude_apex: 0.2
+  pitch_magnitude: 0.5
+  pitch_magnitude_apex: 0.1
   lock_spine: true
   apex_height: -1
-  speed: 0.8999999999999999
+  speed: 0.5
   min_duration: 0.3
   max_duration: 0.8
   lock_leg_apex: false
   cost_actuation: 0
   cost_velocity: 0
-  cost_velocity_legs_flight: 0
+  cost_velocity_legs_flight: 1
   cost_actuation_legs_flight: 0
   cost_time: 0
   cost_power: 100
@@ -634,17 +1000,17 @@
   initial_height: 0.2
   time_symmetry: true
   force_symmetry: true
-  pitch_magnitude_lo: 0.5
-  pitch_magnitude_apex: 0.2
+  pitch_magnitude: 0.5
+  pitch_magnitude_apex: 0.1
   lock_spine: true
   apex_height: -1
-  speed: 1.1
+  speed: 0.6
   min_duration: 0.3
   max_duration: 0.8
   lock_leg_apex: false
   cost_actuation: 0
   cost_velocity: 0
-  cost_velocity_legs_flight: 0
+  cost_velocity_legs_flight: 1
   cost_actuation_legs_flight: 0
   cost_time: 0
   cost_power: 100
@@ -665,17 +1031,17 @@
   initial_height: 0.2
   time_symmetry: true
   force_symmetry: true
-  pitch_magnitude_lo: 0.5
-  pitch_magnitude_apex: 0.2
+  pitch_magnitude: 0.5
+  pitch_magnitude_apex: 0.1
   lock_spine: true
   apex_height: -1
-  speed: 1.3
+  speed: 0.7
   min_duration: 0.3
   max_duration: 0.8
   lock_leg_apex: false
   cost_actuation: 0
   cost_velocity: 0
-  cost_velocity_legs_flight: 0
+  cost_velocity_legs_flight: 1
   cost_actuation_legs_flight: 0
   cost_time: 0
   cost_power: 100
@@ -696,17 +1062,17 @@
   initial_height: 0.2
   time_symmetry: true
   force_symmetry: true
-  pitch_magnitude_lo: 0.5
-  pitch_magnitude_apex: 0.2
+  pitch_magnitude: 0.5
+  pitch_magnitude_apex: 0.1
   lock_spine: true
   apex_height: -1
-  speed: 1.5
+  speed: 0.7999999999999999
   min_duration: 0.3
   max_duration: 0.8
   lock_leg_apex: false
   cost_actuation: 0
   cost_velocity: 0
-  cost_velocity_legs_flight: 0
+  cost_velocity_legs_flight: 1
   cost_actuation_legs_flight: 0
   cost_time: 0
   cost_power: 100
@@ -727,17 +1093,17 @@
   initial_height: 0.2
   time_symmetry: true
   force_symmetry: true
-  pitch_magnitude_lo: 0.5
-  pitch_magnitude_apex: 0.2
+  pitch_magnitude: 0.5
+  pitch_magnitude_apex: 0.1
   lock_spine: true
   apex_height: -1
-  speed: 1.7
+  speed: 0.8999999999999999
   min_duration: 0.3
   max_duration: 0.8
   lock_leg_apex: false
   cost_actuation: 0
   cost_velocity: 0
-  cost_velocity_legs_flight: 0
+  cost_velocity_legs_flight: 1
   cost_actuation_legs_flight: 0
   cost_time: 0
   cost_power: 100
@@ -758,17 +1124,17 @@
   initial_height: 0.2
   time_symmetry: true
   force_symmetry: true
-  pitch_magnitude_lo: 0.5
-  pitch_magnitude_apex: 0.2
+  pitch_magnitude: 0.5
+  pitch_magnitude_apex: 0.1
   lock_spine: true
   apex_height: -1
-  speed: 1.9
+  speed: 0.9999999999999999
   min_duration: 0.3
   max_duration: 0.8
   lock_leg_apex: false
   cost_actuation: 0
   cost_velocity: 0
-  cost_velocity_legs_flight: 0
+  cost_velocity_legs_flight: 1
   cost_actuation_legs_flight: 0
   cost_time: 0
   cost_power: 100
@@ -789,17 +1155,17 @@
   initial_height: 0.2
   time_symmetry: true
   force_symmetry: true
-  pitch_magnitude_lo: 0.5
-  pitch_magnitude_apex: 0.2
+  pitch_magnitude: 0.5
+  pitch_magnitude_apex: 0.1
   lock_spine: true
   apex_height: -1
-  speed: 2.1
+  speed: 1.1
   min_duration: 0.3
   max_duration: 0.8
   lock_leg_apex: false
   cost_actuation: 0
   cost_velocity: 0
-  cost_velocity_legs_flight: 0
+  cost_velocity_legs_flight: 1
   cost_actuation_legs_flight: 0
   cost_time: 0
   cost_power: 100
@@ -820,17 +1186,389 @@
   initial_height: 0.2
   time_symmetry: true
   force_symmetry: true
-  pitch_magnitude_lo: 0.5
-  pitch_magnitude_apex: 0.2
+  pitch_magnitude: 0.5
+  pitch_magnitude_apex: 0.1
   lock_spine: true
   apex_height: -1
-  speed: 2.3
+  speed: 1.2
   min_duration: 0.3
   max_duration: 0.8
   lock_leg_apex: false
   cost_actuation: 0
   cost_velocity: 0
-  cost_velocity_legs_flight: 0
+  cost_velocity_legs_flight: 1
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.5
+  eps: 1e-2
+  tol: 1e-1
+  file_name_out: bounding_gait4_p12
+  file_name_in: bounding_gait3_p12
+- name: bound_4
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  time_symmetry: true
+  force_symmetry: true
+  pitch_magnitude: 0.5
+  pitch_magnitude_apex: 0.1
+  lock_spine: true
+  apex_height: -1
+  speed: 1.3
+  min_duration: 0.3
+  max_duration: 0.8
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 1
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.5
+  eps: 1e-2
+  tol: 1e-1
+  file_name_out: bounding_gait4_p13
+  file_name_in: bounding_gait3_p13
+- name: bound_4
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  time_symmetry: true
+  force_symmetry: true
+  pitch_magnitude: 0.5
+  pitch_magnitude_apex: 0.1
+  lock_spine: true
+  apex_height: -1
+  speed: 1.4
+  min_duration: 0.3
+  max_duration: 0.8
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 1
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.5
+  eps: 1e-2
+  tol: 1e-1
+  file_name_out: bounding_gait4_p14
+  file_name_in: bounding_gait3_p14
+- name: bound_4
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  time_symmetry: true
+  force_symmetry: true
+  pitch_magnitude: 0.5
+  pitch_magnitude_apex: 0.1
+  lock_spine: true
+  apex_height: -1
+  speed: 1.5
+  min_duration: 0.3
+  max_duration: 0.8
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 1
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.5
+  eps: 1e-2
+  tol: 1e-1
+  file_name_out: bounding_gait4_p15
+  file_name_in: bounding_gait3_p15
+- name: bound_4
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  time_symmetry: true
+  force_symmetry: true
+  pitch_magnitude: 0.5
+  pitch_magnitude_apex: 0.1
+  lock_spine: true
+  apex_height: -1
+  speed: 1.6
+  min_duration: 0.3
+  max_duration: 0.8
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 1
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.5
+  eps: 1e-2
+  tol: 1e-1
+  file_name_out: bounding_gait4_p16
+  file_name_in: bounding_gait3_p16
+- name: bound_4
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  time_symmetry: true
+  force_symmetry: true
+  pitch_magnitude: 0.5
+  pitch_magnitude_apex: 0.1
+  lock_spine: true
+  apex_height: -1
+  speed: 1.7
+  min_duration: 0.3
+  max_duration: 0.8
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 1
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.5
+  eps: 1e-2
+  tol: 1e-1
+  file_name_out: bounding_gait4_p17
+  file_name_in: bounding_gait3_p17
+- name: bound_4
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  time_symmetry: true
+  force_symmetry: true
+  pitch_magnitude: 0.5
+  pitch_magnitude_apex: 0.1
+  lock_spine: true
+  apex_height: -1
+  speed: 1.8
+  min_duration: 0.3
+  max_duration: 0.8
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 1
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.5
+  eps: 1e-2
+  tol: 1e-1
+  file_name_out: bounding_gait4_p18
+  file_name_in: bounding_gait3_p18
+- name: bound_4
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  time_symmetry: true
+  force_symmetry: true
+  pitch_magnitude: 0.5
+  pitch_magnitude_apex: 0.1
+  lock_spine: true
+  apex_height: -1
+  speed: 1.900000000000001
+  min_duration: 0.3
+  max_duration: 0.8
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 1
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.5
+  eps: 1e-2
+  tol: 1e-1
+  file_name_out: bounding_gait4_p19
+  file_name_in: bounding_gait3_p19
+- name: bound_4
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  time_symmetry: true
+  force_symmetry: true
+  pitch_magnitude: 0.5
+  pitch_magnitude_apex: 0.1
+  lock_spine: true
+  apex_height: -1
+  speed: 2
+  min_duration: 0.3
+  max_duration: 0.8
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 1
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.5
+  eps: 1e-2
+  tol: 1e-1
+  file_name_out: bounding_gait4_p20
+  file_name_in: bounding_gait3_p20
+- name: bound_4
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  time_symmetry: true
+  force_symmetry: true
+  pitch_magnitude: 0.5
+  pitch_magnitude_apex: 0.1
+  lock_spine: true
+  apex_height: -1
+  speed: 2.100000000000001
+  min_duration: 0.3
+  max_duration: 0.8
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 1
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.5
+  eps: 1e-2
+  tol: 1e-1
+  file_name_out: bounding_gait4_p21
+  file_name_in: bounding_gait3_p21
+- name: bound_4
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  time_symmetry: true
+  force_symmetry: true
+  pitch_magnitude: 0.5
+  pitch_magnitude_apex: 0.1
+  lock_spine: true
+  apex_height: -1
+  speed: 2.200000000000001
+  min_duration: 0.3
+  max_duration: 0.8
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 1
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.5
+  eps: 1e-2
+  tol: 1e-1
+  file_name_out: bounding_gait4_p22
+  file_name_in: bounding_gait3_p22
+- name: bound_4
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  time_symmetry: true
+  force_symmetry: true
+  pitch_magnitude: 0.5
+  pitch_magnitude_apex: 0.1
+  lock_spine: true
+  apex_height: -1
+  speed: 2.300000000000001
+  min_duration: 0.3
+  max_duration: 0.8
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 1
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.5
+  eps: 1e-2
+  tol: 1e-1
+  file_name_out: bounding_gait4_p23
+  file_name_in: bounding_gait3_p23
+- name: bound_4
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  time_symmetry: true
+  force_symmetry: true
+  pitch_magnitude: 0.5
+  pitch_magnitude_apex: 0.1
+  lock_spine: true
+  apex_height: -1
+  speed: 2.400000000000001
+  min_duration: 0.3
+  max_duration: 0.8
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 1
   cost_actuation_legs_flight: 0
   cost_time: 0
   cost_power: 100
@@ -850,15 +1588,15 @@
     - 7
     - 7
   initial_height: 0.2
-  time_symmetry: true
+  time_symmetry: false
   force_symmetry: true
-  pitch_magnitude_lo: 1.0
-  pitch_magnitude_apex: 1.0
+  pitch_magnitude: 1.0
+  pitch_magnitude_apex: 0.2
   lock_spine: false
   apex_height: -1
   speed: 0.1
   min_duration: 0.3
-  max_duration: 1.2
+  max_duration: 0.8
   lock_leg_apex: false
   cost_actuation: 0
   cost_velocity: 0
@@ -871,7 +1609,7 @@
   tol: 3e-2
   file_name_out: bounding_gait5_p1
   file_name_in: bounding_gait4_p1
-  action: shrink
+  action: expand
 - name: bound_5
   ipopt: true
   warm_up: true
@@ -883,15 +1621,15 @@
     - 7
     - 7
   initial_height: 0.2
-  time_symmetry: true
+  time_symmetry: false
   force_symmetry: true
-  pitch_magnitude_lo: 1.0
-  pitch_magnitude_apex: 1.0
+  pitch_magnitude: 1.0
+  pitch_magnitude_apex: 0.2
   lock_spine: false
   apex_height: -1
-  speed: 0.3
+  speed: 0.2
   min_duration: 0.3
-  max_duration: 1.2
+  max_duration: 0.8
   lock_leg_apex: false
   cost_actuation: 0
   cost_velocity: 0
@@ -904,7 +1642,7 @@
   tol: 3e-2
   file_name_out: bounding_gait5_p2
   file_name_in: bounding_gait4_p2
-  action: shrink
+  action: expand
 - name: bound_5
   ipopt: true
   warm_up: true
@@ -916,15 +1654,15 @@
     - 7
     - 7
   initial_height: 0.2
-  time_symmetry: true
+  time_symmetry: false
   force_symmetry: true
-  pitch_magnitude_lo: 1.0
-  pitch_magnitude_apex: 1.0
+  pitch_magnitude: 1.0
+  pitch_magnitude_apex: 0.2
   lock_spine: false
   apex_height: -1
-  speed: 0.5
+  speed: 0.3
   min_duration: 0.3
-  max_duration: 1.2
+  max_duration: 0.8
   lock_leg_apex: false
   cost_actuation: 0
   cost_velocity: 0
@@ -937,7 +1675,7 @@
   tol: 3e-2
   file_name_out: bounding_gait5_p3
   file_name_in: bounding_gait4_p3
-  action: shrink
+  action: expand
 - name: bound_5
   ipopt: true
   warm_up: true
@@ -949,15 +1687,15 @@
     - 7
     - 7
   initial_height: 0.2
-  time_symmetry: true
+  time_symmetry: false
   force_symmetry: true
-  pitch_magnitude_lo: 1.0
-  pitch_magnitude_apex: 1.0
+  pitch_magnitude: 1.0
+  pitch_magnitude_apex: 0.2
   lock_spine: false
   apex_height: -1
-  speed: 0.7
+  speed: 0.4
   min_duration: 0.3
-  max_duration: 1.2
+  max_duration: 0.8
   lock_leg_apex: false
   cost_actuation: 0
   cost_velocity: 0
@@ -970,7 +1708,7 @@
   tol: 3e-2
   file_name_out: bounding_gait5_p4
   file_name_in: bounding_gait4_p4
-  action: shrink
+  action: expand
 - name: bound_5
   ipopt: true
   warm_up: true
@@ -982,15 +1720,15 @@
     - 7
     - 7
   initial_height: 0.2
-  time_symmetry: true
+  time_symmetry: false
   force_symmetry: true
-  pitch_magnitude_lo: 1.0
-  pitch_magnitude_apex: 1.0
+  pitch_magnitude: 1.0
+  pitch_magnitude_apex: 0.2
   lock_spine: false
   apex_height: -1
-  speed: 0.8999999999999999
+  speed: 0.5
   min_duration: 0.3
-  max_duration: 1.2
+  max_duration: 0.8
   lock_leg_apex: false
   cost_actuation: 0
   cost_velocity: 0
@@ -1003,7 +1741,7 @@
   tol: 3e-2
   file_name_out: bounding_gait5_p5
   file_name_in: bounding_gait4_p5
-  action: shrink
+  action: expand
 - name: bound_5
   ipopt: true
   warm_up: true
@@ -1015,15 +1753,15 @@
     - 7
     - 7
   initial_height: 0.2
-  time_symmetry: true
+  time_symmetry: false
   force_symmetry: true
-  pitch_magnitude_lo: 1.0
-  pitch_magnitude_apex: 1.0
+  pitch_magnitude: 1.0
+  pitch_magnitude_apex: 0.2
   lock_spine: false
   apex_height: -1
-  speed: 1.1
+  speed: 0.6
   min_duration: 0.3
-  max_duration: 1.2
+  max_duration: 0.8
   lock_leg_apex: false
   cost_actuation: 0
   cost_velocity: 0
@@ -1036,7 +1774,7 @@
   tol: 3e-2
   file_name_out: bounding_gait5_p6
   file_name_in: bounding_gait4_p6
-  action: shrink
+  action: expand
 - name: bound_5
   ipopt: true
   warm_up: true
@@ -1048,15 +1786,15 @@
     - 7
     - 7
   initial_height: 0.2
-  time_symmetry: true
+  time_symmetry: false
   force_symmetry: true
-  pitch_magnitude_lo: 1.0
-  pitch_magnitude_apex: 1.0
+  pitch_magnitude: 1.0
+  pitch_magnitude_apex: 0.2
   lock_spine: false
   apex_height: -1
-  speed: 1.3
+  speed: 0.7
   min_duration: 0.3
-  max_duration: 1.2
+  max_duration: 0.8
   lock_leg_apex: false
   cost_actuation: 0
   cost_velocity: 0
@@ -1069,7 +1807,7 @@
   tol: 3e-2
   file_name_out: bounding_gait5_p7
   file_name_in: bounding_gait4_p7
-  action: shrink
+  action: expand
 - name: bound_5
   ipopt: true
   warm_up: true
@@ -1081,15 +1819,15 @@
     - 7
     - 7
   initial_height: 0.2
-  time_symmetry: true
+  time_symmetry: false
   force_symmetry: true
-  pitch_magnitude_lo: 1.0
-  pitch_magnitude_apex: 1.0
+  pitch_magnitude: 1.0
+  pitch_magnitude_apex: 0.2
   lock_spine: false
   apex_height: -1
-  speed: 1.5
+  speed: 0.7999999999999999
   min_duration: 0.3
-  max_duration: 1.2
+  max_duration: 0.8
   lock_leg_apex: false
   cost_actuation: 0
   cost_velocity: 0
@@ -1102,7 +1840,7 @@
   tol: 3e-2
   file_name_out: bounding_gait5_p8
   file_name_in: bounding_gait4_p8
-  action: shrink
+  action: expand
 - name: bound_5
   ipopt: true
   warm_up: true
@@ -1114,15 +1852,15 @@
     - 7
     - 7
   initial_height: 0.2
-  time_symmetry: true
+  time_symmetry: false
   force_symmetry: true
-  pitch_magnitude_lo: 1.0
-  pitch_magnitude_apex: 1.0
+  pitch_magnitude: 1.0
+  pitch_magnitude_apex: 0.2
   lock_spine: false
   apex_height: -1
-  speed: 1.7
+  speed: 0.8999999999999999
   min_duration: 0.3
-  max_duration: 1.2
+  max_duration: 0.8
   lock_leg_apex: false
   cost_actuation: 0
   cost_velocity: 0
@@ -1135,7 +1873,7 @@
   tol: 3e-2
   file_name_out: bounding_gait5_p9
   file_name_in: bounding_gait4_p9
-  action: shrink
+  action: expand
 - name: bound_5
   ipopt: true
   warm_up: true
@@ -1147,15 +1885,15 @@
     - 7
     - 7
   initial_height: 0.2
-  time_symmetry: true
+  time_symmetry: false
   force_symmetry: true
-  pitch_magnitude_lo: 1.0
-  pitch_magnitude_apex: 1.0
+  pitch_magnitude: 1.0
+  pitch_magnitude_apex: 0.2
   lock_spine: false
   apex_height: -1
-  speed: 1.9
+  speed: 0.9999999999999999
   min_duration: 0.3
-  max_duration: 1.2
+  max_duration: 0.8
   lock_leg_apex: false
   cost_actuation: 0
   cost_velocity: 0
@@ -1168,7 +1906,7 @@
   tol: 3e-2
   file_name_out: bounding_gait5_p10
   file_name_in: bounding_gait4_p10
-  action: shrink
+  action: expand
 - name: bound_5
   ipopt: true
   warm_up: true
@@ -1180,15 +1918,15 @@
     - 7
     - 7
   initial_height: 0.2
-  time_symmetry: true
+  time_symmetry: false
   force_symmetry: true
-  pitch_magnitude_lo: 1.0
-  pitch_magnitude_apex: 1.0
+  pitch_magnitude: 1.0
+  pitch_magnitude_apex: 0.2
   lock_spine: false
   apex_height: -1
-  speed: 2.1
+  speed: 1.1
   min_duration: 0.3
-  max_duration: 1.2
+  max_duration: 0.8
   lock_leg_apex: false
   cost_actuation: 0
   cost_velocity: 0
@@ -1201,7 +1939,7 @@
   tol: 3e-2
   file_name_out: bounding_gait5_p11
   file_name_in: bounding_gait4_p11
-  action: shrink
+  action: expand
 - name: bound_5
   ipopt: true
   warm_up: true
@@ -1213,15 +1951,411 @@
     - 7
     - 7
   initial_height: 0.2
-  time_symmetry: true
+  time_symmetry: false
   force_symmetry: true
-  pitch_magnitude_lo: 1.0
-  pitch_magnitude_apex: 1.0
+  pitch_magnitude: 1.0
+  pitch_magnitude_apex: 0.2
   lock_spine: false
   apex_height: -1
-  speed: 2.3
+  speed: 1.2
   min_duration: 0.3
-  max_duration: 1.2
+  max_duration: 0.8
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 1
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.5
+  eps: 1e-2
+  tol: 3e-2
+  file_name_out: bounding_gait5_p12
+  file_name_in: bounding_gait4_p12
+  action: expand
+- name: bound_5
+  ipopt: true
+  warm_up: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  time_symmetry: false
+  force_symmetry: true
+  pitch_magnitude: 1.0
+  pitch_magnitude_apex: 0.2
+  lock_spine: false
+  apex_height: -1
+  speed: 1.3
+  min_duration: 0.3
+  max_duration: 0.8
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 1
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.5
+  eps: 1e-2
+  tol: 3e-2
+  file_name_out: bounding_gait5_p13
+  file_name_in: bounding_gait4_p13
+  action: expand
+- name: bound_5
+  ipopt: true
+  warm_up: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  time_symmetry: false
+  force_symmetry: true
+  pitch_magnitude: 1.0
+  pitch_magnitude_apex: 0.2
+  lock_spine: false
+  apex_height: -1
+  speed: 1.4
+  min_duration: 0.3
+  max_duration: 0.8
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 1
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.5
+  eps: 1e-2
+  tol: 3e-2
+  file_name_out: bounding_gait5_p14
+  file_name_in: bounding_gait4_p14
+  action: expand
+- name: bound_5
+  ipopt: true
+  warm_up: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  time_symmetry: false
+  force_symmetry: true
+  pitch_magnitude: 1.0
+  pitch_magnitude_apex: 0.2
+  lock_spine: false
+  apex_height: -1
+  speed: 1.5
+  min_duration: 0.3
+  max_duration: 0.8
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 1
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.5
+  eps: 1e-2
+  tol: 3e-2
+  file_name_out: bounding_gait5_p15
+  file_name_in: bounding_gait4_p15
+  action: expand
+- name: bound_5
+  ipopt: true
+  warm_up: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  time_symmetry: false
+  force_symmetry: true
+  pitch_magnitude: 1.0
+  pitch_magnitude_apex: 0.2
+  lock_spine: false
+  apex_height: -1
+  speed: 1.6
+  min_duration: 0.3
+  max_duration: 0.8
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 1
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.5
+  eps: 1e-2
+  tol: 3e-2
+  file_name_out: bounding_gait5_p16
+  file_name_in: bounding_gait4_p16
+  action: expand
+- name: bound_5
+  ipopt: true
+  warm_up: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  time_symmetry: false
+  force_symmetry: true
+  pitch_magnitude: 1.0
+  pitch_magnitude_apex: 0.2
+  lock_spine: false
+  apex_height: -1
+  speed: 1.7
+  min_duration: 0.3
+  max_duration: 0.8
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 1
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.5
+  eps: 1e-2
+  tol: 3e-2
+  file_name_out: bounding_gait5_p17
+  file_name_in: bounding_gait4_p17
+  action: expand
+- name: bound_5
+  ipopt: true
+  warm_up: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  time_symmetry: false
+  force_symmetry: true
+  pitch_magnitude: 1.0
+  pitch_magnitude_apex: 0.2
+  lock_spine: false
+  apex_height: -1
+  speed: 1.8
+  min_duration: 0.3
+  max_duration: 0.8
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 1
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.5
+  eps: 1e-2
+  tol: 3e-2
+  file_name_out: bounding_gait5_p18
+  file_name_in: bounding_gait4_p18
+  action: expand
+- name: bound_5
+  ipopt: true
+  warm_up: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  time_symmetry: false
+  force_symmetry: true
+  pitch_magnitude: 1.0
+  pitch_magnitude_apex: 0.2
+  lock_spine: false
+  apex_height: -1
+  speed: 1.900000000000001
+  min_duration: 0.3
+  max_duration: 0.8
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 1
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.5
+  eps: 1e-2
+  tol: 3e-2
+  file_name_out: bounding_gait5_p19
+  file_name_in: bounding_gait4_p19
+  action: expand
+- name: bound_5
+  ipopt: true
+  warm_up: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  time_symmetry: false
+  force_symmetry: true
+  pitch_magnitude: 1.0
+  pitch_magnitude_apex: 0.2
+  lock_spine: false
+  apex_height: -1
+  speed: 2
+  min_duration: 0.3
+  max_duration: 0.8
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 1
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.5
+  eps: 1e-2
+  tol: 3e-2
+  file_name_out: bounding_gait5_p20
+  file_name_in: bounding_gait4_p20
+  action: expand
+- name: bound_5
+  ipopt: true
+  warm_up: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  time_symmetry: false
+  force_symmetry: true
+  pitch_magnitude: 1.0
+  pitch_magnitude_apex: 0.2
+  lock_spine: false
+  apex_height: -1
+  speed: 2.100000000000001
+  min_duration: 0.3
+  max_duration: 0.8
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 1
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.5
+  eps: 1e-2
+  tol: 3e-2
+  file_name_out: bounding_gait5_p21
+  file_name_in: bounding_gait4_p21
+  action: expand
+- name: bound_5
+  ipopt: true
+  warm_up: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  time_symmetry: false
+  force_symmetry: true
+  pitch_magnitude: 1.0
+  pitch_magnitude_apex: 0.2
+  lock_spine: false
+  apex_height: -1
+  speed: 2.200000000000001
+  min_duration: 0.3
+  max_duration: 0.8
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 1
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.5
+  eps: 1e-2
+  tol: 3e-2
+  file_name_out: bounding_gait5_p22
+  file_name_in: bounding_gait4_p22
+  action: expand
+- name: bound_5
+  ipopt: true
+  warm_up: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  time_symmetry: false
+  force_symmetry: true
+  pitch_magnitude: 1.0
+  pitch_magnitude_apex: 0.2
+  lock_spine: false
+  apex_height: -1
+  speed: 2.300000000000001
+  min_duration: 0.3
+  max_duration: 0.8
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 1
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100
+  mu: 0.5
+  eps: 1e-2
+  tol: 3e-2
+  file_name_out: bounding_gait5_p23
+  file_name_in: bounding_gait4_p23
+  action: expand
+- name: bound_5
+  ipopt: true
+  warm_up: true
+  num_knot_points:
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+    - 7
+  initial_height: 0.2
+  time_symmetry: false
+  force_symmetry: true
+  pitch_magnitude: 1.0
+  pitch_magnitude_apex: 0.2
+  lock_spine: false
+  apex_height: -1
+  speed: 2.400000000000001
+  min_duration: 0.3
+  max_duration: 0.8
   lock_leg_apex: false
   cost_actuation: 0
   cost_velocity: 0
@@ -1234,4 +2368,4 @@
   tol: 3e-2
   file_name_out: bounding_gait5
   file_name_in: bounding_gait4
-  action: shrink
+  action: expand

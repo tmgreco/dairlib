@@ -47,13 +47,14 @@ works2=[]
 #     # plt.savefig("./figs/long jump/positions%d"%j)
 #     # plt.close()
 
-for p in range(1,12):
+for p in range(1,21):
   best_work=1000
   displacement=0
-  for s in range(1,6):
+  for s in range(1,11):
     # with open('./data/long_jump/5_perturbed_trajs2/jump_c3_p%d_s%d.csv'%(p,s), mode ='r')as file:
     # with open('./data/trot_half/twisting_p5/trot_trot6_p%d_s%d.csv'%(p,s), mode ='r')as file:
-    with open('./data/bounding_gait/twisting/bounding_gait5_p%d_s%d.csv'%(p,s), mode ='r')as file:
+    # with open('./data/bounding_gait/rigid/bounding_gait4_p%d_s%d.csv'%(p,s), mode ='r')as file:
+    with open('./data/bounding_gait/rigid/bounding_gait5_p%d_s%d.csv'%(p,s), mode ='r')as file:
       # reading the CSV file
       csvFile = csv.reader(file)
       counter=0
@@ -73,8 +74,8 @@ plt.figure()
 # plt.plot(displacements2,np.array(works)-np.array(works2),'b')
 plt.plot(displacements,works,'b')
 plt.plot(displacements,works2,'r')
-# plt.show()
-plt.savefig("./figs/bounding_gait/electrical_work_5_perturbed_trajs")
+plt.show()
+# plt.savefig("./figs/bounding_gait/electrical_work_5_perturbed_trajs")
 
     
     
