@@ -1,7 +1,4 @@
 FROM ros:noetic-ros-base-focal
-WORKDIR /dairlib
-ENV DAIRLIB_DOCKER_VERSION=0.21
-COPY . .
 
 RUN DEBIAN_FRONTEND='noninteractive' \ 
     apt-get update && apt-get install -y --no-install-recommends apt-transport-https curl ca-certificates gnupg lsb-release wget
@@ -34,8 +31,13 @@ RUN git clone https://github.com/KodlabPenn/drake.git
 RUN cd drake \ 
  && git checkout zf-branch \
  && sudo yes | ./setup/ubuntu/install_prereqs.sh
+
+
+WORKDIR /dairlib
+ENV DAIRLIB_DOCKER_VERSION=0.22
+COPY . .
+
 ENV DAIRLIB_LOCAL_DRAKE_PATH="/drake"
 ENV DAIRLIB_PATH="/dairlib/"
-# RUN apt update && apt-get --only-upgrade install bazel
 RUN apt-get install -y lcm libbot2
 RUN cd /dairlib && sed -i 's/WITH_SNOPT=ON/WITH_SNOPT=OFF/g' .bazelrc && bazel build
