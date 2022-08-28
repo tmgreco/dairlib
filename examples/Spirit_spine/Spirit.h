@@ -2,7 +2,6 @@
 #define _spirit
 
 #include <cmath>
-#include <experimental/filesystem>
 
 #include "common/find_resource.h"
 #include "systems/trajectory_optimization/dircon/dircon.h"
