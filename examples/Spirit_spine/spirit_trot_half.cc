@@ -280,7 +280,11 @@ void SpiritTrotHalf<Y>::addConstraints(
 
   // Limit magnitude of pitch
   max_spine_new=max_spine_magnitude;
-  if (this->var!=0) max_spine_new*=(((double)rand()) / ((double)RAND_MAX)) +0.5;
+  
+  if (this->var!=0) {
+    double suggested_magnitude=0.2+0.25*sqrt(this->speed);
+    max_spine_new=suggested_magnitude*((((double)rand()) / ((double)RAND_MAX)) +0.5);
+  }
   std::cout<<"MAX SPINE"<<max_spine_new<<std::endl;
   std::cout<<(((double)rand()) / ((double)RAND_MAX)) +0.5<<std::endl;
   trajopt.AddBoundingBoxConstraint(cos(pitch_magnitude_lo/2.0)*cos(max_spine_new/4), 1, xtd(positions_map.at("base_qw")));

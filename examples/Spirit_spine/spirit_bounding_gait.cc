@@ -458,13 +458,13 @@ void SpiritBoundingGait<Y>::addConstraints(
   double minToeHeight=0.03;
   double minElbowHeight=0.05;
 
-  pitch_magnitude_new=pitch_magnitude;
+  // pitch_magnitude_new=pitch_magnitude;
   if (this->var!=0) {
-    // double suggested_magnitude=0.3+0.25*sqrt(this->speed);
+    double suggested_magnitude=0.3+0.25*sqrt(this->speed);
     // auto normal_dist = std::bind(std::normal_distribution<double>{1, this->var*10},
     //                             std::mt19937(std::random_device{}()));
     // pitch_magnitude=suggested_magnitude*normal_dist();
-    pitch_magnitude_new*=((double)rand()) / ((double)RAND_MAX) +0.5;
+    pitch_magnitude_new=suggested_magnitude*(((double)rand()) / ((double)RAND_MAX) +0.5);
     std::cout<<"MAX PITCH MAGNITUDE: "<<pitch_magnitude_new<<std::endl;
   }
   
