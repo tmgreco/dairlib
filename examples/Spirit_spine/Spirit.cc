@@ -12,6 +12,8 @@
 #include <yaml-cpp/yaml.h>
 #include <fstream>
 #include <gflags/gflags.h>
+#include <filesystem>
+
 
 DEFINE_double(skip_to, 1, "skip to ith optimization"); //set it not 1 after running the optimization once
 
@@ -39,12 +41,9 @@ Spirit<B,T>::Spirit(std::string dairlib_path, std::string yaml_path) :plant (std
     behavior.data_directory=dairlib_path+config[0]["data_directory"].as<std::string>();
     
     // Create saved directory if it doesn't exist
-    if (!std::experimental::filesystem::is_directory(saved_directory) || !std::experimental::filesystem::exists(saved_directory)) { 
-        std::experimental::filesystem::create_directory(saved_directory); 
-    }
-    if (!std::experimental::filesystem::is_directory(behavior.data_directory) || !std::experimental::filesystem::exists(behavior.data_directory)) { 
-        std::experimental::filesystem::create_directory(behavior.data_directory); 
-    }
+    std::filesystem::create_directories(saved_directory);
+    std::filesystem::create_directories(behavior.data_directory);
+    
     // Copy current yaml to saved directory
     std::ifstream  src(this->yaml_path, std::ios::binary);
     std::ofstream  dst(saved_directory+"config.yaml",   std::ios::binary);
