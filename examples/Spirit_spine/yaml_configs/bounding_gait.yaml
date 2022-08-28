@@ -6,8 +6,8 @@
   # data_directory: examples/Spirit_spine/data/bounding_gait/twisting/
   # spine_type: twisting
   # urdf_path: examples/Spirit_spine/spirit_with_spine_drake.urdf
-  saved_directory: examples/Spirit_spine/saved_trajectories/bound_gait/rigid/
-  data_directory: examples/Spirit_spine/data/bounding_gait/rigid/
+  saved_directory: ../data-out/bounding_gait/rigid/saved_trajectories/
+  data_directory: ../data-out/bounding_gait/rigid/data/
   spine_type: rigid
   urdf_path: examples/Spirit_spine/spirit_drake.urdf
   num_perturbations: 20
@@ -19,23 +19,23 @@
       num: 1
       iteration_variable: speed
       for:
-        start: 0.1
-        end: 2.5
-        step_size: 0.1
+        start: 0.0
+        end: 4.1
+        step_size: 0.2
     -
       name: bound_4
       iteration_variable: speed
       parallel_for:
-        start: 0.1
-        end: 2.5
-        step_size: 0.1
+        start: 0.0
+        end: 4.1
+        step_size: 0.2
     -
       name: bound_5
       iteration_variable: speed
       parallel_for:
-        start: 0.1
-        end: 2.5
-        step_size: 0.1
+        start: 0.0
+        end: 4.1
+        step_size: 0.2
 
 
 - 
