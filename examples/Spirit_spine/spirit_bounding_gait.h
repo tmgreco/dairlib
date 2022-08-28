@@ -130,6 +130,7 @@ private:
     bool time_symmetry;
     bool force_symmetry;
     double pitch_magnitude_apex;
+    double pitch_magnitude_new;
     double cost_power;
     double apex_height; 
     double speed;

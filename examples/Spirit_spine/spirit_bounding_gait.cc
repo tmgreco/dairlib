@@ -458,13 +458,14 @@ void SpiritBoundingGait<Y>::addConstraints(
   double minToeHeight=0.03;
   double minElbowHeight=0.05;
 
+  // pitch_magnitude_new=pitch_magnitude;
   if (this->var!=0) {
-    // double suggested_magnitude=0.3+0.25*sqrt(this->speed);
+    double suggested_magnitude=0.3+0.25*sqrt(this->speed);
     // auto normal_dist = std::bind(std::normal_distribution<double>{1, this->var*10},
     //                             std::mt19937(std::random_device{}()));
     // pitch_magnitude=suggested_magnitude*normal_dist();
-    pitch_magnitude*=(((double)rand()) / ((double)RAND_MAX) / 2.0+1);
-    std::cout<<"MAX PITCH MAGNITUDE: "<<pitch_magnitude<<std::endl;
+    pitch_magnitude_new=suggested_magnitude*(((double)rand()) / ((double)RAND_MAX) +0.5);
+    std::cout<<"MAX PITCH MAGNITUDE: "<<pitch_magnitude_new<<std::endl;
   }
   
   /// Constraints on all points
@@ -477,9 +478,9 @@ void SpiritBoundingGait<Y>::addConstraints(
     // Limit vx at all knot points
     trajopt.AddBoundingBoxConstraint( 0.6*this->speed, 1.4*this->speed, xi( n_q+velocities_map.at("base_vx")));
     // Limit magnitude of pitch
-    trajopt.AddBoundingBoxConstraint(cos(pitch_magnitude/2.0), 1, xi(positions_map.at("base_qw")));
+    trajopt.AddBoundingBoxConstraint(cos(pitch_magnitude_new/2.0), 1, xi(positions_map.at("base_qw")));
     trajopt.AddBoundingBoxConstraint(-eps, eps, xi(positions_map.at("base_qx")));
-    trajopt.AddBoundingBoxConstraint(-sin(pitch_magnitude/2.0) , sin(pitch_magnitude/2.0), xi(positions_map.at("base_qy")));
+    trajopt.AddBoundingBoxConstraint(-sin(pitch_magnitude_new/2.0) , sin(pitch_magnitude_new/2.0), xi(positions_map.at("base_qy")));
     trajopt.AddBoundingBoxConstraint(-eps, eps, xi(positions_map.at("base_qz")));
 
     // Limit knee joints' angular accelerations
@@ -692,7 +693,7 @@ void SpiritBoundingGait<Y>::run(MultibodyPlant<Y>& plant,
   int beginIdx = this->file_name_out.rfind('/');
   std::string filename = this->file_name_out.substr(beginIdx + 1);
   std::string contact_force_fname=this->data_directory+filename+".csv";
-  this->saveContactForceData(trajopt,result,this->speed,pitch_magnitude,contact_force_fname,result.is_success());
+  this->saveContactForceData(trajopt,result,this->speed,pitch_magnitude_new,contact_force_fname,result.is_success());
   
   // auto x_trajs = trajopt.ReconstructDiscontinuousStateTrajectory(result);
   // std::cout<<"Work = " << dairlib::calcElectricalWork(plant, x_trajs, this->u_traj) << std::endl;

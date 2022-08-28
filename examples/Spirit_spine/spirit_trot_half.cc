@@ -279,12 +279,18 @@ void SpiritTrotHalf<Y>::addConstraints(
   /// Touch down constraint
 
   // Limit magnitude of pitch
-  if (this->var!=0) max_spine_magnitude*=(float) std::rand()/RAND_MAX;
-  std::cout<<"MAX SPINE"<<max_spine_magnitude<<std::endl;
-  trajopt.AddBoundingBoxConstraint(cos(pitch_magnitude_lo/2.0)*cos(max_spine_magnitude/4), 1, xtd(positions_map.at("base_qw")));
-  trajopt.AddBoundingBoxConstraint(-sin(max_spine_magnitude/4)*cos(pitch_magnitude_lo/2.0), sin(max_spine_magnitude/4)*cos(pitch_magnitude_lo/2.0), xtd(positions_map.at("base_qx")));
-  trajopt.AddBoundingBoxConstraint(-cos(max_spine_magnitude/4)*sin(pitch_magnitude_lo/2.0) , cos(max_spine_magnitude/4)*sin(pitch_magnitude_lo/2.0), xtd(positions_map.at("base_qy")));
-  trajopt.AddBoundingBoxConstraint(-sin(max_spine_magnitude/4)*sin(pitch_magnitude_lo/2.0) , sin(max_spine_magnitude/4)*sin(pitch_magnitude_lo/2.0), xtd(positions_map.at("base_qz")));
+  max_spine_new=max_spine_magnitude;
+  
+  if (this->var!=0) {
+    double suggested_magnitude=0.2+0.25*sqrt(this->speed);
+    max_spine_new=suggested_magnitude*((((double)rand()) / ((double)RAND_MAX)) +0.5);
+  }
+  std::cout<<"MAX SPINE"<<max_spine_new<<std::endl;
+  std::cout<<(((double)rand()) / ((double)RAND_MAX)) +0.5<<std::endl;
+  trajopt.AddBoundingBoxConstraint(cos(pitch_magnitude_lo/2.0)*cos(max_spine_new/4), 1, xtd(positions_map.at("base_qw")));
+  trajopt.AddBoundingBoxConstraint(-sin(max_spine_new/4)*cos(pitch_magnitude_lo/2.0), sin(max_spine_new/4)*cos(pitch_magnitude_lo/2.0), xtd(positions_map.at("base_qx")));
+  trajopt.AddBoundingBoxConstraint(-cos(max_spine_new/4)*sin(pitch_magnitude_lo/2.0) , cos(max_spine_new/4)*sin(pitch_magnitude_lo/2.0), xtd(positions_map.at("base_qy")));
+  trajopt.AddBoundingBoxConstraint(-sin(max_spine_new/4)*sin(pitch_magnitude_lo/2.0) , sin(max_spine_new/4)*sin(pitch_magnitude_lo/2.0), xtd(positions_map.at("base_qz")));
 
 
   // /// Toes constraints
@@ -373,14 +379,14 @@ void SpiritTrotHalf<Y>::addConstraints(
   for (int i = 0; i < trajopt.N(); i++){
     auto xi = trajopt.state(i);
     // Limit roll and yaw
-    trajopt.AddBoundingBoxConstraint(cos(pitch_magnitude_lo/2.0)*cos(max_spine_magnitude/4), 1, xi(positions_map.at("base_qw")));
-    trajopt.AddBoundingBoxConstraint(-sin(max_spine_magnitude/4)*cos(pitch_magnitude_lo/2.0), sin(max_spine_magnitude/4)*cos(pitch_magnitude_lo/2.0), xi(positions_map.at("base_qx")));
-    trajopt.AddBoundingBoxConstraint(-cos(max_spine_magnitude/4)*sin(pitch_magnitude_lo/2.0) , cos(max_spine_magnitude/4)*sin(pitch_magnitude_lo/2.0), xi(positions_map.at("base_qy")));
-    trajopt.AddBoundingBoxConstraint(-sin(max_spine_magnitude/4)*sin(pitch_magnitude_lo/2.0) , sin(max_spine_magnitude/4)*sin(pitch_magnitude_lo/2.0), xi(positions_map.at("base_qz")));
+    trajopt.AddBoundingBoxConstraint(cos(pitch_magnitude_lo/2.0)*cos(max_spine_new/4), 1, xi(positions_map.at("base_qw")));
+    trajopt.AddBoundingBoxConstraint(-sin(max_spine_new/4)*cos(pitch_magnitude_lo/2.0), sin(max_spine_new/4)*cos(pitch_magnitude_lo/2.0), xi(positions_map.at("base_qx")));
+    trajopt.AddBoundingBoxConstraint(-cos(max_spine_new/4)*sin(pitch_magnitude_lo/2.0) , cos(max_spine_new/4)*sin(pitch_magnitude_lo/2.0), xi(positions_map.at("base_qy")));
+    trajopt.AddBoundingBoxConstraint(-sin(max_spine_new/4)*sin(pitch_magnitude_lo/2.0) , sin(max_spine_new/4)*sin(pitch_magnitude_lo/2.0), xi(positions_map.at("base_qz")));
     // Height
     trajopt.AddBoundingBoxConstraint( 0.25, 2, xi( positions_map.at("base_z")));
     trajopt.AddBoundingBoxConstraint( -eps, eps, xi( n_q+velocities_map.at("base_vy")));
-    if (this->spine_type=="twisting") trajopt.AddBoundingBoxConstraint( -max_spine_magnitude-eps, max_spine_magnitude+eps, xi( positions_map.at("joint_12")));
+    if (this->spine_type=="twisting") trajopt.AddBoundingBoxConstraint( -max_spine_new-eps, max_spine_new+eps, xi( positions_map.at("joint_12")));
 
     //Toes
     // Toe 1
@@ -608,7 +614,7 @@ void SpiritTrotHalf<Y>::run(MultibodyPlant<Y>& plant,
   int beginIdx = this->file_name_out.rfind('/');
   std::string filename = this->file_name_out.substr(beginIdx + 1);
   std::string contact_force_fname=this->data_directory+filename +".csv";
-  this->saveContactForceData(this->speed,contact_force_fname,result.is_success());
+  this->saveContactForceData(trajopt,result,this->speed,max_spine_new,contact_force_fname,result.is_success());
   
   // auto x_trajs = trajopt.ReconstructDiscontinuousStateTrajectory(result);
   // std::cout<<"Work = " << dairlib::calcElectricalWork(plant, x_trajs, this->u_traj) << std::endl;
