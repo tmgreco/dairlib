@@ -4,6 +4,8 @@
 DEFINE_string(traj_path, "temp", "path to trajectory to be viz"); 
 DEFINE_int32(num_period, 1, "How many periods to be visualized"); 
 DEFINE_double(real_time_rate,0.25,"Display speed");
+DEFINE_string(behavior, "jump", "behavior"); 
+DEFINE_string(spine_type, "rigid", "spine_type"); 
 using drake::AutoDiffXd;
 using drake::multibody::MultibodyPlant;
 using drake::geometry::SceneGraph;
@@ -66,16 +68,6 @@ void runAnimate(
 }
 
 void animateTraj(std::string& urdf_path) {
-  // auto plant_vis = std::make_unique<drake::multibody::MultibodyPlant<double>>(0.0);
-  // auto scene_graph_ptr = std::make_unique<SceneGraph<double>>();
-  // drake::systems::DiagramBuilder<double> builder;
-
-  // drake::multibody::Parser parser_vis(plant_vis.get(), scene_graph_ptr.get());
-  // std::string full_name =dairlib::FindResourceOrThrow("examples/Spirit_spine/spirit_with_spine_drake.urdf");
-
-  // parser_vis.AddModelFromFile(full_name);
-  // plant_vis.Finalize();
-
 
   auto plant = std::make_unique<MultibodyPlant<double>>(0.0);
   auto plant_vis = std::make_unique<MultibodyPlant<double>>(0.0);
@@ -83,8 +75,9 @@ void animateTraj(std::string& urdf_path) {
   drake::systems::DiagramBuilder<double> builder;
   Parser parser(plant.get());
   Parser parser_vis(plant_vis.get(), scene_graph_ptr.get());
-  std::string full_name =
-      dairlib::FindResourceOrThrow("examples/Spirit_spine/spirit_drake.urdf");
+  std::string full_name;
+  if (FLAGS_spine_type=="rigid") full_name = dairlib::FindResourceOrThrow("examples/Spirit_spine/spirit_drake.urdf");
+  else full_name = dairlib::FindResourceOrThrow("examples/Spirit_spine/spirit_with_spine_drake.urdf");
 
   parser.AddModelFromFile(full_name);
   parser_vis.AddModelFromFile(full_name);
@@ -98,7 +91,95 @@ void animateTraj(std::string& urdf_path) {
   dairlib::DirconTrajectory old_traj(FLAGS_traj_path);
   PiecewisePolynomial<double> pp_xtraj = old_traj.ReconstructStateTrajectory();
 
-  // addGaussionNoiseToStateTraj(*plant,pp_xtraj);
+
+  PiecewisePolynomial<double> x_traj_1;
+  if (FLAGS_behavior=="trot"){
+    x_traj_1=old_traj.ReconstructStateTrajectory();
+    PiecewisePolynomial<double> x_traj_2=old_traj.ReconstructStateTrajectory();
+    std::vector<double> breaks=x_traj_1.get_breaks();
+    // Reconstruct flipped traj
+    for (int i = 0; i < static_cast<int>(breaks.size())-1; ++i) {
+      drake::MatrixX<drake::Polynomial<double>> org_matrix=x_traj_1.getPolynomialMatrix(i);
+      drake::MatrixX<drake::Polynomial<double>> new_matrix=x_traj_2.getPolynomialMatrix(i);
+      if (FLAGS_spine_type=="twisting"){
+        new_matrix(1)*=-1; //opposite qx
+        new_matrix(3)*=-1; //opposite qz
+        new_matrix(4)+=x_traj_1.value(x_traj_1.end_time())(4,0);
+        new_matrix(5)*=-1; //opposite y
+        new_matrix(14)=org_matrix(15); //joint 0 = jiont 4
+        new_matrix(18)=org_matrix(19); //joint 1 = jiont 5
+        new_matrix(12)=org_matrix(13); //joint 2 = jiont 6
+        new_matrix(16)=org_matrix(17); //joint 3 = jiont 7
+        new_matrix(15)=org_matrix(14); //joint 4 = jiont 0
+        new_matrix(19)=org_matrix(18); //joint 5 = jiont 1
+        new_matrix(13)=org_matrix(12); //joint 6 = jiont 2
+        new_matrix(17)=org_matrix(16); //joint 7 = jiont 3
+        new_matrix(10)=-org_matrix(11); //joint 8 = - jiont 10
+        new_matrix(8)=-org_matrix(9); //joint 9 = -jiont 11
+        new_matrix(11)=-org_matrix(10); //joint 10 = -jiont 8
+        new_matrix(9)=-org_matrix(8); //joint 11 = -jiont 9
+        new_matrix(7)*=-1;  //Opposite Joint 12
+
+        new_matrix(20)*=-1; //opposite wx
+        new_matrix(22)*=-1; //opposite wz
+        new_matrix(24)*=-1; //opposite vy
+        new_matrix(33)=org_matrix(34); //Velocities: joint 0 = jiont 4
+        new_matrix(37)=org_matrix(38); //Velocities: joint 1 = jiont 5
+        new_matrix(31)=org_matrix(32); //Velocities: joint 2 = jiont 6
+        new_matrix(35)=org_matrix(36); //Velocities: joint 3 = jiont 7
+        new_matrix(34)=org_matrix(33); //Velocities: joint 4 = jiont 0
+        new_matrix(38)=org_matrix(37); //Velocities: joint 5 = jiont 1
+        new_matrix(32)=org_matrix(31); //Velocities: joint 6 = jiont 2
+        new_matrix(36)=org_matrix(35); //Velocities: joint 7 = jiont 3
+        new_matrix(29)=-org_matrix(30); //Velocities: joint 8 = -jiont 10
+        new_matrix(27)=-org_matrix(28); //Velocities: joint 9 = -jiont 11
+        new_matrix(30)=-org_matrix(29); //Velocities: joint 10 = -jiont 8
+        new_matrix(28)=-org_matrix(27); //Velocities: joint 11 = -jiont 9
+        new_matrix(26)*=-1;  //Velocities: Opposite Joint 12
+      }
+      else if (FLAGS_spine_type=="rigid"){
+        new_matrix(1)*=-1; //opposite qx
+        new_matrix(3)*=-1; //opposite qz
+        new_matrix(4)+=x_traj_1.value(x_traj_1.end_time())(4,0);
+        new_matrix(5)*=-1; //opposite y
+        new_matrix(11)=org_matrix(13); //joint 0 = jiont 4
+        new_matrix(15)=org_matrix(17); //joint 1 = jiont 5
+        new_matrix(12)=org_matrix(14); //joint 2 = jiont 6
+        new_matrix(16)=org_matrix(18); //joint 3 = jiont 7
+        new_matrix(13)=org_matrix(11); //joint 4 = jiont 0
+        new_matrix(17)=org_matrix(15); //joint 5 = jiont 1
+        new_matrix(14)=org_matrix(12); //joint 6 = jiont 2
+        new_matrix(18)=org_matrix(16); //joint 7 = jiont 3
+        new_matrix(7)=-org_matrix(9); //joint 8 = - jiont 10
+        new_matrix(8)=-org_matrix(10); //joint 9 = -jiont 11
+        new_matrix(9)=-org_matrix(7); //joint 10 = -jiont 8
+        new_matrix(10)=-org_matrix(8); //joint 11 = -jiont 9
+
+        new_matrix(19)*=-1; //opposite wx
+        new_matrix(21)*=-1; //opposite wz
+        new_matrix(23)*=-1; //opposite vy
+        new_matrix(31)=org_matrix(32); //Velocities: joint 0 = jiont 4
+        new_matrix(35)=org_matrix(36); //Velocities: joint 1 = jiont 5
+        new_matrix(29)=org_matrix(30); //Velocities: joint 2 = jiont 6
+        new_matrix(33)=org_matrix(34); //Velocities: joint 3 = jiont 7
+        new_matrix(32)=org_matrix(31); //Velocities: joint 4 = jiont 0
+        new_matrix(36)=org_matrix(35); //Velocities: joint 5 = jiont 1
+        new_matrix(30)=org_matrix(29); //Velocities: joint 6 = jiont 2
+        new_matrix(34)=org_matrix(33); //Velocities: joint 7 = jiont 3
+        new_matrix(27)=-org_matrix(28); //Velocities: joint 8 = -jiont 10
+        new_matrix(25)=-org_matrix(26); //Velocities: joint 9 = -jiont 11
+        new_matrix(28)=-org_matrix(27); //Velocities: joint 10 = -jiont 8
+        new_matrix(26)=-org_matrix(25); //Velocities: joint 11 = -jiont 9
+      }
+      x_traj_2.setPolynomialMatrixBlock(new_matrix,i);
+    }   
+    x_traj_2.shiftRight(x_traj_1.end_time());
+    x_traj_1.ConcatenateInTime(x_traj_2);
+    pp_xtraj=x_traj_1;
+  }
+  
+
+
   
   if (FLAGS_num_period>1){
     /// Create offset polynomial
@@ -112,7 +193,9 @@ void animateTraj(std::string& urdf_path) {
     PiecewisePolynomial<double> ini_offset_pp = PiecewisePolynomial<double>::FirstOrderHold(breaks, samples);
     PiecewisePolynomial<double> offset_pp=ini_offset_pp;
     for (int i=0;i<FLAGS_num_period;i++){
-      PiecewisePolynomial<double> x_traj_i=old_traj.ReconstructStateTrajectory()+offset_pp;
+      PiecewisePolynomial<double> x_traj_i;
+      if (FLAGS_behavior=="trot") x_traj_i=x_traj_1+offset_pp;
+      else x_traj_i=old_traj.ReconstructStateTrajectory()+offset_pp;
       offset_pp+=ini_offset_pp;
       x_traj_i.shiftRight(pp_xtraj.end_time());
       pp_xtraj.ConcatenateInTime(x_traj_i);
@@ -150,12 +233,6 @@ void addGaussionNoiseToStateTraj(MultibodyPlant<T>& plant,
                       std::mt19937(std::random_device{}())); // Normal distribution
   auto normal_dist_joints = std::bind(std::normal_distribution<double>{mean, var},
                       std::mt19937(std::random_device{}())); // Normal distribution
-
-  // std::cout<<"State at t=0: \n";
-  // for (int i=0;i<num_states;i++) std::cout<<state_traj.value(0)(i,0)<<std::endl;
-  // std::cout<<"State at t=0.5: \n";
-  // for (int i=0;i<num_states;i++) std::cout<<state_traj.value(0.5)(i,0)<<std::endl;
-  // std::cout<<"Break size: "<<static_cast<int>(breaks.size())<<"\n"<<state_traj.getPolynomialMatrix(24)<<std::endl;
   
   for (int i = 0; i < static_cast<int>(breaks.size())-1; ++i) {
     drake::MatrixX<drake::Polynomial<T>> org_matrix=state_traj.getPolynomialMatrix(i);
