@@ -2,6 +2,8 @@
 #include <yaml-cpp/yaml.h>
 
 
+DEFINE_bool(ghosts, true, "If ghosts are shown"); 
+
 using drake::multibody::MultibodyPlant;
 using drake::trajectories::PiecewisePolynomial;
 using Eigen::VectorXd;
@@ -454,7 +456,7 @@ void SpiritBoundingGait<Y>::addConstraints(
   double minToeHeight=0.03;
   double minElbowHeight=0.05;
 
-  // pitch_magnitude_new=pitch_magnitude;
+  pitch_magnitude_new=pitch_magnitude;
   if (this->var!=0) {
     double suggested_magnitude=0.3+0.25*sqrt(this->speed);
     // auto normal_dist = std::bind(std::normal_distribution<double>{1, this->var*10},
@@ -658,14 +660,16 @@ void SpiritBoundingGait<Y>::run(MultibodyPlant<Y>& plant,
   addConstraints(plant, trajopt);
 
   /// Setup the visualization during the optimization
-  int num_ghosts = 1;// Number of ghosts in visualization. NOTE: there are limitations on number of ghosts based on modes and knotpoints
-  std::vector<unsigned int> visualizer_poses; // Ghosts for visualizing during optimization
-  for(int i = 0; i < sequence.num_modes(); i++){
-      visualizer_poses.push_back(num_ghosts); 
+  if (FLAGS_ghosts){
+    int num_ghosts = 1;// Number of ghosts in visualization. NOTE: there are limitations on number of ghosts based on modes and knotpoints
+    std::vector<unsigned int> visualizer_poses; // Ghosts for visualizing during optimization
+    for(int i = 0; i < sequence.num_modes(); i++){
+        visualizer_poses.push_back(num_ghosts); 
+    }
+    trajopt.CreateVisualizationCallback(
+        dairlib::FindResourceOrThrow(this->urdf_path),
+        visualizer_poses, 0.2); // setup which URDF, how many poses, and alpha transparency 
   }
-  trajopt.CreateVisualizationCallback(
-      dairlib::FindResourceOrThrow(this->urdf_path),
-      visualizer_poses, 0.2); // setup which URDF, how many poses, and alpha transparency 
 
   drake::solvers::SolverId solver_id("");
   if (this->ipopt) {

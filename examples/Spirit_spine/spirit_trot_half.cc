@@ -2,6 +2,7 @@
 #include <yaml-cpp/yaml.h>
 
 
+
 using drake::multibody::MultibodyPlant;
 using drake::trajectories::PiecewisePolynomial;
 using Eigen::VectorXd;
@@ -217,12 +218,12 @@ void SpiritTrotHalf<Y>::addConstraints(
   
   auto actuators_map = multibody::makeNameToActuatorsMap(plant);
   // // Print joint dictionary
-  std::cout<<"**********************Actuators***********************"<<std::endl;
-  for (auto const& element : actuators_map)
-    std::cout << element.first << " = " << element.second << std::endl;
-  // for (auto const& element : velocities_map)
+  // std::cout<<"**********************Actuators***********************"<<std::endl;
+  // for (auto const& element : actuators_map)
   //   std::cout << element.first << " = " << element.second << std::endl;
-  std::cout<<"***************************************************"<<std::endl;
+  // // for (auto const& element : velocities_map)
+  // //   std::cout << element.first << " = " << element.second << std::endl;
+  // std::cout<<"***************************************************"<<std::endl;
 
   // General constraints
   setSpiritJointLimits(plant, trajopt);
@@ -571,6 +572,7 @@ void SpiritTrotHalf<Y>::run(MultibodyPlant<Y>& plant,
   addConstraints(plant, trajopt);
 
   /// Setup the visualization during the optimization
+
   int num_ghosts = 1;// Number of ghosts in visualization. NOTE: there are limitations on number of ghosts based on modes and knotpoints
   std::vector<unsigned int> visualizer_poses; // Ghosts for visualizing during optimization
   for(int i = 0; i < sequence.num_modes(); i++){
@@ -579,6 +581,7 @@ void SpiritTrotHalf<Y>::run(MultibodyPlant<Y>& plant,
   trajopt.CreateVisualizationCallback(
       dairlib::FindResourceOrThrow(this->urdf_path),
       visualizer_poses, 0.2); // setup which URDF, how many poses, and alpha transparency 
+  
 
   drake::solvers::SolverId solver_id("");
   if (this->ipopt) {

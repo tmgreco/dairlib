@@ -166,7 +166,7 @@ private:
     double ytol; //!< tolerace of initial and final y position for adjusting lateral distance to the wall
     std::vector<double> apex_heights;
     bool warm_up;
-
+    bool apex_flag=true;
     void saveContactForceData(dairlib::systems::trajectory_optimization::Dircon<Y>& trajopt,
                             const drake::solvers::MathematicalProgramResult& result,
                             double forward_dist, double lateral_dist, std::string file_path, bool is_success){

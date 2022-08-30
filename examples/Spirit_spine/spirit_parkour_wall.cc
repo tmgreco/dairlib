@@ -39,6 +39,7 @@ void SpiritParkourWallPronk<Y>::config(
   this->eps =config[index]["eps"].as<double>();
   this->tol =config[index]["tol"].as<double>();
   this->xtol =config[index]["xtol"].as<double>();
+  this->ytol =config[index]["ytol"].as<double>();
   this->pose_ref =config[index]["pose_ref"].as<bool>();
   this->roll_ref =config[index]["roll_ref"].as<double>();
   this->pitch_ref =config[index]["pitch_ref"].as<double>();
@@ -83,6 +84,7 @@ void SpiritParkourWallPronk<Y>::config(
 
   this->transitionSurfaces.clear();
   if (config[index]["transition_surface"]){
+    apex_flag=true;
     for (std::size_t i=0;i<config[index]["transition_surface"].size();i++){
       Eigen::Vector3d surface_normal=config[index]["transition_surface"][i][0].as<double>()*Eigen::Vector3d::UnitX()+
                                                 config[index]["transition_surface"][i][1].as<double>()*Eigen::Vector3d::UnitY()+
@@ -96,17 +98,17 @@ void SpiritParkourWallPronk<Y>::config(
     }
   }
   else{
-    
+    apex_flag=false;
     Eigen::Vector3d surface_normal=Eigen::Vector3d::UnitY();
-    Eigen::Vector3d surface_offset=fore_aft_displacement*0.5*Eigen::Vector3d::UnitX()+
+    Eigen::Vector3d surface_offset=fore_aft_displacement*0.52*Eigen::Vector3d::UnitX()+
                                   (fore_aft_displacement*(-0.25)-0.3)*Eigen::Vector3d::UnitY()
-                                  +(0.25+fore_aft_displacement*0.2)*Eigen::Vector3d::UnitZ();
+                                  +(0.25+fore_aft_displacement*0.3)*Eigen::Vector3d::UnitZ();
     // std::cout<<"NORMAL: "<<surface_normal<<"\n OFFSET: "<<surface_offset<<std::endl;
     this->transitionSurfaces.push_back(std::make_tuple(surface_normal,surface_offset,std::numeric_limits<double>::infinity()));
     if (apex_heights[0]>0){
       this->apex_heights.clear();
-      this->apex_heights.push_back(0.3+fore_aft_displacement*0.25);
-      this->apex_heights.push_back(0.3+fore_aft_displacement*0.25);
+      this->apex_heights.push_back(0.25+fore_aft_displacement*0.3);
+      this->apex_heights.push_back(0.25+fore_aft_displacement*0.3);
     }
   }
   
@@ -148,18 +150,8 @@ void SpiritParkourWallPronk<Y>::offsetConstraint(
   
   trajopt.AddLinearConstraint( t1(0) * xb(posInds[0]) + t1(1) * xb(posInds[1]) + t1(2) * xb(posInds[2])  <=  (t1Toffset+xtol));
   trajopt.AddLinearConstraint( t1(0) * xb(posInds[0]) + t1(1) * xb(posInds[1]) + t1(2) * xb(posInds[2])  >=  (t1Toffset-xtol));
-  
-  // trajopt.AddLinearConstraint( t3(0) * xb(posInds[0]) + t3(1) * xb(posInds[1]) + t3(2) * xb(posInds[2])  <=  (t3Toffset+0.25));
-  // trajopt.AddLinearConstraint( t3(0) * xb(posInds[0]) + t3(1) * xb(posInds[1]) + t3(2) * xb(posInds[2])  >=  (t3Toffset+0.2));
-  // trajopt.AddLinearConstraint( t2(0) * (xb(posInds[0])-offset(0)) + t2(1) * (xb(posInds[1])-offset(1)) + t2(2) * (xb(posInds[2])-offset(2))  <=  eps);
-  // trajopt.AddLinearConstraint( t2(0) * (xb(posInds[0])-offset(0)) + t2(1) * (xb(posInds[1])-offset(1)) + t2(2) * (xb(posInds[2])-offset(2))  >= -eps);
-  // trajopt.AddLinearConstraint( t3(0) * (xb(posInds[0])-offset(0)) + t3(1) * (xb(posInds[1])-offset(1)) + t3(2) * (xb(posInds[2])-offset(2))  <=  0.3);
-  // trajopt.AddLinearConstraint( t3(0) * (xb(posInds[0])-offset(0)) + t3(1) * (xb(posInds[1])-offset(1)) + t3(2) * (xb(posInds[2])-offset(2))  >= 0.15);
-  // trajopt.AddBoundingBoxConstraint( cos(max_pitch_magnitude/2.0),              1, xb(positions_map.at("base_qw")));
-  // trajopt.AddBoundingBoxConstraint(           -eps,            eps, xb(positions_map.at("base_qx")));
-  // trajopt.AddBoundingBoxConstraint(-sin(max_pitch_magnitude/2.0), sin(max_pitch_magnitude/2.0), xb(positions_map.at("base_qy")));
-  // trajopt.AddBoundingBoxConstraint(           -eps,            eps, xb(positions_map.at("base_qz")));
 
+  trajopt.AddLinearConstraint( t3(0) * xb(posInds[0]) + t3(1) * xb(posInds[1]) + t3(2) * xb(posInds[2])  >=  (t3Toffset+0.2));
 }
 
 template <class Y>
@@ -367,10 +359,15 @@ void SpiritParkourWallPronk<Y>::addConstraints(
   
 
   // Body pose constraints (keep the body flat) at initial state
-  trajopt.AddBoundingBoxConstraint(0.87, 1,  x0(positions_map.at("base_qw")));
+  trajopt.AddBoundingBoxConstraint(0.8, 1,  x0(positions_map.at("base_qw")));
   trajopt.AddBoundingBoxConstraint(0, 0 , x0(positions_map.at("base_qx")));
   trajopt.AddBoundingBoxConstraint(0, 0,  x0(positions_map.at("base_qy")));
-  trajopt.AddBoundingBoxConstraint(-0.48, 0.48,  x0(positions_map.at("base_qz")));
+  trajopt.AddBoundingBoxConstraint(-0.7, 0.7,  x0(positions_map.at("base_qz")));
+  auto t0_0=2.0 * (x0(0) * x0(3) - x0(1)* x0(2));
+  auto t0_1=1 - 2* (x0(2) * x0(2) + x0(3)* x0(3));
+  auto yaw_0 = atan2(t0_0, t0_1);
+  trajopt.AddConstraint(yaw_0,-yaw_ref,yaw_ref);
+
   if (this->spine_type== "twisting") trajopt.AddBoundingBoxConstraint(-eps, eps, x0(positions_map.at("joint_12")));
   // Initial  velocity
   trajopt.AddBoundingBoxConstraint(VectorXd::Zero(n_v), VectorXd::Zero(n_v), x0.tail(n_v));
@@ -383,10 +380,14 @@ void SpiritParkourWallPronk<Y>::addConstraints(
   // Nominal stand
   nominalSpiritStandConstraint(plant,trajopt,finalStand.height(), {trajopt.N()-1}, eps);
   // Body pose constraints (keep the body flat) at final state
-  trajopt.AddBoundingBoxConstraint(0.87, 1, xf(positions_map.at("base_qw")));
+  trajopt.AddBoundingBoxConstraint(0.8, 1, xf(positions_map.at("base_qw")));
   trajopt.AddBoundingBoxConstraint(-eps, eps, xf(positions_map.at("base_qx")));
   trajopt.AddBoundingBoxConstraint(-eps, eps, xf(positions_map.at("base_qy")));
-  trajopt.AddBoundingBoxConstraint(-0.48, 0.48, xf(positions_map.at("base_qz")));
+  trajopt.AddBoundingBoxConstraint(-0.7, 0.7, xf(positions_map.at("base_qz")));
+  auto tf_0=2.0 * (xf(0) * xf(3) - xf(1)* xf(2));
+  auto tf_1=1 - 2* (xf(2) * xf(2) + xf(3)* xf(3));
+  auto yaw_f = atan2(tf_0, tf_1);
+  trajopt.AddConstraint(yaw_f,-yaw_ref,yaw_ref);
   if (this->spine_type== "twisting") trajopt.AddBoundingBoxConstraint(-eps, eps, xf(positions_map.at("joint_12")));
   
   // Zero velocity
@@ -402,8 +403,8 @@ void SpiritParkourWallPronk<Y>::addConstraints(
   auto pitch_lo1 = asin(2.0 * (xlo_1(0) * xlo_1(2) + xlo_1(3) * xlo_1(1)));
   if (pose_ref){
     trajopt.AddConstraint(yaw_lo1,-yaw_ref,eps);
-    trajopt.AddConstraint(roll_lo1,-roll_ref*2/3,-roll_ref/6);
-    trajopt.AddConstraint(pitch_lo1,-pitch_ref,-pitch_ref/3);
+    trajopt.AddConstraint(roll_lo1,-roll_ref*2/3,eps);
+    trajopt.AddConstraint(pitch_lo1,-pitch_ref,eps);
   }
   ///constraint final touch-down roll yaw pitch
   auto ttd_f_0=2.0 * (xtd_f(0) * xtd_f(3) - xtd_f(1)* xtd_f(2));
@@ -413,7 +414,7 @@ void SpiritParkourWallPronk<Y>::addConstraints(
   auto pitch_tdf = asin(2.0 * (xtd_f(0) * xtd_f(2) + xtd_f(3) * xtd_f(1)));
   if (pose_ref){
     trajopt.AddConstraint(yaw_tdf,-eps, yaw_ref);
-    trajopt.AddConstraint(roll_tdf,-roll_ref*2/3,-roll_ref/6);
+    trajopt.AddConstraint(roll_tdf,-roll_ref*2/3,eps);
     trajopt.AddConstraint(pitch_tdf,pitch_ref/3,pitch_ref);
   }
   //  ****************************************************
@@ -423,6 +424,8 @@ void SpiritParkourWallPronk<Y>::addConstraints(
     
     if(apex_heights[iJump] > 0){
       trajopt.AddBoundingBoxConstraint(- 10*eps, + 10*eps, xapex(n_q + velocities_map.at("base_vz")) );
+      // if(apex_flag) trajopt.AddBoundingBoxConstraint(apex_heights[iJump] - 0.1, apex_heights[iJump] + 0.1, xapex(positions_map.at("base_z")) );
+      // else trajopt.AddBoundingBoxConstraint(apex_heights[iJump] - 0.3, apex_heights[iJump] + 0.3, xapex(positions_map.at("base_z")) );
       trajopt.AddBoundingBoxConstraint(apex_heights[iJump] - 0.1, apex_heights[iJump] + 0.1, xapex(positions_map.at("base_z")) );
     }
     
@@ -441,7 +444,7 @@ void SpiritParkourWallPronk<Y>::addConstraints(
           if (iJump%2==0){
             trajopt.AddConstraint(yaw_flight_up,-yaw_ref,yaw_ref/5);
             trajopt.AddConstraint(roll_flight_up,-roll_ref,-roll_ref/4);
-            trajopt.AddConstraint(pitch_flight_up,-pitch_ref,pitch_ref/5);
+            trajopt.AddConstraint(pitch_flight_up,-pitch_ref*4/5,pitch_ref/5);
           }
           else{
             trajopt.AddConstraint(yaw_flight_up,-yaw_ref/5,yaw_ref);
@@ -466,13 +469,29 @@ void SpiritParkourWallPronk<Y>::addConstraints(
       auto xtd_rear_s = trajopt.state_vars(interiorStanceModeIndex, 0);
       auto xlo_front_s = trajopt.state_vars(interiorStanceModeIndex+1, 0);
       auto xlo_rear_s = trajopt.state_vars(interiorStanceModeIndex+2, 0);
+      double upperLegLength=0.206;
+      double lowerLegLength=0.206;
       for (int j=interiorStanceModeIndex-1;j<interiorStanceModeIndex+3;j++){
         for (int k=0;k<nKnotpoints_stances;k++){
           auto xi = trajopt.state_vars(j,k);
-          trajopt.AddBoundingBoxConstraint(M_PI/1.9-eps, M_PI, xi(positions_map.at("joint_1") ) );
-          trajopt.AddBoundingBoxConstraint(M_PI/1.9-eps, M_PI, xi(positions_map.at("joint_3") ) );
-          trajopt.AddBoundingBoxConstraint(M_PI/1.9-eps, M_PI, xi(positions_map.at("joint_5") ) );
-          trajopt.AddBoundingBoxConstraint(M_PI/1.9-eps, M_PI, xi(positions_map.at("joint_7") ) );
+          // trajopt.AddBoundingBoxConstraint(M_PI/1.9-eps, M_PI, xi(positions_map.at("joint_1") ) );
+          // trajopt.AddBoundingBoxConstraint(M_PI/1.9-eps, M_PI, xi(positions_map.at("joint_3") ) );
+          // trajopt.AddBoundingBoxConstraint(M_PI/1.9-eps, M_PI, xi(positions_map.at("joint_5") ) );
+          // trajopt.AddBoundingBoxConstraint(M_PI/1.9-eps, M_PI, xi(positions_map.at("joint_7") ) );
+          // trajopt.AddConstraint(sin(xi(positions_map.at("joint_0")))+sin(xi(positions_map.at("joint_0"))-xi(positions_map.at("joint_1"))),)
+          trajopt.AddConstraint(xi(positions_map.at("joint_0"))-xi(positions_map.at("joint_1")),-M_PI,0);
+          trajopt.AddConstraint(xi(positions_map.at("joint_2"))-xi(positions_map.at("joint_3")),-M_PI,0);
+          trajopt.AddConstraint(xi(positions_map.at("joint_4"))-xi(positions_map.at("joint_5")),-M_PI,0);
+          trajopt.AddConstraint(xi(positions_map.at("joint_6"))-xi(positions_map.at("joint_7")),-M_PI,0);
+          trajopt.AddConstraint(upperLegLength*sin(xi(positions_map.at("joint_0")))+
+                                lowerLegLength*sin(xi(positions_map.at("joint_1"))-xi(positions_map.at("joint_0"))),0.05,0.4);
+          trajopt.AddConstraint(upperLegLength*sin(xi(positions_map.at("joint_2")))+
+                                lowerLegLength*sin(xi(positions_map.at("joint_3"))-xi(positions_map.at("joint_2"))),0.05,0.4);
+          trajopt.AddConstraint(upperLegLength*sin(xi(positions_map.at("joint_4")))+
+                                lowerLegLength*sin(xi(positions_map.at("joint_5"))-xi(positions_map.at("joint_4"))),0.05,0.4);
+          trajopt.AddConstraint(upperLegLength*sin(xi(positions_map.at("joint_6")))+
+                                lowerLegLength*sin(xi(positions_map.at("joint_7"))-xi(positions_map.at("joint_6"))),0.05,0.4);
+          
         }
       }
       std::tie(sNormal,sOffset,std::ignore) = transitionSurfaces[iJump-1];
@@ -480,7 +499,7 @@ void SpiritParkourWallPronk<Y>::addConstraints(
       this->offsetConstraint(plant, trajopt, xbot, sNormal,sOffset);
       trajopt.AddBoundingBoxConstraint(- 5*eps, + 5*eps, xbot(n_q + velocities_map.at("base_vz")) );
       if(apex_heights[iJump] > 0) {
-        trajopt.AddBoundingBoxConstraint(apex_heights[iJump] - 0.1, apex_heights[iJump] + 0.1, xbot(positions_map.at("base_z")) );
+        trajopt.AddBoundingBoxConstraint(std::get<1>(transitionSurfaces[0])[2]-0.1, std::get<1>(transitionSurfaces[0])[2]+0.1 , xbot(positions_map.at("base_z")) );
       }
       // Apex pose constraints
       auto tbot_0=2.0 * (xbot(0) * xbot(3) - xbot(1)* xbot(2));
@@ -490,8 +509,8 @@ void SpiritParkourWallPronk<Y>::addConstraints(
       auto pitch_bot = asin(2.0 * (xbot(0) * xbot(2) + xbot(3) * xbot(1)));
       if (pose_ref){
         trajopt.AddConstraint(yaw_bot,-20*eps,20*eps);
-        trajopt.AddConstraint(roll_bot,-roll_ref,-roll_ref*2/3);
-        trajopt.AddConstraint(pitch_bot,-10*eps,10*eps);
+        trajopt.AddConstraint(roll_bot,-roll_ref,-roll_ref/3);
+        trajopt.AddConstraint(pitch_bot,-pitch_ref/3,pitch_ref/3);
       }
       
 
@@ -638,7 +657,7 @@ void SpiritParkourWallPronk<Y>::run(MultibodyPlant<Y>& plant,
   int num_ghosts = 1;// Number of ghosts in visualization. NOTE: there are limitations on number of ghosts based on modes and knotpoints
   std::vector<unsigned int> visualizer_poses; // Ghosts for visualizing during optimization
   for(int i = 0; i < sequence.num_modes(); i++){
-      if (i==2 || i==8) num_ghosts = 3;
+      if (i==2 || i==3||i==7 || i==8) num_ghosts = 3;
       else num_ghosts = 1;
       visualizer_poses.push_back(num_ghosts); 
   }

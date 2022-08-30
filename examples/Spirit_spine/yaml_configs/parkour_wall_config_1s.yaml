@@ -12,7 +12,7 @@
   var: 0.01
   iterate:
     -
-      name: parkour_pronk_7
+      name: parkour_pronk_6
       num: 1
       iteration_variable: final_x
       for:
@@ -77,7 +77,7 @@
   eps: 5e-2
   tol: 10
   xtol: 1e-2
-  ytol: 1e-2
+  ytol: 3e-2
   file_name_in: ""
   file_name_out: simple_parkour_2_1
   animate: false
@@ -305,19 +305,10 @@
   file_name_in: simple_parkour_2_4
   file_name_out: simple_parkour_2_5
   animate: false
-
 - 
   name: parkour_pronk_6
   warm_up: false
   n_jumps: 2
-  transition_surface:
-    - 
-      - 0     #normal x
-      - 1     #normal y
-      - 0     #normal z
-      - 0.3     #offset x
-      - -0.6     #offset y
-      - 0.4    #offset z
   initial_stand:
     - 0  #normal x
     - 0  #normal y
@@ -326,14 +317,7 @@
     - 0  #offset y
     - 0  #offset z
     - false #rerun
-  final_stand:
-    - 0  #normal x
-    - 0  #normal y
-    - 1  #normal z
-    - 0.6  #offset x
-    - 0  #offset y
-    - 0 #offset z
-    - false #rerun
+  final_x: 0.6
   stand_height: 0.23
   nKnotpoints_flight: 7
   nKnotpoints_stances: 4
@@ -343,101 +327,156 @@
   max_pitch_magnitude: 1.2
   max_apex_pitch_magnitude: 0.1
   pose_ref: true
-  roll_ref: 1.6
+  roll_ref: 1.5
   yaw_ref: 0.7
   pitch_ref: 1
   max_duration: 2
-  cost_actuation: 0
-  cost_velocity: 0
-  cost_velocity_legs_flight: 10
-  cost_actuation_legs_flight: 0 
-  cost_time: 0
-  cost_work: 100
+  cost_actuation: 3
+  cost_velocity: 10 
+  cost_velocity_legs_flight: 2 
+  cost_actuation_legs_flight: 1 
+  cost_time: 1000
+  cost_work: 0
   mu: 1
   eps: 1e-2
   tol: 1
-  xtol: 5e-2
-  ytol: 1e-2
+  xtol: 1e-1
+  ytol: 1e-1
   file_name_in: simple_parkour_2_5
   file_name_out: simple_parkour_2_6
   animate: false
-- 
-  name: parkour_pronk_7
-  warm_up: true
-  n_jumps: 2
-  initial_stand:
-    - 0  #normal x
-    - 0  #normal y
-    - 1  #normal z
-    - 0  #offset x
-    - 0  #offset y
-    - 0  #offset z
-    - false #rerun
-  final_x: 0.6
-  stand_height: 0.23
-  nKnotpoints_flight: 7
-  nKnotpoints_stances: 4
-  apex_heights: 
-    - 0.4
-    - 0.4
-  max_pitch_magnitude: 1.2
-  max_apex_pitch_magnitude: 0.1
-  pose_ref: true
-  roll_ref: 1.6
-  yaw_ref: 0.7
-  pitch_ref: 1
-  max_duration: 2
-  cost_actuation: 0
-  cost_velocity: 0
-  cost_velocity_legs_flight: 10
-  cost_actuation_legs_flight: 0 
-  cost_time: 0
-  cost_work: 100
-  mu: 2
-  eps: 2e-2
-  tol: 1
-  xtol: 5e-2
-  ytol: 1e-2
-  file_name_in: simple_parkour_2_6
-  file_name_out: simple_parkour_2_7
-  animate: false
-- 
-  name: parkour_pronk_8
-  warm_up: true
-  n_jumps: 2
-  initial_stand:
-    - 0  #normal x
-    - 0  #normal y
-    - 1  #normal z
-    - 0  #offset x
-    - 0  #offset y
-    - 0  #offset z
-    - false #rerun
-  final_x: 0.6
-  stand_height: 0.23
-  nKnotpoints_flight: 7
-  nKnotpoints_stances: 4
-  apex_heights: 
-    - -1
-    - -1
-  max_pitch_magnitude: 1.2
-  max_apex_pitch_magnitude: 0.1
-  pose_ref: true
-  roll_ref: 1.6
-  yaw_ref: 0.7
-  pitch_ref: 1
-  max_duration: 2
-  cost_actuation: 0
-  cost_velocity: 0
-  cost_velocity_legs_flight: 1
-  cost_actuation_legs_flight: 0 
-  cost_time: 0
-  cost_work: 100
-  mu: 1
-  eps: 1e-2
-  tol: 1
-  xtol: 5e-2
-  ytol: 1e-2
-  file_name_in: simple_parkour_2_7
-  file_name_out: simple_parkour_2_8
-  animate: false
+# - 
+#   name: parkour_pronk_6
+#   warm_up: false
+#   n_jumps: 2
+#   transition_surface:
+#     - 
+#       - 0     #normal x
+#       - 1     #normal y
+#       - 0     #normal z
+#       - 0.3     #offset x
+#       - -0.6     #offset y
+#       - 0.4    #offset z
+#   initial_stand:
+#     - 0  #normal x
+#     - 0  #normal y
+#     - 1  #normal z
+#     - 0  #offset x
+#     - 0  #offset y
+#     - 0  #offset z
+#     - false #rerun
+#   final_stand:
+#     - 0  #normal x
+#     - 0  #normal y
+#     - 1  #normal z
+#     - 0.6  #offset x
+#     - 0  #offset y
+#     - 0 #offset z
+#     - false #rerun
+#   stand_height: 0.23
+#   nKnotpoints_flight: 7
+#   nKnotpoints_stances: 4
+#   apex_heights: 
+#     - 0.4
+#     - 0.4
+#   max_pitch_magnitude: 1.2
+#   max_apex_pitch_magnitude: 0.1
+#   pose_ref: true
+#   roll_ref: 1.6
+#   yaw_ref: 0.7
+#   pitch_ref: 1
+#   max_duration: 2
+#   cost_actuation: 0
+#   cost_velocity: 0
+#   cost_velocity_legs_flight: 10
+#   cost_actuation_legs_flight: 0 
+#   cost_time: 0
+#   cost_work: 100
+#   mu: 1
+#   eps: 1e-2
+#   tol: 1
+#   xtol: 5e-2
+#   ytol: 1e-2
+#   file_name_in: simple_parkour_2_5
+#   file_name_out: simple_parkour_2_6
+#   animate: false
+# - 
+#   name: parkour_pronk_7
+#   warm_up: false
+#   n_jumps: 2
+#   initial_stand:
+#     - 0  #normal x
+#     - 0  #normal y
+#     - 1  #normal z
+#     - 0  #offset x
+#     - 0  #offset y
+#     - 0  #offset z
+#     - false #rerun
+#   final_x: 0.6
+#   stand_height: 0.23
+#   nKnotpoints_flight: 7
+#   nKnotpoints_stances: 4
+#   apex_heights: 
+#     - 0.4
+#     - 0.4
+#   max_pitch_magnitude: 1.2
+#   max_apex_pitch_magnitude: 0.1
+#   pose_ref: true
+#   roll_ref: 1.5
+#   yaw_ref: 0.7
+#   pitch_ref: 1
+#   max_duration: 2
+#   cost_actuation: 0
+#   cost_velocity: 0
+#   cost_velocity_legs_flight: 10
+#   cost_actuation_legs_flight: 0 
+#   cost_time: 0
+#   cost_work: 100
+#   mu: 1
+#   eps: 2e-2
+#   tol: 1
+#   xtol: 1e-1
+#   ytol: 1e-1
+#   file_name_in: simple_parkour_2_6
+#   file_name_out: simple_parkour_2_7
+#   animate: false
+# - 
+#   name: parkour_pronk_8
+#   warm_up: true
+#   n_jumps: 2
+#   initial_stand:
+#     - 0  #normal x
+#     - 0  #normal y
+#     - 1  #normal z
+#     - 0  #offset x
+#     - 0  #offset y
+#     - 0  #offset z
+#     - false #rerun
+#   final_x: 0.6
+#   stand_height: 0.23
+#   nKnotpoints_flight: 7
+#   nKnotpoints_stances: 4
+#   apex_heights: 
+#     - -1
+#     - -1
+#   max_pitch_magnitude: 1.2
+#   max_apex_pitch_magnitude: 0.1
+#   pose_ref: true
+#   roll_ref: 1.6
+#   yaw_ref: 0.7
+#   pitch_ref: 1
+#   max_duration: 2
+#   cost_actuation: 0
+#   cost_velocity: 0
+#   cost_velocity_legs_flight: 1
+#   cost_actuation_legs_flight: 0 
+#   cost_time: 0
+#   cost_work: 100
+#   mu: 1
+#   eps: 1e-2
+#   tol: 1
+#   xtol: 5e-2
+#   ytol: 1e-2
+#   file_name_in: simple_parkour_2_7
+#   file_name_out: simple_parkour_2_8
+#   animate: false

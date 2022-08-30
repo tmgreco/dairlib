@@ -12,7 +12,6 @@
 #include <yaml-cpp/yaml.h>
 #include <fstream>
 #include <gflags/gflags.h>
-
 DEFINE_double(skip_to, 1, "skip to ith optimization"); //set it not 1 after running the optimization once
 DEFINE_double(end_at, INT_MAX, "end at ith optimization"); //set it not 1 after running the optimization once
 using drake::multibody::Parser;

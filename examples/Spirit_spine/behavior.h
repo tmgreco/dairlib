@@ -24,6 +24,8 @@
 #include "examples/Spirit_spine/spirit_utils.h"
 #include "examples/Spirit_spine/surface_conf.h"
 
+
+
 using drake::multibody::MultibodyPlant;
 using drake::trajectories::PiecewisePolynomial;
 using drake::geometry::SceneGraph;
