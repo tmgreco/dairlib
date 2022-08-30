@@ -163,6 +163,7 @@ private:
     double yaw_ref;
     bool nominal_stance;
     bool lock_legs_apex;
+    bool lock_spine;
     int nJumps=2; //!< number of jumps
     double xtol; //!< tolerace of transformed x axis displacement where robot land on the transition surfaces
     std::vector<double> apex_heights;

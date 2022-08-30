@@ -88,6 +88,7 @@ namespace dairlib {
         virtual void setUpModeSequence()=0;
         /// Typically enable animation at the last optimization
         void enable_animate(){get_animate_info=true;}
+        bool if_animate(){return get_animate_info;}
         void setFileNameIn(std::string name) {file_name_in=name;}
         void setFileNameOut(std::string name) {file_name_out=name;}
         std::string getFileNameIn(){ return file_name_in;}
@@ -329,7 +330,16 @@ namespace dairlib {
             std::ofstream myfile; // 
             myfile.open(file_path);
             myfile << "param,"<<param << ",Electrical work," << electrical_work <<",Electrical power,"<<electrical_power <<",success?,"<<is_success<< "\n";
-            myfile<< "Time, Front L ,,, Front R ,,, Back L ,,, Back R ,,,, x, y, z, vx, vy, vz, joint 12, joint 12 dot, joint 12 torque \n";
+            myfile<< "Time, Front L ,,, Front R ,,, Back L ,,, Back R ,,,, x, y, z, vx, vy, vz,";
+            if (this->spine_type=="twisting") {
+                myfile<<"joint 12, joint 12 dot, joint 12 torque ,,,,qw,qx,qy,qz,x,y,z,q12,q9,q11,q8,q10,q2,q6,q0,q4,q3,q7,q1,q5,";
+                myfile<<"wx,wy,wz,vx,vy,vz,q12d,q9d,q11d,q8d,q10d,q2d,q6d,q0d,q4d,q3d,q7d,q1d,q5d,,,";
+                myfile<<"f12,f8,f0,f1,f9,f2,f3,f10,f4,f5,f11,f6,f7\n";
+            }
+            else {myfile<<",,,qw,qx,qy,qz,x,y,z,q8,q9,q10,q11,q0,q2,q4,q6,q1,q3,q5,q8,";
+                myfile<<"wx,wy,wz,vx,vy,vz,q8d,q9d,q10d,q11d,q0d,q2d,q4d,q6d,q1d,q3d,q5d,q8d,,,";
+                myfile<<"f8,f0,f1,f9,f2,f3,f10,f4,f5,f11,f6,f7\n";
+            }
             Y traj_end_time=this->u_traj.end_time();
             for (Y current_time=0;current_time<traj_end_time;current_time+=0.01){
                 int mode=-1;
@@ -379,9 +389,9 @@ namespace dairlib {
                 else{
                     for (int i=3;i<6;i++) myfile << this->x_traj.value(current_time)(19+i,0) << ",";
                     myfile<<",,,";
-                    for (int i=0;i<39;i++) myfile << this->x_traj.value(current_time)(i,0) << ",";
+                    for (int i=0;i<37;i++) myfile << this->x_traj.value(current_time)(i,0) << ",";
                     myfile<<",,";
-                    for (int i=0;i<13;i++) myfile << this->u_traj.value(current_time)(i,0) << ",";
+                    for (int i=0;i<12;i++) myfile << this->u_traj.value(current_time)(i,0) << ",";
                 }
                 myfile <<"\n";
             }

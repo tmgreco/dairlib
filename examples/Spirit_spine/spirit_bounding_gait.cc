@@ -366,7 +366,7 @@ void SpiritBoundingGait<Y>::addConstraints(
   /// Initial constraint
 
   // xyz position
-  trajopt.AddBoundingBoxConstraint(0, 0, x0(positions_map.at("base_x"))); // Give the initial condition room to choose the x_init position
+  trajopt.AddBoundingBoxConstraint(0, 0, x0(positions_map.at("base_x"))); 
   trajopt.AddBoundingBoxConstraint( -eps, eps, x0( positions_map.at("base_y")));
   if (apex_height>0) trajopt.AddBoundingBoxConstraint( this->apex_height-eps, this->apex_height+eps, x0( positions_map.at("base_z")));
 
@@ -409,10 +409,6 @@ void SpiritBoundingGait<Y>::addConstraints(
     trajopt.AddBoundingBoxConstraint(upperSet - eps, upperSet + eps, xapex(positions_map.at("joint_6") ) );
     trajopt.AddBoundingBoxConstraint(kneeSet - eps, kneeSet + eps, xapex(positions_map.at("joint_7") ) );
   }
-
-
-  /// Touch down constraint
-
 
   /// Flight 2 constraint
   
@@ -465,8 +461,9 @@ void SpiritBoundingGait<Y>::addConstraints(
     //                             std::mt19937(std::random_device{}()));
     // pitch_magnitude=suggested_magnitude*normal_dist();
     pitch_magnitude_new=suggested_magnitude*(((double)rand()) / ((double)RAND_MAX) +0.5);
-    std::cout<<"MAX PITCH MAGNITUDE: "<<pitch_magnitude_new<<std::endl;
+    
   }
+  std::cout<<"SPINE TYPE: "<<this->spine_type<<" MAX PITCH MAGNITUDE: "<<pitch_magnitude_new<<std::endl;
   
   /// Constraints on all points
   for (int i = 0; i < trajopt.N(); i++){
@@ -493,9 +490,11 @@ void SpiritBoundingGait<Y>::addConstraints(
     }
 
     // Torso height
-    auto pitch = asin(2.0 * (xi(0) * xi(2) + xi(3) * xi(1)));   // Up -> negative    Down -> positive
-    trajopt.AddConstraint(  xi( positions_map.at("base_z"))+0.5*(bodyLength+0.07)*sin(pitch),0.15, 2);
-    trajopt.AddConstraint(  xi( positions_map.at("base_z"))-0.5*(bodyLength+0.07)*sin(pitch),0.15, 2);
+
+    auto pitch = asin(2.0 * min(max((xi(0) * xi(2) + xi(3) * xi(1)),-0.5),0.5));   // clip the value in asin(*) to be with in (-1,1) 
+                                                                                   // Up -> negative    Down -> positive
+    trajopt.AddConstraint(  xi( positions_map.at("base_z"))+0.5*(bodyLength+0.1)*sin(pitch),0.15, 2);
+    trajopt.AddConstraint(  xi( positions_map.at("base_z"))-0.5*(bodyLength+0.1)*sin(pitch),0.15, 2);
 
 
     // Elbow 1

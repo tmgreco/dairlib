@@ -14,7 +14,7 @@
 #include <gflags/gflags.h>
 
 DEFINE_double(skip_to, 1, "skip to ith optimization"); //set it not 1 after running the optimization once
-
+DEFINE_double(end_at, INT_MAX, "end at ith optimization"); //set it not 1 after running the optimization once
 using drake::multibody::Parser;
 using drake::multibody::MultibodyPlant;
 using drake::trajectories::PiecewisePolynomial;
@@ -163,7 +163,7 @@ void Spirit<B,T>::animate(){
       &builder, &scene_graph, pp_xtraj);
   auto diagram = builder.Build();
   // bool save=false;
-  while (1) {
+  while (behavior.if_animate()) {
     drake::systems::Simulator<double> simulator(*diagram);
     simulator.set_target_realtime_rate(0.25);
     simulator.Initialize();
@@ -182,6 +182,10 @@ template <template<class> class B,class T>
 void Spirit<B,T>::run(){
   behavior.setMeanAndVar(1,0);
   for (int i=FLAGS_skip_to;i<=num_optimizations;i++){
+    if (i>FLAGS_end_at) {
+      std::cout<<"stop after running optimization "<<i-1<<std::endl;
+      break;
+    }
     std::cout<<"Running optimization "<<i<<std::endl;
     if (i==num_optimizations) behavior.enable_animate();   
     behavior.config(yaml_path,saved_directory,i,plant.get());

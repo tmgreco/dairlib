@@ -76,7 +76,7 @@ namespace dairlib {
         // Get the RPY represenation of the unit normal
         drake::math::RollPitchYaw<double> rpy(dairlib::normal2Rotation(normal_)) ;
         rpy_ = rpy.vector();
-        std::cout << rpy.vector() << std::endl;;
+        // std::cout << rpy.vector() << std::endl;;
         double roll = rpy.roll_angle();
         double pitch = rpy.pitch_angle();
         double yaw = rpy.yaw_angle();
