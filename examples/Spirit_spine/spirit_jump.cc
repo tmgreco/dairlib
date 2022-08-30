@@ -255,7 +255,7 @@ void SpiritJump<Y>::addConstraints(
   // Initial body positions
   trajopt.AddBoundingBoxConstraint(0, 0, x0(positions_map.at("base_x"))); // Give the initial condition room to choose the x_init position
   trajopt.AddBoundingBoxConstraint(-eps, eps, x0(positions_map.at("base_y")));
-  trajopt.AddBoundingBoxConstraint(-eps, eps, x0(positions_map.at("joint_12")));
+  if (this->spine_type=="twisting") trajopt.AddBoundingBoxConstraint(-eps, eps, x0(positions_map.at("joint_12")));
   // Body pose constraints (keep the body flat) at initial state
   this->addPoseConstraints(trajopt,x0,positions_map,0,0,0,1,eps);
   // Initial velocity
@@ -314,7 +314,7 @@ void SpiritJump<Y>::addConstraints(
     trajopt.AddBoundingBoxConstraint(-0, 0, xapex( n_q + velocities_map.at("joint_9dot")));
     trajopt.AddBoundingBoxConstraint(-0, 0, xapex( n_q + velocities_map.at("joint_10dot")));
     trajopt.AddBoundingBoxConstraint(-0, 0, xapex( n_q + velocities_map.at("joint_11dot")));
-    trajopt.AddBoundingBoxConstraint(-0, 0, xapex( n_q + velocities_map.at("joint_12dot")));
+    if (this->spine_type=="twisting") trajopt.AddBoundingBoxConstraint(-0, 0, xapex( n_q + velocities_map.at("joint_12dot")));
   }
 
 
@@ -328,7 +328,7 @@ void SpiritJump<Y>::addConstraints(
   // Final body positions conditions
   trajopt.AddBoundingBoxConstraint(fore_aft_displacement - eps, fore_aft_displacement + eps, xf(positions_map.at("base_x"))); // Give the initial condition room to choose the x_init position (helps with positive knee constraint)
   trajopt.AddBoundingBoxConstraint(-eps, eps, xf(positions_map.at("base_y")));
-  trajopt.AddBoundingBoxConstraint(-eps, eps, xf(positions_map.at("joint_12")));
+  if (this->spine_type=="twisting") trajopt.AddBoundingBoxConstraint(-eps, eps, xf(positions_map.at("joint_12")));
   // Nominal stand or z and attitude
   if(use_nominal_stand){
     nominalSpiritStandConstraint(plant,trajopt,initial_height, {0,trajopt.N()-1}, eps);
@@ -356,6 +356,7 @@ void SpiritJump<Y>::addConstraints(
   double abOffs=0.10098;
   double minToeHeight=0.03;
   double minElbowHeight=0.05;
+  double toeRadius=0.02;
 
   for (int i = 0; i < trajopt.N(); i++){
     auto xi = trajopt.state(i);
@@ -371,64 +372,65 @@ void SpiritJump<Y>::addConstraints(
     trajopt.AddBoundingBoxConstraint( 0.15, 5, xi( positions_map.at("base_z")));
     
     auto pitch = asin(2.0 * (xi(0) * xi(2) + xi(3) * xi(1)));   // Up -> negative    Down -> positive
-    if (i>10 && i<17){
+    if ((i>10 && i<17) || (i>6 && i<=10)){
       // Restrict the apex toes height
       // Toe 1
       if (this->spine_type=="twisting")
         trajopt.AddConstraint(xi(positions_map.at("base_z"))+0.5*bodyWidth*sin(xi(positions_map.at("joint_12")))-0.5*bodyLength*sin(pitch)+abOffs*sin(xi(positions_map.at("joint_8")))
                               -cos(xi(positions_map.at("joint_8"))+xi(positions_map.at("joint_12")))*(upperLegLength*sin(xi(positions_map.at("joint_0"))-pitch)
-                              +lowerLegLength*sin(xi(positions_map.at("joint_1"))-xi(positions_map.at("joint_0"))+pitch)),minToeHeight, 1);
+                              +lowerLegLength*sin(xi(positions_map.at("joint_1"))-xi(positions_map.at("joint_0"))+pitch)),toeRadius, 1);
       else 
         trajopt.AddConstraint(xi(positions_map.at("base_z"))-0.5*bodyLength*sin(pitch)+abOffs*sin(xi(positions_map.at("joint_8")))
                               -cos(xi(positions_map.at("joint_8")))*(upperLegLength*sin(xi(positions_map.at("joint_0"))-pitch)
-                              +lowerLegLength*sin(xi(positions_map.at("joint_1"))-xi(positions_map.at("joint_0"))+pitch)),minToeHeight, 1);
+                              +lowerLegLength*sin(xi(positions_map.at("joint_1"))-xi(positions_map.at("joint_0"))+pitch)),toeRadius, 1);
       // Toe 2
       trajopt.AddConstraint(xi(positions_map.at("base_z"))+abOffs*sin(xi(positions_map.at("joint_9")))+0.5*bodyLength*sin(pitch)-cos(xi(positions_map.at("joint_9")))*
-                            (upperLegLength*sin(xi(positions_map.at("joint_2"))+pitch)+lowerLegLength*sin(xi(positions_map.at("joint_3"))
-                            -xi(positions_map.at("joint_2"))-pitch)),minToeHeight, 1);
+                            (upperLegLength*sin(xi(positions_map.at("joint_2"))-pitch)+lowerLegLength*sin(xi(positions_map.at("joint_3"))
+                            -xi(positions_map.at("joint_2"))+pitch)),toeRadius, 1);
+
       // Toe 3
       if (this->spine_type=="twisting")
         trajopt.AddConstraint(xi(positions_map.at("base_z"))-0.5*bodyWidth*sin(xi(positions_map.at("joint_12")))-0.5*bodyLength*sin(pitch)-abOffs*sin(xi(positions_map.at("joint_10")))
                               -cos(xi(positions_map.at("joint_10"))+xi(positions_map.at("joint_12")))*(upperLegLength*sin(xi(positions_map.at("joint_4"))-pitch)
-                              +lowerLegLength*sin(xi(positions_map.at("joint_5"))-xi(positions_map.at("joint_4"))+pitch)),minToeHeight, 1);
+                              +lowerLegLength*sin(xi(positions_map.at("joint_5"))-xi(positions_map.at("joint_4"))+pitch)),toeRadius, 1);
       else 
         trajopt.AddConstraint(xi(positions_map.at("base_z"))-0.5*bodyLength*sin(pitch)-abOffs*sin(xi(positions_map.at("joint_10")))
                               -cos(xi(positions_map.at("joint_10")))*(upperLegLength*sin(xi(positions_map.at("joint_4"))-pitch)
-                              +lowerLegLength*sin(xi(positions_map.at("joint_5"))-xi(positions_map.at("joint_4"))+pitch)),minToeHeight, 1);
+                              +lowerLegLength*sin(xi(positions_map.at("joint_5"))-xi(positions_map.at("joint_4"))+pitch)),toeRadius, 1);
       // Toe 4
       trajopt.AddConstraint(xi(positions_map.at("base_z"))+0.5*bodyLength*sin(pitch)-abOffs*sin(xi(positions_map.at("joint_11")))-cos(xi(positions_map.at("joint_11")))*
-                            (upperLegLength*sin(xi(positions_map.at("joint_6"))+pitch)+lowerLegLength*sin(xi(positions_map.at("joint_7"))
-                            -xi(positions_map.at("joint_6"))-pitch)),minToeHeight, 1);
+                            (upperLegLength*sin(xi(positions_map.at("joint_6"))-pitch)+lowerLegLength*sin(xi(positions_map.at("joint_7"))
+                            -xi(positions_map.at("joint_6"))+pitch)),toeRadius, 1);
     }
-    if (i>6 && i<=10){
-      // Restrict the apex toes height
-      // Toe 1
-      if (this->spine_type=="twisting")
-        trajopt.AddConstraint(xi(positions_map.at("base_z"))+0.5*bodyWidth*sin(xi(positions_map.at("joint_12")))-0.5*bodyLength*sin(pitch)+abOffs*sin(xi(positions_map.at("joint_8")))
-                              -cos(xi(positions_map.at("joint_8"))+xi(positions_map.at("joint_12")))*(upperLegLength*sin(xi(positions_map.at("joint_0"))-pitch)
-                              +lowerLegLength*sin(xi(positions_map.at("joint_1"))-xi(positions_map.at("joint_0"))+pitch)),0, 1);
-      else 
-        trajopt.AddConstraint(xi(positions_map.at("base_z"))-0.5*bodyLength*sin(pitch)+abOffs*sin(xi(positions_map.at("joint_8")))
-                              -cos(xi(positions_map.at("joint_8")))*(upperLegLength*sin(xi(positions_map.at("joint_0"))-pitch)
-                              +lowerLegLength*sin(xi(positions_map.at("joint_1"))-xi(positions_map.at("joint_0"))+pitch)),0, 1);
-      // Toe 2
-      trajopt.AddConstraint(xi(positions_map.at("base_z"))+abOffs*sin(xi(positions_map.at("joint_9")))+0.5*bodyLength*sin(pitch)-cos(xi(positions_map.at("joint_9")))*
-                            (upperLegLength*sin(xi(positions_map.at("joint_2"))+pitch)+lowerLegLength*sin(xi(positions_map.at("joint_3"))
-                            -xi(positions_map.at("joint_2"))-pitch)),0, 1);
-      // Toe 3
-      if (this->spine_type=="twisting")
-        trajopt.AddConstraint(xi(positions_map.at("base_z"))-0.5*bodyWidth*sin(xi(positions_map.at("joint_12")))-0.5*bodyLength*sin(pitch)-abOffs*sin(xi(positions_map.at("joint_10")))
-                              -cos(xi(positions_map.at("joint_10"))+xi(positions_map.at("joint_12")))*(upperLegLength*sin(xi(positions_map.at("joint_4"))-pitch)
-                              +lowerLegLength*sin(xi(positions_map.at("joint_5"))-xi(positions_map.at("joint_4"))+pitch)),0, 1);
-      else 
-        trajopt.AddConstraint(xi(positions_map.at("base_z"))-0.5*bodyLength*sin(pitch)-abOffs*sin(xi(positions_map.at("joint_10")))
-                              -cos(xi(positions_map.at("joint_10")))*(upperLegLength*sin(xi(positions_map.at("joint_4"))-pitch)
-                              +lowerLegLength*sin(xi(positions_map.at("joint_5"))-xi(positions_map.at("joint_4"))+pitch)),0, 1);
-      // Toe 4
-      trajopt.AddConstraint(xi(positions_map.at("base_z"))+0.5*bodyLength*sin(pitch)-abOffs*sin(xi(positions_map.at("joint_11")))-cos(xi(positions_map.at("joint_11")))*
-                            (upperLegLength*sin(xi(positions_map.at("joint_6"))+pitch)+lowerLegLength*sin(xi(positions_map.at("joint_7"))
-                            -xi(positions_map.at("joint_6"))-pitch)),0, 1);
-    }
+    // if (i>6 && i<=10){
+    //   // Restrict the apex toes height
+    //   // Toe 1
+    //   if (this->spine_type=="twisting")
+    //     trajopt.AddConstraint(xi(positions_map.at("base_z"))+0.5*bodyWidth*sin(xi(positions_map.at("joint_12")))+0.5*bodyLength*sin(pitch)+abOffs*sin(xi(positions_map.at("joint_8")))
+    //                           -cos(xi(positions_map.at("joint_8"))+xi(positions_map.at("joint_12")))*(upperLegLength*sin(xi(positions_map.at("joint_0"))-pitch)
+    //                           +lowerLegLength*sin(xi(positions_map.at("joint_1"))-xi(positions_map.at("joint_0"))+pitch)),0, 1);
+    //   else 
+    //     trajopt.AddConstraint(xi(positions_map.at("base_z"))+0.5*bodyLength*sin(pitch)+abOffs*sin(xi(positions_map.at("joint_8")))
+    //                           -cos(xi(positions_map.at("joint_8")))*(upperLegLength*sin(xi(positions_map.at("joint_0"))-pitch)
+    //                           +lowerLegLength*sin(xi(positions_map.at("joint_1"))-xi(positions_map.at("joint_0"))+pitch)),0, 1);
+    //   // Toe 2
+    //   trajopt.AddConstraint(xi(positions_map.at("base_z"))+abOffs*sin(xi(positions_map.at("joint_9")))-0.5*bodyLength*sin(pitch)-cos(xi(positions_map.at("joint_9")))*
+    //                         (upperLegLength*sin(xi(positions_map.at("joint_2"))+pitch)+lowerLegLength*sin(xi(positions_map.at("joint_3"))
+    //                         -xi(positions_map.at("joint_2"))-pitch)),0, 1);
+    //   // Toe 3
+    //   if (this->spine_type=="twisting")
+    //     trajopt.AddConstraint(xi(positions_map.at("base_z"))-0.5*bodyWidth*sin(xi(positions_map.at("joint_12")))+0.5*bodyLength*sin(pitch)-abOffs*sin(xi(positions_map.at("joint_10")))
+    //                           -cos(xi(positions_map.at("joint_10"))+xi(positions_map.at("joint_12")))*(upperLegLength*sin(xi(positions_map.at("joint_4"))-pitch)
+    //                           +lowerLegLength*sin(xi(positions_map.at("joint_5"))-xi(positions_map.at("joint_4"))+pitch)),0, 1);
+    //   else 
+    //     trajopt.AddConstraint(xi(positions_map.at("base_z"))+0.5*bodyLength*sin(pitch)-abOffs*sin(xi(positions_map.at("joint_10")))
+    //                           -cos(xi(positions_map.at("joint_10")))*(upperLegLength*sin(xi(positions_map.at("joint_4"))-pitch)
+    //                           +lowerLegLength*sin(xi(positions_map.at("joint_5"))-xi(positions_map.at("joint_4"))+pitch)),0, 1);
+    //   // Toe 4
+    //   trajopt.AddConstraint(xi(positions_map.at("base_z"))-0.5*bodyLength*sin(pitch)-abOffs*sin(xi(positions_map.at("joint_11")))-cos(xi(positions_map.at("joint_11")))*
+    //                         (upperLegLength*sin(xi(positions_map.at("joint_6"))+pitch)+lowerLegLength*sin(xi(positions_map.at("joint_7"))
+    //                         -xi(positions_map.at("joint_6"))-pitch)),0, 1);
+    // }
     // Elbow 1
     if (this->spine_type=="twisting")
       trajopt.AddConstraint(xi(positions_map.at("base_z"))+0.5*bodyWidth*sin(xi(positions_map.at("joint_12")))-0.5*bodyLength*sin(pitch)+abOffs*sin(xi(positions_map.at("joint_8")))
@@ -449,11 +451,11 @@ void SpiritJump<Y>::addConstraints(
                             ),minElbowHeight, 1);
 
     // Elbow 2
-    trajopt.AddConstraint(xi(positions_map.at("base_z"))+abOffs*sin(xi(positions_map.at("joint_9")))+0.5*bodyLength*sin(pitch)-
+    trajopt.AddConstraint(xi(positions_map.at("base_z"))+abOffs*sin(xi(positions_map.at("joint_9")))-0.5*bodyLength*sin(pitch)-
                           cos(xi(positions_map.at("joint_9")))*upperLegLength*sin(xi(positions_map.at("joint_2"))+pitch),minElbowHeight, 1);
     
     // Elbow 4
-    trajopt.AddConstraint(xi(positions_map.at("base_z"))+0.5*bodyLength*sin(pitch)-abOffs*sin(xi(positions_map.at("joint_11")))-
+    trajopt.AddConstraint(xi(positions_map.at("base_z"))-0.5*bodyLength*sin(pitch)-abOffs*sin(xi(positions_map.at("joint_11")))-
                         cos(xi(positions_map.at("joint_11")))*upperLegLength*sin(xi(positions_map.at("joint_6"))+pitch),minElbowHeight, 1);
 
     // Limit knee joints' angular accelerations
