@@ -2,14 +2,14 @@
 -
   num_optimizations: 1 
   initial_guess: ""  #if it is empty, the program will generate initial guess. Otherwise, we use the file given here as the initial guess
-  # saved_directory: examples/Spirit_spine/saved_trajectories/bound_gait/twisting/
-  # data_directory: examples/Spirit_spine/data/bounding_gait/twisting/
-  # spine_type: twisting
-  # urdf_path: examples/Spirit_spine/spirit_with_spine_drake.urdf
-  saved_directory: ../data-out/bounding_gait/rigid/saved_trajectories/
-  data_directory: ../data-out/bounding_gait/rigid/data/
-  spine_type: rigid
-  urdf_path: examples/Spirit_spine/spirit_drake.urdf
+  saved_directory: examples/Spirit_spine/saved_trajectories/bound_gait/twisting/
+  data_directory: examples/Spirit_spine/data/bounding_gait/twisting/
+  spine_type: twisting
+  urdf_path: examples/Spirit_spine/spirit_with_spine_drake.urdf
+  # saved_directory: examples/Spirit_spine/saved_trajectories/bound_gait/rigid/
+  # data_directory: examples/Spirit_spine/data/bounding_gait/rigid/
+  # spine_type: rigid
+  # urdf_path: examples/Spirit_spine/spirit_drake.urdf
   num_perturbations: 5
   mean: 1
   var: 0.01

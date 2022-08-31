@@ -2,6 +2,7 @@
 #include <yaml-cpp/yaml.h>
 
 
+
 using drake::multibody::MultibodyPlant;
 using drake::trajectories::PiecewisePolynomial;
 using Eigen::VectorXd;
@@ -28,7 +29,6 @@ void SpiritTrotHalf<Y>::config(std::string yaml_path, std::string saved_director
   this->ipopt=config[index]["ipopt"].as<bool>();
   this->num_knot_points=config[index]["num_knot_points"].as<std::vector<int>>();
   this->pitch_magnitude_lo=config[index]["pitch_magnitude_lo"].as<double>();
-  this->pitch_magnitude_apex=config[index]["pitch_magnitude_apex"].as<double>();
   this->max_spine_magnitude=config[index]["max_spine_magnitude"].as<double>();
   this->apex_height=config[index]["apex_height"].as<double>();
   this->speed=config[index]["speed"].as<double>();
@@ -216,11 +216,13 @@ void SpiritTrotHalf<Y>::addConstraints(
   auto positions_map = multibody::makeNameToPositionsMap(plant);
   auto velocities_map = multibody::makeNameToVelocitiesMap(plant);
   
-  // auto actuators_map = multibody::makeNameToActuatorsMap(plant);
+  auto actuators_map = multibody::makeNameToActuatorsMap(plant);
   // // Print joint dictionary
   // std::cout<<"**********************Actuators***********************"<<std::endl;
   // for (auto const& element : actuators_map)
   //   std::cout << element.first << " = " << element.second << std::endl;
+  // // for (auto const& element : velocities_map)
+  // //   std::cout << element.first << " = " << element.second << std::endl;
   // std::cout<<"***************************************************"<<std::endl;
 
   // General constraints
@@ -275,50 +277,50 @@ void SpiritTrotHalf<Y>::addConstraints(
     if (this->spine_type=="twisting") trajopt.AddBoundingBoxConstraint( -apex_eps, apex_eps, x0(positions_map.at("joint_12") ) );
   }
 
-
   /// Touch down constraint
-
-  // Limit magnitude of pitch
+  /// Limit magnitude of pitch
   max_spine_new=max_spine_magnitude;
-  
+  pitch_magnitude=pitch_magnitude_lo;
   if (this->var!=0) {
     double suggested_magnitude=0.2+0.25*sqrt(this->speed);
     max_spine_new=suggested_magnitude*((((double)rand()) / ((double)RAND_MAX)) +0.5);
+    if (pitch_magnitude_lo>0.3) pitch_magnitude=pitch_magnitude_lo*(((double)rand()) / ((double)RAND_MAX));
   }
-  std::cout<<"MAX SPINE"<<max_spine_new<<std::endl;
-  std::cout<<(((double)rand()) / ((double)RAND_MAX)) +0.5<<std::endl;
-  trajopt.AddBoundingBoxConstraint(cos(pitch_magnitude_lo/2.0)*cos(max_spine_new/4), 1, xtd(positions_map.at("base_qw")));
-  trajopt.AddBoundingBoxConstraint(-sin(max_spine_new/4)*cos(pitch_magnitude_lo/2.0), sin(max_spine_new/4)*cos(pitch_magnitude_lo/2.0), xtd(positions_map.at("base_qx")));
-  trajopt.AddBoundingBoxConstraint(-cos(max_spine_new/4)*sin(pitch_magnitude_lo/2.0) , cos(max_spine_new/4)*sin(pitch_magnitude_lo/2.0), xtd(positions_map.at("base_qy")));
-  trajopt.AddBoundingBoxConstraint(-sin(max_spine_new/4)*sin(pitch_magnitude_lo/2.0) , sin(max_spine_new/4)*sin(pitch_magnitude_lo/2.0), xtd(positions_map.at("base_qz")));
-
+  if (this->spine_type=="rigid") max_spine_new*=0.3;
+  std::cout<<"MAX SPINE: "<<max_spine_new<<"  MAX PITCH: "<< pitch_magnitude<<"SPINE TYPE: "<<this->spine_type<<std::endl;
+  
 
   // /// Toes constraints
   toe_height=0.05;
   double upperLegLength=0.206;
   double lowerLegLength=0.206;
-  double bodyWidth=0.24;
+  double bodyWidth=0.24-0.05*2;
   double abOffs=0.10098;
-  double bodyLength=0.335;
+  double toeRadius=0.02;
+  double bodyLength=0.335+0.055*2;
   // Compute roll angle
-  auto roll = atan2(2.0 * (x0(0) * x0(1) + x0(2) * x0(3)), 1.0 - 2.0 * (x0(1) * x0(1) + x0(2) * x0(2)));
-  auto pitch = asin(2.0 * (x0(0) * x0(2) + x0(3) * x0(1)));
-  // Toe 2
-  trajopt.AddConstraint(x0(positions_map.at("base_z"))+0.5*bodyWidth*sin(roll)+0.5*bodyLength*sin(pitch)-cos(x0(positions_map.at("joint_9"))+roll)*
-                        (upperLegLength*sin(x0(positions_map.at("joint_2")))+lowerLegLength*sin(x0(positions_map.at("joint_3"))
-                        -x0(positions_map.at("joint_2"))))+abOffs*sin(x0(positions_map.at("joint_9"))),toe_height, toe_height+0.08);
-  // Toe 3
-  if (this->spine_type=="twisting") 
-    trajopt.AddConstraint(x0(positions_map.at("base_z"))-0.5*bodyWidth*sin(x0(positions_map.at("joint_12"))+roll)-0.5*bodyLength*sin(pitch)
-                        -cos(x0(positions_map.at("joint_10"))+x0(positions_map.at("joint_12"))+roll)*(upperLegLength*sin(x0(positions_map.at("joint_4")))
-                        +lowerLegLength*sin(x0(positions_map.at("joint_5"))-x0(positions_map.at("joint_4"))))
-                        -abOffs*sin(x0(positions_map.at("joint_10"))),toe_height, toe_height+0.1);
-  else 
-    trajopt.AddConstraint(x0(positions_map.at("base_z"))-0.5*bodyWidth*sin(roll)-0.5*bodyLength*sin(pitch)
-                        -cos(x0(positions_map.at("joint_10"))+roll)*(upperLegLength*sin(x0(positions_map.at("joint_4")))
-                        +lowerLegLength*sin(x0(positions_map.at("joint_5"))-x0(positions_map.at("joint_4"))))
-                        -abOffs*sin(x0(positions_map.at("joint_10"))),toe_height, toe_height+0.1);
-
+  int midKnotpoint = trajopt.mode_length(1)/2;
+  // Constraints multiple knot points in the apex to prevent shaky legs problem
+  for (int k=midKnotpoint-1;k<midKnotpoint+2;k++){
+    auto xmid = trajopt.state_vars( 1 , k);
+    auto roll = atan2(2.0 * (xmid(0) * xmid(1) + xmid(2) * xmid(3)), 1.0 - 2.0 * (xmid(1) * xmid(1) + xmid(2) * xmid(2)));
+    auto pitch = asin(2.0 * (xmid(0) * xmid(2) + xmid(3) * xmid(1)));
+    // Toe 2
+    trajopt.AddConstraint(xmid(positions_map.at("base_z"))+0.5*bodyWidth*sin(roll)+0.5*(bodyLength)*sin(pitch)-cos(xmid(positions_map.at("joint_9"))+roll)*
+                          (upperLegLength*sin(xmid(positions_map.at("joint_2"))-pitch)+lowerLegLength*sin(xmid(positions_map.at("joint_3"))
+                          -xmid(positions_map.at("joint_2"))+pitch))+abOffs*sin(xmid(positions_map.at("joint_9"))+roll),toe_height, toe_height+0.3);
+    // Toe 3
+    if (this->spine_type=="twisting") 
+      trajopt.AddConstraint(xmid(positions_map.at("base_z"))-0.5*bodyWidth*sin(xmid(positions_map.at("joint_12"))+roll)-0.5*bodyLength*sin(pitch)
+                          -cos(xmid(positions_map.at("joint_10"))+xmid(positions_map.at("joint_12"))+roll)*(upperLegLength*sin(xmid(positions_map.at("joint_4"))-pitch)
+                          +lowerLegLength*sin(pitch+xmid(positions_map.at("joint_5"))-xmid(positions_map.at("joint_4"))))
+                          -abOffs*sin(xmid(positions_map.at("joint_12"))+xmid(positions_map.at("joint_10"))+roll),toe_height, toe_height+0.3);
+    else 
+      trajopt.AddConstraint(xmid(positions_map.at("base_z"))-0.5*bodyWidth*sin(roll)-0.5*bodyLength*sin(pitch)
+                          -cos(xmid(positions_map.at("joint_10"))+roll)*(upperLegLength*sin(xmid(positions_map.at("joint_4"))-pitch)
+                          +lowerLegLength*sin(pitch+xmid(positions_map.at("joint_5"))-xmid(positions_map.at("joint_4"))))
+                          -abOffs*sin(xmid(positions_map.at("joint_10"))+roll),toe_height, toe_height+0.3);
+  }
 
 
   /// Final constraints
@@ -379,39 +381,35 @@ void SpiritTrotHalf<Y>::addConstraints(
   for (int i = 0; i < trajopt.N(); i++){
     auto xi = trajopt.state(i);
     // Limit roll and yaw
-    trajopt.AddBoundingBoxConstraint(cos(pitch_magnitude_lo/2.0)*cos(max_spine_new/4), 1, xi(positions_map.at("base_qw")));
-    trajopt.AddBoundingBoxConstraint(-sin(max_spine_new/4)*cos(pitch_magnitude_lo/2.0), sin(max_spine_new/4)*cos(pitch_magnitude_lo/2.0), xi(positions_map.at("base_qx")));
-    trajopt.AddBoundingBoxConstraint(-cos(max_spine_new/4)*sin(pitch_magnitude_lo/2.0) , cos(max_spine_new/4)*sin(pitch_magnitude_lo/2.0), xi(positions_map.at("base_qy")));
-    trajopt.AddBoundingBoxConstraint(-sin(max_spine_new/4)*sin(pitch_magnitude_lo/2.0) , sin(max_spine_new/4)*sin(pitch_magnitude_lo/2.0), xi(positions_map.at("base_qz")));
+    trajopt.AddBoundingBoxConstraint(cos(pitch_magnitude/2.0)*cos(max_spine_new/4), 1, xi(positions_map.at("base_qw")));
+    trajopt.AddBoundingBoxConstraint(-sin(max_spine_new/4)*cos(pitch_magnitude/2.0), sin(max_spine_new/4)*cos(pitch_magnitude/2.0), xi(positions_map.at("base_qx")));
+    trajopt.AddBoundingBoxConstraint(-cos(max_spine_new/4)*sin(pitch_magnitude/2.0) , cos(max_spine_new/4)*sin(pitch_magnitude/2.0), xi(positions_map.at("base_qy")));
+    trajopt.AddBoundingBoxConstraint(-sin(max_spine_new/4)*sin(pitch_magnitude/2.0) , sin(max_spine_new/4)*sin(pitch_magnitude/2.0), xi(positions_map.at("base_qz")));
     // Height
     trajopt.AddBoundingBoxConstraint( 0.25, 2, xi( positions_map.at("base_z")));
     trajopt.AddBoundingBoxConstraint( -eps, eps, xi( n_q+velocities_map.at("base_vy")));
     if (this->spine_type=="twisting") trajopt.AddBoundingBoxConstraint( -max_spine_new-eps, max_spine_new+eps, xi( positions_map.at("joint_12")));
 
     //Toes
-    // Toe 1
-    if (i< trajopt.N()-2){
-    // trajopt.AddConstraint(xi(positions_map.at("base_z"))-cos(xi(positions_map.at("joint_8")))*(upperLegLength*sin(xi(positions_map.at("joint_0")))
-    //                       +lowerLegLength*sin(xi(positions_map.at("joint_1"))-xi(positions_map.at("joint_0")))),0, 0.15);
-  
+    
     // Compute roll angle
     auto roll_i = atan2(2.0 * (xi(0) * xi(1) + xi(2) * xi(3)), 1.0 - 2.0 * (xi(1) * xi(1) + xi(2) * xi(2)));
     auto pitch_i = asin(2.0 * (xi(0) * xi(2) + xi(3) * xi(1)));
     // Toe 2 
-    trajopt.AddConstraint(xi(positions_map.at("base_z"))+0.5*bodyWidth*sin(roll_i)+0.5*bodyLength*sin(pitch_i)-cos(xi(positions_map.at("joint_9"))+roll_i)*
-                          (upperLegLength*sin(xi(positions_map.at("joint_2")))+lowerLegLength*sin(xi(positions_map.at("joint_3"))
-                          -xi(positions_map.at("joint_2")))) +abOffs*sin(xi(positions_map.at("joint_9"))),0.0, 0.15);
+    trajopt.AddConstraint(xi(positions_map.at("base_z"))+0.5*bodyWidth*sin(roll_i)+0.5*(bodyLength)*sin(pitch_i)-cos(xi(positions_map.at("joint_9"))+roll_i)*
+                          (upperLegLength*sin(xi(positions_map.at("joint_2"))-pitch_i)+lowerLegLength*sin(xi(positions_map.at("joint_3"))
+                        -xi(positions_map.at("joint_2"))+pitch_i)) +abOffs*cos(pitch_i)*sin(xi(positions_map.at("joint_9"))+roll_i),toeRadius, 0.3);
     // Toe 3
     if (this->spine_type=="twisting")
       trajopt.AddConstraint(xi(positions_map.at("base_z"))-0.5*bodyWidth*sin(xi(positions_map.at("joint_12"))+roll_i)-0.5*bodyLength*sin(pitch_i)
-                            -cos(xi(positions_map.at("joint_10"))+xi(positions_map.at("joint_12"))+roll_i)*(upperLegLength*sin(xi(positions_map.at("joint_4")))
-                            +lowerLegLength*sin(xi(positions_map.at("joint_5"))-xi(positions_map.at("joint_4"))))
-                            -abOffs*sin(xi(positions_map.at("joint_10"))),0.0, 0.15);
+                            -cos(xi(positions_map.at("joint_10"))+xi(positions_map.at("joint_12"))+roll_i)*(upperLegLength*sin(xi(positions_map.at("joint_4"))-pitch_i)
+                            +lowerLegLength*sin(pitch_i+xi(positions_map.at("joint_5"))-xi(positions_map.at("joint_4"))))
+                            -abOffs*cos(pitch_i)*sin(xi(positions_map.at("joint_12"))+xi(positions_map.at("joint_10"))+roll_i),toeRadius, 0.3);
     else 
       trajopt.AddConstraint(xi(positions_map.at("base_z"))-0.5*bodyWidth*sin(roll_i)-0.5*bodyLength*sin(pitch_i)
-                            -cos(xi(positions_map.at("joint_10"))+roll_i)*(upperLegLength*sin(xi(positions_map.at("joint_4")))
-                            +lowerLegLength*sin(xi(positions_map.at("joint_5"))-xi(positions_map.at("joint_4"))))
-                            -abOffs*sin(xi(positions_map.at("joint_10"))),0.0, 0.15);
+                            -cos(xi(positions_map.at("joint_10"))+roll_i)*(upperLegLength*sin(xi(positions_map.at("joint_4"))-pitch_i)
+                            +lowerLegLength*sin(pitch_i+xi(positions_map.at("joint_5"))-xi(positions_map.at("joint_4"))))
+                            -abOffs*cos(pitch_i)*sin(xi(positions_map.at("joint_10"))+roll_i),toeRadius, 0.3);
 
     //// Toes should not cross the central line
     // Toe 2
@@ -425,7 +423,7 @@ void SpiritTrotHalf<Y>::addConstraints(
     else 
       trajopt.AddConstraint(sin(xi(positions_map.at("joint_10"))+roll_i)*(upperLegLength*sin(xi(positions_map.at("joint_4")))
                           +lowerLegLength*sin(xi(positions_map.at("joint_5"))-xi(positions_map.at("joint_4")))),-0.15, 0.5*bodyWidth);
-    }
+    
     // Limit knee joints' angular accelerations
     if(i>0){
         // auto fi=trajopt.input(i);
@@ -574,6 +572,7 @@ void SpiritTrotHalf<Y>::run(MultibodyPlant<Y>& plant,
   addConstraints(plant, trajopt);
 
   /// Setup the visualization during the optimization
+
   int num_ghosts = 1;// Number of ghosts in visualization. NOTE: there are limitations on number of ghosts based on modes and knotpoints
   std::vector<unsigned int> visualizer_poses; // Ghosts for visualizing during optimization
   for(int i = 0; i < sequence.num_modes(); i++){
@@ -582,6 +581,7 @@ void SpiritTrotHalf<Y>::run(MultibodyPlant<Y>& plant,
   trajopt.CreateVisualizationCallback(
       dairlib::FindResourceOrThrow(this->urdf_path),
       visualizer_poses, 0.2); // setup which URDF, how many poses, and alpha transparency 
+  
 
   drake::solvers::SolverId solver_id("");
   if (this->ipopt) {

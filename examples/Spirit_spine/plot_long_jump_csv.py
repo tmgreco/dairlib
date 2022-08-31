@@ -4,8 +4,10 @@ import matplotlib.pyplot as plt
 
 displacements=[]
 displacements2=[]
-works=[]
-works2=[]
+twisting_works=[]
+twisting_works2=[]
+rigid_works=[]
+rigid_works2=[]
 # for j in range(26,47):
 #   with open('./data/long_jump/no_perturbation/test%d.csv'%j, mode ='r')as file:
 #     # reading the CSV file
@@ -19,7 +21,7 @@ works2=[]
 #       if counter<2:
 #         if counter==0:
 #           displacements.append(float(lines[1]))
-#           works.append(float(lines[3]))
+#           twisting_works.append(float(lines[3]))
 #         counter+=1
 #         continue
       
@@ -47,35 +49,59 @@ works2=[]
 #     # plt.savefig("./figs/long jump/positions%d"%j)
 #     # plt.close()
 
-for p in range(1,21):
+# for p in range(1,41):
+#   best_work=1000
+#   displacement=0
+#   for s in range(1,21):
+#     # with open('./data/long_jump/5_perturbed_trajs2/jump_c3_p%d_s%d.csv'%(p,s), mode ='r')as file:
+#     # with open('./data/trot_half/twisting_p20/trot6_p%d_s%d.csv'%(p,s), mode ='r')as file:
+#     # with open('/home/feng/Downloads/data/twisting/data/bounding_gait4_p%d_s%d.csv'%(p,s), mode ='r')as file:  
+#     with open('./data/bounding_gait/twisting/bounding_gait5_p%d_s%d.csv'%(p,s), mode ='r')as file:  
+#       csvFile = csv.reader(file)
+#       counter=0
+#       for lines in csvFile:
+#         if counter==0:
+#           displacement=float(lines[1])
+#           if best_work>float(lines[7]): best_work=float(lines[7])
+#           if s==1: work=float(lines[7])
+#         counter+=1
+#         continue
+#   twisting_works.append(work)
+#   displacements.append(displacement)
+#   twisting_works2.append(best_work)
+      
+for p in range(1,26):
   best_work=1000
   displacement=0
-  for s in range(1,11):
+  for s in range(1,21):
     # with open('./data/long_jump/5_perturbed_trajs2/jump_c3_p%d_s%d.csv'%(p,s), mode ='r')as file:
-    # with open('./data/trot_half/twisting_p5/trot_trot6_p%d_s%d.csv'%(p,s), mode ='r')as file:
+    # with open('./data/trot_half/rigid_p20/trot6_p%d_s%d.csv'%(p,s), mode ='r')as file:
     # with open('./data/bounding_gait/rigid/bounding_gait4_p%d_s%d.csv'%(p,s), mode ='r')as file:
-    with open('./data/bounding_gait/rigid/bounding_gait5_p%d_s%d.csv'%(p,s), mode ='r')as file:
+    # with open('/home/feng/Downloads/data/rigid/data/bounding_gait4_p%d_s%d.csv'%(p,s), mode ='r')as file:  
+    with open('./data/bounding_gait/rigid/bounding_gait5_p%d_s%d.csv'%(p,s), mode ='r')as file:  
       # reading the CSV file
       csvFile = csv.reader(file)
       counter=0
       for lines in csvFile:
         if counter==0:
           displacement=float(lines[1])
-          if best_work>float(lines[5]): best_work=float(lines[5])
-          if s==1: work=float(lines[5])
+          if best_work>float(lines[7]): best_work=float(lines[7])
+          if s==1: work=float(lines[7])
         counter+=1
         continue
-  works.append(work)
+  rigid_works.append(work)
   displacements.append(displacement)
-  works2.append(best_work)
-      
+  rigid_works2.append(best_work)
 
 plt.figure()
-# plt.plot(displacements2,np.array(works)-np.array(works2),'b')
-plt.plot(displacements,works,'b')
-plt.plot(displacements,works2,'r')
+# plt.plot(displacements2,np.array(twisting_works)-np.array(twisting_works2),'b')
+plt.plot(displacements,rigid_works,'r',label="rigid")
+plt.plot(displacements,rigid_works2,'b',label="rigid")
+# plt.plot(displacements,twisting_works2,'r',label="twisting")
+plt.legend()
 plt.show()
-# plt.savefig("./figs/bounding_gait/electrical_work_5_perturbed_trajs")
+# plt.savefig("./figs/trot_half/rigid_vs_twisting_p40_s20")
+# plt.savefig("./figs/bounding_gait/electrical_work_20_perturbed_trajs")
 
     
     
