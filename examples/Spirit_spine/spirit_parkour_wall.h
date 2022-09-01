@@ -106,8 +106,14 @@ public:
     getModeSequence(MultibodyPlant<Y>& plant,
                     DirconModeSequence<Y>& sequence){
     for (int i=0;i<nJumps*5+1;i++){
-        if (i%5==2 || i%5==3) this->num_knot_points.push_back(nKnotpoints_flight);
-        else this->num_knot_points.push_back(nKnotpoints_stances);
+        if (i%5==2 || i%5==3) {
+            if (i==2) this->num_knot_points.push_back(10);
+            else this->num_knot_points.push_back(nKnotpoints_flight);
+        }
+        else {
+            if (i<2) this->num_knot_points.push_back(7);
+            else this->num_knot_points.push_back(nKnotpoints_stances);
+        }
     }
     
     dairlib::ModeSequenceHelper msh;
@@ -120,12 +126,17 @@ public:
         mode->MakeConstraintRelative(i,0);
         mode->MakeConstraintRelative(i,1);
         }
+        
         mode->SetDynamicsScale(
             {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20}, 150.0);
+        // mode->SetDynamicsScale(
+        //     {6}, 50.0);
         if (mode->evaluators().num_evaluators() == 4)
         {
         mode->SetKinVelocityScale(
             {0, 1, 2, 3}, {0, 1, 2}, 1.0);
+        // mode->SetKinVelocityScale(
+        //     {0, 1, 2, 3}, {2}, .0);
         mode->SetKinPositionScale(
             {0, 1, 2, 3}, {0, 1, 2}, 150.0);
         }
@@ -148,7 +159,7 @@ private:
     int nKnotpoints_flight; //!< number of know points for each flight mode
     int nKnotpoints_stances; //!< number of know points for each stance mode
 
-
+    double initial_height;
     double max_apex_pitch_magnitude; //!< max pitch magnitude at apex
     double max_pitch_magnitude; //!< ax pitch magnitude at stances
     double fore_aft_displacement; //!< how long the robot jump forward
