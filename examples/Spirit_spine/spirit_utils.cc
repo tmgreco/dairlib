@@ -416,6 +416,36 @@ setSpiritJointLimits( plant,
 }
 //   \SETSPIRITJOINTLIMITS 
 
+template <typename T> 
+void setSpiritActuationSpeedCurveLimits(
+          drake::multibody::MultibodyPlant<T> & plant, 
+          dairlib::systems::trajectory_optimization::Dircon<T>& trajopt){
+  auto actuators_map = multibody::makeNameToActuatorsMap(plant);
+  auto velocities_map = multibody::makeNameToVelocitiesMap(plant);
+  int n_q = plant.num_positions();
+
+  std::vector<int> indicesNotKnee = {0,2,4,6,8,9,10,11};
+  std::vector<int> indicesKnee = {1,3,5,7};
+  
+  int N_knotpoints = trajopt.N();
+  for(int iKnot = 0; iKnot<N_knotpoints;iKnot++){
+    auto ui = trajopt.input(iKnot);
+    
+    for (int iMotor : indicesNotKnee){
+      int vel_int = n_q + velocities_map.at("joint_" + std::to_string(iMotor) +"dot");
+      auto vi = trajopt.state(iKnot)(vel_int);
+      trajopt.AddConstraint(max(-torque_stall_not_knee/omega_noload_not_knee*vi+torque_stall_not_knee,0)-ui(actuators_map.at("motor_" + std::to_string(iMotor)))>=0);
+      trajopt.AddConstraint(ui(actuators_map.at("motor_" + std::to_string(iMotor)))-min(-torque_stall_not_knee/omega_noload_not_knee*vi-torque_stall_not_knee,0)>=0);
+    }
+    for (int iMotor : indicesKnee){
+      int vel_int = n_q + velocities_map.at("joint_" + std::to_string(iMotor) +"dot");
+      auto vi = trajopt.state(iKnot)(vel_int);
+      trajopt.AddConstraint(max(-torque_stall_knee/omega_noload_knee*vi+torque_stall_knee,0)-ui(actuators_map.at("motor_" + std::to_string(iMotor)))>=0);
+      trajopt.AddConstraint(ui(actuators_map.at("motor_" + std::to_string(iMotor)))-min(-torque_stall_knee/omega_noload_knee*vi-torque_stall_knee,0)>=0);
+    }
+    
+  }
+ }
 
 // **********************************************************
 //   SETSPIRITACTUATIONLIMITS
@@ -1171,6 +1201,11 @@ template void setSpiritActuationLimits(
           drake::multibody::MultibodyPlant<double> & plant, 
           dairlib::systems::trajectory_optimization::Dircon<double>& trajopt,
           double actuatorLimit);
+
+
+template void setSpiritActuationSpeedCurveLimits(
+          drake::multibody::MultibodyPlant<double> & plant, 
+          dairlib::systems::trajectory_optimization::Dircon<double>& trajopt);
 
 template void setSpiritSymmetry(
         drake::multibody::MultibodyPlant<double> & plant, 

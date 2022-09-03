@@ -262,6 +262,15 @@ void setSpiritActuationLimits(
           dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,
           double actuatorLimit = 3.5 * 6);// URDF has 40 this is more realistic based on the modules 
 
+/// Sets all the joints' actuator limits to the same thing
+///    @param plant a pointer to a multibodyPlant
+///    @param trajopt a ponter to a Dircon<T> object  
+///    @param actuatorLimit the (symmetric) effort limit 
+template <typename T> 
+void setSpiritActuationSpeedCurveLimits(
+          drake::multibody::MultibodyPlant<T> & plant, 
+          dairlib::systems::trajectory_optimization::Dircon<T>& trajopt);
+
 /// Constrains the system to a single symmetric leg behavior
 ///    @param plant a pointer to a multibodyPlant
 ///    @param trajopt a ponter to a Dircon<T> object  
@@ -443,8 +452,18 @@ double positivePart(double x);
 double negativePart(double x);
 
 // Gains on resistive losses for knees and for other motors based on resistance, torque constant, and gear ratio
+// Q=R/(K_t^2* N^2)    R=186 miliOhms,  K_t=0.0955, N_knee=9, N_not_knee=6, K_V=100 rpm/V, V_nominal=32V
+// omega_noload=V_nominal/K_t=335 rad/s
+// torque_stall=V_nominal*K_t /R
+const double N_not_knee=6;
+const double N_knee=9;
 const double Q_knee = .249;
 const double Q_not_knee = .561;
-
+const double torque_stall=16.43*3/4;
+const double torque_stall_knee = torque_stall*N_knee;
+const double torque_stall_not_knee = torque_stall*N_not_knee;
+const double omega_noload=335*3/4;
+const double omega_noload_knee=omega_noload/N_knee;
+const double omega_noload_not_knee=omega_noload/N_not_knee;
 
 } //namespace dairlib
