@@ -2,7 +2,7 @@
 #include <yaml-cpp/yaml.h>
 
 
-DEFINE_bool(ghosts, true, "If ghosts are shown"); 
+
 
 using drake::multibody::MultibodyPlant;
 using drake::trajectories::PiecewisePolynomial;
@@ -350,6 +350,7 @@ void SpiritBoundingGait<Y>::addConstraints(
   // General constraints
   setSpiritJointLimits(plant, trajopt);
   setSpiritActuationLimits(plant, trajopt);
+  setSpiritActuationSpeedCurveLimits(plant, trajopt);
   trajopt.AddDurationBounds(min_duration, max_duration);
 
   /// Setup all the optimization constraints
@@ -459,12 +460,15 @@ void SpiritBoundingGait<Y>::addConstraints(
   pitch_magnitude_new=pitch_magnitude;
   if (this->var!=0) {
     double suggested_magnitude=0.3+0.25*sqrt(this->speed);
-    // auto normal_dist = std::bind(std::normal_distribution<double>{1, this->var*10},
-    //                             std::mt19937(std::random_device{}()));
-    // pitch_magnitude=suggested_magnitude*normal_dist();
-    pitch_magnitude_new=suggested_magnitude*(((double)rand()) / ((double)RAND_MAX) +0.5);
+    
+    double heuristic;
+    if (this->speed<0.01) heuristic=0.3;
+    else heuristic=std::max(0.3-0.2*speed,0.1);
+    pitch_magnitude_new=(2.5*(((double)rand()) / ((double)RAND_MAX))+0.5)*heuristic ;
     
   }
+  // if (pitch_magnitude<0) pitch_magnitude_new=this->perturbation_index*0.02+0.1;
+
   std::cout<<"SPINE TYPE: "<<this->spine_type<<" MAX PITCH MAGNITUDE: "<<pitch_magnitude_new<<std::endl;
   
   /// Constraints on all points
@@ -474,8 +478,8 @@ void SpiritBoundingGait<Y>::addConstraints(
     trajopt.AddBoundingBoxConstraint( 0.25, 2, xi( positions_map.at("base_z")));
     trajopt.AddBoundingBoxConstraint( -eps, eps, xi( n_q+velocities_map.at("base_vy")));
     if (lock_spine && this->spine_type=="twisting") trajopt.AddBoundingBoxConstraint( -eps, eps, xi( positions_map.at("joint_12")));
-    // Limit vx at all knot points
-    trajopt.AddBoundingBoxConstraint( 0.6*this->speed, 1.4*this->speed, xi( n_q+velocities_map.at("base_vx")));
+    // // Limit vx at all knot points
+    // trajopt.AddBoundingBoxConstraint( 0.6*this->speed, 1.4*this->speed, xi( n_q+velocities_map.at("base_vx")));
     // Limit magnitude of pitch
     trajopt.AddBoundingBoxConstraint(cos(pitch_magnitude_new/2.0), 1, xi(positions_map.at("base_qw")));
     trajopt.AddBoundingBoxConstraint(-eps, eps, xi(positions_map.at("base_qx")));
@@ -596,7 +600,7 @@ void SpiritBoundingGait<Y>::run(MultibodyPlant<Y>& plant,
     trajopt.SetSolverOption(solver_id, "dual_inf_tol", this->tol*100);
     trajopt.SetSolverOption(solver_id, "constr_viol_tol", this->tol);
     trajopt.SetSolverOption(solver_id, "compl_inf_tol", this->tol);
-    trajopt.SetSolverOption(solver_id, "max_iter", 1500);
+    trajopt.SetSolverOption(solver_id, "max_iter", 800);
     trajopt.SetSolverOption(solver_id, "nlp_lower_bound_inf", -1e6);
     trajopt.SetSolverOption(solver_id, "nlp_upper_bound_inf", 1e6);
     trajopt.SetSolverOption(solver_id, "print_timing_statistics", "yes");
@@ -606,7 +610,12 @@ void SpiritBoundingGait<Y>::run(MultibodyPlant<Y>& plant,
       std::cout<<"Warm start"<<std::endl;
       // trajopt.SetSolverOption(solver_id, "nlp_scaling_method", "none"); 
       
-      // trajopt.SetSolverOption(solver_id, "mu_init", 10); 
+      // trajopt.SetSolverOption(solver_id, "mu_init", 1e-4);
+      // trajopt.SetSolverOption(solver_id, "bound_frac", 1e-9);
+      // trajopt.SetSolverOption(solver_id, "bound_push", 1e-9);
+      // trajopt.SetSolverOption(solver_id, "mult_bound_push", 1e-9);
+      // trajopt.SetSolverOption(solver_id, "slack_bound_frac", 1e-9);
+      // trajopt.SetSolverOption(solver_id, "slack_bound_push", 1e-9); 
       trajopt.SetSolverOption(solver_id, "warm_start_bound_frac", 1e-12);
       trajopt.SetSolverOption(solver_id, "warm_start_bound_push", 1e-12);
       trajopt.SetSolverOption(solver_id, "warm_start_mult_bound_push", 1e-12);
@@ -636,7 +645,7 @@ void SpiritBoundingGait<Y>::run(MultibodyPlant<Y>& plant,
   }
 
   // Setting up cost
-  auto work_binding = addCost(plant, trajopt);
+  auto power_cost_binding = addCost(plant, trajopt);
 
 
   // Initialize the trajectory control state and forces
@@ -660,7 +669,7 @@ void SpiritBoundingGait<Y>::run(MultibodyPlant<Y>& plant,
   addConstraints(plant, trajopt);
 
   /// Setup the visualization during the optimization
-  if (FLAGS_ghosts){
+  if (this->ghosts){
     int num_ghosts = 1;// Number of ghosts in visualization. NOTE: there are limitations on number of ghosts based on modes and knotpoints
     std::vector<unsigned int> visualizer_poses; // Ghosts for visualizing during optimization
     for(int i = 0; i < sequence.num_modes(); i++){
@@ -693,10 +702,11 @@ void SpiritBoundingGait<Y>::run(MultibodyPlant<Y>& plant,
   /// Save trajectory
   this->saveTrajectory(plant,trajopt,result);
   // Writing contact force data
+  double power_cost_val = solvers::EvalCostGivenSolution(result, power_cost_binding);
   int beginIdx = this->file_name_out.rfind('/');
   std::string filename = this->file_name_out.substr(beginIdx + 1);
   std::string contact_force_fname=this->data_directory+filename+".csv";
-  this->saveContactForceData(trajopt,result,this->speed,pitch_magnitude_new,contact_force_fname,result.is_success());
+  this->saveContactForceData(trajopt,result,this->speed,pitch_magnitude_new,contact_force_fname,result.is_success(),power_cost_val);
   
   // auto x_trajs = trajopt.ReconstructDiscontinuousStateTrajectory(result);
   // std::cout<<"Work = " << dairlib::calcElectricalWork(plant, x_trajs, this->u_traj) << std::endl;
