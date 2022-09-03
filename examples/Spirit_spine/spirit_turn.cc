@@ -360,39 +360,16 @@ void SpiritTurn<Y>::addConstraints(
 
   /// Initial constraint
 
-  // xyz position
-  trajopt.AddBoundingBoxConstraint(0, 0, x0(positions_map.at("base_x"))); // Give the initial condition room to choose the x_init position
-  trajopt.AddBoundingBoxConstraint( -eps, eps, x0( positions_map.at("base_y")));
-  if (apex_height>0) trajopt.AddBoundingBoxConstraint( this->apex_height-eps, this->apex_height+eps, x0( positions_map.at("base_z")));
-
 
   // Set initial state to be identical with the input traj
   for (int i=0;i<n_q+n_v;i++){
     trajopt.AddBoundingBoxConstraint(states_traj.value(0)(i,0)-0.1*eps, states_traj.value(0)(i,0)+0.1*eps, x0(i));
   }
 
-  // velocities
-  // trajopt.AddBoundingBoxConstraint(this->speed-eps, this->speed+eps, x0(plant.num_positions()+velocities_map.at("base_vx")));
-  // trajopt.AddBoundingBoxConstraint(-eps, eps, x0(plant.num_positions()+velocities_map.at("base_vy")));
-  trajopt.AddBoundingBoxConstraint(-eps, eps, x0(plant.num_positions()+velocities_map.at("base_vz")));
-
-
-
 
   if (lock_leg_apex){
     double upperSet = 1;
     double kneeSet = 2;
-    trajopt.AddBoundingBoxConstraint(upperSet - eps, upperSet + eps, x0(positions_map.at("joint_0") ) );
-    trajopt.AddBoundingBoxConstraint(kneeSet - eps, kneeSet + eps, x0(positions_map.at("joint_1") ) );
-
-    trajopt.AddBoundingBoxConstraint(upperSet - eps, upperSet + eps, x0(positions_map.at("joint_2") ) );
-    trajopt.AddBoundingBoxConstraint(kneeSet - eps, kneeSet + eps, x0(positions_map.at("joint_3") ) );
-
-    trajopt.AddBoundingBoxConstraint(upperSet - eps, upperSet + eps, x0(positions_map.at("joint_4") ) );
-    trajopt.AddBoundingBoxConstraint(kneeSet - eps, kneeSet + eps, x0(positions_map.at("joint_5") ) );
-
-    trajopt.AddBoundingBoxConstraint(upperSet - eps, upperSet + eps, x0(positions_map.at("joint_6") ) );
-    trajopt.AddBoundingBoxConstraint(kneeSet - eps, kneeSet + eps, x0(positions_map.at("joint_7") ) );
 
     trajopt.AddBoundingBoxConstraint(upperSet - eps, upperSet + eps, xapex(positions_map.at("joint_0") ) );
     trajopt.AddBoundingBoxConstraint(kneeSet - eps, kneeSet + eps, xapex(positions_map.at("joint_1") ) );
@@ -445,72 +422,28 @@ void SpiritTurn<Y>::addConstraints(
   auto t2=2.0 * (xf(0) * xf(3) - xf(1)* xf(2));
   auto t3=1 - 2* (xf(2) * xf(2) + xf(3)* xf(3));
   auto yawf = atan2(t2, t3);
-  trajopt.AddConstraint(yawf-yaw0-orientation_diff,-eps,eps);
-
   
   auto roll0 = atan2(2.0 * (x0(0) * x0(1) - x0(2) * x0(3)), 1.0 - 2.0 * (x0(1) * x0(1) + x0(2) * x0(2)));
   auto rollf = atan2(2.0 * (xf(0) * xf(1) - xf(2) * xf(3)), 1.0 - 2.0 * (xf(1) * xf(1) + xf(2) * xf(2)));
-  trajopt.AddConstraint(rollf-roll0,-eps,eps);
-
+  
   auto pitch0 = asin(2.0 * (x0(0) * x0(2) + x0(3) * x0(1)));
   auto pitchf = asin(2.0 * (xf(0) * xf(2) + xf(3) * xf(1)));
-  trajopt.AddConstraint(pitchf-pitch0,-eps,eps);
+  
 
-  ///constraint initial roll yaw pitch
-  trajopt.AddConstraint(yaw0,-eps,eps);
-  trajopt.AddConstraint(roll0,-0.3,0.3);
-  trajopt.AddConstraint(pitch0,-0.4,0.4);
-
+  trajopt.AddConstraint(yawf-yaw0-orientation_diff,-eps,eps); //different pitch
+  trajopt.AddConstraint(rollf-roll0,-eps,eps);  //same roll
+  trajopt.AddConstraint(pitchf-pitch0,-eps,eps); // same pitch
+  trajopt.AddConstraint( xf(6)-x0(6),-eps, eps);// same z
+  for (int i=7;i<n_q;i++) trajopt.AddConstraint( xf(i)-x0(i),-eps, eps); // same joint positions
+  
+  for (int i=n_q;i<n_q+n_v;i++) trajopt.AddConstraint( xf(i)-x0(i),-eps, eps); // same joint velocities
   
   
-  if (this->spine_type=="rigid") {
-    for (int i=7;i<n_q;i++) {
-      trajopt.AddConstraint( xf(i)-x0(i),-10*eps, 10*eps); //Almost the same joint positions
-    } // Same joint positions
-    trajopt.AddConstraint( xf(6)-x0(6),-eps, eps);// same z
-
-    trajopt.AddConstraint( xf(n_q)-x0(n_q),-eps, eps); // same wx
-    trajopt.AddConstraint( xf(n_q+1)-x0(n_q+1),-eps, eps); // same wy
-    // trajopt.AddConstraint( x0(n_q+2),-eps, eps); // zero initial wz
-    trajopt.AddConstraint( xf(n_q+3)-x0(n_q+3),-eps, eps); // same vx
-    // trajopt.AddConstraint( x0(n_q+4),-eps, eps); // zero initial vy
-    trajopt.AddConstraint( xf(n_q+4),-speed*sin(orientation_diff)*0.1-eps, speed*sin(orientation_diff)*0.1+eps); // small final vy
-    trajopt.AddConstraint( xf(n_q+5)-x0(n_q+5),-eps, eps); // same zero vz
-    for (int i=n_q+6;i<n_q+n_v;i++) {
-      trajopt.AddConstraint( xf(i)-x0(i),-10*eps, 10*eps); //Almost the same joint velocities
-    }
-  }
-  else if (this->spine_type=="twisting") {
-    for (int i=8;i<n_q;i++) {
-      trajopt.AddConstraint( xf(i)-x0(i),-10*eps, 10*eps);
-    } // Almost the same joint positions
-    trajopt.AddConstraint( xf(6)-x0(6),-eps, eps);// same z
-
-    trajopt.AddConstraint( xf(n_q)-x0(n_q),-eps, eps); // same wx
-    trajopt.AddConstraint( xf(n_q+1)-x0(n_q+1),-eps, eps); // same wy
-    // trajopt.AddConstraint( x0(n_q+2),-eps, eps); // zero initial wz
-    trajopt.AddConstraint( xf(n_q+3)-x0(n_q+3),-eps, eps); // same vx
-    // trajopt.AddConstraint( x0(n_q+4),-eps, eps); // zero initial vy
-    trajopt.AddConstraint( xf(n_q+4),-speed*sin(orientation_diff)*0.1-eps, speed*sin(orientation_diff)*0.1+eps); // small final vy
-    trajopt.AddConstraint( xf(n_q+5)-x0(n_q+5),-eps, eps); // same zero vz
-
-    // Contraints on spine
-    // trajopt.AddBoundingBoxConstraint(-0.2,0.2, x0(7));
-    trajopt.AddConstraint( xf(7)-x0(7),-10*eps, 10*eps);
-    // trajopt.AddBoundingBoxConstraint(-0.5,0.5, x0(n_q+7));
-    trajopt.AddConstraint( xf(n_q+7)-x0(n_q+7),-30*eps, 30*eps);
-
-    for (int i=n_q+7;i<n_q+n_v;i++) {
-      trajopt.AddConstraint( xf(i)-x0(i),-10*eps, 10*eps); // Almost the same joint velocities
-    }
-  }
-
-
   //Average Velocity
   auto times  = trajopt.time_vars();
-  auto total_time=times(0)+times(1);
-  int vx_index=n_q + velocities_map.at("base_vx");
-  auto total_distance=(times(0)*trajopt.state(0)(vx_index)+times(1)*trajopt.state(1)(vx_index))*cos(pitch0);
+  // auto total_time=times(0)+times(1);
+  // int vx_index=n_q + velocities_map.at("base_vx");
+  // auto total_distance=(times(0)*trajopt.state(0)(vx_index)+times(1)*trajopt.state(1)(vx_index))*cos(pitch0);
   
   double a_knee_max=1000;
   /// Constraints on all points
@@ -528,11 +461,11 @@ void SpiritTurn<Y>::addConstraints(
     trajopt.AddBoundingBoxConstraint( 0.15, 2, xi( positions_map.at("base_z")));
     if (lock_spine && this->spine_type=="twisting") trajopt.AddBoundingBoxConstraint( -eps, eps, xi( positions_map.at("joint_12")));
 
-    //Average velocity
-    if (i>=2 && i<(trajopt.N()-1)) {
-      total_time+=times(i);
-      total_distance+=times(i)*trajopt.state(i)(vx_index)*cos(rolli);
-    }
+    // //Average velocity
+    // if (i>=2 && i<(trajopt.N()-1)) {
+    //   total_time+=times(i);
+    //   total_distance+=times(i)*trajopt.state(i)(vx_index)*cos(rolli);
+    // }
 
     // Limit knee joints' angular accelerations
     if(i>0){
@@ -546,9 +479,9 @@ void SpiritTurn<Y>::addConstraints(
     }
 
   }
-  trajopt.AddConstraint(  this->speed * total_time-total_distance, -eps, eps );
+  // trajopt.AddConstraint(  this->speed * total_time-total_distance, -eps, eps );
   // Final state y  FOR TESTING PURPOSE
-  trajopt.AddConstraint( xf( positions_map.at("base_y"))/(total_distance*sin(orientation_diff)),0.4,1.4);
+  // trajopt.AddConstraint( xf( positions_map.at("base_y"))/(total_distance*sin(orientation_diff)),0.4,1.4);
 }
 
 
@@ -652,15 +585,16 @@ void SpiritTurn<Y>::run(MultibodyPlant<Y>& plant,
   addConstraints(plant, trajopt);
 
   /// Setup the visualization during the optimization
-  int num_ghosts = 1;// Number of ghosts in visualization. NOTE: there are limitations on number of ghosts based on modes and knotpoints
-  std::vector<unsigned int> visualizer_poses; // Ghosts for visualizing during optimization
-  for(int i = 0; i < sequence.num_modes(); i++){
-      visualizer_poses.push_back(num_ghosts); 
+  if(this->ghosts){
+    int num_ghosts = 1;// Number of ghosts in visualization. NOTE: there are limitations on number of ghosts based on modes and knotpoints
+    std::vector<unsigned int> visualizer_poses; // Ghosts for visualizing during optimization
+    for(int i = 0; i < sequence.num_modes(); i++){
+        visualizer_poses.push_back(num_ghosts); 
+    }
+    trajopt.CreateVisualizationCallback(
+        dairlib::FindResourceOrThrow(this->urdf_path),
+        visualizer_poses, 0.2); // setup which URDF, how many poses, and alpha transparency 
   }
-  trajopt.CreateVisualizationCallback(
-      dairlib::FindResourceOrThrow(this->urdf_path),
-      visualizer_poses, 0.2); // setup which URDF, how many poses, and alpha transparency 
-
   drake::solvers::SolverId solver_id("");
   if (this->ipopt) {
     solver_id = drake::solvers::IpoptSolver().id();
