@@ -376,7 +376,8 @@ void visualizeSurface(drake::multibody::MultibodyPlant<double>* plant_vis,
 template <typename T>
 std::vector<drake::solvers::Binding<drake::solvers::Cost>> AddWorkCost(drake::multibody::MultibodyPlant<T> & plant,
                  dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,
-                 double cost_work_gain);
+                 double cost_work_gain,
+                 std::string work_type="elec");
 
 /// Adds a cost on the integral of electrical power
 ///     @param plant, the robot model
@@ -404,6 +405,7 @@ class JointWorkCost : public solvers::NonlinearCost<double> {
   const drake::multibody::MultibodyPlant<double>& plant_;
   double Q_; /// Gain on actuation squared
   double cost_work_;
+  std::string work_type_;
   double alpha_; /// Gain on smoothing for relu, higher is less smooth
   int n_q_;
   int n_v_;

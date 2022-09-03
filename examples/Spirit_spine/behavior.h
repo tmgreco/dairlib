@@ -95,12 +95,13 @@ namespace dairlib {
         void setFileNameOut(std::string name) {file_name_out=name;}
         std::string getFileNameIn(){ return file_name_in;}
         std::string getFileNameOut(){ return file_name_out;}
+        void setPerturbationIndex(int i){perturbation_index=i;}
         void setMeanAndVar(double m, double v){
             mean=m; 
             var=v;
         }
         double getCost(){return mechanical_work;}
-
+        void setGhosts(bool flag) {ghosts=flag;}
         std::string urdf_path;
         std::string spine_type;
         std::string action;
@@ -113,6 +114,7 @@ namespace dairlib {
         double mean;
         double var;
         int index;
+        int perturbation_index;
         std::vector<int> num_knot_points; //!< Sequence of #knot points for each mode
         double mu; //!< Coefficient of friction
         double tol; //!< Tolerance for solver
@@ -120,12 +122,13 @@ namespace dairlib {
         double cost_actuation; //!< Cost coefficient of actuation
         double cost_velocity; //!< Cost coefficient of velocity
         double cost_work; //!< Cost coefficient of work
+        double cost_mech_work_thermal_loss;
         double cost_power; //!< Cost coefficient of average power
         double cost_velocity_legs_flight; //!< Cost coefficient of velocity for legs during flight
         double cost_actuation_legs_flight; //!< Cost coefficient of actuation for legs during flight
         double cost_time; //!< Cost coefficient of time
         bool get_animate_info=false; //!< Whether or not return the trajectory to Spirit for animation
-
+        bool ghosts=true;
 
         std::string file_name_out; //!< Store optimized trajectories into this file if not empty
         std::string file_name_in= ""; //!< Load initial trajectories from this file if not empty
@@ -332,14 +335,14 @@ namespace dairlib {
             std::ofstream myfile; // 
             myfile.open(file_path);
             myfile << "param,"<<param << ",Electrical work," << electrical_work <<",Electrical power,"<<electrical_power <<",success?,"<<is_success<< "\n";
-            myfile<< "Time, Front L ,,, Front R ,,, Back L ,,, Back R ,,,, x, y, z, vx, vy, vz,";
+            myfile<< "Time, Front L ,,, Back L ,,, Front R ,,, Back R ,,,, x, y, z, vx, vy, vz,";
             if (this->spine_type=="twisting") {
                 myfile<<"joint 12, joint 12 dot, joint 12 torque ,,,,qw,qx,qy,qz,x,y,z,q12,q9,q11,q8,q10,q2,q6,q0,q4,q3,q7,q1,q5,";
-                myfile<<"wx,wy,wz,vx,vy,vz,q12d,q9d,q11d,q8d,q10d,q2d,q6d,q0d,q4d,q3d,q7d,q1d,q5d,,,";
+                myfile<<"wx,wy,wz,vx,vy,vz,dq12,dq9,dq11,dq8,dq10,dq2,dq6,dq0,dq4,dq3,dq7,dq1,dq5,,,";
                 myfile<<"f12,f8,f0,f1,f9,f2,f3,f10,f4,f5,f11,f6,f7\n";
             }
             else {myfile<<",,,qw,qx,qy,qz,x,y,z,q8,q9,q10,q11,q0,q2,q4,q6,q1,q3,q5,q8,";
-                myfile<<"wx,wy,wz,vx,vy,vz,q8d,q9d,q10d,q11d,q0d,q2d,q4d,q6d,q1d,q3d,q5d,q8d,,,";
+                myfile<<"wx,wy,wz,vx,vy,vz,dq8,dq9,dq10,dq11,dq0,dq2,dq4,dq6,dq1,dq3,dq5,dq7,,,";
                 myfile<<"f8,f0,f1,f9,f2,f3,f10,f4,f5,f11,f6,f7\n";
             }
             Y traj_end_time=this->u_traj.end_time();

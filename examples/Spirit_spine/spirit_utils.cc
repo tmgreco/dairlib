@@ -824,7 +824,8 @@ double calcTorqueInt(
 template <typename T>
 std::vector<drake::solvers::Binding<drake::solvers::Cost>> AddWorkCost(drake::multibody::MultibodyPlant<T> & plant,
                  dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,
-                 double cost_work_gain){
+                 double cost_work_gain,
+                 std::string work_type){
   std::vector<drake::solvers::Binding<drake::solvers::Cost>> cost_joint_work_bindings;
   int n_q = plant.num_positions();
 
@@ -837,7 +838,7 @@ std::vector<drake::solvers::Binding<drake::solvers::Cost>> AddWorkCost(drake::mu
       Q = Q_knee;
     else
       Q = Q_not_knee;
-    auto joint_work_cost = std::make_shared<JointWorkCost>(plant,  Q, cost_work_gain,4);
+    auto joint_work_cost = std::make_shared<JointWorkCost>(plant,  Q, cost_work_gain,4,work_type);
     int act_int = actuator_map.at("motor_" + std::to_string(joint));
     int vel_int = n_q + velocities_map.at("joint_" + std::to_string(joint) +"dot");
     // Loop through each mode
@@ -914,6 +915,7 @@ JointWorkCost::JointWorkCost(const drake::multibody::MultibodyPlant<double>& pla
     :solvers::NonlinearCost<double>(5,description), plant_(plant){
   Q_ = Q;
   cost_work_ = cost_work;
+  work_type_=description;
   alpha_ = alpha;
   n_q_ = plant_.num_positions();
   n_v_ = plant_.num_velocities();
@@ -928,7 +930,7 @@ double JointWorkCost::relu_smooth(const double x) const{
 void JointWorkCost::EvaluateCost(const Eigen::Ref<const drake::VectorX<double>> &x,
                   drake::VectorX<double> *y) const{
 
-
+double efficiency_=0;
 
 double h_i = x(0);
 
@@ -938,11 +940,16 @@ double v_i = x(3);
 double v_ip = x(4);
 double work_low = cost_work_ * (u_i * v_i + Q_ * u_i * u_i);
 double work_up = cost_work_ * (u_ip * v_ip + Q_ * u_ip * u_ip);
-double efficiency=0;
+
+if (work_type_=="mech_thermal") {
+  work_low = cost_work_ * (abs(u_i * v_i) + Q_ * u_i * u_i);
+  work_up = cost_work_ * (abs(u_ip * v_ip) + Q_ * u_ip * u_ip);
+}
+
 // double work_low = cost_work_ * (u_i * v_i + Q_ * u_i * u_i);
 // double work_up = cost_work_ * (u_ip * v_ip + Q_ * u_ip * u_ip);
-double battery_pow_low = positivePart(work_low) + efficiency * negativePart(work_low);
-double battery_pow_up = positivePart(work_up) + efficiency * negativePart(work_up);
+double battery_pow_low = positivePart(work_low) + efficiency_ * negativePart(work_low);
+double battery_pow_up = positivePart(work_up) + efficiency_ * negativePart(work_up);
 drake::VectorX<double> rv(1);
 rv[0] = 1/2.0 * h_i *(battery_pow_low + battery_pow_up);
 (*y) = rv;
@@ -1206,7 +1213,8 @@ template double calcTorqueInt(
 
 template std::vector<drake::solvers::Binding<drake::solvers::Cost>> AddWorkCost(drake::multibody::MultibodyPlant<double> & plant,
                  dairlib::systems::trajectory_optimization::Dircon<double>& trajopt,
-                 double cost_work_gain);
+                 double cost_work_gain,
+                 std::string work_type);
 
 template std::vector<drake::solvers::Binding<drake::solvers::Cost>> AddPowerCost(drake::multibody::MultibodyPlant<double> & plant,
                  dairlib::systems::trajectory_optimization::Dircon<double>& trajopt,
