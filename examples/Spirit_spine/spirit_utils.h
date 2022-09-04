@@ -1,6 +1,7 @@
 #pragma once
 #include "solvers/nonlinear_cost.h"
 #include <drake/multibody/inverse_kinematics/inverse_kinematics.h>
+// #include <drake/common/symbolic/expression/expression_cell.h>
 namespace dairlib {
 
 class ModeSequenceHelper {
