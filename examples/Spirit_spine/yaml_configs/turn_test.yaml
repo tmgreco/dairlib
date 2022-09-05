@@ -1,0 +1,630 @@
+# YAML spirit jump configuration
+-
+  initial_guess: ""  #if it is empty, the program will generate initial guess. Otherwise, we use the file given here as the initial guess
+  saved_directory: examples/Spirit_spine/saved_trajectories/turn/rigid_test_work2/
+  data_directory: examples/Spirit_spine/data/turn/rigid_test_work2/
+  spine_type: rigid
+  urdf_path: examples/Spirit_spine/spirit_drake.urdf
+  # saved_directory: examples/Spirit_spine/saved_trajectories/turn/twist_test_work2/
+  # data_directory: examples/Spirit_spine/data/turn/twist_test_work2/
+  # spine_type: twisting
+  # urdf_path: examples/Spirit_spine/spirit_with_spine_drake.urdf
+  num_perturbations: 10
+  mean: 0
+  var: 0.01
+  iterate:
+    -
+      name: turn_1_ss
+      num: 1
+      iteration_variable: orientation_diff
+      for:
+        start: 0.1
+        end: 1
+        step_size: 0.1
+    -
+      name: turn_1_ms
+      num: 1
+      iteration_variable: orientation_diff
+      for:
+        start: 0.1
+        end: 1
+        step_size: 0.1
+    -
+      name: turn_1_ls
+      num: 1
+      iteration_variable: orientation_diff
+      for:
+        start: 0.1
+        end: 1
+        step_size: 0.1
+    -
+      name: turn_2_ss
+      num: 1
+      iteration_variable: orientation_diff
+      for:
+        start: 0.1
+        end: 1
+        step_size: 0.1
+    -
+      name: turn_2_ms
+      num: 1
+      iteration_variable: orientation_diff
+      for:
+        start: 0.1
+        end: 1
+        step_size: 0.1
+    -
+      name: turn_2_ls
+      num: 1
+      iteration_variable: orientation_diff
+      for:
+        start: 0.1
+        end: 1
+        step_size: 0.1
+    -
+      name: turn_3_ss
+      num: 1
+      iteration_variable: orientation_diff
+      for:
+        start: 0.1
+        end: 1
+        step_size: 0.1
+    -
+      name: turn_3_ms
+      num: 1
+      iteration_variable: orientation_diff
+      for:
+        start: 0.1
+        end: 1
+        step_size: 0.1
+    -
+      name: turn_3_ls
+      num: 1
+      iteration_variable: orientation_diff
+      for:
+        start: 0.1
+        end: 1
+        step_size: 0.1
+    -
+      name: turn_4_ss
+      num: 1
+      iteration_variable: orientation_diff
+      for:
+        start: 0.1
+        end: 1
+        step_size: 0.1
+    -
+      name: turn_4_ms
+      num: 1
+      iteration_variable: orientation_diff
+      for:
+        start: 0.1
+        end: 1
+        step_size: 0.1
+    -
+      name: turn_4_ls
+      num: 1
+      iteration_variable: orientation_diff
+      for:
+        start: 0.1
+        end: 1
+        step_size: 0.1
+    -
+      name: turn_5_ss
+      num: 1
+      iteration_variable: orientation_diff
+      for:
+        start: 0.1
+        end: 1
+        step_size: 0.1
+    -
+      name: turn_5_ms
+      num: 1
+      iteration_variable: orientation_diff
+      for:
+        start: 0.1
+        end: 1
+        step_size: 0.1
+    -
+      name: turn_5_ls
+      num: 1
+      iteration_variable: orientation_diff
+      for:
+        start: 0.1
+        end: 1
+        step_size: 0.1
+- 
+  name: turn_1_ss
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 10
+    - 7
+    - 7
+    - 10
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 1
+  pitch_magnitude_apex: 1
+  max_roll: 1
+  max_pitch: 1
+  orientation_diff: 0.3
+  lock_spine: false
+  apex_height: -1
+  speed: 1
+  max_duration: 1
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 0
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100 
+  mu: 0.5
+  eps: 1e-2
+  tol: 1e-1
+  file_name_in: bounding_gait5_p3_s1
+  file_name_out: turn1_ss
+  action: expand
+- 
+  name: turn_1_ms
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 10
+    - 7
+    - 7
+    - 10
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 1
+  pitch_magnitude_apex: 1
+  max_roll: 1
+  max_pitch: 1
+  orientation_diff: 0.3
+  lock_spine: false
+  apex_height: -1
+  speed: 1
+  max_duration: 1
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 0
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100 
+  mu: 0.5
+  eps: 1e-2
+  tol: 1e-1
+  file_name_in: bounding_gait5_p3_s2
+  file_name_out: turn1_ms
+  action: expand
+- 
+  name: turn_1_ls
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 10
+    - 7
+    - 7
+    - 10
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 1
+  pitch_magnitude_apex: 1
+  max_roll: 1
+  max_pitch: 1
+  orientation_diff: 0.3
+  lock_spine: false
+  apex_height: -1
+  speed: 1
+  max_duration: 1
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 0
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100 
+  mu: 0.5
+  eps: 1e-2
+  tol: 1e-1
+  file_name_in: bounding_gait5_p3_s3
+  file_name_out: turn1_ls
+  action: expand
+- 
+  name: turn_2_ss
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 10
+    - 7
+    - 7
+    - 10
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 1
+  pitch_magnitude_apex: 1
+  max_roll: 1
+  max_pitch: 1
+  orientation_diff: 0.3
+  lock_spine: false
+  apex_height: -1
+  speed: 2
+  max_duration: 1
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 0
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100 
+  mu: 0.5
+  eps: 1e-2
+  tol: 1e-1
+  file_name_in: bounding_gait5_p5_s1
+  file_name_out: turn2_ss
+  action: expand
+- 
+  name: turn_2_ms
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 10
+    - 7
+    - 7
+    - 10
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 1
+  pitch_magnitude_apex: 1
+  max_roll: 1
+  max_pitch: 1
+  orientation_diff: 0.3
+  lock_spine: false
+  apex_height: -1
+  speed: 2
+  max_duration: 1
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 0
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100 
+  mu: 0.5
+  eps: 1e-2
+  tol: 1e-1
+  file_name_in: bounding_gait5_p5_s2
+  file_name_out: turn2_ms
+  action: expand
+- 
+  name: turn_2_ls
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 10
+    - 7
+    - 7
+    - 10
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 1
+  pitch_magnitude_apex: 1
+  max_roll: 1
+  max_pitch: 1
+  orientation_diff: 0.3
+  lock_spine: false
+  apex_height: -1
+  speed: 2
+  max_duration: 1
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 0
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100 
+  mu: 0.5
+  eps: 1e-2
+  tol: 1e-1
+  file_name_in: bounding_gait5_p5_s3
+  file_name_out: turn2_ls
+  action: expand
+- 
+  name: turn_3_ss
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 10
+    - 7
+    - 7
+    - 10
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 1
+  pitch_magnitude_apex: 1
+  max_roll: 1
+  max_pitch: 1
+  orientation_diff: 0.3
+  lock_spine: false
+  apex_height: -1
+  speed: 3
+  max_duration: 1
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 0
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100 
+  mu: 0.5
+  eps: 1e-2
+  tol: 1e-1
+  file_name_in: bounding_gait5_p7_s1
+  file_name_out: turn3_ss
+  action: expand
+- 
+  name: turn_3_ms
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 10
+    - 7
+    - 7
+    - 10
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 1
+  pitch_magnitude_apex: 1
+  max_roll: 1
+  max_pitch: 1
+  orientation_diff: 0.3
+  lock_spine: false
+  apex_height: -1
+  speed: 3
+  max_duration: 1
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 0
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100 
+  mu: 0.5
+  eps: 1e-2
+  tol: 1e-1
+  file_name_in: bounding_gait5_p7_s2
+  file_name_out: turn3_ms
+  action: expand
+- 
+  name: turn_3_ls
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 10
+    - 7
+    - 7
+    - 10
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 1
+  pitch_magnitude_apex: 1
+  max_roll: 1
+  max_pitch: 1
+  orientation_diff: 0.3
+  lock_spine: false
+  apex_height: -1
+  speed: 3
+  max_duration: 1
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 0
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100 
+  mu: 0.5
+  eps: 1e-2
+  tol: 1e-1
+  file_name_in: bounding_gait5_p7_s3
+  file_name_out: turn3_ls
+  action: expand
+- 
+  name: turn_4_ss
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 10
+    - 7
+    - 7
+    - 10
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 1
+  pitch_magnitude_apex: 1
+  max_roll: 1
+  max_pitch: 1
+  orientation_diff: 0.3
+  lock_spine: false
+  apex_height: -1
+  speed: 4
+  max_duration: 1
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 0
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100 
+  mu: 0.5
+  eps: 1e-2
+  tol: 1e-1
+  file_name_in: bounding_gait5_p9_s1
+  file_name_out: turn4_ss
+  action: expand
+- 
+  name: turn_4_ms
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 10
+    - 7
+    - 7
+    - 10
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 1
+  pitch_magnitude_apex: 1
+  max_roll: 1
+  max_pitch: 1
+  orientation_diff: 0.3
+  lock_spine: false
+  apex_height: -1
+  speed: 4
+  max_duration: 1
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 0
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100 
+  mu: 0.5
+  eps: 1e-2
+  tol: 1e-1
+  file_name_in: bounding_gait5_p9_s2
+  file_name_out: turn4_ms
+  action: expand
+- 
+  name: turn_4_ls
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 10
+    - 7
+    - 7
+    - 10
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 1
+  pitch_magnitude_apex: 1
+  max_roll: 1
+  max_pitch: 1
+  orientation_diff: 0.3
+  lock_spine: false
+  apex_height: -1
+  speed: 4
+  max_duration: 1
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 0
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100 
+  mu: 0.5
+  eps: 1e-2
+  tol: 1e-1
+  file_name_in: bounding_gait5_p9_s3
+  file_name_out: turn4_ls
+  action: expand
+- 
+  name: turn_5_ss
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 10
+    - 7
+    - 7
+    - 10
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 1
+  pitch_magnitude_apex: 1
+  max_roll: 1
+  max_pitch: 1
+  orientation_diff: 0.3
+  lock_spine: false
+  apex_height: -1
+  speed: 5
+  max_duration: 1
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 0
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100 
+  mu: 0.5
+  eps: 1e-2
+  tol: 1e-1
+  file_name_in: bounding_gait5_p11_s1
+  file_name_out: turn5_ss
+  action: expand
+- 
+  name: turn_5_ms
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 10
+    - 7
+    - 7
+    - 10
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 1
+  pitch_magnitude_apex: 1
+  max_roll: 1
+  max_pitch: 1
+  orientation_diff: 0.3
+  lock_spine: false
+  apex_height: -1
+  speed: 5
+  max_duration: 1
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 0
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100 
+  mu: 0.5
+  eps: 1e-2
+  tol: 1e-1
+  file_name_in: bounding_gait5_p11_s2
+  file_name_out: turn5_ms
+  action: expand
+- 
+  name: turn_5_ls
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 10
+    - 7
+    - 7
+    - 10
+    - 7
+  initial_height: 0.2
+  pitch_magnitude_lo: 1
+  pitch_magnitude_apex: 1
+  max_roll: 1
+  max_pitch: 1
+  orientation_diff: 0.3
+  lock_spine: false
+  apex_height: -1
+  speed: 5
+  max_duration: 1
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 0
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 100 
+  mu: 0.5
+  eps: 1e-2
+  tol: 1e-1
+  file_name_in: bounding_gait5_p11_s3
+  file_name_out: turn5_ls
+  action: expand
