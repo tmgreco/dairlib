@@ -145,7 +145,16 @@ private:
             std::ofstream myfile; // 
             myfile.open(file_path);
             myfile << "orientation_diff,"<<orientation_diff<<",speed,"<<speed << ",Electrical work," << this->electrical_work <<",Electrical power,"<<this->electrical_power <<",success?,"<<is_success<< "\n";
-            myfile<< "Time, Front L ,,, Front R ,,, Back L ,,, Back R ,,,, x, y, z, vx, vy, vz, joint 12, joint 12 dot, joint 12 torque \n";
+            myfile<< "Time, Front L ,,, Back L ,,, Front R ,,, Back R ,,,, x, y, z, vx, vy, vz,";
+            if (this->spine_type=="twisting") {
+                myfile<<"joint 12, joint 12 dot, joint 12 torque ,,,,qw,qx,qy,qz,x,y,z,q12,q9,q11,q8,q10,q2,q6,q0,q4,q3,q7,q1,q5,";
+                myfile<<"wx,wy,wz,vx,vy,vz,dq12,dq9,dq11,dq8,dq10,dq2,dq6,dq0,dq4,dq3,dq7,dq1,dq5,,,";
+                myfile<<"f12,f8,f0,f1,f9,f2,f3,f10,f4,f5,f11,f6,f7\n";
+            }
+            else {myfile<<",,,qw,qx,qy,qz,x,y,z,q8,q9,q10,q11,q0,q2,q4,q6,q1,q3,q5,q8,";
+                myfile<<"wx,wy,wz,vx,vy,vz,dq8,dq9,dq10,dq11,dq0,dq2,dq4,dq6,dq1,dq3,dq5,dq7,,,";
+                myfile<<"f8,f0,f1,f9,f2,f3,f10,f4,f5,f11,f6,f7\n";
+            }
             Y traj_end_time=this->u_traj.end_time();
             for (Y current_time=0;current_time<traj_end_time;current_time+=0.01){
                 int mode=-1;

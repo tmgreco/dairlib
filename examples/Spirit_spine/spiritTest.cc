@@ -9,7 +9,9 @@ int main(int argc, char* argv[]) {
         std::string dairlib_path(env_p);
         if (!FLAGS_yaml_path.empty()){
             // dairlib::Spirit<dairlib::SpiritTrotHalf,double> my_spirit(dairlib_path,FLAGS_yaml_path);
-            dairlib::Spirit<dairlib::SpiritBoundingGait,double>  my_spirit(dairlib_path,FLAGS_yaml_path);
+            // dairlib::Spirit<dairlib::SpiritBoundingGait,double>  my_spirit(dairlib_path,FLAGS_yaml_path);
+            // dairlib::Spirit<dairlib::SpiritParkourWallRun,double> my_spirit(dairlib_path,FLAGS_yaml_path);
+            dairlib::Spirit<dairlib::SpiritTurn,double> my_spirit(dairlib_path,FLAGS_yaml_path);
             my_spirit.run();
             my_spirit.animate();
         }

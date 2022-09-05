@@ -12,11 +12,9 @@
 #include <yaml-cpp/yaml.h>
 #include <fstream>
 #include <gflags/gflags.h>
-#include <filesystem>
-
-
 DEFINE_double(skip_to, 1, "skip to ith optimization"); //set it not 1 after running the optimization once
 DEFINE_double(end_at, INT_MAX, "end at ith optimization"); //set it not 1 after running the optimization once
+DEFINE_bool(ghosts,true,"ghosts during optimization");
 using drake::multibody::Parser;
 using drake::multibody::MultibodyPlant;
 using drake::trajectories::PiecewisePolynomial;
@@ -38,12 +36,16 @@ Spirit<B,T>::Spirit(std::string dairlib_path, std::string yaml_path) :plant (std
     if(config[0]["var"]) var=config[0]["var"].as<double>();
     behavior.urdf_path=config[0]["urdf_path"].as<std::string>();
     behavior.spine_type=config[0]["spine_type"].as<std::string>();
+
     behavior.data_directory=dairlib_path+config[0]["data_directory"].as<std::string>();
-    
+    behavior.setGhosts(FLAGS_ghosts);
     // Create saved directory if it doesn't exist
-    std::filesystem::create_directories(saved_directory);
-    std::filesystem::create_directories(behavior.data_directory);
-    
+    if (!std::experimental::filesystem::is_directory(saved_directory) || !std::experimental::filesystem::exists(saved_directory)) { 
+        std::experimental::filesystem::create_directory(saved_directory); 
+    }
+    if (!std::experimental::filesystem::is_directory(behavior.data_directory) || !std::experimental::filesystem::exists(behavior.data_directory)) { 
+        std::experimental::filesystem::create_directory(behavior.data_directory); 
+    }
     // Copy current yaml to saved directory
     std::ifstream  src(this->yaml_path, std::ios::binary);
     std::ofstream  dst(saved_directory+"config.yaml",   std::ios::binary);
@@ -80,14 +82,20 @@ Spirit<B,T>::Spirit(std::string dairlib_path, std::string yaml_path) :plant (std
                   OPTIMIZATIONS[OPTIMIZATIONS.size()-1][config[0]["iterate"][ite]["iteration_variable"].as<std::string>()]=v;
 
                   // Generate correct file names in and out
-                  if (!(v==config[0]["iterate"][ite]["for"]["start"].as<double>() && k==i)) {
-                    if (k==i) OPTIMIZATIONS[OPTIMIZATIONS.size()-1]["file_name_in"]= config[i+num-1]["file_name_out"].as<std::string>()+"_p"+std::to_string(p-1);
-                    else OPTIMIZATIONS[OPTIMIZATIONS.size()-1]["file_name_in"]= config[k-1]["file_name_out"].as<std::string>()+"_p"+std::to_string(p);
+                  if (k==i) {
+                    if (num==1){
+                      if (v>config[0]["iterate"][ite]["for"]["start"].as<double>()) {
+                        OPTIMIZATIONS[OPTIMIZATIONS.size()-1]["file_name_in"]= config[i+num-1]["file_name_out"].as<std::string>()+"_p"+std::to_string(p-1);
+                      }
+                    }
+                    else OPTIMIZATIONS[OPTIMIZATIONS.size()-1]["file_name_in"]= config[i-1]["file_name_out"].as<std::string>()+"_p"+std::to_string(p);
                   }
-                  if (!(v+config[0]["iterate"][ite]["for"]["step_size"].as<double>() >= config[0]["iterate"][ite]["for"]["end"].as<double>() 
-                      && k==i+num-1)) {
-                    OPTIMIZATIONS[OPTIMIZATIONS.size()-1]["file_name_out"]= config[k]["file_name_out"].as<std::string>()+"_p"+std::to_string(p);
+                  else  {
+                    std::cout<<"!!!!!!!!!!!!!! "<<config[k-1]["file_name_out"].as<std::string>()+"_p"+std::to_string(p)<<std::endl;
+                    OPTIMIZATIONS[OPTIMIZATIONS.size()-1]["file_name_in"]= config[k-1]["file_name_out"].as<std::string>()+"_p"+std::to_string(p);
                   }
+                  OPTIMIZATIONS[OPTIMIZATIONS.size()-1]["file_name_out"]= config[k]["file_name_out"].as<std::string>()+"_p"+std::to_string(p);
+                  
                 }
                 p++;
               }
@@ -194,19 +202,25 @@ void Spirit<B,T>::run(){
     } 
     
     if (behavior.action=="expand"){
+      // Create array of optimal costs
+      double costs[num_perturbations];
+      const int N = sizeof(costs) / sizeof(double);
+
       std::string org_file_name_out=behavior.getFileNameOut();
       for (int j=0;j<num_perturbations;j++){
         std::cout<<"Running "<<j+1<<"(th) trail in "<<i<<"(th) optimization; action: "<<behavior.action<<std::endl;
         std::cout<<"Mean: "<< mean <<"; Var: "<< var << std::endl;
         behavior.setFileNameOut(org_file_name_out+"_s"+std::to_string(j+1));
+        behavior.setPerturbationIndex(j+1);
         if (j!=0) behavior.setMeanAndVar(mean,var);
-        // std::cout<<"!!!!!!!!!!!!!!!!!!!!!!!!!!!!"<<j<<"  "<<mean <<" " << var<<std::endl;
         behavior.run(*plant,&pp_xtraj,&surface_vector);
+        costs[j]=behavior.getCost();
       }
       behavior.setMeanAndVar(1,0);
       behavior.setFileNameOut(org_file_name_out);
-      // Copy and paste the first unperturbed trajectory
-      std::ifstream  src(org_file_name_out+"_s1", std::ios::binary);
+      // Copy the best traj to saved directory
+      int best_index=std::distance(costs, std::min_element(costs, costs + N));
+      std::ifstream  src(org_file_name_out+"_s"+std::to_string(best_index+1), std::ios::binary);
       std::ofstream  dst(org_file_name_out,   std::ios::binary);
       dst << src.rdbuf();
     }
@@ -218,6 +232,7 @@ void Spirit<B,T>::run(){
         std::cout<<"Running "<<j+1<<"(th) trail in "<<i<<"(th) optimization; action: "<<behavior.action<<std::endl;
         behavior.setFileNameIn(org_file_name_in+"_s"+std::to_string(j+1));
         behavior.setFileNameOut(org_file_name_out+"_s"+std::to_string(j+1));
+        behavior.setPerturbationIndex(j+1);
         behavior.run(*plant,&pp_xtraj,&surface_vector);
       }
     }
@@ -235,6 +250,7 @@ void Spirit<B,T>::run(){
         if (j!=0) behavior.setMeanAndVar(mean,var);
         behavior.setFileNameIn(org_file_name_in+"_s"+std::to_string(j+1));
         behavior.setFileNameOut(org_file_name_out+"_s"+std::to_string(j+1));
+        behavior.setPerturbationIndex(j+1);
         behavior.run(*plant,&pp_xtraj,&surface_vector);
         costs[j]=behavior.getCost();
       }

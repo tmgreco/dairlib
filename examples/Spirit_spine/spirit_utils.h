@@ -207,7 +207,8 @@ std::tuple<  std::vector<std::unique_ptr<dairlib::systems::trajectory_optimizati
 template <typename T>
 void setSpiritJointLimits(
                     drake::multibody::MultibodyPlant<T> & plant,
-                    dairlib::systems::trajectory_optimization::Dircon<T>& trajopt );
+                    dairlib::systems::trajectory_optimization::Dircon<T>& trajopt ,
+                    float knee_limit = M_PI-0.2);
 
 /// This overload sets an individual joint's position limit
 ///    @param plant a pointer to a multibodyPlant

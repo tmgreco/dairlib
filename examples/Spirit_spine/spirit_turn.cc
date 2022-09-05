@@ -329,7 +329,7 @@ std::vector<drake::solvers::Binding<drake::solvers::Cost>> SpiritTurn<Y>::addCos
   addCostLegs(plant, trajopt, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}, 3);
   addCostLegs(plant, trajopt,  {0, 1, 4, 5, 8, 10}, 4);
   addCostLegs(plant, trajopt, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}, 5);
-  return AddPowerCost(plant, trajopt, this->cost_power);
+  return AddWorkCost(plant, trajopt, this->cost_power);
 }
 /// Adds constraints to the trajopt bound problem
 /// \param plant robot model
@@ -346,6 +346,7 @@ void SpiritTurn<Y>::addConstraints(
   // General constraints
   setSpiritJointLimits(plant, trajopt);
   setSpiritActuationLimits(plant, trajopt);
+  setSpiritActuationSpeedCurveLimits(plant, trajopt);
   trajopt.AddDurationBounds(0, max_duration);
 
   /// Setup all the optimization constraints
@@ -426,8 +427,8 @@ void SpiritTurn<Y>::addConstraints(
   auto roll0 = atan2(2.0 * (x0(0) * x0(1) - x0(2) * x0(3)), 1.0 - 2.0 * (x0(1) * x0(1) + x0(2) * x0(2)));
   auto rollf = atan2(2.0 * (xf(0) * xf(1) - xf(2) * xf(3)), 1.0 - 2.0 * (xf(1) * xf(1) + xf(2) * xf(2)));
   
-  auto pitch0 = asin(2.0 * (x0(0) * x0(2) + x0(3) * x0(1)));
-  auto pitchf = asin(2.0 * (xf(0) * xf(2) + xf(3) * xf(1)));
+  auto pitch0 = asin(2.0 * min(max((x0(0) * x0(2) + x0(3) * x0(1)),-0.499),0.499));
+  auto pitchf = asin(2.0 * min(max((xf(0) * xf(2) + xf(3) * xf(1)),-0.499),0.499));
   
 
   trajopt.AddConstraint(yawf-yaw0-orientation_diff,-eps,eps); //different pitch
@@ -452,7 +453,7 @@ void SpiritTurn<Y>::addConstraints(
 
     auto rolli = atan2(2.0 * (xi(0) * xi(1) - xi(2) * xi(3)), 1.0 - 2.0 * (xi(1) * xi(1) + xi(2) * xi(2)));
     trajopt.AddConstraint(rolli,-max_roll-eps, max_roll+eps);
-    auto pitchi = asin(2.0 * (xi(0) * xi(2) + xi(3) * xi(1)));
+    auto pitchi = asin(2.0 * min(max((xi(0) * xi(2) + xi(3) * xi(1)),-0.499),0.499));
     trajopt.AddConstraint(pitchi,-max_pitch-eps, max_pitch+eps);
 
     // x velocity almost constant
@@ -611,9 +612,15 @@ void SpiritTurn<Y>::run(MultibodyPlant<Y>& plant,
   solver->Solve(trajopt, trajopt.initial_guess(), trajopt.solver_options(),
                 &result);  auto finish = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> elapsed = finish - start;
+  std::cout<<"Spine type: "<<this->spine_type<<std::endl;
   std::cout << "Solve time: " << elapsed.count() <<std::endl;
   std::cout << "Cost: " << result.get_optimal_cost() <<std::endl;
   std::cout << (result.is_success() ? "Optimization Success" : "Optimization Fail") << std::endl;
+
+  // for(const auto& x_traj : x_trajs) {
+  //   std::vector<double> knot_points = x_traj.get_segment_times()
+  // }
+
   /// Save trajectory
   this->saveTrajectory(plant,trajopt,result);
 
@@ -624,14 +631,33 @@ void SpiritTurn<Y>::run(MultibodyPlant<Y>& plant,
   std::string contact_force_fname=this->data_directory+filename+".csv";
   saveContactForceData(trajopt,result,this->orientation_diff,this->speed,contact_force_fname,result.is_success() && result.get_optimal_cost()<10000);
   
+  // std::cout<<trajopt<<std::endl;
+  // for (const auto& b : trajopt.GetAllCosts()) {
+  //   std::cout << b << "\n";
+  // }
+
   // auto x_trajs = trajopt.ReconstructDiscontinuousStateTrajectory(result);
   // std::cout<<"Work = " << dairlib::calcElectricalWork(plant, x_trajs, this->u_traj) << std::endl;
 
   // if(this->cost_power > 0){
   //   double cost_work_val = solvers::EvalCostGivenSolution(
   //       result, work_binding);
-  //   std::cout<<"ReLu Work = " << cost_work_val/this->cost_power << std::endl;
+  //   std::cout<<"Power from drake cost = " << cost_work_val/this->cost_power<<" Time: "<<this->u_traj.end_time() << std::endl;
   // }
+
+  // if(this->cost_power > 0){
+  //   double cost_work_val = solvers::EvalCostGivenSolution(
+  //       result, AddWorkCost(plant, trajopt, this->cost_power));
+  //   std::cout<<"Work from drake cost = " << cost_work_val/this->cost_power<<" Time: "<<this->u_traj.end_time() << std::endl;
+  //   // drake::VectorX<Y> tk = result.GetSolution(trajopt.time_vars());
+  //   // std::cout<<tk<<std::endl;
+  //   std::cout<<"value of joint 0 cost vars at rear stance"<<  result.GetSolution(work_binding[30].variables())<<std::endl;
+  //   std::cout<<"value of joint 1 cost vars at rear stance"<<  result.GetSolution(work_binding[73].variables())<<std::endl;
+  //   std::cout<<"value of joint 0 cost vars at front stance"<<  result.GetSolution(work_binding[10].variables())<<std::endl;
+  //   std::cout<<"value of joint 1 cost vars at front stance"<<  result.GetSolution(work_binding[53].variables())<<std::endl;
+    
+  // }
+
   /// Run animation of the final trajectory
   *pp_xtraj =trajopt.ReconstructStateTrajectory(result);
   // // Create offset polynomial

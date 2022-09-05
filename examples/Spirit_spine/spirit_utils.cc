@@ -367,9 +367,11 @@ void setSpiritJointLimits(drake::multibody::MultibodyPlant<T> & plant,
                           maxVal );
   }
 }
+
 template <typename T> 
 void setSpiritJointLimits(drake::multibody::MultibodyPlant<T> & plant, 
-                          dairlib::systems::trajectory_optimization::Dircon<T>& trajopt ){
+                          dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,
+                          float knee_limit){
   // Upper doesn't need a joint limit for now, but we may eventually want to
   // change this to help the optimizations
   double minValUpper = -2 * M_PI ;
@@ -379,7 +381,7 @@ void setSpiritJointLimits(drake::multibody::MultibodyPlant<T> & plant,
   // the few degrees that come with the body collision and to remove a few to stay
   // away from singularity
   double minValLower =  0;
-  double maxValLower =  M_PI-0.2;
+  double maxValLower =  knee_limit;
   
   // The URDF defines symmetric limits if asymmetric constraints we need to
   // add a mirror since the hips are positive in the same direction
@@ -1033,8 +1035,8 @@ double u_i = x(1);
 double u_ip = x(2);
 double v_i = x(3);
 double v_ip = x(4);
-double work_low = cost_work_ * (u_i * v_i + Q_ * u_i * u_i);
-double work_up = cost_work_ * (u_ip * v_ip + Q_ * u_ip * u_ip);
+double work_low = cost_work_ * relu_smooth(u_i * v_i + Q_ * u_i * u_i);
+double work_up = cost_work_ * relu_smooth(u_ip * v_ip + Q_ * u_ip * u_ip);
 
 if (work_type_=="mech_thermal") {
   work_low = cost_work_ * (abs(u_i * v_i) + Q_ * u_i * u_i);
@@ -1095,8 +1097,8 @@ void JointPowerCost::EvaluateCost(const Eigen::Ref<const drake::VectorX<double>>
   //////////////////////////////////////////// FOR ELETRICAL POWER ///////////////////////////////////////////
   double efficiency=0;
 
-  double pow_low = cost_work_ * (u_i * v_i + Q_ * u_i * u_i);
-  double pow_up = cost_work_ * (u_ip * v_ip + Q_ * u_ip * u_ip);
+  double pow_low = cost_work_ * relu_smooth(u_i * v_i + Q_ * u_i * u_i);
+  double pow_up = cost_work_ * relu_smooth(u_ip * v_ip + Q_ * u_ip * u_ip);
 
   double battery_pow_low = positivePart(pow_low) + efficiency * negativePart(pow_low);
   double battery_pow_up = positivePart(pow_up) + efficiency * negativePart(pow_up);
@@ -1260,7 +1262,8 @@ template void setSpiritJointLimits(
 
 template void setSpiritJointLimits(
           drake::multibody::MultibodyPlant<double> & plant,
-          dairlib::systems::trajectory_optimization::Dircon<double>& trajopt );
+          dairlib::systems::trajectory_optimization::Dircon<double>& trajopt,
+          float knee_limit);
 
 template void setSpiritActuationLimits(
           drake::multibody::MultibodyPlant<double> & plant, 
