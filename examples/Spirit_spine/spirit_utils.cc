@@ -874,10 +874,14 @@ std::vector<drake::solvers::Binding<drake::solvers::Cost>> AddPowerCost(drake::m
   // Loop through each joint
   for (int joint = 0; joint < plant.num_actuators(); joint++) {
     if(joint == 1 or joint == 3 or joint == 5 or joint == 7)
+    {
       Q = Q_knee;
+    }
     else
+    {
       Q = Q_not_knee;
-    auto joint_power_cost = std::make_shared<JointPowerCost>(plant, trajopt, Q, cost_power_gain,4);
+    }
+    auto joint_power_cost = std::make_shared<JointPowerCost>(plant, trajopt, Q, cost_power_gain, 4);
     int act_int = actuator_map.at("motor_" + std::to_string(joint));
     int vel_int = n_q + velocities_map.at("joint_" + std::to_string(joint) +"dot");
     // Loop through each mode
@@ -894,7 +898,7 @@ std::vector<drake::solvers::Binding<drake::solvers::Cost>> AddPowerCost(drake::m
         variables(1) = u_ip;
         variables(2) = x_i;
         variables(3) = x_ip;
-        joint_power_cost->SetHIndex(trajopt.get_mode_start(mode_index) + knot_index);
+        joint_power_cost->SetHIndex(trajopt.get_mode_start(mode_index) + knot_index + 4);
         for (int i=0;i<trajopt.N()-1;i++){
           variables((4+i))=trajopt.timestep(i)[0];
         }
@@ -978,7 +982,7 @@ void JointPowerCost::EvaluateCost(const Eigen::Ref<const drake::VectorX<double>>
   for (int i =0;i<N_-1;i++){
     ht+=x(i+4);
   }
-
+  
   ////////////////////////////////////////// FOR MECHANICAL POWER ///////////////////////////////////////////
   // // double work_low = cost_work_ * relu_smooth(u_i * v_i + Q_ * u_i * u_i);
   // // double work_up = cost_work_ * relu_smooth(u_ip * v_ip + Q_ * u_ip * u_ip);

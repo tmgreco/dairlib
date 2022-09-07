@@ -1,0 +1,7 @@
+{
+    "ros.distro": "foxy",
+    "files.associations": {
+        "*.ipp": "cpp",
+        "functional": "cpp"
+    }
+}

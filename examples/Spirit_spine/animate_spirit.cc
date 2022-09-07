@@ -213,7 +213,7 @@ void animateTraj(std::string& urdf_path) {
     simulator.set_target_realtime_rate(FLAGS_real_time_rate);
     simulator.Initialize();
     simulator.AdvanceTo(pp_xtraj.end_time());
-    sleep(2);
+    sleep(1);
   }
 }
 
