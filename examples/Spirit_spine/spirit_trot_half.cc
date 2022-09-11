@@ -44,7 +44,8 @@ void SpiritTrotHalf<Y>::config(std::string yaml_path, std::string saved_director
   this->mu=config[index]["mu"].as<double>();
   this->eps=config[index]["eps"].as<double>();
   this->tol=config[index]["tol"].as<double>();
-
+  if (config[index]["warm_start"]) this->warm_start=config[index]["warm_start"].as<bool>();
+  else this->warm_start=false;
   if(!config[index]["file_name_out"].as<std::string>().empty()) this->file_name_out=saved_directory+config[index]["file_name_out"].as<std::string>();
   if(!config[index]["file_name_in"].as<std::string>().empty()) this->file_name_in= saved_directory+config[index]["file_name_in"].as<std::string>();
   if(config[index]["action"]) this->action=config[index]["action"].as<std::string>();
@@ -203,6 +204,14 @@ std::vector<drake::solvers::Binding<drake::solvers::Cost>> SpiritTrotHalf<Y>::ad
   addCostLegs(plant, trajopt,  {2, 3, 4, 5, 9, 10}, 1);
   addCostLegs(plant, trajopt,  {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}, 2);
 
+  // !!!!!!!!!!!!!!!!!!!!!!!!!!! Need to be careful about this part !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  // addCostImpact(plant, trajopt,0.001);
+  // trajopt.ScaleTimeVariables(100);
+  // trajopt.ScaleQuaternionSlackVariables(100);
+  // !!!!!!!!!!!!!!!!!!!!!!!!!!! Need to be careful about this part !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  // return AddPowerCostByStrideLength(plant, trajopt, this->cost_power);
+  // return AddPowerCostByStrideLength(plant, trajopt, this->cost_power);
+  AddDeltaTorqueRegularizationCost(plant, trajopt, 0.00001);
   return AddPowerCost(plant, trajopt, this->cost_power);
 }
 /// Adds constraints to the trajopt bound problem
@@ -226,8 +235,9 @@ void SpiritTrotHalf<Y>::addConstraints(
   // std::cout<<"***************************************************"<<std::endl;
 
   // General constraints
-  setSpiritJointLimits(plant, trajopt);
+  setSpiritJointLimits(plant, trajopt,M_PI-0.3);
   setSpiritActuationLimits(plant, trajopt);
+  setSpiritActuationSpeedCurveLimits(plant, trajopt);
   trajopt.AddDurationBounds(min_duration, max_duration);
 
   /// Setup all the optimization constraints
@@ -246,7 +256,7 @@ void SpiritTrotHalf<Y>::addConstraints(
 
   // velocities
   // trajopt.AddBoundingBoxConstraint(this->speed-eps, this->speed+eps, x0(n_q+velocities_map.at("base_vx")));
-  trajopt.AddBoundingBoxConstraint(-eps, eps, x0(n_q+velocities_map.at("base_vy")));
+  // trajopt.AddBoundingBoxConstraint(-eps, eps, x0(n_q+velocities_map.at("base_vy")));
   trajopt.AddBoundingBoxConstraint(-eps, eps, x0(n_q+velocities_map.at("base_vz")));
 
 
@@ -281,17 +291,17 @@ void SpiritTrotHalf<Y>::addConstraints(
   /// Limit magnitude of pitch
   max_spine_new=max_spine_magnitude;
   pitch_magnitude=pitch_magnitude_lo;
-  if (this->var!=0) {
-    double suggested_magnitude=0.2+0.25*sqrt(this->speed);
-    max_spine_new=suggested_magnitude*((((double)rand()) / ((double)RAND_MAX)) +0.5);
-    if (pitch_magnitude_lo>0.3) pitch_magnitude=pitch_magnitude_lo*(((double)rand()) / ((double)RAND_MAX));
-  }
+  // if (this->var!=0) {
+  //   double suggested_magnitude=0.2+0.25*sqrt(this->speed);
+  //   max_spine_new=suggested_magnitude*((((double)rand()) / ((double)RAND_MAX)) +0.5);
+  //   if (pitch_magnitude_lo>0.3) pitch_magnitude=pitch_magnitude_lo*(((double)rand()) / ((double)RAND_MAX));
+  // }
   if (this->spine_type=="rigid") max_spine_new*=0.3;
   std::cout<<"MAX SPINE: "<<max_spine_new<<"  MAX PITCH: "<< pitch_magnitude<<"SPINE TYPE: "<<this->spine_type<<std::endl;
   
 
   // /// Toes constraints
-  toe_height=0.05;
+  toe_height=0.05+0.02;
   double upperLegLength=0.206;
   double lowerLegLength=0.206;
   double bodyWidth=0.24-0.05*2;
@@ -333,7 +343,7 @@ void SpiritTrotHalf<Y>::addConstraints(
     trajopt.AddConstraint( xf(3)+x0(3),-eps, eps); // opposite qz
     /// Position
     trajopt.AddConstraint( xf(5)+x0(5),-eps, eps); // opposite y
-    trajopt.AddConstraint( xf(6)-x0(6),-eps, eps);
+    trajopt.AddConstraint( xf(6)-x0(6),0, eps);
     /// Joint positions
     trajopt.AddConstraint( xf(positions_map.at("joint_0"))-x0(positions_map.at("joint_4")),-eps,eps);
     trajopt.AddConstraint( xf(positions_map.at("joint_1"))-x0(positions_map.at("joint_5")),-eps,eps);
@@ -349,13 +359,13 @@ void SpiritTrotHalf<Y>::addConstraints(
     trajopt.AddConstraint( xf(positions_map.at("joint_11"))+x0(positions_map.at("joint_9")),-eps,eps); // Opposite
     if (this->spine_type=="twisting") trajopt.AddConstraint( xf(positions_map.at("joint_12"))+x0(positions_map.at("joint_12")),-eps,eps); //opposite joint 12
     /// Base Velocity
-    trajopt.AddConstraint(xf(n_q+velocities_map.at("base_vx"))-x0(n_q+velocities_map.at("base_vx")),-eps,eps);
+    trajopt.AddConstraint(xf(n_q+velocities_map.at("base_vx"))-x0(n_q+velocities_map.at("base_vx")),eps,2*eps);
     trajopt.AddConstraint(xf(n_q+velocities_map.at("base_vy"))+x0(n_q+velocities_map.at("base_vy")),-eps,eps); //opposite vy
-    trajopt.AddConstraint(xf(n_q+velocities_map.at("base_vz"))-x0(n_q+velocities_map.at("base_vz")),-eps,eps);
+    trajopt.AddConstraint(xf(n_q+velocities_map.at("base_vz"))-x0(n_q+velocities_map.at("base_vz")),0,eps);
     /// angular velocity
     trajopt.AddConstraint(xf(n_q+velocities_map.at("base_wx"))+x0(n_q+velocities_map.at("base_wx")),-eps,eps); //opposite wx
     trajopt.AddConstraint(xf(n_q+velocities_map.at("base_wy"))-x0(n_q+velocities_map.at("base_wy")),-eps,eps); 
-    trajopt.AddConstraint(xf(n_q+velocities_map.at("base_wz"))+x0(n_q+velocities_map.at("base_wz")),-eps,eps); //opposite wz
+    trajopt.AddConstraint(xf(n_q+velocities_map.at("base_wz"))+x0(n_q+velocities_map.at("base_wz")),0,eps); //opposite wz
     /// joint velocities
     trajopt.AddConstraint(xf(n_q+velocities_map.at("joint_0dot"))-x0(n_q+velocities_map.at("joint_4dot")),-eps,eps);
     trajopt.AddConstraint(xf(n_q+velocities_map.at("joint_1dot"))-x0(n_q+velocities_map.at("joint_5dot")),-eps,eps);
@@ -386,7 +396,7 @@ void SpiritTrotHalf<Y>::addConstraints(
     trajopt.AddBoundingBoxConstraint(-cos(max_spine_new/4)*sin(pitch_magnitude/2.0) , cos(max_spine_new/4)*sin(pitch_magnitude/2.0), xi(positions_map.at("base_qy")));
     trajopt.AddBoundingBoxConstraint(-sin(max_spine_new/4)*sin(pitch_magnitude/2.0) , sin(max_spine_new/4)*sin(pitch_magnitude/2.0), xi(positions_map.at("base_qz")));
     // Height
-    trajopt.AddBoundingBoxConstraint( 0.25, 2, xi( positions_map.at("base_z")));
+    trajopt.AddBoundingBoxConstraint( 0.3, 2, xi( positions_map.at("base_z")));
     trajopt.AddBoundingBoxConstraint( -eps, eps, xi( n_q+velocities_map.at("base_vy")));
     if (this->spine_type=="twisting") trajopt.AddBoundingBoxConstraint( -max_spine_new-eps, max_spine_new+eps, xi( positions_map.at("joint_12")));
 
@@ -411,18 +421,18 @@ void SpiritTrotHalf<Y>::addConstraints(
                             +lowerLegLength*sin(pitch_i+xi(positions_map.at("joint_5"))-xi(positions_map.at("joint_4"))))
                             -abOffs*cos(pitch_i)*sin(xi(positions_map.at("joint_10"))+roll_i),toeRadius, 0.3);
 
-    //// Toes should not cross the central line
-    // Toe 2
-    trajopt.AddConstraint(sin(xi(positions_map.at("joint_9"))+roll_i)*
-                          (upperLegLength*sin(xi(positions_map.at("joint_2")))+lowerLegLength*sin(xi(positions_map.at("joint_3"))
-                          -xi(positions_map.at("joint_2")))),-0.5*bodyWidth, 0.15);
-    // Toe 3
-    if (this->spine_type=="twisting") 
-      trajopt.AddConstraint(sin(xi(positions_map.at("joint_10"))+xi(positions_map.at("joint_12"))+roll_i)*(upperLegLength*sin(xi(positions_map.at("joint_4")))
-                          +lowerLegLength*sin(xi(positions_map.at("joint_5"))-xi(positions_map.at("joint_4")))),-0.15, 0.5*bodyWidth);
-    else 
-      trajopt.AddConstraint(sin(xi(positions_map.at("joint_10"))+roll_i)*(upperLegLength*sin(xi(positions_map.at("joint_4")))
-                          +lowerLegLength*sin(xi(positions_map.at("joint_5"))-xi(positions_map.at("joint_4")))),-0.15, 0.5*bodyWidth);
+    // //// Toes should not cross the central line
+    // // Toe 2
+    // trajopt.AddConstraint(sin(xi(positions_map.at("joint_9"))+roll_i)*
+    //                       (upperLegLength*sin(xi(positions_map.at("joint_2")))+lowerLegLength*sin(xi(positions_map.at("joint_3"))
+    //                       -xi(positions_map.at("joint_2")))),-0.5*bodyWidth, 0.15);
+    // // Toe 3
+    // if (this->spine_type=="twisting") 
+    //   trajopt.AddConstraint(sin(xi(positions_map.at("joint_10"))+xi(positions_map.at("joint_12"))+roll_i)*(upperLegLength*sin(xi(positions_map.at("joint_4")))
+    //                       +lowerLegLength*sin(xi(positions_map.at("joint_5"))-xi(positions_map.at("joint_4")))),-0.15, 0.5*bodyWidth);
+    // else 
+    //   trajopt.AddConstraint(sin(xi(positions_map.at("joint_10"))+roll_i)*(upperLegLength*sin(xi(positions_map.at("joint_4")))
+    //                       +lowerLegLength*sin(xi(positions_map.at("joint_5"))-xi(positions_map.at("joint_4")))),-0.15, 0.5*bodyWidth);
     
     // Limit knee joints' angular accelerations
     if(i>0){
@@ -436,11 +446,12 @@ void SpiritTrotHalf<Y>::addConstraints(
     }
 
   }
-
+  // trajopt.AddBoundingBoxConstraint(this->speed-eps, this->speed+eps, x0(n_q+velocities_map.at("base_vx")));
   //Average Velocity
   auto total_time=times(0)+times(1);
   for (int i=2;i<trajopt.N()-1;i++) total_time+=times(i);
-  trajopt.AddConstraint(  this->speed * total_time+x0(positions_map.at("base_x")) -xf(positions_map.at("base_x")),-eps, eps );
+  trajopt.AddConstraint(  this->speed +(x0(positions_map.at("base_x")) -xf(positions_map.at("base_x")))/total_time,-eps, eps );
+
   // trajopt.AddConstraint(  this->speed * times(0)+ times(1),-eps, eps );
   // drake::solvers::VectorXDecisionVariable C(times.rows(), times.cols()+x0(positions_map.at("joint_4")));
 }
@@ -490,10 +501,15 @@ void SpiritTrotHalf<Y>::setUpModeSequence(){
   this->offset_vector.clear();
   this->minT_vector.clear();
   this->maxT_vector.clear();
+  double min_flight=0.002;
+  double min_stance_time=0.02;
+  if (this->var>0){
+    min_stance_time=this->perturbation_index*0.01+0.01;
+  }
   //                          mode name   normal                  world offset            minT  maxT
-  this->addModeToSequenceVector("flight",Eigen::Vector3d::UnitZ(),Eigen::Vector3d::Zero(),0.001,0.2);
-  this->addModeToSequenceVector("diag1",Eigen::Vector3d::UnitZ(),Eigen::Vector3d::Zero(),0.3, 0.7);
-  this->addModeToSequenceVector("flight",Eigen::Vector3d::UnitZ(),Eigen::Vector3d::Zero(),0.001, 0.2);
+  this->addModeToSequenceVector("flight",Eigen::Vector3d::UnitZ(),Eigen::Vector3d::Zero(),min_flight/2,0.2);
+  this->addModeToSequenceVector("diag1",Eigen::Vector3d::UnitZ(),Eigen::Vector3d::Zero(),min_stance_time, 0.7);
+  this->addModeToSequenceVector("flight",Eigen::Vector3d::UnitZ(),Eigen::Vector3d::Zero(),min_flight/2, 0.2);
 }
 
 /// Runs a trajectory optimization problem for spirit bounding on flat ground
@@ -515,23 +531,34 @@ void SpiritTrotHalf<Y>::run(MultibodyPlant<Y>& plant,
   if (this->ipopt) {
     // Ipopt settings adapted from CaSaDi and FROST
     auto id = drake::solvers::IpoptSolver::id();
-    trajopt.SetSolverOption(id, "tol", this->tol);
-    trajopt.SetSolverOption(id, "dual_inf_tol", this->tol);
-    trajopt.SetSolverOption(id, "constr_viol_tol", this->tol);
-    trajopt.SetSolverOption(id, "compl_inf_tol", this->tol);
-    trajopt.SetSolverOption(id, "max_iter", 1000000);
-    trajopt.SetSolverOption(id, "nlp_lower_bound_inf", -1e6);
-    trajopt.SetSolverOption(id, "nlp_upper_bound_inf", 1e6);
+    trajopt.SetSolverOption(id, "tol", this->tol*1e6);
+    trajopt.SetSolverOption(id, "s_max", 200);
+    trajopt.SetSolverOption(id, "dual_inf_tol", this->tol*1e11);
+    trajopt.SetSolverOption(id, "constr_viol_tol", this->tol*1e-1);
+    trajopt.SetSolverOption(id, "compl_inf_tol", this->tol*1e6);
+    trajopt.SetSolverOption(id, "max_iter", 1500);
+    trajopt.SetSolverOption(id, "nlp_lower_bound_inf", -1e8);
+    trajopt.SetSolverOption(id, "nlp_upper_bound_inf", 1e8);
     trajopt.SetSolverOption(id, "print_timing_statistics", "yes");
     trajopt.SetSolverOption(id, "print_level", 5);
-
+    if (this->warm_start){
+      std::cout<<"Warm start"<<std::endl;
+      trajopt.SetSolverOption(id, "bound_push", 1e-8);
+      trajopt.SetSolverOption(id, "warm_start_bound_frac", 1e-8);
+      trajopt.SetSolverOption(id, "warm_start_bound_push", 1e-8);
+      trajopt.SetSolverOption(id, "warm_start_mult_bound_push", 1e-8);
+      trajopt.SetSolverOption(id, "warm_start_slack_bound_frac", 1e-8);
+      trajopt.SetSolverOption(id, "warm_start_slack_bound_push", 1e-8);
+      trajopt.SetSolverOption(id, "warm_start_init_point", "yes");
+    }
     // Set to ignore overall tolerance/dual infeasibility, but terminate when
     // primal feasible and objective fails to increase over 5 iterations.
-    trajopt.SetSolverOption(id, "acceptable_compl_inf_tol", this->tol);
+    trajopt.SetSolverOption(id, "acceptable_compl_inf_tol", this->tol*1e7);
+    trajopt.SetSolverOption(id, "acceptable_dual_inf_tol", this->tol *1e12);
     trajopt.SetSolverOption(id, "acceptable_constr_viol_tol", this->tol);
-    trajopt.SetSolverOption(id, "acceptable_obj_change_tol", this->tol);
-    trajopt.SetSolverOption(id, "acceptable_tol", this->tol * 10);
-    trajopt.SetSolverOption(id, "acceptable_iter", 5);
+    trajopt.SetSolverOption(id, "acceptable_obj_change_tol", this->tol*1e8);
+    trajopt.SetSolverOption(id, "acceptable_tol", this->tol * 1e7);
+    trajopt.SetSolverOption(id, "acceptable_iter", 10);
   } else {
     // Set up Trajectory Optimization options
     trajopt.SetSolverOption(drake::solvers::SnoptSolver::id(),
@@ -572,16 +599,16 @@ void SpiritTrotHalf<Y>::run(MultibodyPlant<Y>& plant,
   addConstraints(plant, trajopt);
 
   /// Setup the visualization during the optimization
-
-  int num_ghosts = 1;// Number of ghosts in visualization. NOTE: there are limitations on number of ghosts based on modes and knotpoints
-  std::vector<unsigned int> visualizer_poses; // Ghosts for visualizing during optimization
-  for(int i = 0; i < sequence.num_modes(); i++){
-      visualizer_poses.push_back(num_ghosts); 
+  if (this->ghosts){
+    int num_ghosts = 1;// Number of ghosts in visualization. NOTE: there are limitations on number of ghosts based on modes and knotpoints
+    std::vector<unsigned int> visualizer_poses; // Ghosts for visualizing during optimization
+    for(int i = 0; i < sequence.num_modes(); i++){
+        visualizer_poses.push_back(num_ghosts); 
+    }
+    trajopt.CreateVisualizationCallback(
+        dairlib::FindResourceOrThrow(this->urdf_path),
+        visualizer_poses, 0.2); // setup which URDF, how many poses, and alpha transparency 
   }
-  trajopt.CreateVisualizationCallback(
-      dairlib::FindResourceOrThrow(this->urdf_path),
-      visualizer_poses, 0.2); // setup which URDF, how many poses, and alpha transparency 
-  
 
   drake::solvers::SolverId solver_id("");
   if (this->ipopt) {
@@ -608,14 +635,13 @@ void SpiritTrotHalf<Y>::run(MultibodyPlant<Y>& plant,
   // std::string contect_force_fname="/home/feng/Downloads/dairlib/examples/Spirit_spine/data/trot_half/twisting/"+this->file_name_out+".csv";
   // this->saveContactForceData(this->speed,contect_force_fname);
   // Writing contact force data
-  // std::stringstream stream;
-  // stream << std::fixed << std::setprecision(2) << this->speed;
-  // std::string contect_force_fname="/home/feng/Downloads/dairlib/examples/Spirit_spine/data/trot_half/twisting_p5/trot_"+stream.str()+".csv";
+  double cost_power_val = solvers::EvalCostGivenSolution(result, work_binding);
   int beginIdx = this->file_name_out.rfind('/');
   std::string filename = this->file_name_out.substr(beginIdx + 1);
   std::string contact_force_fname=this->data_directory+filename +".csv";
-  this->saveContactForceData(trajopt,result,this->speed,max_spine_new,contact_force_fname,result.is_success());
-  
+  std::string knot_contact_force_fname=this->data_directory+filename+"_knot" +".csv";
+  this->saveContactForceData(trajopt,result,this->speed,max_spine_new,contact_force_fname,result.is_success(),cost_power_val/result.get_optimal_cost());
+  this->saveContactForceDataByKnotPoint(trajopt,result,this->speed,max_spine_new,knot_contact_force_fname,result.is_success(),cost_power_val/result.get_optimal_cost());
   // auto x_trajs = trajopt.ReconstructDiscontinuousStateTrajectory(result);
   // std::cout<<"Work = " << dairlib::calcElectricalWork(plant, x_trajs, this->u_traj) << std::endl;
 

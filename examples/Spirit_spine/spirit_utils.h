@@ -399,6 +399,15 @@ std::vector<drake::solvers::Binding<drake::solvers::Cost>> AddPowerCost(drake::m
                  dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,
                  double cost_work_gain);
 
+/// Adds a cost on the integral of electrical power
+///     @param plant, the robot model
+///     @param trajopt the dircon object
+///     @param cost_work_gain, the gain on the electrical work
+template <typename T>
+std::vector<drake::solvers::Binding<drake::solvers::Cost>> AddDeltaTorqueRegularizationCost(drake::multibody::MultibodyPlant<T> & plant,
+                 dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,
+                 double regularization_gain);
+
 /// JointWorkCost object for adding smooth relu without slack variables to cost
 class JointWorkCost : public solvers::NonlinearCost<double> {
  public:
@@ -434,6 +443,9 @@ class JointPowerCost : public solvers::NonlinearCost<double> {
   void SetHIndex(int i){
     h_index_=i;
   };
+  void addKnotPoints(int i){
+    num_nodes.push_back(i);
+  };
  private:
   /// Smooth relu
   double relu_smooth(const double x) const;
@@ -447,6 +459,27 @@ class JointPowerCost : public solvers::NonlinearCost<double> {
   int n_v_;
   int n_u_;
   int h_index_;
+  std::vector<int> num_nodes;
+  int N_;
+};
+
+
+class JointDeltaTorqueRegularizationCost : public solvers::NonlinearCost<double> {
+ public:
+  JointDeltaTorqueRegularizationCost(const drake::multibody::MultibodyPlant<double>& plant,
+                dairlib::systems::trajectory_optimization::Dircon<double>& trajopt,
+                const double &cost_work);
+
+ private:
+  void EvaluateCost(const Eigen::Ref<const drake::VectorX<double>> &x,
+                    drake::VectorX<double> *y) const override;
+  const drake::multibody::MultibodyPlant<double>& plant_;
+  double cost_delta_;
+  int n_q_;
+  int n_v_;
+  int n_u_;
+  int h_index_;
+  std::vector<int> num_nodes;
   int N_;
 };
 
@@ -457,8 +490,8 @@ double negativePart(double x);
 // Q=R/(K_t^2* N^2)    R=186 miliOhms,  K_t=0.0955, N_knee=9, N_not_knee=6, K_V=100 rpm/V, V_nominal=32V
 // omega_noload=V_nominal/K_t=335 rad/s
 // torque_stall=V_nominal*K_t /R
-const double N_not_knee=6;
 const double N_knee=9;
+const double N_not_knee=6;
 const double Q_knee = .249;
 const double Q_not_knee = .561;
 const double torque_stall=16.43*3/4;

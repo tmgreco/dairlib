@@ -95,35 +95,45 @@ public:
     this->getModeSequenceHelper(msh);
 
     auto [modeVector, toeEvals, toeEvalSets] = createSpiritModeSequence(plant, msh);
-
+    
+    
     for (auto& mode : modeVector){
         for (int i = 0; i < mode->evaluators().num_evaluators(); i++ ){
         mode->MakeConstraintRelative(i,0);
         mode->MakeConstraintRelative(i,1);
         }
-        // mode->SetDynamicsScale(
-        //     {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17}, 150.0);
+        
         if (this->spine_type=="twisting") {
-            mode->SetDynamicsScale( {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17,18, 19}, 150.0);
+            // mode->SetDynamicsScale( {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17,18, 19}, 150);
+            mode->SetImpactScale({1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18},1000);
+            mode->SetDynamicsScale( {23,24,25,26, 27, 28, 29, 30, 31,32,33,34,35, 36, 37, 38}, 0.01);
         }
         else if (this->spine_type=="rigid"){
-            mode->SetDynamicsScale( {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17,18}, 150.0);
+            // mode->SetDynamicsScale( {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17,18}, 150);
+            mode->SetImpactScale({1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17},1000);
+            mode->SetDynamicsScale({22,23,24,25,26, 27, 28, 29, 30, 31,32,33,34,35, 36}, 0.01);
+            // mode->SetDynamicsScale( { 4, 5, 6}, 30);
         }
         // std::unordered_map<int, double> dynamic_map= mode->GetDynamicsScale();
         // for (auto const& element : dynamic_map) std::cout << element.first << " = " << element.second << std::endl;
   
         if (mode->evaluators().num_evaluators() == 4)
         {
+            // mode->SetKinVelocityScale(
+            //     {0, 1, 2, 3}, {0, 1, 2}, 1.0);
+            // mode->SetKinPositionScale(
+            //     {0, 1, 2, 3}, {0, 1, 2}, 150.0);
             mode->SetKinVelocityScale(
-                {0, 1, 2, 3}, {0, 1, 2}, 1.0);
-            mode->SetKinPositionScale(
-                {0, 1, 2, 3}, {0, 1, 2}, 150.0);
+                {0, 1, 2, 3}, {0, 1, 2}, 0.01);
+            
         }
         else if (mode->evaluators().num_evaluators() == 2){
+            // mode->SetKinVelocityScale(
+            //     {0, 1}, {0, 1, 2}, 1.0);
+            // mode->SetKinPositionScale(
+            //     {0, 1}, {0, 1, 2}, 150.0);
             mode->SetKinVelocityScale(
-                {0, 1}, {0, 1, 2}, 1.0);
-            mode->SetKinPositionScale(
-                {0, 1}, {0, 1, 2}, 150.0);
+                {0, 1}, {0, 1, 2}, 0.01);
         }
         sequence.AddMode(mode.get());
     }
@@ -149,19 +159,22 @@ private:
 
     void saveContactForceData(dairlib::systems::trajectory_optimization::Dircon<Y>& trajopt,
                             const drake::solvers::MathematicalProgramResult& result,
-                            double speed, double max_pitch_magnitude, std::string file_path, bool is_success){
+                            double speed, double max_pitch_magnitude, std::string file_path, bool is_success,
+                            double power_cost_percentage){
         drake::trajectories::PiecewisePolynomial<Y> state_traj=trajopt.ReconstructStateTrajectory(result);
         std::ofstream myfile; // 
         myfile.open(file_path);
-        myfile << "Speed,"<<speed <<",spine magnitude max,"<<max_pitch_magnitude<< ",Electrical work," << this->electrical_work <<",Electrical power,"<<this->electrical_power <<",success?,"<<is_success<< "\n";
-        myfile<< "Time, Front L ,,, Front R ,,, Back L ,,, Back R ,,,, x, y, z, vx, vy, vz,";
+        myfile << "Speed,"<<speed <<",spine magnitude max,"<<max_pitch_magnitude<< ",Electrical work," << this->electrical_work 
+                <<",Electrical power,"<<this->electrical_power <<",success?,"<<is_success<<",%PowerCost,"<<power_cost_percentage<<
+                ",Mech Power,"<<this->mechanical_power  << "\n";
+        myfile<< "Time, Front L ,,, Back L ,,, Front R ,,, Back R ,,,, x, y, z, vx, vy, vz,";
             if (this->spine_type=="twisting") {
                 myfile<<"joint 12, joint 12 dot, joint 12 torque ,,,,qw,qx,qy,qz,x,y,z,q12,q9,q11,q8,q10,q2,q6,q0,q4,q3,q7,q1,q5,";
-                myfile<<"wx,wy,wz,vx,vy,vz,q12d,q9d,q11d,q8d,q10d,q2d,q6d,q0d,q4d,q3d,q7d,q1d,q5d,,,";
+                myfile<<"wx,wy,wz,vx,vy,vz,dq12,dq9,dq11,dq8,dq10,dq2,dq6,dq0,dq4,dq3,dq7,dq1,dq5,,,";
                 myfile<<"f12,f8,f0,f1,f9,f2,f3,f10,f4,f5,f11,f6,f7\n";
             }
             else {myfile<<",,,qw,qx,qy,qz,x,y,z,q8,q9,q10,q11,q0,q2,q4,q6,q1,q3,q5,q8,";
-                myfile<<"wx,wy,wz,vx,vy,vz,q8d,q9d,q10d,q11d,q0d,q2d,q4d,q6d,q1d,q3d,q5d,q8d,,,";
+                myfile<<"wx,wy,wz,vx,vy,vz,dq8,dq9,dq10,dq11,dq0,dq2,dq4,dq6,dq1,dq3,dq5,dq7,,,";
                 myfile<<"f8,f0,f1,f9,f2,f3,f10,f4,f5,f11,f6,f7\n";
             }
         Y traj_end_time=this->u_traj.end_time();
@@ -222,6 +235,94 @@ private:
         myfile.close(); // <- note this correction!!
     }
 
+    std::vector<drake::solvers::Binding<drake::solvers::Cost>>
+    addCostImpact(
+            MultibodyPlant<Y>& plant,
+            dairlib::systems::trajectory_optimization::Dircon<Y>& trajopt,
+            double gain){
+        // std::vector<drake::solvers::Binding<drake::solvers::Cost>> cost_impact_bindings;
+        // auto impacts=trajopt.impulse_vars(0);
+        // for(int i=0;i< 6;i++){
+        //     cost_impact_bindings.push_back(trajopt.AddCost(gain* impacts(i) * impacts(i)));
+        // }
+        // return cost_impact_bindings;
+        double mass=10.5;
+        double g=9.81;
+        std::vector<drake::solvers::Binding<drake::solvers::Cost>> cost_impact_bindings;
+        
+        for (int knot_index = 0; knot_index < trajopt.mode_length(1); knot_index++) {
+            auto force=trajopt.force_vars(1,knot_index);
+            for(int i=0;i< 2;i++){
+                // cost_impact_bindings.push_back(trajopt.AddCost(gain* (force(i*3+2)-0.5*mass*g) * (force(i*3+2)-0.5*mass*g)));
+                cost_impact_bindings.push_back(trajopt.AddCost(gain* force(i*3+2) * force(i*3+2)));
+            }
+        }
+        return cost_impact_bindings;
+    }
+
+    void saveContactForceDataByKnotPoint(dairlib::systems::trajectory_optimization::Dircon<Y>& trajopt,
+                            const drake::solvers::MathematicalProgramResult& result,
+                            double speed, double max_pitch_magnitude, std::string file_path, bool is_success,
+                            double power_cost_percentage){
+        auto state_trajs = trajopt.ReconstructDiscontinuousStateTrajectory(result);
+        std::ofstream myfile; // 
+        myfile.open(file_path);
+        myfile << "Speed,"<<speed <<",spine magnitude max,"<<max_pitch_magnitude<< ",Electrical work," << this->electrical_work 
+                <<",Electrical power,"<<this->electrical_power <<",success?,"<<is_success<<",%PowerCost,"<<power_cost_percentage<<
+                ",Mech Power,"<<this->mechanical_power  << "\n";
+        myfile<< "Time, Front L ,,, Back L ,,, Front R ,,, Back R ,,,, x, y, z, vx, vy, vz,";
+            if (this->spine_type=="twisting") {
+                myfile<<"joint 12, joint 12 dot, joint 12 torque ,,,,qw,qx,qy,qz,x,y,z,q12,q9,q11,q8,q10,q2,q6,q0,q4,q3,q7,q1,q5,";
+                myfile<<"wx,wy,wz,vx,vy,vz,dq12,dq9,dq11,dq8,dq10,dq2,dq6,dq0,dq4,dq3,dq7,dq1,dq5,,,";
+                myfile<<"f12,f8,f0,f1,f9,f2,f3,f10,f4,f5,f11,f6,f7\n";
+            }
+            else {myfile<<",,,qw,qx,qy,qz,x,y,z,q8,q9,q10,q11,q0,q2,q4,q6,q1,q3,q5,q8,";
+                myfile<<"wx,wy,wz,vx,vy,vz,dq8,dq9,dq10,dq11,dq0,dq2,dq4,dq6,dq1,dq3,dq5,dq7,,,";
+                myfile<<"f8,f0,f1,f9,f2,f3,f10,f4,f5,f11,f6,f7\n";
+            }
+        Y traj_end_time=this->u_traj.end_time();
+        int mode=-1;
+        for(const auto& state_traj : state_trajs) {
+            mode++;
+            std::vector<double> knot_points = state_traj.get_segment_times();
+            for (int knot_index = 0; knot_index < knot_points.size() ; knot_index++) {
+                myfile << knot_points[knot_index] << ","; //Time
+                if (mode==0 or mode==2){
+                    for (int i = 0; i < 12; i++) myfile << 0 << ",";
+                }
+                else{
+                    // leg order: front left, rare left, front right, rare left
+                    Eigen::Matrix<bool,1,4> contact_bool;
+                    contact_bool<< true,  false,  false,  true;
+                    int temp_index=0;
+                    for (int j=0;j<4;j++){
+                        if (contact_bool(1,j)){
+                            for (int k=0;k<3;k++) myfile << this->l_traj[mode].value(knot_points[knot_index])(temp_index+k,0) << ",";
+                            temp_index+=3;
+                        }
+                        else{
+                            for (int k=0;k<3;k++) myfile << 0 << ",";
+                        }
+                    }
+                }
+                for (int space=0;space<7;space++) myfile <<  ","; // Space
+                if (this->spine_type=="twisting"){
+                    myfile<<",,,";
+                    for (int i=0;i<39;i++) myfile << state_traj.value(knot_points[knot_index])(i,0) << ",";
+                    myfile<<",,";
+                    for (int i=0;i<13;i++) myfile << this->u_traj.value(knot_points[knot_index])(i,0) << ",";
+                    }
+                else{
+                    myfile<<",,,";
+                    for (int i=0;i<37;i++) myfile << state_traj.value(knot_points[knot_index])(i,0) << ",";
+                    myfile<<",,";
+                    for (int i=0;i<12;i++) myfile << this->u_traj.value(knot_points[knot_index])(i,0) << ",";
+                }
+                myfile <<"\n";
+            }
+        }
+        myfile.close(); // <- note this correction!!
+    }
 
 };
 }
