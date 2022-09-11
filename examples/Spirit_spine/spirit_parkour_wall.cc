@@ -35,8 +35,6 @@ void SpiritParkourWallPronk<Y>::config(
   this->nKnotpoints_flight =config[index]["nKnotpoints_flight"].as<double>();
   this->nKnotpoints_stances =config[index]["nKnotpoints_stances"].as<double>();
   this->apex_heights =config[index]["apex_heights"].as<std::vector<double>>();
-  this->max_pitch_magnitude =config[index]["max_pitch_magnitude"].as<double>();
-  this->max_apex_pitch_magnitude =config[index]["max_apex_pitch_magnitude"].as<double>();
   this->max_duration =config[index]["max_duration"].as<double>();
   this->cost_actuation =config[index]["cost_actuation"].as<double>();
   this->cost_velocity =config[index]["cost_velocity"].as<double>();
@@ -48,6 +46,8 @@ void SpiritParkourWallPronk<Y>::config(
   this->eps =config[index]["eps"].as<double>();
   this->tol =config[index]["tol"].as<double>();
   this->xtol =config[index]["xtol"].as<double>();
+  if (config[index]["lock_leg_flight"]) this->lock_leg_flight=config[index]["lock_leg_flight"].as<bool>();
+  else this->lock_leg_flight=false;
   this->pose_ref =config[index]["pose_ref"].as<bool>();
   this->roll_ref =config[index]["roll_ref"].as<double>();
   this->pitch_ref =config[index]["pitch_ref"].as<double>();
@@ -55,12 +55,18 @@ void SpiritParkourWallPronk<Y>::config(
   this->nJumps=config[index]["n_jumps"].as<int>();
   if (config[index]["warm_up"]) this->warm_up=config[index]["warm_up"].as<bool>();
   else this->warm_up=false;
+
+  if (config[index]["ytol"]) this->ytol=config[index]["ytol"].as<double>();
+  else this->ytol=this->eps;
+  if (config[index]["ztol"]) this->ytol=config[index]["ztol"].as<double>();
+  else this->ztol=-1;
+  
   if(!config[index]["file_name_out"].as<std::string>().empty()) this->file_name_out=saved_directory+config[index]["file_name_out"].as<std::string>();
   if(!config[index]["file_name_in"].as<std::string>().empty()) this->file_name_in= saved_directory+config[index]["file_name_in"].as<std::string>();
   
   if(config[index]["action"]) this->action=config[index]["action"].as<std::string>();
   else this->action="";
-
+  if (config[index]["fore_aft_displacement"]) fore_aft_displacement=config[index]["fore_aft_displacement"].as<double>();
   Eigen::Vector3d initial_normal =  config[index]["initial_stand"][0].as<double>() *Eigen::Vector3d::UnitX()+
                             config[index]["initial_stand"][1].as<double>() *Eigen::Vector3d::UnitY()+
                             config[index]["initial_stand"][2].as<double>()  *Eigen::Vector3d::UnitZ();
@@ -68,16 +74,25 @@ void SpiritParkourWallPronk<Y>::config(
   Eigen::Vector3d initial_offset = config[index]["initial_stand"][3].as<double>() *Eigen::Vector3d::UnitX()+ 
                            config[index]["initial_stand"][4].as<double>() *Eigen::Vector3d::UnitY()+
                            config[index]["initial_stand"][5].as<double>() *Eigen::Vector3d::UnitZ();
-
-  Eigen::Vector3d final_normal =  config[index]["final_stand"][0].as<double>() *Eigen::Vector3d::UnitX()+
+  
+  Eigen::Vector3d final_normal;
+  Eigen::Vector3d final_offset;
+  if (config[index]["final_stand"]){
+    final_normal =  config[index]["final_stand"][0].as<double>() *Eigen::Vector3d::UnitX()+
                             config[index]["final_stand"][1].as<double>() *Eigen::Vector3d::UnitY()+
                             config[index]["final_stand"][2].as<double>()  *Eigen::Vector3d::UnitZ();
-  final_normal = final_normal/final_normal.norm();
-  Eigen::Vector3d final_offset = config[index]["final_stand"][3].as<double>() *Eigen::Vector3d::UnitX()+ 
-                           config[index]["final_stand"][4].as<double>() *Eigen::Vector3d::UnitY()+
-                           config[index]["final_stand"][5].as<double>() *Eigen::Vector3d::UnitZ();
-  this->initialStand.init(plant,config[index]["stand_height"].as<double>(),initial_normal, initial_offset,config[index]["initial_stand"][6].as<bool>());
-  this->finalStand.init(plant, config[index]["stand_height"].as<double>(), final_normal, final_offset, config[index]["final_stand"][6].as<bool>());
+    final_normal = final_normal/final_normal.norm();
+    final_offset = config[index]["final_stand"][3].as<double>() *Eigen::Vector3d::UnitX()+ 
+                            config[index]["final_stand"][4].as<double>() *Eigen::Vector3d::UnitY()+
+                            config[index]["final_stand"][5].as<double>() *Eigen::Vector3d::UnitZ();
+  }
+  else{
+    final_normal =  Eigen::Vector3d::UnitZ();
+    final_offset = fore_aft_displacement *Eigen::Vector3d::UnitX();
+  }
+  
+  this->initialStand.init(plant,config[index]["stand_height"].as<double>(),initial_normal, initial_offset,false);
+  this->finalStand.init(plant, config[index]["stand_height"].as<double>(), final_normal, final_offset, false);
   this->initial_height=this->initialStand.height();
 
   this->transitionSurfaces.clear();
@@ -95,7 +110,6 @@ void SpiritParkourWallPronk<Y>::config(
     }
   }
   else{
-    double fore_aft_displacement=config[index]["final_stand"][3].as<double>();
     Eigen::Vector3d surface_normal=Eigen::Vector3d::UnitY();
     Eigen::Vector3d surface_offset=fore_aft_displacement*0.5*Eigen::Vector3d::UnitX()+
                                   (fore_aft_displacement*(-0.25)-0.3)*Eigen::Vector3d::UnitY()
@@ -106,6 +120,7 @@ void SpiritParkourWallPronk<Y>::config(
     this->apex_heights.push_back(0.25+fore_aft_displacement*0.25);
     this->apex_heights.push_back(0.25+fore_aft_displacement*0.25);
   }
+  
   
 }
 
@@ -143,8 +158,8 @@ void SpiritParkourWallPronk<Y>::offsetConstraint(
   std::cout << "t1 offset -: " <<  lower1 << std::endl;
   
   
-  trajopt.AddLinearConstraint( t1(0) * xb(posInds[0]) + t1(1) * xb(posInds[1]) + t1(2) * xb(posInds[2])  <=  (t1Toffset+xtol));
-  trajopt.AddLinearConstraint( t1(0) * xb(posInds[0]) + t1(1) * xb(posInds[1]) + t1(2) * xb(posInds[2])  >=  (t1Toffset-xtol));
+  trajopt.AddLinearConstraint( t1(0) * xb(posInds[0]) + t1(1) * xb(posInds[1]) + t1(2) * xb(posInds[2])  <=  (t1Toffset*(1+xtol)));
+  trajopt.AddLinearConstraint( t1(0) * xb(posInds[0]) + t1(1) * xb(posInds[1]) + t1(2) * xb(posInds[2])  >=  (t1Toffset*(1-xtol)));
   
   // trajopt.AddLinearConstraint( t3(0) * xb(posInds[0]) + t3(1) * xb(posInds[1]) + t3(2) * xb(posInds[2])  <=  (t3Toffset+0.25));
   // trajopt.AddLinearConstraint( t3(0) * xb(posInds[0]) + t3(1) * xb(posInds[1]) + t3(2) * xb(posInds[2])  >=  (t3Toffset+0.2));
@@ -291,7 +306,7 @@ void SpiritParkourWallPronk<Y>::addCostLegs(MultibodyPlant<Y>& plant,
 }
 
 template <class Y>
-void SpiritParkourWallPronk<Y>::addCost(
+std::vector<drake::solvers::Binding<drake::solvers::Cost>> SpiritParkourWallPronk<Y>::addCost(
             MultibodyPlant<Y>& plant,
             dairlib::systems::trajectory_optimization::Dircon<Y>& trajopt){
   auto u   = trajopt.input();
@@ -309,15 +324,19 @@ void SpiritParkourWallPronk<Y>::addCost(
 
   // // Hard code which joints are in flight for which mode //FIXME using quad_mod_seq
   addCostLegs(plant, trajopt, this->cost_velocity_legs_flight, this->cost_actuation_legs_flight, {0, 1, 4, 5, 8, 10}, 1);
-  addCostLegs(plant, trajopt, this->cost_velocity_legs_flight, this->cost_actuation_legs_flight, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}, 2);
+  addCostLegs(plant, trajopt, this->cost_velocity_legs_flight*3, this->cost_actuation_legs_flight*3, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}, 2);
   addCostLegs(plant, trajopt, this->cost_velocity_legs_flight, this->cost_actuation_legs_flight, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}, 3);
+  addCostLegs(plant, trajopt, this->cost_velocity_legs_flight*10, this->cost_actuation_legs_flight*10, {1, 3, 5, 7}, 2);
+  addCostLegs(plant, trajopt, this->cost_velocity_legs_flight*5, this->cost_actuation_legs_flight*5, {1, 3, 5, 7}, 3);
   addCostLegs(plant, trajopt, this->cost_velocity_legs_flight, this->cost_actuation_legs_flight, {2, 3, 6, 7, 10, 11}, 4);
   addCostLegs(plant, trajopt, this->cost_velocity_legs_flight, this->cost_actuation_legs_flight, {0, 1, 4, 5, 8, 10}, 6);
   addCostLegs(plant, trajopt, this->cost_velocity_legs_flight, this->cost_actuation_legs_flight, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}, 7);
-  addCostLegs(plant, trajopt, this->cost_velocity_legs_flight, this->cost_actuation_legs_flight, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}, 8);
+  addCostLegs(plant, trajopt, this->cost_velocity_legs_flight*3, this->cost_actuation_legs_flight*3, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}, 8);
+  addCostLegs(plant, trajopt, this->cost_velocity_legs_flight*3, this->cost_actuation_legs_flight*3, {1, 3, 5, 7}, 7);
+  addCostLegs(plant, trajopt, this->cost_velocity_legs_flight*10, this->cost_actuation_legs_flight*10, {1, 3, 5, 7}, 8);
   addCostLegs(plant, trajopt, this->cost_velocity_legs_flight, this->cost_actuation_legs_flight, {2, 3, 6, 7, 10, 11}, 9);
 
-  AddWorkCost(plant, trajopt, this->cost_work);
+  return AddWorkCost(plant, trajopt, this->cost_work);
 
 }
 
@@ -340,6 +359,7 @@ void SpiritParkourWallPronk<Y>::addConstraints(
   // Limit leg's position on the transitional surface
   setSpiritJointLimits(plant, trajopt);
   setSpiritActuationLimits(plant, trajopt);
+  // setSpiritActuationSpeedCurveLimits(plant, trajopt);
   int numJumps = transitionSurfaces.size() + 1;
   
   /// Setup all the optimization constraints
@@ -368,7 +388,7 @@ void SpiritParkourWallPronk<Y>::addConstraints(
   // int numJoints = standJointsInit.size();
   // Init Standing XY Pos
   trajopt.AddBoundingBoxConstraint(standOffsetInit(0), standOffsetInit(0), x0(positions_map.at("base_x"))); 
-  trajopt.AddBoundingBoxConstraint(standOffsetInit(1)-eps, standOffsetInit(1)+eps, x0(positions_map.at("base_y"))); 
+  trajopt.AddBoundingBoxConstraint(standOffsetInit(1)-ytol, standOffsetInit(1)+ytol, x0(positions_map.at("base_y"))); 
   // Nominal stand
   nominalSpiritStandConstraint(plant,trajopt,initialStand.height(), {0}, eps);
 
@@ -386,7 +406,7 @@ void SpiritParkourWallPronk<Y>::addConstraints(
   // Final Standing XY Pos 
   std::cout<<"FINAL Stand OFFSET: "<<standOffsetFinal(0)<<", "<<standOffsetFinal(1)<<std::endl;
   trajopt.AddBoundingBoxConstraint(standOffsetFinal(0)-eps, standOffsetFinal(0)+eps, xf(positions_map.at("base_x")));
-  trajopt.AddBoundingBoxConstraint(standOffsetFinal(1)-eps, standOffsetFinal(1)+eps, xf(positions_map.at("base_y")));
+  trajopt.AddBoundingBoxConstraint(standOffsetFinal(1)-ytol, standOffsetFinal(1)+ytol, xf(positions_map.at("base_y")));
   // Nominal stand
   nominalSpiritStandConstraint(plant,trajopt,finalStand.height(), {trajopt.N()-1}, eps);
   // Body pose constraints (keep the body flat) at final state
@@ -439,7 +459,8 @@ void SpiritParkourWallPronk<Y>::addConstraints(
     if(apex_heights[iJump] > 0){
       auto xapex = trajopt.state_vars(3 + iJump*5 , 0);
       // trajopt.AddBoundingBoxConstraint(apex_heights[iJump] - eps, apex_heights[iJump] + eps, xapex(positions_map.at("base_z")) );
-      trajopt.AddBoundingBoxConstraint(apex_heights[iJump] - 0.1, apex_heights[iJump] + 0.1, xapex(positions_map.at("base_z")) );
+      if (ztol>0.1) trajopt.AddBoundingBoxConstraint(apex_heights[iJump] - ztol, apex_heights[iJump] + 0.1, xapex(positions_map.at("base_z")) );
+      else trajopt.AddBoundingBoxConstraint(apex_heights[iJump] - 0.1, apex_heights[iJump] + 0.1, xapex(positions_map.at("base_z")) );
       trajopt.AddBoundingBoxConstraint(- 10*eps, + 10*eps, xapex(n_q + velocities_map.at("base_vz")) );
     }
     // Constraint the state during flight
@@ -496,7 +517,8 @@ void SpiritParkourWallPronk<Y>::addConstraints(
 
       this->offsetConstraint(plant, trajopt, xbot, sNormal,sOffset);
       trajopt.AddBoundingBoxConstraint(- 5*eps, + 5*eps, xbot(n_q + velocities_map.at("base_vz")) );
-      trajopt.AddBoundingBoxConstraint(apex_heights[iJump] - 0.05, apex_heights[iJump] + 0.05, xbot(positions_map.at("base_z")) );
+      if (ztol>0.1) trajopt.AddBoundingBoxConstraint(apex_heights[iJump] - ztol, apex_heights[iJump] + 0.05, xbot(positions_map.at("base_z")) );
+      else trajopt.AddBoundingBoxConstraint(apex_heights[iJump] - 0.05, apex_heights[iJump] + 0.05, xbot(positions_map.at("base_z")) );
       // Apex pose constraints
       auto tbot_0=2.0 * (xbot(0) * xbot(3) - xbot(1)* xbot(2));
       auto tbot_1=1 - 2* (xbot(2) * xbot(2) + xbot(3)* xbot(3));
@@ -521,7 +543,7 @@ void SpiritParkourWallPronk<Y>::addConstraints(
   for (int i = 0; i < trajopt.N(); i++){
     auto xi = trajopt.state(i);
     // Height
-    trajopt.AddBoundingBoxConstraint( 0.1, 2, xi( positions_map.at("base_z")));
+    trajopt.AddBoundingBoxConstraint( 0.15, 2, xi( positions_map.at("base_z")));
 
     // Restrict upper leg angles  FOR THE STABILITY OF SEQUENTIAL OPTIMIZATION
     trajopt.AddBoundingBoxConstraint(-1-eps, 2.5+ eps, xi(positions_map.at("joint_0") ) );
@@ -537,9 +559,13 @@ void SpiritParkourWallPronk<Y>::addConstraints(
       trajopt.AddConstraint((xi(n_q+velocities_map.at("joint_3dot"))-xim1(n_q+velocities_map.at("joint_3dot")))/times(i-1),-a_knee_max,a_knee_max);
       trajopt.AddConstraint((xi(n_q+velocities_map.at("joint_5dot"))-xim1(n_q+velocities_map.at("joint_5dot")))/times(i-1),-a_knee_max,a_knee_max);
       trajopt.AddConstraint((xi(n_q+velocities_map.at("joint_7dot"))-xim1(n_q+velocities_map.at("joint_7dot")))/times(i-1),-a_knee_max,a_knee_max);
+      if (i>trajopt.get_mode_start(2) && i<trajopt.get_mode_start(4) ||
+          i>trajopt.get_mode_start(7) && i<trajopt.get_mode_start(9) ){
+        trajopt.AddConstraint((xi(positions_map.at("joint_1"))-xim1(positions_map.at("joint_1")))/times(i-1),-20,20);
+        trajopt.AddConstraint((xi(positions_map.at("joint_5"))-xim1(positions_map.at("joint_5")))/times(i-1),-20,20);
+      }
     }
   }
-
   
  
 }
@@ -552,9 +578,9 @@ void SpiritParkourWallPronk<Y>::setUpModeSequence(){
   this->minT_vector.clear();
   this->maxT_vector.clear();
   //                          mode name   normal                  world offset            minT  maxT
-  this->addModeToSequenceVector("stance",initialStand.normal(),initialStand.offset(),     0.02, 0.5);
-  this->addModeToSequenceVector("rear_stance",initialStand.normal(),initialStand.offset(),0.02, 1  ); //0.04
-  this->addModeToSequenceVector("flight",Eigen::Vector3d::UnitZ(),Eigen::Vector3d::Zero(),0.02, 1  );
+  this->addModeToSequenceVector("stance",initialStand.normal(),initialStand.offset(),     0.02, 0.3);
+  this->addModeToSequenceVector("rear_stance",initialStand.normal(),initialStand.offset(),0.02, 0.15  ); //0.04
+  this->addModeToSequenceVector("flight",Eigen::Vector3d::UnitZ(),Eigen::Vector3d::Zero(),0.02, 0.6  );
 
   for (int i=0;i<transitionSurfaces.size();i++){
     this->addModeToSequenceVector("flight",Eigen::Vector3d::UnitZ(),Eigen::Vector3d::Zero(),0.02, 1  );
@@ -566,8 +592,8 @@ void SpiritParkourWallPronk<Y>::setUpModeSequence(){
   }
 
   this->addModeToSequenceVector("flight",Eigen::Vector3d::UnitZ(),Eigen::Vector3d::Zero(),0.02, 1  );
-  this->addModeToSequenceVector("front_stance",finalStand.normal(),   finalStand.offset(),0.02, 1  ); //0.04
-  this->addModeToSequenceVector("stance",      finalStand.normal(),   finalStand.offset(),0.02, 1  );
+  this->addModeToSequenceVector("front_stance",finalStand.normal(),   finalStand.offset(),0.02, 0.1  ); //0.04
+  this->addModeToSequenceVector("stance",      finalStand.normal(),   finalStand.offset(),0.02, 0.25  );
 }
   
 
@@ -606,33 +632,48 @@ void SpiritParkourWallPronk<Y>::run(MultibodyPlant<Y>& plant,
   trajopt.SetSolverOption(id, "dual_inf_tol", this->tol*100);
   trajopt.SetSolverOption(id, "constr_viol_tol", this->tol);
   trajopt.SetSolverOption(id, "compl_inf_tol", this->tol);
-  trajopt.SetSolverOption(id, "max_iter", 10000);
+  trajopt.SetSolverOption(id, "max_iter", 2000);
   trajopt.SetSolverOption(id, "nlp_lower_bound_inf", -1e6);
   trajopt.SetSolverOption(id, "nlp_upper_bound_inf", 1e6);
   trajopt.SetSolverOption(id, "print_timing_statistics", "yes");
   trajopt.SetSolverOption(id, "print_level", 5);
   if (warm_up){
     std::cout<<"Warm start"<<std::endl;
-    trajopt.SetSolverOption(id, "bound_push", 1e-8);
-    trajopt.SetSolverOption(id, "warm_start_bound_push", 1e-8);
+    // // for parkour 7
+    // trajopt.SetSolverOption(id, "bound_push", 1e-8);
+    // trajopt.SetSolverOption(id, "warm_start_bound_push", 1e-8);
+
+    // trajopt.SetSolverOption(id, "warm_start_mult_bound_push", 1e-8);
+    // trajopt.SetSolverOption(id, "warm_start_slack_bound_frac", 1e-8);
+    // trajopt.SetSolverOption(id, "warm_start_slack_bound_push", 1e-8);
+    // // Warm start parameters for parkour_8 and 9
+    trajopt.SetSolverOption(id, "bound_push", 1e-7);
+    trajopt.SetSolverOption(id, "bound_frac", 1e-7);
+    trajopt.SetSolverOption(id, "slack_bound_frac", 1e-7);
+    trajopt.SetSolverOption(id, "slack_bound_push", 1e-7);
+    trajopt.SetSolverOption(id, "warm_start_bound_push", 1e-7);
+    trajopt.SetSolverOption(id, "warm_start_bound_frac", 1e-7);
+    trajopt.SetSolverOption(id, "warm_start_mult_bound_push", 1e-7);
+    trajopt.SetSolverOption(id, "warm_start_slack_bound_frac", 1e-7);
+    trajopt.SetSolverOption(id, "warm_start_slack_bound_push", 1e-7);
     trajopt.SetSolverOption(id, "warm_start_init_point", "yes");
   }
 
   // Set to ignore overall tolerance/dual infeasibility, but terminate when
   // primal feasible and objective fails to increase over 5 iterations.
-  trajopt.SetSolverOption(id, "acceptable_compl_inf_tol", this->tol);
+  trajopt.SetSolverOption(id, "acceptable_compl_inf_tol", this->tol*1e2);
   trajopt.SetSolverOption(id, "acceptable_constr_viol_tol", this->tol);
-  trajopt.SetSolverOption(id, "acceptable_obj_change_tol", this->tol);
-  trajopt.SetSolverOption(id, "acceptable_tol", this->tol * 10);
+  trajopt.SetSolverOption(id, "acceptable_obj_change_tol", this->tol*1e4);
+  trajopt.SetSolverOption(id, "acceptable_tol", this->tol * 1e4);
   trajopt.SetSolverOption(id, "acceptable_iter", 5);
+
 
   drake::solvers::SolverId solver_id("");
   solver_id = drake::solvers::IpoptSolver().id();
   std::cout << "\nChose manually: " << solver_id.name() << std::endl;
   
   // Setting up cost
-
-  addCost(plant, trajopt);
+  auto work_binding=addCost(plant, trajopt);
   // Setting up constraints
   bool stop_at_bottom = true;
 
@@ -640,11 +681,6 @@ void SpiritParkourWallPronk<Y>::run(MultibodyPlant<Y>& plant,
 
   // Initialize the trajectory control state and forces
   if (this->file_name_in.empty()){
-  //  for (int j = 0; j < sequence.num_modes(); j++) {
-  //     trajopt.SetInitialTrajectoryForMode(j, this->x_traj[j], this->u_traj, this->x_traj[j].start_time(), this->x_traj[j].end_time());
-  //     trajopt.SetInitialForceTrajectory(j, this->l_traj[j], this->lc_traj[j],
-  //                                       this->vc_traj[j], this->l_traj[j].start_time());
-  //   }
     trajopt.drake::systems::trajectory_optimization::MultipleShooting::
         SetInitialTrajectory(this->u_traj, this->x_traj);
     for (int j = 0; j < sequence.num_modes(); j++) {
@@ -654,21 +690,25 @@ void SpiritParkourWallPronk<Y>::run(MultibodyPlant<Y>& plant,
     std::cout<<"Loading decision var from file." <<std::endl;
     dairlib::DirconTrajectory loaded_traj(this->file_name_in);
     trajopt.SetInitialGuessForAllVariables(loaded_traj.GetDecisionVariables());
+    this->addGaussionNoiseToInputTraj(plant,trajopt,loaded_traj);
+    this->addGaussionNoiseToVelocitiesTraj(plant,trajopt,loaded_traj);
+    this->addGaussionNoiseToStateTraj(plant,trajopt,loaded_traj);
   }
 
 
   /// Setup the visualization during the optimization
-  int num_ghosts = 1;// Number of ghosts in visualization. NOTE: there are limitations on number of ghosts based on modes and knotpoints
-  std::vector<unsigned int> visualizer_poses; // Ghosts for visualizing during optimization
-  for(int i = 0; i < sequence.num_modes(); i++){
-      if (i==2 || i==8) num_ghosts = 3;
-      else num_ghosts = 1;
-      visualizer_poses.push_back(num_ghosts); 
+  if (this->ghosts){
+    int num_ghosts = 1;// Number of ghosts in visualization. NOTE: there are limitations on number of ghosts based on modes and knotpoints
+    std::vector<unsigned int> visualizer_poses; // Ghosts for visualizing during optimization
+    for(int i = 0; i < sequence.num_modes(); i++){
+        if (i==2 || i==8) num_ghosts = 3;
+        else num_ghosts = 1;
+        visualizer_poses.push_back(num_ghosts); 
+    }
+    trajopt.CreateVisualizationCallback(
+        dairlib::FindResourceOrThrow(this->urdf_path),
+        visualizer_poses, 0.2); // setup which URDF, how many poses, and alpha transparency 
   }
-  trajopt.CreateVisualizationCallback(
-      dairlib::FindResourceOrThrow(this->urdf_path),
-      visualizer_poses, 0.2); // setup which URDF, how many poses, and alpha transparency 
-
 
 
   /// Run the optimization using your initial guess
@@ -687,10 +727,20 @@ void SpiritParkourWallPronk<Y>::run(MultibodyPlant<Y>& plant,
 
 
   this->saveTrajectory(plant,trajopt,result);
+  // int beginIdx = this->file_name_out.rfind('/');
+  // std::string filename = this->file_name_out.substr(beginIdx + 1);
+  // std::string contact_force_fname=this->data_directory+filename+".csv";
+  // this->saveContactForceData(trajopt,result,this->finalStand.offset()[0],std::get<0>(transitionSurfaces[0])[1],contact_force_fname,result.is_success());
+
+  double cost_power_val = solvers::EvalCostGivenSolution(result, work_binding);
   int beginIdx = this->file_name_out.rfind('/');
   std::string filename = this->file_name_out.substr(beginIdx + 1);
-  std::string contact_force_fname=this->data_directory+filename+".csv";
-  this->saveContactForceData(trajopt,result,this->finalStand.offset()[0],std::get<0>(transitionSurfaces[0])[1],contact_force_fname,result.is_success());
+  std::string contact_force_fname=this->data_directory+filename +".csv";
+  std::string knot_contact_force_fname=this->data_directory+filename+"_knot" +".csv";
+  this->saveContactForceData(trajopt,result,this->finalStand.offset()[0],std::get<0>(transitionSurfaces[0])[1],
+                          contact_force_fname,result.is_success(),cost_power_val/result.get_optimal_cost());
+  this->saveContactForceDataByKnotPoint(trajopt,result,this->finalStand.offset()[0],std::get<0>(transitionSurfaces[0])[1],
+                          knot_contact_force_fname,result.is_success(),cost_power_val/result.get_optimal_cost());
   // const auto& toe_frame = dairlib::getSpiritToeFrame(plant, toe);
   // std::cout<< "x traj 0.4"<<std::endl;
   // std::cout<< this->x_traj.value(0.4)<<std::endl;

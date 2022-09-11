@@ -87,7 +87,7 @@ public:
     /// Adds cost to the trajopt problem
     /// \param plant robot model
     /// \param trajopt trajectory optimization problem to be solved
-    void addCost(
+    std::vector<drake::solvers::Binding<drake::solvers::Cost>> addCost(
             MultibodyPlant<Y>& plant,
             dairlib::systems::trajectory_optimization::Dircon<Y>& trajopt);
     /// add cost for legs
@@ -107,12 +107,14 @@ public:
                     DirconModeSequence<Y>& sequence){
     for (int i=0;i<nJumps*5+1;i++){
         if (i%5==2 || i%5==3) {
-            if (i==2) this->num_knot_points.push_back(10);
-            else this->num_knot_points.push_back(nKnotpoints_flight);
+            // if (i==2) this->num_knot_points.push_back(15); 
+            // else 
+            this->num_knot_points.push_back(nKnotpoints_flight);
         }
         else {
-            if (i<2) this->num_knot_points.push_back(7);
-            else this->num_knot_points.push_back(nKnotpoints_stances);
+            // if (i<1) this->num_knot_points.push_back(10);
+            // else 
+            this->num_knot_points.push_back(nKnotpoints_stances);
         }
     }
     
@@ -151,6 +153,7 @@ public:
     return {std::move(modeVector), std::move(toeEvals), std::move(toeEvalSets)};
     }
 
+
 private:
 
     std::unique_ptr<MultibodyPlant<Y>> plant; //!< the robot
@@ -160,11 +163,10 @@ private:
     int nKnotpoints_stances; //!< number of know points for each stance mode
 
     double initial_height;
-    double max_apex_pitch_magnitude; //!< max pitch magnitude at apex
-    double max_pitch_magnitude; //!< ax pitch magnitude at stances
     double fore_aft_displacement; //!< how long the robot jump forward
     bool pose_ref;
     bool use_nominal_stand;
+    bool lock_leg_flight;
     double max_duration; //!< maximum duration of the bounding behavior
     double eps;  //!< tolerance for the constraints
     double work_constraint_scale;
@@ -175,24 +177,28 @@ private:
     int nJumps; //!< number of jumps
     double xtol; //!< tolerace of transformed x axis displacement where robot land on the transition surfaces
     double ytol; //!< tolerace of initial and final y position for adjusting lateral distance to the wall
+    double ztol;
     std::vector<double> apex_heights;
     bool warm_up;
     bool apex_flag=true;
     void saveContactForceData(dairlib::systems::trajectory_optimization::Dircon<Y>& trajopt,
                             const drake::solvers::MathematicalProgramResult& result,
-                            double forward_dist, double lateral_dist, std::string file_path, bool is_success){
+                            double forward_dist, double lateral_dist, std::string file_path, bool is_success,
+                            double power_cost_percentage){
         drake::trajectories::PiecewisePolynomial<Y> state_traj=trajopt.ReconstructStateTrajectory(result);
         std::ofstream myfile; // 
         myfile.open(file_path);
-        myfile << "Forward dist,"<<forward_dist <<",Lateral dist,"<<lateral_dist<< ",Electrical work," << this->electrical_work <<",Electrical power,"<<this->electrical_power <<",success?,"<<is_success<< "\n";
-        myfile<< "Time, Front L ,,, Front R ,,, Back L ,,, Back R ,,,, x, y, z, vx, vy, vz,";
+        myfile << "Forward dist,"<<forward_dist <<",Lateral dist,"<<lateral_dist<< ",Electrical work," << this->electrical_work 
+                <<",Electrical power,"<<this->electrical_power <<",success?,"<<is_success<< ",%WorkCost,"<<power_cost_percentage<<
+                ",Mech Power,"<<this->mechanical_power<<"\n";
+        myfile<< "Time, Front L ,,, Back L ,,, Front R ,,, Back R  ,,,, x, y, z, vx, vy, vz,";
         if (this->spine_type=="twisting") {
             myfile<<"joint 12, joint 12 dot, joint 12 torque ,,,,qw,qx,qy,qz,x,y,z,q12,q9,q11,q8,q10,q2,q6,q0,q4,q3,q7,q1,q5,";
-            myfile<<"wx,wy,wz,vx,vy,vz,q12d,q9d,q11d,q8d,q10d,q2d,q6d,q0d,q4d,q3d,q7d,q1d,q5d,,,";
+            myfile<<"wx,wy,wz,vx,vy,vz,dq12,dq9,dq11,dq8,dq10,dq2,dq6,dq0,dq4,dq3,dq7,dq1,dq5,,,";
             myfile<<"f12,f8,f0,f1,f9,f2,f3,f10,f4,f5,f11,f6,f7\n";
         }
         else {myfile<<",,,qw,qx,qy,qz,x,y,z,q8,q9,q10,q11,q0,q2,q4,q6,q1,q3,q5,q8,";
-            myfile<<"wx,wy,wz,vx,vy,vz,q8d,q9d,q10d,q11d,q0d,q2d,q4d,q6d,q1d,q3d,q5d,q8d,,,";
+            myfile<<"wx,wy,wz,vx,vy,vz,dq8,dq9,dq10,dq11,dq0,dq2,dq4,dq6,dq1,dq3,dq5,dq7,,,";
             myfile<<"f8,f0,f1,f9,f2,f3,f10,f4,f5,f11,f6,f7\n";
         }
         Y traj_end_time=this->u_traj.end_time();
@@ -251,8 +257,76 @@ private:
             myfile <<"\n";
         }
         myfile.close(); // <- note this correction!!
+        std::cout<<"Save data to csv file"<<std::endl;
     }
+    void saveContactForceDataByKnotPoint(dairlib::systems::trajectory_optimization::Dircon<Y>& trajopt,
+                            const drake::solvers::MathematicalProgramResult& result,
+                            double dist, double lateral_dist, std::string file_path, bool is_success,
+                            double power_cost_percentage){
+        auto state_trajs = trajopt.ReconstructDiscontinuousStateTrajectory(result);
+        std::ofstream myfile; // 
+        myfile.open(file_path);
+        myfile << "Distance,"<<dist <<",Lateral dist to wall,"<<lateral_dist<< ",Electrical work," << this->electrical_work 
+                <<",Electrical power,"<<this->electrical_power <<",success?,"<<is_success<<",%WorkCost,"<<power_cost_percentage<<
+                ",Mech Power,"<<this->mechanical_power  << "\n";
+        myfile<< "Time, Front L ,,, Back L ,,, Front R ,,, Back R ,,,, x, y, z, vx, vy, vz,";
+            if (this->spine_type=="twisting") {
+                myfile<<"joint 12, joint 12 dot, joint 12 torque ,,,,qw,qx,qy,qz,x,y,z,q12,q9,q11,q8,q10,q2,q6,q0,q4,q3,q7,q1,q5,";
+                myfile<<"wx,wy,wz,vx,vy,vz,dq12,dq9,dq11,dq8,dq10,dq2,dq6,dq0,dq4,dq3,dq7,dq1,dq5,,,";
+                myfile<<"f12,f8,f0,f1,f9,f2,f3,f10,f4,f5,f11,f6,f7\n";
+            }
+            else {myfile<<",,,qw,qx,qy,qz,x,y,z,q8,q9,q10,q11,q0,q2,q4,q6,q1,q3,q5,q8,";
+                myfile<<"wx,wy,wz,vx,vy,vz,dq8,dq9,dq10,dq11,dq0,dq2,dq4,dq6,dq1,dq3,dq5,dq7,,,";
+                myfile<<"f8,f0,f1,f9,f2,f3,f10,f4,f5,f11,f6,f7\n";
+            }
+        Y traj_end_time=this->u_traj.end_time();
+        int mode=-1;
+        for(const auto& state_traj : state_trajs) {
+            mode++;
+            std::vector<double> knot_points = state_traj.get_segment_times();
+            for (int knot_index = 0; knot_index < knot_points.size() ; knot_index++) {
+                myfile << knot_points[knot_index] << ","; //Time
+                if (mode%5==2 || mode%5==3){
+                    for (int i = 0; i < 12; i++) myfile << 0 << ",";
+                }
+                else{
+                    // leg order: front left, rare left, front right, rare left
+                    Eigen::Matrix<bool,1,4> contact_bool;
+                    if (mode==0 || mode==5|| mode==10) contact_bool<< true,  true,  true,  true;
+                    else if (mode==1|| mode==6) contact_bool<< false,  true,  false,  true;
+                    else if (mode==4|| mode==9) contact_bool<< true, false,true, false;
+                    else contact_bool<< false, false,false, false;
+                    int temp_index=0;
+                    for (int j=0;j<4;j++){
+                        if (contact_bool(1,j)){
+                            for (int k=0;k<3;k++) myfile << this->l_traj[mode].value(knot_points[knot_index])(temp_index+k,0) << ",";
+                            temp_index+=3;
+                        }
+                        else{
+                            for (int k=0;k<3;k++) myfile << 0 << ",";
+                        }
+                    }
+                }
+                for (int space=0;space<7;space++) myfile <<  ","; // Space
+                if (this->spine_type=="twisting"){
+                    myfile<<",,,";
+                    for (int i=0;i<39;i++) myfile << state_traj.value(knot_points[knot_index])(i,0) << ",";
+                    myfile<<",,";
+                    for (int i=0;i<13;i++) myfile << this->u_traj.value(knot_points[knot_index])(i,0) << ",";
+                    }
+                else{
+                    myfile<<",,,";
+                    for (int i=0;i<37;i++) myfile << state_traj.value(knot_points[knot_index])(i,0) << ",";
+                    myfile<<",,";
+                    for (int i=0;i<12;i++) myfile << this->u_traj.value(knot_points[knot_index])(i,0) << ",";
+                }
+                myfile <<"\n";
+            }
+        }
+        myfile.close(); // <- note this correction!!
 
+        std::cout<<"Save data to csv file by knot point"<<std::endl;
+    }
 public:
     dairlib::OptimalSpiritStand initialStand;
     dairlib::OptimalSpiritStand finalStand;

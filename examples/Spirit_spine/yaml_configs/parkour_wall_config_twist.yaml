@@ -2,10 +2,10 @@
 -
   num_optimizations: 2
   initial_guess: ""  #if it is empty, the program will generate initial guess. Otherwise, we use the file given here as the initial guess
-  spine_type: rigid
-  urdf_path: examples/Spirit_spine/spirit_drake.urdf
-  saved_directory: examples/Spirit_spine/saved_trajectories/parkour_rigid_test/
-  data_directory: examples/Spirit_spine/data/parkour/rigid_test/
+  spine_type: twisting
+  urdf_path: examples/Spirit_spine/spirit_with_spine_drake.urdf
+  saved_directory: examples/Spirit_spine/saved_trajectories/parkour_test/
+  data_directory: examples/Spirit_spine/data/parkour/test/
   num_perturbations: 1
   mean: 1
   var: 0.000001
@@ -237,7 +237,7 @@
   cost_work: 0 
   mu: 10
   eps: 1e-2
-  tol: 1e-1
+  tol: 1e0
   xtol: 1e-2
   file_name_out: parkour4
   file_name_in: parkour3
@@ -382,7 +382,7 @@
   eps: 1e-2
   tol: 1e-1
   xtol: 1e-1
-  ytol: 1e-1
+  ytol: 5e-2
   file_name_out: parkour7
   file_name_in: parkour6
 - 
