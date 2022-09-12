@@ -1,0 +1,176 @@
+# YAML spirit jump configuration
+-
+  initial_guess: ""  #if it is empty, the program will generate initial guess. Otherwise, we use the file given here as the initial guess
+  # saved_directory: examples/Spirit_spine/saved_trajectories/trot_half/rigid_p10_2/
+  # data_directory: examples/Spirit_spine/data/trot_half/rigid_p10_2/
+  # spine_type: rigid
+  # urdf_path: examples/Spirit_spine/spirit_drake.urdf
+  saved_directory: examples/Spirit_spine/saved_trajectories/trot_half/twisting_f_re/
+  data_directory: examples/Spirit_spine/data/trot_half/twisting_f_re/
+  spine_type: twisting
+  urdf_path: examples/Spirit_spine/spirit_with_spine_drake.urdf
+  num_perturbations: 30
+  mean: 1
+  var: 0.01
+  iterate:
+    -
+      name: trot_3
+      num: 1
+      iteration_variable: speed
+      for:
+        start: 0
+        end: 3.05
+        step_size: 0.2
+    -
+      name: trot_4
+      iteration_variable: speed
+      num: 2
+      for:
+        start: 0
+        end: 3.05
+        step_size: 0.2
+    # -
+    #   name: trot_5
+    #   iteration_variable: speed
+    #   parallel_for:
+    #     start: 0
+    #     end: 2.05
+    #     step_size: 0.05
+    # -
+    #   name: trot_6
+    #   iteration_variable: speed
+    #   parallel_for:
+    #     start: 0
+    #     end: 2.05
+    #     step_size: 0.05
+- 
+  name: trot_1
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 21
+    - 7
+  pitch_magnitude_lo: 0.1
+  max_spine_magnitude: 0.
+  apex_height: 0.38
+  speed: 0
+  max_duration: 0.7
+  min_duration: 0.4
+  lock_leg_apex: true
+  cost_actuation: 3
+  cost_velocity: 10 
+  cost_velocity_legs_flight: 100
+  cost_actuation_legs_flight: 100
+  cost_time: -2000
+  cost_power: 0 
+  mu: 100
+  eps: 1e-2
+  tol: 1
+  file_name_out: trot1
+  file_name_in: ""
+
+- 
+  name: trot_2
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 21
+    - 7
+  pitch_magnitude_lo: 0.1
+  max_spine_magnitude: 0.
+  apex_height: 0.38
+  speed: 0
+  max_duration: 0.7
+  min_duration: 0.4
+  lock_leg_apex: true
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 0
+  cost_actuation_legs_flight: 0
+  cost_time: -2000
+  cost_power: 100 
+  mu: 1
+  eps: 1e-2
+  tol: 1
+  file_name_out: trot2
+  file_name_in: trot1
+- 
+  name: trot_3
+  ipopt: true
+  num_knot_points:
+    - 7
+    - 21
+    - 7
+  pitch_magnitude_lo: 0.05
+  max_spine_magnitude: 0
+  apex_height: 0.38
+  speed: 0.1
+  max_duration: 0.7
+  min_duration: 0.15
+  lock_leg_apex: true
+  cost_actuation: 3
+  cost_velocity: 10 
+  cost_velocity_legs_flight: 8
+  cost_actuation_legs_flight: 3
+  cost_time: -100
+  cost_power: 0 
+  mu: 0.5
+  eps: 1e-2
+  tol: 1e-3
+  file_name_out: trot3
+  file_name_in: trot1
+  
+- 
+  name: trot_4
+  ipopt: true
+  warm_start: true
+  num_knot_points:
+    - 7
+    - 21
+    - 7
+  pitch_magnitude_lo: 0.1
+  max_spine_magnitude: 0
+  apex_height: 0.38
+  speed: 0.7
+  max_duration: 0.7
+  min_duration: 0.16
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 10
+  cost_actuation_legs_flight: 0
+  cost_time: -3000
+  cost_power: 100 
+  mu: 0.5
+  eps: 1e-2
+  tol: 1e-4
+  file_name_out: trot4
+  file_name_in: trot3
+  action: expand
+- 
+  name: trot_5
+  ipopt: true
+  warm_start: true
+  num_knot_points:
+    - 7
+    - 21
+    - 7
+  pitch_magnitude_lo: 1
+  max_spine_magnitude: 1.5
+  apex_height: -1
+  speed: 0.7
+  max_duration: 0.7
+  min_duration: 0.05
+  lock_leg_apex: false
+  cost_actuation: 0
+  cost_velocity: 0
+  cost_velocity_legs_flight: 0
+  cost_actuation_legs_flight: 0
+  cost_time: 0
+  cost_power: 10
+  mu: 0.4
+  eps: 1e-3
+  tol: 1e-7
+  file_name_out: trot5
+  file_name_in: trot4
+  action: shrink
