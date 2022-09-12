@@ -100,7 +100,10 @@ namespace dairlib {
             mean=m; 
             var=v;
         }
-        double getCost(){return mechanical_work;}
+        double getCost(){
+            if (is_success) return cost_val;
+            else return 100*cost_val;
+            }
         void setGhosts(bool flag) {ghosts=flag;}
         std::string urdf_path;
         std::string spine_type;
@@ -129,6 +132,9 @@ namespace dairlib {
         double cost_time; //!< Cost coefficient of time
         bool get_animate_info=false; //!< Whether or not return the trajectory to Spirit for animation
         bool ghosts=true;
+        bool warm_start;
+        double cost_val;
+        bool is_success;
 
         std::string file_name_out; //!< Store optimized trajectories into this file if not empty
         std::string file_name_in= ""; //!< Load initial trajectories from this file if not empty
@@ -307,6 +313,8 @@ namespace dairlib {
             mechanical_power=dairlib::calcMechanicalWork(plant, x_trajs, this->u_traj)/this->u_traj.end_time();
             electrical_work=dairlib::calcElectricalWork(plant, x_trajs, this->u_traj, 0);
             electrical_power=electrical_work/this->u_traj.end_time();
+            cost_val=result.get_optimal_cost();
+            is_success=result.is_success();
             std::cout<<"Electrical Work = " << electrical_work << std::endl;
             std::cout<<"Mechanical Work = " <<  mechanical_work<< std::endl;
             std::cout<<"Electrical power = " << electrical_power << std::endl;
@@ -323,13 +331,23 @@ namespace dairlib {
             for (int mode = 0; mode < trajopt.num_modes(); mode++) {
                 for (int j = 0; j < trajopt.mode_length(mode); j++) {
                     drake::VectorX<Y> xk = result.GetSolution(trajopt.state_vars(mode, j));
-                    // std::cout<<"Mode: "<< mode << ", knot: "<< j <<", state: \n" << xk << std::endl;
+
                     result.AddNoiseToSolution(trajopt.state_vars(mode, j),mean,var);
                     xk = result.GetSolution(trajopt.state_vars(mode, j));
-                    // std::cout<<"After adding noise\nMode: "<< mode << ", knot: "<< j <<", state: \n" << xk << std::endl;
                 }
             }
         }
+
+        // void PrintTime(MultibodyPlant<Y>& plant,
+        //                     dairlib::systems::trajectory_optimization::Dircon<Y>& trajopt,
+        //                     drake::solvers::MathematicalProgramResult& result)
+        // {
+
+                    
+
+        // }
+
+        
 
         void saveContactForceData(double param, std::string file_path, bool is_success){
             std::ofstream myfile; // 
