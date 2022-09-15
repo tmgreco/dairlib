@@ -13,6 +13,8 @@
 #include "drake/geometry/drake_visualizer.h"
 #include "drake/solvers/solve.h"
 
+#include "multibody/visualization_utils.h"
+
 #include "common/find_resource.h"
 #include "systems/trajectory_optimization/dircon/dircon.h"
 #include "multibody/kinematic/world_point_evaluator.h"
@@ -21,6 +23,10 @@
 #include "multibody/kinematic/kinematic_constraints.h"
 #include "systems/trajectory_optimization/dircon/dircon.h"
 #include "lcm/dircon_saved_trajectory.h"
+#include "examples/Spirit_spine/surface_conf.h"
+
+
+#include "examples/Spirit_spine/spirit_utils.h"
 namespace dairlib {
 
   /// See runAnimate(

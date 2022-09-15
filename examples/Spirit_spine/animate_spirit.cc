@@ -86,6 +86,28 @@ void animateTraj(std::string& urdf_path) {
       Eigen::Vector3d::UnitZ());
 
   plant->Finalize();
+
+
+  if(FLAGS_behavior=="walljump"){
+    const drake::Vector4<double> orange(1.0, 0.55, 0.0, 1.0);
+    double fore_aft_displacement=2.1;
+    Eigen::Vector3d surface_normal=Eigen::Vector3d::UnitY();
+    Eigen::Vector3d surface_offset=fore_aft_displacement*0.5*Eigen::Vector3d::UnitX()+
+                                  (fore_aft_displacement*(-0.16)-0.45)*Eigen::Vector3d::UnitY()
+                                  +(0.25+fore_aft_displacement*0.25)*Eigen::Vector3d::UnitZ();
+    struct SurfaceConf surface={surface_normal,surface_offset,2,(0.25+fore_aft_displacement*0.25)*2,0.1,orange,"surface"+std::to_string(0)};
+
+    dairlib::visualizeSurface(
+      plant_vis.get(),
+      surface.surface_normal,
+      surface.surface_offset,
+      surface.length_surf,
+      surface.width_surf,
+      surface.thickness_surf,
+      surface.color,
+      surface.name);
+  }
+  
   plant_vis->Finalize();
 
   dairlib::DirconTrajectory old_traj(FLAGS_traj_path);
@@ -206,7 +228,9 @@ void animateTraj(std::string& urdf_path) {
   multibody::connectTrajectoryVisualizer(plant_vis.get(),
       &builder, &scene_graph, pp_xtraj);
   auto diagram = builder.Build();
-  // bool save=false;
+  // bool save=false;'
+
+  
   std::cout<<"Start running animation with real time factor = "<< FLAGS_real_time_rate<<std::endl;
   while (1) {
     drake::systems::Simulator<double> simulator(*diagram);
