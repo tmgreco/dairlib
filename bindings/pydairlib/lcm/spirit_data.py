@@ -1,6 +1,7 @@
 
 import collections
 import sys
+import os
 import matplotlib.pyplot as plt
 from pydairlib.lcm import lcm_trajectory
 from pydairlib.common import FindResourceOrThrow
@@ -12,10 +13,211 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 import math
 
+#Jillian Functions
+if(True):
+
+  # Define rotation matrice functions
+  def RotX( a ):
+      # rotation about the x-axis
+      a = float(a)
+      
+      return np.array([
+          [ 1,             0,              0 ],
+          [ 0, math.cos( a ), -math.sin( a ) ],
+          [ 0, math.sin( a ),  math.cos( a ) ]
+      ])
+
+
+  def RotY( a ):
+      #rotation about the y-axis
+      return np.array([
+          [  math.cos( a ), 0, math.sin( a ) ],
+          [  0,             1,             0 ],
+          [ -math.sin( a ), 0, math.cos( a ) ]
+      ])
+
+
+  def Offsets(leg_num):
+      
+      # Provide Offsets for particular robot
+      d_l = [0, 0, 0]
+      d_0 = [173.25, 70, 0]
+      d_1 = [56.5, 7.75, 0]
+      d_2 = [-206, 69.5, 0]
+      d_3 = [ 226, 0,    0]  
+      
+      # PROVIDE OFFSETS
+      d_l = np.array([d_l]).transpose()/1000
+      d_0 = np.array([d_0]).transpose()/1000
+      d_1 = np.array([d_1]).transpose()/1000
+      d_2 = np.array([d_2]).transpose()/1000
+      d_3 = np.array([d_3]).transpose()/1000
+      
+      # begin with back_leg / right_leg conditions being reset
+      back_leg = False
+      right_leg = False
+      
+      # Check if leg given is a back or right leg
+      if leg_num == 1 or leg_num == 3:
+          back_leg = True
+      if leg_num == 2 or leg_num == 3:
+          right_leg = True
+        
+      # If it is a back leg, negate the x-variables of offstes
+      if back_leg == True:
+          d_0[0] = -d_0[0]
+          d_1[0] = -d_1[0]
+        
+      # If it is a right leg, negate the y-variables of offsets
+      if right_leg == True:
+          d_0[1] = -d_0[1]
+          d_1[1] = -d_1[1]
+          d_2[1] = -d_2[1]
+      
+      # make alpha negative for back legs
+      # if back_leg == True:
+      #     alpha = -alpha
+      
+      # QUESTION: WONT ALPHAS BE DIFFERENT BASED ON WHICH LEG_NUM THEY ARE?
+      # so should we still use an array the same size as the abd, hip, knee arrays?
+      
+      return (d_l, d_0, d_1, d_2, d_3)
+   
+  def ForwardKin(alpha, abd, hip, knee, leg_num):
+      
+      # Get offsets from running inputs through the offsets function:
+      d_l, d_0, d_1, d_2, d_3 = Offsets(leg_num)
+      
+      # begin with back_leg condition being reset
+      back_leg = False
+      
+      # Check if leg indicated is a back leg
+      if leg_num == 1 or leg_num == 3:
+          back_leg = True
+      
+      # make alpha negative for back legs
+      if back_leg == True:
+          alpha = 0
+      
+      # provide rotation matrices
+      B_R_F = RotX(alpha)
+      F_R_abd = RotX(abd)
+      abd_R_hip = RotY(hip)
+      hip_R_knee = RotY(knee)
+      
+      
+      # Provide equations for finding coordinates of each joint:
+      # TOE
+      B_r_toe =   d_l + B_R_F @ (d_0 + F_R_abd @ (d_1 + abd_R_hip @ (d_2 + hip_R_knee @ d_3)))
+      # KNEE
+      # B_r_knee =   d_l + B_R_F @ (d_0 + F_R_abd @ (d_1 + abd_R_hip @ (d_2)))
+      # # HIP 
+      # B_r_hip =   d_l + B_R_F @ (d_0 + F_R_abd @ (d_1))
+      # # ABDUCTION
+      # B_r_abd =   d_l + B_R_F @ (d_0)
+      
+
+      # return('x-coords=', leg[0,:], 'y-coords=', leg[1,:], 'z-coords=', leg[2,:])
+      return  B_r_toe #, B_r_knee, B_r_hip, B_r_abd)
+
+#   def JacLimb(abd, hip, knee, leg_num):
+      
+#       # d_l.reshape((1,1))
+#       # print(d_l.transpose())
+      
+#       # Retrieve Offsets for specified leg
+#       d_l, d_0, d_1, d_2, d_3 = Of.Offsets(leg_num)
+      
+#       # Initialize Jacobian matrix to be filled with values:
+#       Jac = np.zeros([3,3])
+      
+#       # Creat xhat, yhat, and zhat vectors:
+#       x_hat = skew(1, 0, 0)
+#       y_hat = skew(0, 1, 0)
+      
+#       # provide rotation matrices
+#       F_R_abd = Of.RotX(abd)
+#       abd_R_hip = Of.RotY(hip)
+#       hip_R_knee = Of.RotY(knee)
+      
+#       # Add data to each row of the jacobian matrix:
+#       # define the columns:
+#       col1 = F_R_abd @ x_hat @ (d_1 + abd_R_hip @ (d_2 + hip_R_knee @ d_3))
+#       col2 = F_R_abd @ abd_R_hip @ y_hat @ (d_2 + hip_R_knee @ d_3)
+#       col3 = F_R_abd @ abd_R_hip @ hip_R_knee @ y_hat @ (d_3)
+      
+#       # print(col1)
+#       # print(col2)
+#       # print(col3)
+
+      
+#       # Add the columns to the matrix:
+#       Jac[:, 0] = col1[:,0]
+#       Jac[:, 1] = col2[:,0]
+#       Jac[:, 2] = col3[:,0]
+      
+#       # Jac[:, {1}] = np.array([col2])
+      
+#       return(Jac)
+    
+# #  ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~  JacBody Function  ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ 
+
+# # Takes in a data point for alpha, abd, hip, and knee as well as 
+# # the offsest values for the front, left leg 
+
+# # Results in a Jacobian Body matrix, of shape [12, 13] for the entire robot
+
+# def JacBody(alpha, abd, hip, knee):
+
+#     # Retrieve Offsets for specified leg
+#     # d_l, d_0, d_1, d_2, d_3 = Of.Offsets(leg_num)
+    
+#     # Initialize the [12, 13] Jacobian matrix to be filled with values:
+#     JacBod = np.zeros([12,13], dtype = object)
+#     # Create xhat vector:
+#     x_hat = skew(1, 0, 0)
+    
+#     # Provide rotation matrices
+#     B_R_F = Of.RotX(alpha/2)
+#     B_R_R = Of.RotX(-alpha/2)
+    
+#     # Go through each leg, create it's Jacobian, and add it to the Jacobian body matrix
+#     for legNum in range(4):
+        
+#         # Use index to help specify at what indices to place new matrix
+#         index = legNum * 3
+        
+#         # check if leg is a front leg, if not, make it a back leg (rotation matrix)
+#         if legNum % 2 == 0:
+#             B_R_R = B_R_F 
+#             x_var = 1/2 * B_R_F @ x_hat
+#         else: 
+#             B_R_R = Of.RotX(-alpha/2)
+#             x_var = -1/2 * B_R_R @ x_hat
+    
+#         # Define Jac as the jacobian at specified legNum
+#         Jac = JacLimb(abd[legNum], hip[legNum], knee[legNum], legNum)
+            
+#         # Add (rotation matrix) * Jac to JacBody full matrix
+#         JacBod[index : index+Jac.shape[0], index : index+Jac.shape[1]]  +=  B_R_R @ Jac
+        
+#         # Run Forward kinematics function to get coordinate of toe 
+#         toe, knees, hips, abduction = ForwardKin(alpha, abd[legNum], hip[legNum], knee[legNum], legNum)
+        
+#         # Create 'New' matrix which will be added to the last column of JacBody,
+#         # this will be a (rotation matrix * x_hat matrix * the toe coords).
+#         New = x_var @ toe
+        
+#         # Now, add this to the last column of JacBod matrix: 
+#         JacBod[index : index+New.shape[0], 12 : 12+New.shape[1] ]  += New
+        
+    
+#     return(JacBod)
+
 class SpiritData:
   ''' Gets the CSV data and the data from the DirconTrajectory
   '''
-  def __init__(self, run_name,  run_directory = "", use_csv_data = False, is_twisting = False, toe_force_headers_missing = True, index_success = 9 ):
+  def __init__(self, run_name,  run_directory = "", use_csv_data = False, is_twisting = False, toe_force_headers_missing = True, index_success = 9, quiet=True ):
 
     self.is_success = False
     self.index_success = index_success
@@ -25,11 +227,15 @@ class SpiritData:
     self.csv_data_dict = collections.defaultdict(list)
     self.toe_force_headers_missing = toe_force_headers_missing
     self.is_twisting = is_twisting
-
+    self.run_name = run_name
+    self.csv_filename = ""
+    
     self.use_csv_data = use_csv_data
+    
 
     try:    
       self.csv_filename = FindResourceOrThrow(run_directory + ("rigid","twisting")[int(is_twisting)] +"/data/" + run_name + ".csv")
+      self.traj_filename = FindResourceOrThrow(run_directory + ("rigid","twisting")[int(is_twisting)] +"/saved_trajectories/" + run_name) 
       with open(self.csv_filename, mode ='r') as file:
         csv_file = csv.reader(file)
         preamble = csv_file.__next__()
@@ -43,17 +249,26 @@ class SpiritData:
           self.process_csv_data(csv_file)
           self.duration = self.csv_data_dict["Time"][-1]      
     except Exception as error:
-      print(error)
+      if (not quiet):
+        print(error)
+    if(not self.is_success):
+      os.rename(self.csv_filename, run_directory + ("rigid","twisting")[int(is_twisting)] +"/data/" + "zzFAIL_" + run_name + ".csv")
+      os.rename(self.traj_filename, run_directory + ("rigid","twisting")[int(is_twisting)] +"/saved_trajectories/" + "zzFAIL_" + run_name)
+      return
+
+
 
     self.csv_data_dict.default_factory = None
 
     # SETUP DIRCON TRAJ DATA
-    self.traj_filename = FindResourceOrThrow(run_directory + ("rigid","twisting")[int(is_twisting)] +"/saved_trajectories/" + run_name) 
+    # self.traj_filename = FindResourceOrThrow(run_directory + ("rigid","twisting")[int(is_twisting)] +"/saved_trajectories/" + run_name) 
     self.dircon_traj = lcm_trajectory.DirconTrajectory(self.traj_filename)
     self.state_traj = self.dircon_traj.ReconstructStateTrajectory()
-    self.input_traj = self.dircon_traj.GetTrajectory("input_traj")
-    self.input_knotpoints_data = np.array(self.input_traj .datapoints)
-    self.map_input_name_to_index = dict(zip(self.input_traj .datatypes,range(len(self.input_traj .datatypes))))
+    
+    self.input_traj = self.dircon_traj.ReconstructInputTrajectory()
+    input_data_traj = self.dircon_traj.GetTrajectory("input_traj")
+    self.input_knotpoints_data = np.array( input_data_traj.datapoints)
+    self.map_input_name_to_index = dict(zip(input_data_traj.datatypes, range(len(input_data_traj.datatypes))))
     self.modes_state_traj = []
     self.modes_state_knotpoints_data = []
     self.modes_state_knotpoints_time = []
@@ -63,8 +278,8 @@ class SpiritData:
       self.modes_state_knotpoints_time.append(np.array(self.modes_state_traj[-1].time_vector))    
     self.map_state_name_to_index = dict(zip(self.modes_state_traj[0].datatypes,range(len(self.modes_state_traj[0].datatypes))))
     self.calculate_samples()
-    
-
+    self.get_toe_positions_body_frame()
+  
   def load_csv_data(self):
     try:
       with open(self.csv_filename, mode ='r') as file:
@@ -108,9 +323,12 @@ class SpiritData:
       n_points = num_samples
       self.t = np.linspace(self.state_traj.start_time(), self.state_traj.end_time(), n_points)
       state_samples = np.zeros((n_points, self.state_traj.value(0).shape[0]))
+      input_samples = np.zeros((n_points, self.input_traj.value(0).shape[0]))
       for i in range(n_points):
           state_samples[i] = self.state_traj.value(self.t [i])[:, 0]
+          input_samples[i] = self.input_traj.value(self.t [i])[:, 0]
       self.state_samples = np.transpose(state_samples)
+      self.input_samples = np.transpose(input_samples)
       self.num_samples_ = num_samples
 
   def calculate_avg_power_csv(self, with_smooth_relu = False):
@@ -208,3 +426,46 @@ class SpiritData:
     else:
       return 1/alpha * np.log(1+ np.exp( alpha * value )) 
 
+  def get_toe_positions_body_frame(self):
+    #Pose is fixed in the base
+    abd_index = [8,9,10,11]
+    hip_index = [0,2,4,6]
+    kne_index = [1,3,5,7]
+    self.toe_positions_data = []
+    for mode_i in range(self.dircon_traj.GetNumModes()):
+      toe_poses_per_mode = []
+      for toe_i in range(4): 
+        toe_i_pos_per_mode = []
+        for state_knot in self.modes_state_knotpoints_data[mode_i].transpose():
+          if self.is_twisting:
+            alpha = state_knot[self.map_state_name_to_index["joint_12"]]
+          else:
+            alpha = 0
+          toe_i_pos_per_mode.append( ForwardKin( alpha ,
+                      state_knot[self.map_state_name_to_index["joint_" + str(abd_index[toe_i])] ],
+                      -state_knot[self.map_state_name_to_index["joint_" + str(hip_index[toe_i])] ],
+                      state_knot[self.map_state_name_to_index["joint_" + str(kne_index[toe_i])] ],
+                      toe_i) )
+        toe_poses_per_mode.append(toe_i_pos_per_mode)
+      self.toe_positions_data.append(toe_poses_per_mode)
+                      
+          # # print(ForwardKin( 0 ,
+          # #             0,
+          # #             -1,
+          # #             2,
+          # #             toe_i))
+          # print(state_knot)
+          # print(self.modes_state_traj[0].datatypes)
+          # print("joint_" + str(abd_index[toe_i]), self.map_state_name_to_index["joint_" + str(abd_index[toe_i])])
+          # print("joint_" + str(hip_index[toe_i]), self.map_state_name_to_index["joint_" + str(hip_index[toe_i])])
+          # print("joint_" + str(kne_index[toe_i]), self.map_state_name_to_index["joint_" + str(kne_index[toe_i])])
+          # print(     [state_knot[self.map_state_name_to_index["joint_" + str(abd_index[toe_i])] ],
+          #             state_knot[self.map_state_name_to_index["joint_" + str(hip_index[toe_i])] ],
+          #             state_knot[self.map_state_name_to_index["joint_" + str(kne_index[toe_i])] ]] )
+          
+      # ForwardKin(alpha, abd, hip, knee, toe_i)
+    # d = np.array()
+    
+
+if __name__ == "__main__":
+  print("spirit_data main() not implemented")

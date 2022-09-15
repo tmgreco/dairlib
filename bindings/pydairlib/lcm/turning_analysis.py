@@ -1,5 +1,7 @@
 import sys
 import os
+import copy
+from xml.etree.ElementTree import PI
 import matplotlib.pyplot as plt
 from pydairlib.lcm import lcm_trajectory
 from pydairlib.common import FindResourceOrThrow
@@ -53,18 +55,23 @@ def draw_turn_quiver(spirit, data_source = "knotpoints", quiver_type="", axis = 
       axis.quiver(dat_x,dat_y,dat_vx,dat_vy)
   axis.axis('equal')
 
-def safe_save_fig(figure_name, figure_dir):
+def safe_save_fig(figure_name, figure_dir,overwrite = False, figure=None):
+  if not figure:
+    figure = plt.gcf()
   try:
     os.mkdir(figure_dir)
   except Exception as error:
     print("Directory exists ",error)
   suffix = ""
   index = 0 
-  while (figure_name + suffix + ".png")  in os.listdir(figure_dir):
+  while ((not overwrite) and ((figure_name + suffix + ".png")  in os.listdir(figure_dir))):
     suffix = str(index)
     index +=1
-  plt.savefig(figure_dir +"/"+ figure_name + suffix + ".png")
-
+  final_figure_name = figure_name + suffix + ".png"
+  if (overwrite and os.path.isfile(final_figure_name) ):
+    os.remove(final_figure_name)   # Opt.: os.system("rm "+strFile)
+  figure.savefig(figure_dir +"/"+ final_figure_name)
+  print("Figure saved to " + final_figure_name + " in " + figure_dir)
 
 def draw_yaw(spirit):
 
@@ -78,352 +85,365 @@ def draw_yaw(spirit):
 
   plt.plot(spirit.t,np.arctan2(temp0,temp1))
 
+def draw_zheight(spirit, axis = [], *args, **kwargs):
+  if not axis:
+    fig,axis = plt.subplots()
+  axis.plot(spirit.t, spirit.state_samples[spirit.map_state_name_to_index["base_z"],:], *args, **kwargs)
+
+def draw_spine(spirit_twisting,axis = [], *args, **kwargs):
+  if not axis:
+    fig,axis = plt.subplots()
+  axis.plot(spirit_twisting.t, spirit_twisting.state_samples[spirit_twisting.map_state_name_to_index["joint_12"],:], *args, **kwargs)
+  
+def draw_spine_torque(spirit_twisting,axis = [], *args, **kwargs):
+  if not axis:
+    fig,axis = plt.subplots()
+  axis.plot(spirit_twisting.t, spirit_twisting.input_samples[spirit_twisting.map_input_name_to_index["motor_12"],:], *args, **kwargs)
+  
+def draw_stance_phases(spirit, modes, axis = [], facecolor = 'gray', *args, **kwargs):
+  if not axis:
+    fig,axis = plt.subplots()
+  for mode in modes:
+    time_interval = [spirit.modes_state_knotpoints_time[mode][0],spirit.modes_state_knotpoints_time[mode][-1]]
+    axis.axvspan(time_interval[0], time_interval[1], facecolor=facecolor, alpha=0.2, zorder=-100,*args,**kwargs)
+
 def parse_turn(run):
   return run[4:].split("_")
 
 def main():
-  directory = "../Desktop/morphology-study-data-linked/bounding_turn_corrected/"
+  directory = "../Desktop/morphology-study-data-linked/bounding_turn_final/"
   run_prefix = "turn"
   stride_lengths = ["ss","ms","ls"]
-  fig, axs = plt.subplots(2,3,sharex=True)
-  for type in ["rigid","twisting"]:
-    available_files = os.listdir(directory + type + "/saved_trajectories/")
+  num_velocity = 5
+  num_yaws = 10
+  num_perturbs_per_period = 10
+  # periods = [(hp+1)*0.1 for hp in range(len(stride_lengths))]
+
+  velocity_map = dict( [( str(label+1) , label +1 ) for label in range(num_velocity) ] )
+  yaw_map = dict( [( "p" + str(plabel + 1), 0.1*plabel + 0.1 ) for plabel in range(num_yaws) ] )
+  perturbation_map = dict( [ ( "s" + str(slabel + 1) , (slabel%num_perturbs_per_period ) ) for slabel in range(num_perturbs_per_period) ] )
+  
+  # velocity_indices = range(1,num_params+1)
+  # param_indices = range(1,10+1)
+  # spirit_lists = {stride:{} for stride in stride_lengths}
+  # spirit_lists_optimal = {stride:{} for stride in stride_lengths}
+  
+  run_none = None
+  energy_default = 10000
+  spirit_lists =  {v_i: {y_i: {hp_i:[ run_none for p_i in range(1,num_perturbs_per_period + 1) ] for hp_i in stride_lengths } for y_i in yaw_map.values()} for v_i in velocity_map.values() }
+  spirit_lists_optimal =  {v_i: {y_i: {hp_i: (run_none, energy_default) for hp_i in  stride_lengths } for y_i in yaw_map.values()} for v_i in velocity_map.values() }
+
+  cmap = plt.get_cmap('viridis')
+  cmap_reds = plt.get_cmap('Reds')
+  cmap_blues = plt.get_cmap('Blues')
+  
+  spirit_lists = dict(zip(["rigid","twisting"],[spirit_lists,copy.deepcopy(spirit_lists)]))
+  spirit_lists_optimal = dict(zip(["rigid","twisting"],[spirit_lists_optimal,copy.deepcopy(spirit_lists_optimal)]))
+  # print(spirit_lists)
+
+  # fig, axs = plt.subplots(2,3,sharex=True)
+  print("READ DATA")
+  count = 0
+  for spine_type in ["rigid","twisting"]:
+    available_files = os.listdir(directory + spine_type + "/saved_trajectories/")
     for run in available_files:
       if ( not run[0:len(run_prefix)] == run_prefix):
         continue
-      
       settings = parse_turn(run)
-      s = SpiritData(run, directory, is_twisting=(type =="twisting"))
+      print(settings)
+      if(len(settings)==3):
+        continue
+      #Ex. ['4', 'ls', 'p2', 's4']
+
+      s = SpiritData(run, directory, is_twisting=(spine_type =="twisting"))
       if (not s.is_success):
         continue
-      # print(s.preamble_dict["speed"])
-      cmap = plt.get_cmap('viridis')
-
       
-      draw_turn_quiver(s, axis=axs[int(s.is_twisting)][stride_lengths.index(settings[1])], quiver_type="ends",data_source= "traj", color=cmap(float(s.preamble_dict["speed"])/5))
+      spirit_lists[spine_type][velocity_map[settings[0]]][yaw_map[settings[2]]][settings[1]][perturbation_map[settings[3]]] = s
+      # spirit_lists[spine_type][velocity_map[settings[2]]][settings[1]][perturbation_map[settings[3]]].append(s)
+      run_energy = s.calculate_avg_power_traj() * s.modes_state_knotpoints_time[-1][-1]
+      if not spirit_lists_optimal[spine_type][velocity_map[settings[0]]][yaw_map[settings[2]]][settings[1]][0] or spirit_lists_optimal[spine_type][velocity_map[settings[0]]][yaw_map[settings[2]]][settings[1]][1] > run_energy:
+        spirit_lists_optimal[spine_type][velocity_map[settings[0]]][yaw_map[settings[2]]][settings[1]] = (s, run_energy)
+      # draw_turn_quiver(s, axis=axs[int(s.is_twisting)][stride_lengths.index(settings[1])], quiver_type="ends",data_source= "traj", color=cmap(float(s.preamble_dict["speed"])/5))
+  for vel in spirit_lists_optimal["twisting"]:
+    for yaw in spirit_lists_optimal["twisting"][vel]:
+      for stride in spirit_lists_optimal["twisting"][vel][yaw]:
+        if spirit_lists_optimal["twisting"][vel][yaw][stride][0]:
+          print(spirit_lists_optimal["twisting"][vel][yaw][stride][0].run_name)
+  s.kill()
+  # directory = "../Desktop/morphology-study-data-linked/trot_search/"
+  # run_prefix = "trot5"
+
+  # run_none = None
+  # energy_default = 10000
+  # spirit_lists =  {v_i: {hp_i:[ run_none for p_i in range(1,num_perturbs_per_period + 1) ] for hp_i in periods } for v_i in velocity_map.values() }
+  # spirit_lists_optimal =  {v_i: {hp_i: (run_none, energy_default) for hp_i in  periods } for v_i in velocity_map.values() }
+
+
+  # spirit_lists = dict( zip( ["rigid","twisting"], [spirit_lists,copy.deepcopy(spirit_lists)] ) )
+  # spirit_lists_optimal = dict(zip(["rigid","twisting"], [spirit_lists_optimal,copy.deepcopy(spirit_lists_optimal)]))
+
+  # # fig, axs = plt.subplots(2,3,sharex=True)
   
-  figure_name = "Test"
-  figure_dir = directory + "/test_figs"
-  safe_save_fig(figure_name, figure_dir)
-#   s.KILL()
-#   fig = plt.figure()
-#   plt.plot(s.csv_data_dict["x"],s.csv_data_dict["y"])
-#   plt.quiver(s.csv_data_dict["x"],s.csv_data_dict["y"],s.csv_data_dict["vx"],s.csv_data_dict["vy"] )
-#   plt.show()
-
-#   # def getData(directory, pre)
-#   fig = plt.figure()
-#   plt.plot(spirit.data_dict["x"],spirit.data_dict["y"])
-#   plt.quiver(spirit.data_dict["x"],spirit.data_dict["y"],spirit.data_dict["vx"],spirit.data_dict["vy"] )
-#   # plt.show()
-#   state_traj = spirit.dircon_traj.ReconstructStateTrajectory()
-#   fig = plt.figure()
-
-#   n_points = 100
-#   t = np.linspace(state_traj.start_time(), state_traj.end_time(), n_points)
-#   state_samples = np.zeros((n_points, state_traj.value(0).shape[0]))
-#   for i in range(n_points):
-#     state_samples[i] = state_traj.value(t[i])[:, 0]
-#   state_samples = np.transpose(state_samples)
-#   print(np.shape(state_samples))
+  # count = 0
   
-#   print(map_state_name_to_index["base_x"])
+  # for spine_type in ["rigid","twisting"]:
+  #   available_files = os.listdir(directory + spine_type + "/saved_trajectories/")
+  #   for run in available_files:
+  #     if ( not run[:len(run_prefix)] == run_prefix):
+  #       continue
+      
+  #     try:
+  #       [run_param_name, run_perturb_name] = parse_trot(run)
+  #     except:
+  #       continue
+  #     print([run_param_name, run_perturb_name] )
+  #     #Ex. ['p2', 's4']
+      
+  #     s = SpiritData(run, directory, is_twisting=(spine_type =="twisting"))
+  #     if (not s.is_success):
+  #       continue
+      
+  #     # print(s.modes_state_knotpoints_time)
+  #     # s.kill()
+  #     # print(s.preamble_dict["speed"])
 
-#   plt.plot(state_samples[map_state_name_to_index["base_x"],:],state_samples[map_state_name_to_index["base_y"],:])
-#   plt.quiver(state_samples[map_state_name_to_index["base_x"],:],state_samples[map_state_name_to_index["base_y"],:],state_samples[map_state_name_to_index["base_vx"],:],state_samples[map_state_name_to_index["base_vy"],:])
-#   plt.axis('equal')
+  #     # vel_ind = int(settings[0][1:])//2 
+  #     # pert_ind = int(settings[1][1:])-1
 
-#   plt.figure()
-#   for mode_index in range(spirit.dircon_traj.GetNumModes()):
-#     mode_state_traj = spirit.dircon_traj.GetTrajectory("state_traj" + str(mode_index))
-#     data_temp = mode_state_traj.datapoints
-#     plt.plot(data_temp[map_state_name_to_index["base_x"],:],data_temp[map_state_name_to_index["base_y"],:])
-#     plt.quiver(data_temp[map_state_name_to_index["base_x"],:],data_temp[map_state_name_to_index["base_y"],:], data_temp[map_state_name_to_index["base_vx"],:],data_temp[map_state_name_to_index["base_vy"],:])
-#   plt.axis('equal')
-
+  #     spirit_lists[spine_type][velocity_map[run_param_name]][perturbation_map[run_perturb_name][0]][perturbation_map[run_perturb_name][1] -1]
+  #     run_power = s.calculate_avg_power_traj()
+  #     if run_power<600 and (not spirit_lists_optimal[spine_type][velocity_map[run_param_name]][perturbation_map[run_perturb_name][0]][0] or  spirit_lists_optimal[spine_type][velocity_map[run_param_name]][perturbation_map[run_perturb_name][0]][1] > run_power):
+  #       spirit_lists_optimal[spine_type][velocity_map[run_param_name]][perturbation_map[run_perturb_name][0]] = (s, run_power)
   
-#   plt.figure()
-
-  
-  # plt.show()
 
 
-  # auto t0=2.0 * (x0(0) * x0(3) - x0(1)* x0(2));
-  # auto t1=1 - 2* (x0(2) * x0(2) + x0(3)* x0(3));
-  # auto yaw0 = atan2(t0, t1);
-
-
-
-
-#   print(s.csv_data_dict['q733'])
-#   """
-#   Calculate the pitch of every run and plot over one another 
-#   plot max pitch vs pitch constraint
-#   """
-
-#   parameters=[]
-#   measurements=[]
-#   constraintLimits=[]
-
-#   parameters_for_min=[]
-#   measurements_min=[]
-#   experiment_index_min = []
-#   abscissaIndex = 1
-#   ordinateIndex = 7
-#   constraintIndex = 3
-#   isSuccessIndex = 9
-#   pitchesAll = []
-#   timesAll = []
-#   constraintsAll = []
-#   measurementsAll = []
-#   numParams = 21
-#   numPerturbations=10
-#   params_unique=[]
-#   # for spine in ["rigid","twisting"]
-#   for p in range(1,numParams+1):
-#     min_measurement=1000000
-#     pitchesTemp = []
-#     timesTemp = []
-#     constraintsTemp = []
-#     measurementsTemp = []
-#     experiment_index_min_temp = (p,-1)
-#     for s in range(1,numPerturbations+1):
-#       # with open('./data/long_jump/5_perturbed_trajs2/jump_c3_p%d_s%d.csv'%(p,s), mode ='r')as file:
-#       # with open('./data/trot_half/twisting_p5/trot_trot6_p%d_s%d.csv'%(p,s), mode ='r')as file:
-#       # with open('./data/bounding_gait/rigid/bounding_gait4_p%d_s%d.csv'%(p,s), mode ='r')as file:
-
-#       headers = []
-#       quats = []
-#       pitches= []
-#       timesIn = []
-#       try:
-#         with open('/home/kodlab/Desktop/morphology-study-data-linked/bounding_turn/twisting/data/bounding_gait6_p%d_s%d.csv'%(p,s), mode ='r')as file:
-#           # reading the CSV file
-#           csvFile = csv.reader(file)
-#           # Read the first line of the CSV which contains the summary
-#           counter = 0
-#           line = csvFile.__next__()
-#           if (int(line[isSuccessIndex])): #Check the first line for failure, parse if success, continue if fail
-#             parameterName = line[abscissaIndex-1]
-#             measurementName = line[ordinateIndex-1]
-#             constraintLimitName = line[constraintIndex-1]
-
-#             parameter = float(line[abscissaIndex])
-#             measurement = float(line[ordinateIndex])
-#             constraintLimit = float(line[constraintIndex])
-#           else:
-#             print("run", p , s, "failed")
-#             continue
-#           # Now read the rest of the csv starting at the second line (index 1)
-#           for line in csvFile: 
-#             counter += 1
-#             if (counter == 1): #Ignore the first two header lines
-#               headers = line
-#               quat_indices = [headers.index("qw"),headers.index("qx"),headers.index("qy"),headers.index("qz")]
-#               continue
-#             # print(line)
-#             time = float(line[0])
-#             quat = [float(line[ele]) for ele in quat_indices]
-#             quats.append(quat)
-#             # print(quats)
-#             pitch = math.asin( min(max(2.0 *(quat[0] * quat[2] - quat[3] * quat[1]),-.999),.999))
-#             # print(pitch)
-#             pitches.append(pitch)
-#             timesIn.append(time)
-#           pitchesTemp.append(pitches)
-#           timesTemp.append(timesIn)
-#           constraintsTemp.append(constraintLimit)
-#           measurementsTemp.append(measurement)
-#       except Exception as error:
-#         print(error)
-#         continue
-#       if min_measurement > measurement: 
-#         min_measurement = measurement
-#         experiment_index_min_temp = (p,s)
-#       measurements.append(measurement)
-#       parameters.append(parameter)
-#       constraintLimits.append(constraintLimit)
-
+############################### NRG PLOT 
+  if(False):
+    # spirit_lists[spine_type][velocity_map[settings[0]]][yaw_map[settings[2]]][settings[1]]
+    print("Building plots")
+    fig, axs = plt.subplots(3, 1, squeeze=False, sharex=True, sharey=True,figsize=(8, 4.5))
+    counter = 0
+    fig_perc, axs_perc = plt.subplots(1, 1, squeeze=False, sharex=True, sharey=True,figsize=(8, 4.5))
+    print("Finished plots")
+    period_energies = [[[None for stride in stride_lengths] for yaw in yaw_map ] for spine_type in ["rigid","twisting"] ] 
     
-#     pitchesAll.append(pitchesTemp)
-#     timesAll.append(timesTemp)
-#     constraintsAll.append(constraintsTemp)
-#     measurementsAll.append(measurementsTemp)
-#     if min_measurement==1000000:
-#       continue
-#     measurements_min.append(min_measurement)
-#     parameters_for_min.append(parameter)
-#     experiment_index_min.append(experiment_index_min_temp)
-#   measurements_clipped = np.array(measurements)
-#   measurements_clipped[measurements_clipped>300] = 300
-#   periodsAll = []
-#   print(len(timesAll))
-#   for tts in timesAll:
-#     pTemp = []  
-#     for tt in tts:
-#       pTemp.append(tt)
-#     print(len(pTemp))
-#     periodsAll.append(pTemp)
-#   # print(periodsAll)
-#   # input("PAUSE")
-#   #################################################
-#   print("PLOTTING ###################################################")
-#   #################################################
-#   plt.figure()
-#   plt.title("Avg Power Cost Scatter Plot")
-#   # plt.plot(displacements2,np.array(works)-np.array(works2),'b')
-#   plt.scatter(parameters,measurements,c=constraintLimits,label = "Successful Optimizations")
-#   plt.plot(parameters_for_min,measurements_min,c='r',label = "Minimum")
-#   plt.xlabel(parameterName)
-#   plt.ylabel(measurementName)
-#   plt.legend()
-#   plt.colorbar(label="Max Pitch Constraint")
-#   #################################################
+    ## PLOT YAW
+    spine_list = []
+    for spine_type in ["rigid","twisting"]:
+      vel_list = []
+      for vel_key in velocity_map.values():
+        stride_list = []
+        for (stride_i, stride) in enumerate(stride_lengths):
+          yaw_list = []
+          for y_key in yaw_map.values():
+            if y_key>3.14159/4:
+              continue
+            if spirit_lists_optimal[spine_type][vel_key][y_key][stride][0]:
+              yaw_list.append([y_key, spirit_lists_optimal[spine_type][vel_key][y_key][stride][1]])
+          nrg_for_plot = np.array(yaw_list)
+          axs[stride_i,0].plot( nrg_for_plot[:,0], nrg_for_plot[:,1], ("-","--")[spine_type=="twisting"], color = (cmap(vel_key/5)) )
+
+    stride_labels = dict([("ss", "Short Initial Stride (XX)"),("ms", "Medium Initial Stride (XX)"),("ls", "Long Initial Stride (XX)")])
+    for (stride_i, stride) in enumerate(stride_lengths):
+      axs[stride_i,0].set_ylabel(stride_labels[stride] + "\nEnergy [J]")
+      axs[stride_i,0].grid(visible=True, which="both")
+    axs[2,0].set_xlabel("Yaw Displacement [rad]")
+      
 
 
-#   # print("test",len(pitchesAll))
-#   actual_pitch_maxes = []
-#   for parameter_pitches in pitchesAll:
-#     actual_pitch_maxes_temp = []
-#     for perturbation_pitches in parameter_pitches:
-#       actual_pitch_maxes_temp.append(np.array(perturbation_pitches).max())
-#     actual_pitch_maxes.append(actual_pitch_maxes_temp)
-#   # print(parameters)
-#   parametersExpanded = []
-#   for (c_temp,param) in zip(constraintsAll, parameters):
-#   #   print(param)
-#     p_temp = []
-#     for c in c_temp:
-#       p_temp.append(param)
-#     parametersExpanded.append(p_temp)
-
-#   #####################################################
-
-#   plt.figure()
-#   plt.title("Actual Max Pitch vs Constraint\nScatter of all final optimizations")
-#   constraintsStacked = np.array(sum(constraintsAll,[]))
-#   actual_pitch_maxesStacked = np.array(sum(actual_pitch_maxes,[]))
-#   plt.scatter(constraintsStacked,actual_pitch_maxesStacked,c=parameters)
-#   plt.plot([0,1.5],[0,1.5],c="gray")
-#   # plt.plot(parameters_for_min, measurements_min,c='r',label = "Minimum")
-#   plt.xlabel("Max Pitch Constraint")
-#   plt.ylabel("Actual Max Pitch")
-#   # plt.legend()
-#   plt.colorbar(label=parameterName)
-
-#   ###################################################
-
-#   plt.figure()
-#   plt.title("Actual Max Pitch vs Constraint\nScatter of all final optimizations")
-#   constraintsStacked = np.array(sum(constraintsAll,[]))
-#   actual_pitch_maxesStacked = np.array(sum(actual_pitch_maxes,[]))
-#   plt.scatter(constraintsStacked,actual_pitch_maxesStacked,c=measurements_clipped)
-#   plt.plot([0,1.5],[0,1.5],c="gray")
-#   # plt.plot(parameters_for_min, measurements_min,c='r',label = "Minimum")
-#   plt.xlabel("Max Pitch Constraint")
-#   plt.ylabel("Actual Max Pitch")
-#   # plt.legend()
-#   # plt.colorbar(label=measurementName)
-
-#   cmap = plt.get_cmap('viridis')
-
-#   norm = mpl.colors.Normalize(vmin=0, vmax=300)
-
-#   plt.colorbar(mpl.cm.ScalarMappable(norm=norm, cmap=cmap), label=measurementName)
-#   #################################################
-#   # print(len(pitchesAll))
-#   # print(len(constraintsAll))
-#   fig, axs = plt.subplots(6,2,figsize=(9, 15),sharex=True,sharey=True)
-
-
-#   cmap = plt.get_cmap('viridis')
-#   constraints_MAX  = np.max(np.max(constraintsAll))
-#   constraints_MIN  = np.min(np.min(constraintsAll))
-#   fig.suptitle("Pitch Magnitude for all Perturbations\nColor is max pitch constraint")
-
-
-#   # Now remove axes[1,5] from the grouper for xaxis
-#   axs[5,1].get_shared_x_axes().remove(axs[5,1])
-#   axs[5,1].get_shared_y_axes().remove(axs[5,1])
-
-#   # Create and assign new ticker
-#   xticker = mpl.axis.Ticker()
-#   axs[5,1].xaxis.major = xticker
-
-#   # The new ticker needs new locator and formatters
-#   xloc = mpl.ticker.AutoLocator()
-#   xfmt = mpl.ticker.ScalarFormatter()
-
-#   axs[5,1].xaxis.set_major_locator(xloc)
-#   axs[5,1].xaxis.set_major_formatter(xfmt)
-#   axs[5,1].axis('off')
-
-
-#   # print(constraints_MAX)
-#   # print(cmap(1))
-#   for index in range(np.size(axs)-1):
-#     # Currently full range is 41 want to take them all but too many pltos so we are dividing it up into ten subplots with all the s
-#     [axs[index%6,index//6].plot(timesDum,pitchesDum,c=cmap(constraintDum/constraints_MAX)) for (timesDum, pitchesDum,constraintDum) in zip(timesAll[index * 2], pitchesAll[index * 2],constraintsAll[index*2])]
-#     axs[index%6,index//6].set_title("Speed "+ str(parameters_for_min[2*index]))
-
-#     if(index==5 or index==10):
-#       axs[index%6,index//6].set_xlabel("Time [s]")
-#     if ( not index//6):
-#       axs[index%6,index//6].set_ylabel("Pitch Magnitude")
+############################### NRG PLOT PERCENTAGE
+  if(True):
+    print("Building plots")
+    fig_power, axs = plt.subplots(3, 1, squeeze=False, sharex=True, sharey=True,figsize=(8, 4.5))
+    counter = 0
+    fig_perc, axs_perc = plt.subplots(3, 1, squeeze=False, sharex=True, sharey=True,figsize=(8, 4.5))
+    print("Finished plots")
     
+    ## PLOT YAW
+    vel_list = []
+    for vel_key in velocity_map.values():
+      stride_list = []
+      for (stride_i, stride) in enumerate(stride_lengths):
+        yaw_list_twist = []
+        yaw_list_rigid = []
+        for y_key in yaw_map.values():
+          if y_key>3.14159/4:
+            continue
+          if vel_key==1:
+            if stride=="ss":
+              if y_key>0.39:
+                continue
+              
+          if spirit_lists_optimal["twisting"][vel_key][y_key][stride][0]:
+            yaw_list_twist.append([y_key, spirit_lists_optimal["twisting"][vel_key][y_key][stride][1]])
+          if spirit_lists_optimal["rigid"][vel_key][y_key][stride][0]:
+            yaw_list_rigid.append([y_key, spirit_lists_optimal["rigid"][vel_key][y_key][stride][1]])
+        nrg_for_plot_twist = np.array(yaw_list_twist)
+        nrg_for_plot_rigid = np.array(yaw_list_rigid)
+
+        axs[stride_i,0].plot( nrg_for_plot_twist[:,0], nrg_for_plot_twist[:,1], "--", color = (cmap(vel_key/5)) )
+        axs[stride_i,0].plot( nrg_for_plot_rigid[:,0], nrg_for_plot_rigid[:,1], "-", color = (cmap(vel_key/5)) )
+        nrg_for_dict_rigid = {pair[0]:pair[1] for pair in nrg_for_plot_rigid}
+        yaw_list_twist_perc = []
+        for twist_yaw_nrg in yaw_list_twist:
+          try: 
+            yaw_list_twist_perc.append([twist_yaw_nrg[0],twist_yaw_nrg[1]/nrg_for_dict_rigid[twist_yaw_nrg[0]]-1])
+          except KeyError:
+            continue
+        print(yaw_list_twist_perc)
+        perc_nrg_for_plot_twist = np.array(yaw_list_twist_perc)        
+        axs_perc[stride_i,0].plot( perc_nrg_for_plot_twist[:,0], perc_nrg_for_plot_twist[:,1], "-", color = (cmap(vel_key/5)) )
+
+    stride_labels = dict([("ss", "Short Stride"),("ms", "Medium Stride"),("ls", "Long Stride")])
+    for (stride_i, stride) in enumerate(stride_lengths):
+      axs[stride_i,0].set_ylabel(stride_labels[stride] + "\nEnergy [J]")
+      axs[stride_i,0].grid(visible=True, which="both")
+
+      axs_perc[stride_i,0].grid( visible=True, which="both")
+      axs_perc[stride_i,0].set_ylabel(stride_labels[stride] + "\n Difference ")
+      axs_perc[stride_i,0].set_ylim([-.3,.3])
+      vals = axs_perc[stride_i,0].get_yticks()
+      axs_perc[stride_i,0].set_yticklabels(['{:,.1%}'.format(x) for x in vals])
+    axs[2,0].set_xlabel("Yaw Displacement [rad]")
+    axs_perc[2,0].set_xlabel("Yaw Displacement [rad]")    
+    
+    
+    figure_dir = directory + "/figs"
+    figure_name = "TurnPowerPercentage"
+    safe_save_fig(figure_name, figure_dir, overwrite = True, figure=fig_perc)
+    figure_name = "TurnPowerAll"
+    safe_save_fig(figure_name, figure_dir, overwrite = True, figure=fig_power)
+
+
+    #   # ax.set_xlabel("Velocity [m/s]")
+    #   # ax.set_ylabel("Energy [J]")
+    #   # for (spine_type,nrg_by_spine) in zip(["rigid","twisting"], period_energies):
+    #   #   counter = 0
+    #   #   style = ("-d","--X")[int(spine_type =="twisting" )]
+    #   #   for nrg_by_period in nrg_by_spine:
+    #   #     nrg_for_plot = np.array(nrg_by_period)
+    #   #     ax.plot( nrg_for_plot[:,0], nrg_for_plot[:,1], style, color=cmap((counter+1)*.3), zorder=-1, label = spine_type + ", " + stride_lengths[counter] )
+    #   #     counter += 1
+    
+    # ax.legend(title="Spine, Stride Period")
+    # # fig.suptitle("Average Power for Trot\nwith Different Stride Periods")
+    
+    # counter = 0
+    # style = ("-d","--X")[int(spine_type =="twisting" )]
+    # print("##########################")
+    # for (rigid_nrg_by_period, twist_nrg_by_period) in zip(period_energies[0],period_energies[1]):
+    #   print(rigid_nrg_by_period)
+    #   num_runs_rigid = len(rigid_nrg_by_period)
+    #   num_runs_twist = len(twist_nrg_by_period)
+    #   num_runs = min(num_runs_rigid,num_runs_twist)
+    #   print(num_runs_rigid,num_runs_twist,num_runs)
+
+    #   rigid_nrg_for_plot = np.array(rigid_nrg_by_period)
+    #   twist_nrg_for_plot = np.array(twist_nrg_by_period)
+    #   # print(rigid_nrg_for_plot)
+    #   # print(twist_nrg_for_plot)
+
+    #   ax_perc.plot( twist_nrg_for_plot[:num_runs,0], twist_nrg_for_plot[:num_runs,1]/rigid_nrg_for_plot[:num_runs,1], style, color=cmap((counter+1)*.3), zorder=-1, label = spine_type + ", " + stride_lengths[counter] )
+    
+    #   counter += 1
+    # ax_perc.legend(title="Spine, Stride Period")
+    # ax_perc.plot([0,4],[1,1],'--',color='gray')
+    # ax_perc.set_ylim([0,4])
+
+    # vals = ax_perc.get_yticks()
+    # ax_perc.set_yticklabels(['{:,.1%}'.format(x) for x in vals])
+    # fig.suptitle("Average Power for Trot\nwith Different Stride Periods")
+    
+    # figure_name = "Trot_Power"
+    # figure_dir = directory + "/test_figs"
+    # safe_save_fig(figure_name, figure_dir, overwrite = True)
 
 
 
-#   norm = mpl.colors.Normalize(vmin=constraints_MIN, vmax=constraints_MAX)
+  ######################### PLOT THE TURN SPINE ACTUATION FOR MOST "OPTIMAL" RUNS
+  if(False): # Turn this plot on 
+    for stride in stride_lengths:
+      print("Building the subplots figure for " + stride)
+      fig2, axs2 = plt.subplots(len(velocity_indices),len(param_indices),squeeze=False, sharex=True, sharey=True,figsize=(16, 10))
+      print("Figure and axes built")
+      fig2.suptitle("SpineTorque vs. Time\nStride Length:"  + stride)
+      for (index_vel, vel_dict) in enumerate(spirit_lists_optimal["twisting"][stride]):
+        # print(spirit_lists["twisting"]["ss"][vel_dict])
+        for (index_turn,turn_disp) in enumerate(spirit_lists_optimal["twisting"][stride][vel_dict]):
+          # print(turn_disp)
+          # for s in turn_disp:
+          if (not turn_disp[0]):
+            continue
+          s, run_power = turn_disp #spirit_lists_optimal["twisting"][stride][vel_dict][index_turn]
+          draw_spine_torque(s,axis=axs2[index_vel, index_turn])
+          draw_stance_phases(s, [1,4], axis=axs2[index_vel, index_turn])
+          axs2[index_vel, index_turn].grid(which='both')
 
-#   fig.colorbar(mpl.cm.ScalarMappable(norm=norm, cmap=cmap), orientation='horizontal', label='Max Pitch Constraint')
+          velStr = "{vel:.1f}"
+          axs2[index_vel, 0].set_ylabel("Velocity " + velStr.format(vel=(index_vel+1)))
+          dispStr = "{disp:.2f}"
+          axs2[len(velocity_indices)-1, index_turn].set_xlabel("Yaw Disp " + dispStr.format(disp=(index_turn+1)*0.1))
+          
+          ################################
 
-#   fig.tight_layout(rect=[0, 0.03, 1, 0.95])
-#   ############################################
-#   fig2, axs2 = plt.subplots(6,2,figsize=(9, 15),sharex=True,sharey=True)
-#   # fig.subplots_adjust(bottom=0.5)
-#   cmap = plt.get_cmap('viridis')
-#   measurement_MAX  = 300#np.max(np.max(measurementsAll))
-#   measurement_MIN  = np.min(np.min(measurementsAll))
-#   fig2.suptitle("Pitch Magnitude for all Perturbations\nColor is avg power")
+  ######################### PLOT THE TURN SPINE ACTUATION FOR MOST "OPTIMAL" RUNS
+  if(False): # Turn this plot on 
+    
+      
+    for stride in stride_lengths:
+      print("Building the subplots figure for " + stride)
+      fig2, axs2 = plt.subplots(len(velocity_indices),len(param_indices) - 5,squeeze=False, sharex=True, sharey=True,figsize=(16, 10))
+      print("Figure and axes built")
+      fig2.suptitle("Friction vs. Time\nStride Length:"  + stride)
+      for spine_type in ["rigid","twisting"]:
+        for (index_vel, vel_dict) in enumerate(spirit_lists_optimal[spine_type][stride]):
+
+          # print(spirit_lists["twisting"]["ss"][vel_dict])
+          for (index_turn,turn_disp) in enumerate(spirit_lists_optimal[spine_type][stride][vel_dict]):
+            if (index_turn >= len(axs2[0])):
+              continue
+            # print(turn_disp)
+            # for s in turn_disp:
+            if (not turn_disp[0]):
+              continue
+            s, run_power = turn_disp #spirit_lists_optimal["twisting"][stride][vel_dict][index_turn]
+            # draw_spine_torque(s,axis=axs2[index_vel, index_turn])
+            # draw_stance_phases(s, [1,4], axis=axs2[index_vel, index_turn])
+            # axs2[index_vel, index_turn].grid(which='both')
+
+            velStr = "{vel:.1f}"
+            # axs2[index_vel, 0].set_ylabel("Velocity " + velStr.format(vel=(index_vel+1)))
+            dispStr = "{disp:.2f}"
+            # axs2[len(velocity_indices)-1, index_turn].set_xlabel("Yaw Disp " + dispStr.format(disp=(index_turn+1)*0.1))
+            
+            ################################
+            print(s.run_name)
+            for mode_i in range(s.dircon_traj.GetNumModes()):
+              force_traj = s.dircon_traj.GetTrajectory("force_vars" + str(mode_i))
+              if (not force_traj.datapoints.any()):
+                continue
+              time_vector = force_traj.time_vector
+              # left_forces = force_traj.datapoints[:3,:]
+              # right_forces = force_traj.datapoints[3:,:]
+              # left_lateral_magnitude = np.sqrt(np.sum(np.square(left_forces[:2,:]),0))
+              # left_mu = left_lateral_magnitude/left_forces[2,:]
+              # right_lateral_magnitude = np.sqrt(np.sum(np.square(right_forces[:2,:]),0))
+              # right_mu = right_lateral_magnitude/right_forces[2,:]
+              # axs2[index_vel, index_turn].plot( time_vector, left_lateral_magnitude, ("b-","r-")[int(s.is_twisting )],
+              #                                   time_vector, right_lateral_magnitude, ("b--","r--")[int(s.is_twisting )])
+
+            draw_stance_phases(s, [1,4], axis=axs2[index_vel, index_turn], facecolor=('blue','red')[int(s.is_twisting )])
+            # axs2[index_vel,index_turn].set_ylim([0,0.6])
+      # figure_name = "TurnTorque_"+ stride
+      # figure_dir = directory + "/test_figs"
+      # safe_save_fig(figure_name, figure_dir, overwrite = True)
+
+  plt.show()
+  
 
 
-#   # Now remove axes[1,5] from the grouper for xaxis
-#   axs2[5,1].get_shared_x_axes().remove(axs2[5,1])
-#   axs2[5,1].get_shared_y_axes().remove(axs2[5,1])
 
-#   # Create and assign new ticker
-#   xticker = mpl.axis.Ticker()
-#   axs2[5,1].xaxis.major = xticker
-
-#   # The new ticker needs new locator and formatters
-#   xloc = mpl.ticker.AutoLocator()
-#   xfmt = mpl.ticker.ScalarFormatter()
-
-#   axs2[5,1].xaxis.set_major_locator(xloc)
-#   axs2[5,1].xaxis.set_major_formatter(xfmt)
-#   axs2[5,1].axis('off')
-
-
-
-#   # print(constraints_MAX)
-#   # print(cmap(1))
-#   for index in range(np.size(axs2)-1):
-#     [axs2[index%6,index//6].plot(timesDum,pitchesDum,c=cmap(measureDum/measurement_MAX)) for (timesDum, pitchesDum,measureDum) in zip(timesAll[index * 2], pitchesAll[index * 2],measurementsAll[index*2])]
-#     axs2[index%6,index//6].set_title("Speed "+ str(parameters_for_min[2*index]))
-#     axs2[index%6,index//6].grid(axis='x', color='0.95')
-#     if(index==5 or index==10):
-#       axs2[index%6,index//6].set_xlabel("Time [s]")
-#     if ( not index//6):
-#       axs2[index%6,index//6].set_ylabel("Pitch Magnitude")
-
-#   norm = mpl.colors.Normalize(vmin=measurement_MIN, vmax=measurement_MAX)
-
-#   fig2.colorbar(mpl.cm.ScalarMappable(norm=norm, cmap=cmap), orientation='horizontal', label='AveragePower')
-#   fig2.tight_layout(rect=[0, 0.03, 1, 0.95])
-#   ###########################################################
-#   print("Minimum Runs:", experiment_index_min)
-#   plt.show()
 
 
 
