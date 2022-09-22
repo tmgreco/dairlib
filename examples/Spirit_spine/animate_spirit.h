@@ -52,4 +52,13 @@ void addGaussionNoiseToStateTraj(drake::multibody::MultibodyPlant<T>& plant,
                                 drake::trajectories::PiecewisePolynomial<T>& state_traj);
 
 void animateTraj(std::string& urdf_path);
+
+void addOffset(drake::trajectories::PiecewisePolynomial<double>& state_traj,double x, double y);
+
+void copyAndStitchMultiplePeriods(drake::trajectories::PiecewisePolynomial<double>& state_traj);
+
+template <typename T>
+void rotateTraj(drake::multibody::MultibodyPlant<T>& plant,
+                drake::trajectories::PiecewisePolynomial<T>& state_traj,
+                double yaw);
 }  // dairlib namespace

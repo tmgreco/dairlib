@@ -2,6 +2,7 @@
 #include "examples/Spirit_spine/animate_spirit.h"
 #include <gflags/gflags.h>
 DEFINE_string(traj_path, "temp", "path to trajectory to be viz"); 
+DEFINE_string(bound_path, "none", "path to bounding gait trajectory for visualizing turn"); 
 DEFINE_int32(num_period, 1, "How many periods to be visualized"); 
 DEFINE_double(real_time_rate,0.25,"Display speed");
 DEFINE_string(behavior, "jump", "behavior"); 
@@ -114,6 +115,7 @@ void animateTraj(std::string& urdf_path) {
   PiecewisePolynomial<double> pp_xtraj = old_traj.ReconstructStateTrajectory();
 
 
+
   PiecewisePolynomial<double> x_traj_1;
   if (FLAGS_behavior=="trot"){
     x_traj_1=old_traj.ReconstructStateTrajectory();
@@ -201,27 +203,26 @@ void animateTraj(std::string& urdf_path) {
   }
   
 
+  if (FLAGS_behavior=="turn"){
+    // Get bounding gait traj for several period
+    dairlib::DirconTrajectory bound_traj(FLAGS_bound_path);
+    PiecewisePolynomial<double> bound_pp_traj = bound_traj.ReconstructStateTrajectory();
+    copyAndStitchMultiplePeriods(bound_pp_traj);
+    PiecewisePolynomial<double> bound_pp_traj2=bound_pp_traj;
+    // Add turn after that
+    addOffset(pp_xtraj,bound_pp_traj.value(bound_pp_traj.end_time())(4,0),bound_pp_traj.value(bound_pp_traj.end_time())(5,0));
+    pp_xtraj.shiftRight(bound_pp_traj.end_time());
+    bound_pp_traj.ConcatenateInTime(pp_xtraj);
+    pp_xtraj=bound_pp_traj;
 
-  
-  if (FLAGS_num_period>1){
-    /// Create offset polynomial
-    std::vector<double> breaks=pp_xtraj.get_breaks();
-    std::vector<Eigen::MatrixXd> samples(breaks.size());
-    for (int i = 0; i < static_cast<int>(breaks.size()); ++i) {
-      samples[i].resize(39, 1);
-      for (int j=0;j<39;j++) samples[i](j, 0) = 0;
-      samples[i](4, 0) = pp_xtraj.value(pp_xtraj.end_time())(4,0);
-    }
-    PiecewisePolynomial<double> ini_offset_pp = PiecewisePolynomial<double>::FirstOrderHold(breaks, samples);
-    PiecewisePolynomial<double> offset_pp=ini_offset_pp;
-    for (int i=0;i<FLAGS_num_period;i++){
-      PiecewisePolynomial<double> x_traj_i;
-      if (FLAGS_behavior=="trot") x_traj_i=x_traj_1+offset_pp;
-      else x_traj_i=old_traj.ReconstructStateTrajectory()+offset_pp;
-      offset_pp+=ini_offset_pp;
-      x_traj_i.shiftRight(pp_xtraj.end_time());
-      pp_xtraj.ConcatenateInTime(x_traj_i);
-    }
+    // Add bounding gait at the end
+    rotateTraj(*plant,bound_pp_traj2,0.5); //rotate
+    addOffset(bound_pp_traj2,pp_xtraj.value(pp_xtraj.end_time())(4,0),pp_xtraj.value(pp_xtraj.end_time())(5,0));
+    bound_pp_traj2.shiftRight(pp_xtraj.end_time());
+    pp_xtraj.ConcatenateInTime(bound_pp_traj2);
+  }
+  else{
+    copyAndStitchMultiplePeriods(pp_xtraj);
   }
 
   SceneGraph<double>& scene_graph = *builder.AddSystem(std::move(scene_graph_ptr));
@@ -240,6 +241,137 @@ void animateTraj(std::string& urdf_path) {
     sleep(2);
   }
 }
+void addOffset(PiecewisePolynomial<double>& state_traj,double x, double y){
+  std::vector<double> breaks=state_traj.get_breaks();
+  std::vector<Eigen::MatrixXd> samples(breaks.size());
+  for (int i = 0; i < static_cast<int>(breaks.size()); ++i) {
+    samples[i].resize(39, 1);
+    for (int j=0;j<39;j++) samples[i](j, 0) = 0;
+    samples[i](4, 0) = x;
+    samples[i](5, 0) = y;
+  }
+  PiecewisePolynomial<double> offset_pp = PiecewisePolynomial<double>::FirstOrderHold(breaks, samples);
+  state_traj+=offset_pp;
+}
+void copyAndStitchMultiplePeriods(PiecewisePolynomial<double>& state_traj){
+  PiecewisePolynomial<double> old_pp_traj=state_traj;
+  if (FLAGS_num_period>1){
+    /// Create offset polynomial
+    std::vector<double> breaks=state_traj.get_breaks();
+    std::vector<Eigen::MatrixXd> samples(breaks.size());
+    for (int i = 0; i < static_cast<int>(breaks.size()); ++i) {
+      samples[i].resize(39, 1);
+      for (int j=0;j<39;j++) samples[i](j, 0) = 0;
+      samples[i](4, 0) = state_traj.value(state_traj.end_time())(4,0);
+      samples[i](5, 0) = state_traj.value(state_traj.end_time())(5,0);
+    }
+    PiecewisePolynomial<double> ini_offset_pp = PiecewisePolynomial<double>::FirstOrderHold(breaks, samples);
+    PiecewisePolynomial<double> offset_pp=ini_offset_pp;
+    for (int i=0;i<FLAGS_num_period-1;i++){
+      PiecewisePolynomial<double> x_traj_i;
+      x_traj_i=old_pp_traj+offset_pp;
+      offset_pp+=ini_offset_pp;
+      x_traj_i.shiftRight(state_traj.end_time());
+      state_traj.ConcatenateInTime(x_traj_i);
+    }
+  }
+}
+template <typename T>
+void rotateTraj(MultibodyPlant<T>& plant,
+                drake::trajectories::PiecewisePolynomial<T>& state_traj,
+                double yaw){
+  // Get breaks (time) and derivative polynomial
+  std::vector<double> breaks=state_traj.get_breaks();
+  breaks.push_back(state_traj.end_time());
+  PiecewisePolynomial<double> dqs=state_traj.derivative();
+  int nq=plant.num_positions();
+  
+
+  // Calculate q_TW and A(q_TW)
+  Eigen::Vector4d q_TW(cos(yaw/2), 0, 0, sin(yaw/2));
+  Eigen::Matrix4d A_q;
+  A_q << q_TW(0), -q_TW(1), -q_TW(2), -q_TW(3),
+         q_TW(1), q_TW(0),  -q_TW(3), q_TW(2),
+         q_TW(2), q_TW(3),   q_TW(0), -q_TW(1),
+         q_TW(3), -q_TW(2),  q_TW(1), q_TW(0);
+
+  // Reconstruct flipped traj
+  for (int i = 0; i < static_cast<int>(breaks.size())-2; ++i) {
+    drake::MatrixX<drake::Polynomial<double>> q_matrix=state_traj.getPolynomialMatrix(i);
+    
+    ////////////////////////////////////// Handle Quaternion  ////////////////////////////////////////////////////////
+    Eigen::Vector4d q_i(state_traj.value(breaks[i])(0,0),state_traj.value(breaks[i])(1,0),state_traj.value(breaks[i])(2,0),state_traj.value(breaks[i])(3,0));
+    Eigen::Vector4d dq_i(dqs.value(breaks[i])(0,0),dqs.value(breaks[i])(1,0),dqs.value(breaks[i])(2,0),dqs.value(breaks[i])(3,0));
+    Eigen::Vector4d q_ip1(state_traj.value(breaks[i+1])(0,0),state_traj.value(breaks[i+1])(1,0),state_traj.value(breaks[i+1])(2,0),state_traj.value(breaks[i+1])(3,0));
+    Eigen::Vector4d dq_ip1(dqs.value(breaks[i+1])(0,0),dqs.value(breaks[i+1])(1,0),dqs.value(breaks[i+1])(2,0),dqs.value(breaks[i+1])(3,0));
+
+    // Get quaternian after rotation
+    Eigen::Vector4d q_i_new=A_q*q_i;
+    Eigen::Vector4d dq_i_new=A_q*dq_i;
+    Eigen::Vector4d q_ip1_new=A_q*q_ip1;
+    Eigen::Vector4d dq_ip1_new=A_q*dq_ip1;
+
+
+    
+
+    // Calculate spline coefficient
+    double a0, a1, a2, a3;
+    double t= breaks[i+1]-breaks[i];
+    for (int k=0;k<4;k++){
+      a0= q_i_new(k);
+      a1= dq_i_new(k);
+      a2= (-2*a1*t-3*a0+3*q_ip1_new(k)-dq_ip1_new(k)*t)/pow(t,2);
+      a3= (a1*t+2*a0+dq_ip1_new(k)*t-2*q_ip1_new(k))/pow(t,3);
+
+      Eigen::Vector4d coefficients(a0, a1, a2, a3);
+
+      drake::Polynomial<double> temp_polynomial(coefficients);
+      q_matrix(k)=temp_polynomial;
+    }
+
+    
+    ////////////////////////////////////// Handle xyz positions and velocities ////////////////////////////////////////////////////////
+
+    // std::cout<< "Break"<< breaks[i] <<std::endl;
+    // std::cout<< "Old q: \n"<< q_i <<std::endl; // qw, qx, qy
+    // std::cout<< "New q: \n"<< q_i_new <<std::endl; // dqw, dqx, dqy
+    // std::cout<< "Old x: \n"<< q_matrix(4) <<std::endl; // qw, qx, qy
+    q_matrix(4)*=cos(yaw); //x
+    q_matrix(5)=q_matrix(4)*sin(yaw); //y
+    q_matrix(nq+3)*=cos(yaw); //vx
+    q_matrix(nq+4)=q_matrix(nq+3)*sin(yaw); //vy
+    // std::cout<< "New x: \n"<< q_matrix(4) <<std::endl; // dqw, dqx, dqy
+
+    state_traj.setPolynomialMatrixBlock(q_matrix,i);
+  }
+
+}
+
+// void createOffsetTraj(MultibodyPlant<T>& plant,
+//                       drake::trajectories::PiecewisePolynomial<T>& state_traj,
+//                       std::vector<double> init_offset,
+//                       std::vector<double> init_quat){
+//   if (FLAGS_num_period>1){
+//     /// Create offset polynomial
+//     std::vector<double> breaks=pp_xtraj.get_breaks();
+//     std::vector<Eigen::MatrixXd> samples(breaks.size());
+//     for (int i = 0; i < static_cast<int>(breaks.size()); ++i) {
+//       samples[i].resize(39, 1);
+//       for (int j=0;j<39;j++) samples[i](j, 0) = 0;
+//       samples[i](4, 0) = pp_xtraj.value(pp_xtraj.end_time())(4,0);
+//     }
+//     PiecewisePolynomial<double> ini_offset_pp = PiecewisePolynomial<double>::FirstOrderHold(breaks, samples);
+//     PiecewisePolynomial<double> offset_pp=ini_offset_pp;
+//     for (int i=0;i<FLAGS_num_period;i++){
+//       PiecewisePolynomial<double> x_traj_i;
+//       if (FLAGS_behavior=="trot") x_traj_i=x_traj_1+offset_pp;
+//       else x_traj_i=old_traj.ReconstructStateTrajectory()+offset_pp;
+//       offset_pp+=ini_offset_pp;
+//       x_traj_i.shiftRight(pp_xtraj.end_time());
+//       pp_xtraj.ConcatenateInTime(x_traj_i);
+//     }
+//   }
+// }
 
 template <typename T>
 void addGaussionNoiseToStateTraj(MultibodyPlant<T>& plant,
@@ -280,6 +412,14 @@ template void runAnimate(
     double real_time_factor
 ); //NOLINT
 
-template void addGaussionNoiseToStateTraj(MultibodyPlant<double>& plant,
+template void addGaussionNoiseToStateTraj(drake::multibody::MultibodyPlant<double>& plant,
                                 drake::trajectories::PiecewisePolynomial<double>& state_traj);
+
+template void rotateTraj(drake::multibody::MultibodyPlant<double>& plant,
+                drake::trajectories::PiecewisePolynomial<double>& state_traj,
+                double yaw);
+
 }// namespace dairlib
+
+
+
