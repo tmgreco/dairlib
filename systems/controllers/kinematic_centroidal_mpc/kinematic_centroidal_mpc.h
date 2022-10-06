@@ -5,6 +5,7 @@
 #include "multibody/kinematic/world_point_evaluator.h"
 #include "drake/multibody/plant/multibody_plant.h"
 #include "drake/systems/framework/context.h"
+#include "drake/common/trajectories/piecewise_polynomial.h"
 
 class KinematicCentroidalMPC {
  public:
