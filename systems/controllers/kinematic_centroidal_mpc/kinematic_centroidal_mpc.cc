@@ -1,3 +1,4 @@
+#include <iostream>
 #include "kinematic_centroidal_mpc.h"
 #include "drake/common/trajectories/piecewise_polynomial.h"
 #include "systems/controllers/kinematic_centroidal_mpc/kinematic_centroidal_constraints.h"
@@ -180,4 +181,28 @@ void KinematicCentroidalMPC::AddCosts() {
       prog_->AddQuadraticCost(2 * Q_force_,  - 2 * ref.transpose() * Q_force_, force_vars);
     }
   }
+}
+
+void KinematicCentroidalMPC::SetZeroInitialGuess() {
+  prog_->SetInitialGuessForAllVariables(Eigen::VectorXd::Zero(n_q_+n_v_+n_contact_points_*6));
+}
+
+drake::trajectories::PiecewisePolynomial<double> KinematicCentroidalMPC::Solve() {
+  drake::solvers::MathematicalProgramResult result;
+  auto start = std::chrono::high_resolution_clock::now();
+  solver_->Solve(*prog_, prog_->initial_guess(),
+                prog_->solver_options(),
+                &result);
+  auto finish = std::chrono::high_resolution_clock::now();
+  std::chrono::duration<double> elapsed = finish - start;
+  std::cout << "Solve time:" << elapsed.count() << std::endl;
+  std::cout << "Cost:" << result.get_optimal_cost() << std::endl;
+
+  std::vector<double> time_points;
+  std::vector<drake::MatrixX<double>> states;
+  for(int knot_point = 0; knot_point < n_knot_points_; knot_point++ ){
+    time_points.emplace_back(dt_*knot_point);
+    states.emplace_back(result.GetSolution(state_vars(knot_point)));
+  }
+  return drake::trajectories::PiecewisePolynomial<double>::FirstOrderHold(time_points, states);
 }

@@ -8,6 +8,7 @@ cc_library(
         "//geometry:convex_foothold",
         "//solvers:constraints",
         "//multibody/kinematic:kinematic",
+        "//multibody/kinematic:constraints",
         "@drake//:drake_shared_library",
     ],
 )

@@ -1,6 +1,7 @@
 
 #pragma once
 #include <drake/solvers/mathematical_program.h>
+#include <drake/solvers/ipopt_solver.h>
 #include "multibody/kinematic/world_point_evaluator.h"
 #include "drake/multibody/plant/multibody_plant.h"
 #include "drake/systems/framework/context.h"
@@ -44,6 +45,9 @@ class KinematicCentroidalMPC {
 
   void Build(const drake::solvers::SolverOptions& solver_options);
 
+  drake::trajectories::PiecewisePolynomial<double> Solve();
+
+  void SetZeroInitialGuess();
  private:
   /*!
    * @brief Adds dynamics for centroidal state
@@ -99,6 +103,7 @@ class KinematicCentroidalMPC {
   std::vector<std::unordered_map<std::shared_ptr<dairlib::multibody::WorldPointEvaluator<double>>, bool>> contact_sequence_;
   // MathematicalProgram
   std::unique_ptr<drake::solvers::MathematicalProgram> prog_;
+  std::unique_ptr<drake::solvers::IpoptSolver> solver_;
 
   //DecisionVariables
   // Full robot state
