@@ -23,7 +23,11 @@ class KinematicCentroidalMPC {
   void AddForceTrackingReference(std::unique_ptr<drake::trajectories::Trajectory<double>> force_ref_traj,
                                       const Eigen::MatrixXd& Q_force);
 
-   drake::solvers::VectorXDecisionVariable state_vars(
+  void AddConstantStateReference(const drake::VectorX<double>& value, const Eigen::MatrixXd& Q);
+
+  void AddConstantForceTrackingReference(const drake::VectorX<double>& value, const Eigen::MatrixXd& Q_force);
+
+  drake::solvers::VectorXDecisionVariable state_vars(
       int knotpoint_index) const;
 
    drake::solvers::VectorXDecisionVariable centroidal_pos_vars(
@@ -37,6 +41,8 @@ class KinematicCentroidalMPC {
 
    drake::solvers::VectorXDecisionVariable kinematic_vel_vars(
       int knotpoint_index) const;
+
+  void Build(const drake::solvers::SolverOptions& solver_options);
 
  private:
   /*!
@@ -64,6 +70,7 @@ class KinematicCentroidalMPC {
 //  void AddTorqueLimits();
 //
 //  void AddStateLimits();
+  void AddCosts();
 
   const drake::multibody::MultibodyPlant<double>& plant_;
   drake::systems::Context<double>* context_;

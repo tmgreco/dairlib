@@ -49,7 +49,6 @@ void KinematicCentroidalMPC::AddContactPosTrackingReference(std::unique_ptr<drak
 
   contact_ref_traj_ = std::move(contact_ref_traj);
   Q_contact_ = Q_contact;
-
 }
 
 void KinematicCentroidalMPC::AddForceTrackingReference(std::unique_ptr<drake::trajectories::Trajectory<double>> force_ref_traj,
@@ -113,6 +112,9 @@ void KinematicCentroidalMPC::AddContactConstraints() {
                 plant_, foot_evaluator_set, Eigen::Vector3d::Zero(), Eigen::Vector3d::Zero());
         prog_->AddConstraint(foot_velocity_constraint, state_vars(knot_point));
       }
+
+      // Feet are above the ground
+      prog_->AddBoundingBoxConstraint(0, 10, contact_pos_[knot_point][contact][2]);
     }
   }
 }
@@ -133,4 +135,49 @@ drake::solvers::VectorXDecisionVariable KinematicCentroidalMPC::kinematic_pos_va
 }
 drake::solvers::VectorXDecisionVariable KinematicCentroidalMPC::kinematic_vel_vars(int knotpoint_index) const {
   return x_vars_[knotpoint_index].segment(n_q_ + n_centroidal_vel_,n_kinematic_v_);
+}
+void KinematicCentroidalMPC::Build(const drake::solvers::SolverOptions &solver_options) {
+
+  AddCentroidalDynamics();
+  AddKinematicDynamics();
+  AddContactConstraints();
+  AddCosts();
+
+  prog_->SetSolverOptions(solver_options);
+}
+
+void KinematicCentroidalMPC::AddConstantStateReference(const drake::VectorX<double>& value, const Eigen::MatrixXd &Q) {
+  AddStateReference(std::make_unique<drake::trajectories::PiecewisePolynomial<double>>(value), Q);
+}
+
+void KinematicCentroidalMPC::AddConstantForceTrackingReference(const drake::VectorX<double> &value,
+                                                               const Eigen::MatrixXd &Q_force) {
+  AddForceTrackingReference(std::make_unique<drake::trajectories::PiecewisePolynomial<double>>(value), Q_force);
+}
+
+void KinematicCentroidalMPC::AddCosts() {
+  for (int knot_point = 0; knot_point < n_knot_points_; knot_point++) {
+    double t = dt_ * knot_point;
+
+    if(ref_traj_){
+      const auto& ref = ref_traj_->value(t);
+      prog_->AddQuadraticCost(2 * Q_,  - 2 * ref.transpose() * Q_, state_vars(knot_point));
+    }
+    if(contact_ref_traj_){
+      const auto& ref = contact_ref_traj_->value(t);
+      drake::solvers::VariableRefList contact_pos_vars;
+      for(const auto& contact_pos : contact_pos_[knot_point]){
+        contact_pos_vars.emplace_back(contact_pos);
+      }
+      prog_->AddQuadraticCost(2 * Q_contact_,  - 2 * ref.transpose() * Q_contact_, contact_pos_vars);
+    }
+    if(force_ref_traj_){
+      const auto& ref = force_ref_traj_->value(t);
+      drake::solvers::VariableRefList force_vars;
+      for(const auto& force : contact_force_[knot_point]){
+        force_vars.emplace_back(force);
+      }
+      prog_->AddQuadraticCost(2 * Q_force_,  - 2 * ref.transpose() * Q_force_, force_vars);
+    }
+  }
 }
