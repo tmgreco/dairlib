@@ -10,10 +10,11 @@ template<typename T>
 CentroidalDynamicsConstraint<T>::CentroidalDynamicsConstraint(const drake::multibody::MultibodyPlant<T> &plant,
                                                               drake::systems::Context<T> *context,
                                                               int n_contact,
+                                                              double dt,
                                                               int knot_index): dairlib::solvers::NonlinearConstraint<T>(
     13, 1 + 2 * plant.num_positions() + 2 * plant.num_velocities() + 2 * 3 * n_contact,
-    Eigen::VectorXd::Zero(plant.num_positions() + plant.num_velocities()),
-    Eigen::VectorXd::Zero(plant.num_positions() + plant.num_velocities()),
+    Eigen::VectorXd::Zero(13),
+    Eigen::VectorXd::Zero(13),
     "centroidal_collocation[" +
         std::to_string(knot_index) + "]"),
                                                                                plant_(plant),
@@ -23,11 +24,11 @@ CentroidalDynamicsConstraint<T>::CentroidalDynamicsConstraint(const drake::multi
                                                                                n_q_(plant.num_positions()),
                                                                                n_u_(plant.num_actuators()),
                                                                                n_contact_(n_contact),
+                                                                               dt_(dt),
                                                                                zero_control_(Eigen::VectorXd::Zero(n_u_)) {}
 
 
 /// The format of the input to the eval() function is in the order
-///   - timestep h
 ///   - x0, state at time k
 ///   - x1, state at time k+1
 ///   - cj0, contact locations time k
@@ -36,11 +37,10 @@ template <typename T>
 void CentroidalDynamicsConstraint<T>::EvaluateConstraint(
     const Eigen::Ref<const drake::VectorX<T>>& x, drake::VectorX<T>* y) const {
   // Extract decision variables
-  const T& h = x(0);
-  const auto& x0 = x.segment(1, n_x_);
-  const auto& x1 = x.segment(1 + n_x_, n_x_);
-  const auto& cj0 = x.segment(1 + n_x_ + n_x_, 3 * n_contact_);
-  const auto& Fj0 = x.segment(1 + n_x_ + n_x_ + 3 * n_contact_, 3 * n_contact_);
+  const auto& x0 = x.segment(0, n_x_);
+  const auto& x1 = x.segment(n_x_, n_x_);
+  const auto& cj0 = x.segment(n_x_ + n_x_, 3 * n_contact_);
+  const auto& Fj0 = x.segment(n_x_ + n_x_ + 3 * n_contact_, 3 * n_contact_);
 
   // Extract centroidal state = [qw, qx, qy, qz, rx, ry ,rz, wx, wy, wz, drz, dry, drz]
   drake::VectorX<T> x0Cent(13);
@@ -54,7 +54,7 @@ void CentroidalDynamicsConstraint<T>::EvaluateConstraint(
   const auto& xdot0Cent = CalcTimeDerivativesWithForce(context_, x0Cent,cj0, Fj0);
 
   // Cubic interpolation to get xcol and xdotcol.
-  const auto& x1Predict = x0Cent + xdot0Cent * h;
+  const auto& x1Predict = x0Cent + xdot0Cent * dt_;
 
   *y = x1Cent - x1Predict;
 }

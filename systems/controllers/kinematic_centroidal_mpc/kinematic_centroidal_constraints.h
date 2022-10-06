@@ -17,7 +17,7 @@ class CentroidalDynamicsConstraint : public dairlib::solvers::NonlinearConstrain
   /// point context.
   CentroidalDynamicsConstraint(const drake::multibody::MultibodyPlant<T>& plant,
                               drake::systems::Context<T>* context,
-                              int n_contact, int knot_index);
+                              int n_contact, double dt, int knot_index);
 
  public:
   void EvaluateConstraint(const Eigen::Ref<const drake::VectorX<T>>& x,
@@ -36,6 +36,7 @@ class CentroidalDynamicsConstraint : public dairlib::solvers::NonlinearConstrain
   int n_q_;
   int n_u_;
   int n_contact_;
+  double dt_;
   const drake::VectorX<T> zero_control_;
 };
 
