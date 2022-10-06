@@ -206,3 +206,36 @@ drake::trajectories::PiecewisePolynomial<double> KinematicCentroidalMPC::Solve()
   }
   return drake::trajectories::PiecewisePolynomial<double>::FirstOrderHold(time_points, states);
 }
+
+void KinematicCentroidalMPC::CreateVisualizationCallback(std::string model_file,
+                                                         double alpha,
+                                                         std::string weld_frame_to_world) {
+  DRAKE_DEMAND(!callback_visualizer_);  // Cannot be set twice
+
+  // Assemble variable list
+  drake::solvers::VectorXDecisionVariable vars(n_knot_points_ *
+  plant_.num_positions());
+  for(int knot_point = 0; knot_point < n_knot_points_; knot_point ++){
+    vars.segment(knot_point * plant_.num_positions(), plant_.num_positions()) = state_vars(knot_point).head(plant_.num_positions());
+  }
+
+  Eigen::VectorXd alpha_vec = Eigen::VectorXd::Constant(n_knot_points_, alpha);
+  alpha_vec(0) = 1;
+  alpha_vec(n_knot_points_ - 1) = 1;
+
+  // Create visualizer
+  callback_visualizer_ = std::make_unique<dairlib::multibody::MultiposeVisualizer>(
+      model_file, n_knot_points_, alpha_vec, weld_frame_to_world);
+
+
+  // Callback lambda function
+  auto my_callback = [this](const Eigen::Ref<const Eigen::VectorXd>& vars) {
+    Eigen::VectorXd vars_copy = vars;
+    Eigen::Map<Eigen::MatrixXd> states(vars_copy.data(), this->plant_.num_positions(),
+                                       this->n_knot_points_);
+    this->callback_visualizer_->DrawPoses(states);
+  };
+
+  prog_->AddVisualizationCallback(my_callback, vars);
+
+}

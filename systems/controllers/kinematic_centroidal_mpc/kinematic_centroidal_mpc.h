@@ -6,6 +6,7 @@
 #include "drake/multibody/plant/multibody_plant.h"
 #include "drake/systems/framework/context.h"
 #include "drake/common/trajectories/piecewise_polynomial.h"
+#include "multibody/multipose_visualizer.h"
 
 class KinematicCentroidalMPC {
  public:
@@ -49,6 +50,11 @@ class KinematicCentroidalMPC {
   drake::trajectories::PiecewisePolynomial<double> Solve();
 
   void SetZeroInitialGuess();
+
+  void CreateVisualizationCallback(std::string model_file,
+                                   double alpha,
+                                   std::string weld_frame_to_world = "");
+
  private:
   /*!
    * @brief Adds dynamics for centroidal state
@@ -115,6 +121,8 @@ class KinematicCentroidalMPC {
   std::vector<std::vector<drake::solvers::VectorXDecisionVariable>>  contact_force_;
 
   std::vector<std::unique_ptr<drake::systems::Context<double>>> contexts_;
+
+  std::unique_ptr<dairlib::multibody::MultiposeVisualizer> callback_visualizer_;
 
 };
 
