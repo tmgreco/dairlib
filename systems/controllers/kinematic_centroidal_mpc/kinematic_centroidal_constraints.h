@@ -12,9 +12,6 @@ template <typename T>
 class CentroidalDynamicsConstraint : public dairlib::solvers::NonlinearConstraint<T> {
 
  public:
-  /// Requires two context pointers to be pasesd as arguments, one for each
-  /// knot point. The constraint will create its own pointer for the collocation
-  /// point context.
   CentroidalDynamicsConstraint(const drake::multibody::MultibodyPlant<T>& plant,
                               drake::systems::Context<T>* context,
                               int n_contact, double dt, int knot_index);
@@ -39,6 +36,4 @@ class CentroidalDynamicsConstraint : public dairlib::solvers::NonlinearConstrain
   double dt_;
   const drake::VectorX<T> zero_control_;
 };
-
-
 

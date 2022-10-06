@@ -1,6 +1,7 @@
 #include "kinematic_centroidal_mpc.h"
 #include "drake/common/trajectories/piecewise_polynomial.h"
 #include "systems/controllers/kinematic_centroidal_mpc/kinematic_centroidal_constraints.h"
+#include "multibody/kinematic/kinematic_constraints.h"
 
 KinematicCentroidalMPC::KinematicCentroidalMPC(const drake::multibody::MultibodyPlant<double> &plant,
                                                drake::systems::Context<double> *context,
@@ -90,10 +91,30 @@ void KinematicCentroidalMPC::AddKinematicDynamics() {
   }
 }
 
-void KinematicCentroidalMPC::AddContactConstraints(){
-    for (int knot_point = 0; knot_point < n_knot_points_; knot_point++) {
+void KinematicCentroidalMPC::AddContactConstraints() {
+  for (int knot_point = 0; knot_point < n_knot_points_; knot_point++) {
+    for (int contact = 0; contact < n_contact_points_; contact++) {
+      const auto &foot_evaluator = contact_points_[contact];
+      auto foot_evaluator_set = dairlib::multibody::KinematicEvaluatorSet<double>(plant_);
+      foot_evaluator_set.add_evaluator(foot_evaluator.get());
+      // Ensure foot position line up with kinematics
+      {
+        std::set<int> full_constraint_relative = {0, 1, 2};
+        auto foot_position_constraint =
+            std::make_shared<dairlib::multibody::KinematicPositionConstraint<double>>(
+                plant_, foot_evaluator_set, Eigen::Vector3d::Zero(), Eigen::Vector3d::Zero(), full_constraint_relative);
+        prog_->AddConstraint(foot_position_constraint, {state_vars(knot_point),contact_pos_[knot_point][contact]});
+      }
 
-}
+      //Make sure feet in stance are not moving
+      if(true){
+        auto foot_velocity_constraint =
+            std::make_shared<dairlib::multibody::KinematicPositionConstraint<double>>(
+                plant_, foot_evaluator_set, Eigen::Vector3d::Zero(), Eigen::Vector3d::Zero());
+        prog_->AddConstraint(foot_velocity_constraint, state_vars(knot_point));
+      }
+    }
+  }
 }
 
 drake::solvers::VectorXDecisionVariable KinematicCentroidalMPC::state_vars(int knotpoint_index) const {
