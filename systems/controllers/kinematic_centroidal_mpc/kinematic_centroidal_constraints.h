@@ -36,7 +36,7 @@ class CentroidalDynamicsConstraint : public dairlib::solvers::NonlinearConstrain
   int n_q_;
   int n_u_;
   int n_contact_;
-  const Eigen::VectorXd zero_control_;
+  const drake::VectorX<T> zero_control_;
 };
 
 

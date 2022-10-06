@@ -59,6 +59,17 @@ void KinematicCentroidalMPC::AddForceTrackingReference(std::unique_ptr<drake::tr
 
 void KinematicCentroidalMPC::AddCentroidalDynamics() {
   for(int knot_point = 0; knot_point < n_knot_points_; knot_point ++){
-
+//    auto constraint = std::make_shared<DirconCollocationConstraint<double>>(
+//        plant_, mode.evaluators(), contexts_[i_mode].at(j).get(),
+//            contexts_[i_mode].at(j + 1).get(), i_mode, j, cache_[i_mode].get());
+//    constraint->SetConstraintScaling(mode.GetDynamicsScale());
+//    prog().AddConstraint(
+//        constraint,
+//        {timestep(mode_start_[i_mode] + j), state_vars(i_mode, j),
+//         state_vars(i_mode, j + 1), input_vars(i_mode, j),
+//         input_vars(i_mode, j + 1), force_vars(i_mode, j),
+//         force_vars(i_mode, j + 1), collocation_force_vars(i_mode, j),
+//         collocation_slack_vars(i_mode, j),
+//         quaternion_slack_vars(i_mode, j)});
   }
 }
