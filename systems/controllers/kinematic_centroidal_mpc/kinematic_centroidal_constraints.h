@@ -16,8 +16,8 @@ class CentroidalDynamicsConstraint : public dairlib::solvers::NonlinearConstrain
   /// knot point. The constraint will create its own pointer for the collocation
   /// point context.
   CentroidalDynamicsConstraint(const drake::multibody::MultibodyPlant<T>& plant,
-                              drake::systems::Context<T>* context_0,
-                              drake::systems::Context<T>* context_1, int knot_index);
+                              drake::systems::Context<T>* context,
+                              int n_contact, int knot_index);
 
  public:
   void EvaluateConstraint(const Eigen::Ref<const drake::VectorX<T>>& x,
@@ -26,38 +26,18 @@ class CentroidalDynamicsConstraint : public dairlib::solvers::NonlinearConstrain
  private:
   drake::VectorX<T> CalcTimeDerivativesWithForce(
       drake::systems::Context<T>* context,
-      const drake::VectorX<T>& forces) const;
+      const drake::VectorX<T>& xCent,
+      const drake::VectorX<T>& contact_locations,
+      const drake::VectorX<T>& contact_forces) const;
 
   const drake::multibody::MultibodyPlant<T>& plant_;
-  const dairlib::multibody::KinematicEvaluatorSet<T>& evaluators_;
-  drake::systems::Context<T>* context_0_;
-  drake::systems::Context<T>* context_1_;
-  std::unique_ptr<drake::systems::Context<T>> context_col_;
-  const std::vector<int> quat_start_indices_;
+  drake::systems::Context<T>* context_;
   int n_x_;
+  int n_q_;
   int n_u_;
-  int n_l_;
-  DynamicsCache<T>* cache_;
+  int n_contact_;
+  const Eigen::VectorXd zero_control_;
 };
-template<typename T>
-CentroidalDynamicsConstraint<T>::CentroidalDynamicsConstraint(const drake::multibody::MultibodyPlant<T> &plant,
-                                                              drake::systems::Context<T> *context_0,
-                                                              drake::systems::Context<T> *context_1,
-                                                              int knot_index): dairlib::solvers::NonlinearConstraint<T>(
-                                                              5,
-                                                              Eigen::VectorXd::Zero(plant.num_positions() + plant.num_velocities()),
-                                                              Eigen::VectorXd::Zero(plant.num_positions() + plant.num_velocities()),
-                                                              "collocation["+
-                                                                  std::to_string(knot_index) + "]"),
-                                                              plant_(plant),
-                                                              context_0_(context_0),
-                                                              context_1_(context_1),
-                                                              context_col_(plant.CreateDefaultContext()),
-                                                              quat_start_indices_(multibody::QuaternionStartIndices(plant)),
-                                                              n_x_(plant.num_positions() + plant.num_velocities()),
-                                                              n_u_(plant.num_actuators()),
-                                                              n_l_(evaluators.count_full()),
-                                                              cache_(cache) {}
 
 
 

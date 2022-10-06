@@ -13,11 +13,9 @@ class KinematicCentroidalMPC {
                          double dt,
                          const std::vector<std::shared_ptr<dairlib::multibody::WorldPointEvaluator<double>>>& contact_points);
 
-  void AddCentroidalTrackingReference(std::unique_ptr<drake::trajectories::Trajectory<double>> centroidal_ref_traj,
-                                      const Eigen::Matrix<double, 13, 13>& Q_centroidal);
 
-  void AddKinematicTrackingReference(std::unique_ptr<drake::trajectories::Trajectory<double>> kinematic_ref_traj,
-                                      const Eigen::MatrixXd& Q_kinematic);
+  void AddStateReference(std::unique_ptr<drake::trajectories::Trajectory<double>> ref_traj,
+                                      const Eigen::MatrixXd& Q);
 
   void AddContactPosTrackingReference(std::unique_ptr<drake::trajectories::Trajectory<double>> contact_ref_traj,
                                      const Eigen::MatrixXd& Q_contact);
@@ -48,13 +46,14 @@ class KinematicCentroidalMPC {
 
   const int n_centroidal_pos_ = 7;
   const int n_centroidal_vel_ = 6;
-  int n_revolute_joints_;
+  int n_q_;
+  int n_v_;
+  int n_kinematic_q_;
+  int n_kinematic_v_;
   int n_contact_points_;
 
-  std::unique_ptr<drake::trajectories::Trajectory<double>> centroidal_ref_traj_;
-  Eigen::Matrix<double, 13, 13> Q_centroidal_;
-  std::unique_ptr<drake::trajectories::Trajectory<double>> kinematic_ref_traj_;
-  Eigen::MatrixXd Q_kinematic_;
+  std::unique_ptr<drake::trajectories::Trajectory<double>> ref_traj_;
+  Eigen::MatrixXd Q_;
   std::unique_ptr<drake::trajectories::Trajectory<double>> contact_ref_traj_;
   Eigen::MatrixXd Q_contact_;
   std::unique_ptr<drake::trajectories::Trajectory<double>> force_ref_traj_;
@@ -66,10 +65,8 @@ class KinematicCentroidalMPC {
   std::unique_ptr<drake::solvers::MathematicalProgram> prog_;
 
   //DecisionVariables
-  // kinematic state
-  std::vector<drake::solvers::VectorXDecisionVariable>  q_;
-  // Centroidal state
-  std::vector<drake::solvers::VectorXDecisionVariable>  r_;
+  // Full robot state
+  std::vector<drake::solvers::VectorXDecisionVariable>  x_vars_;
   // Contact position index by time, then by contact
   std::vector<std::vector<drake::solvers::VectorXDecisionVariable>>  contact_pos_;
   // Contact force index by time, then by contact

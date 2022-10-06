@@ -10,36 +10,32 @@ KinematicCentroidalMPC::KinematicCentroidalMPC(const drake::multibody::Multibody
                                                context_(context),
                                                n_knot_points_(n_knot_points),
                                                dt_(dt),
-                                               n_revolute_joints_(plant.num_positions()-n_centroidal_pos_),
-                                               n_contact_points_(contact_points.size()),
-                                               contact_points_(contact_points){
+                                               contact_points_(contact_points),
+                                               n_q_(plant.num_positions()),
+                                               n_v_(plant.num_velocities()),
+                                               n_contact_points_(contact_points.size()){
+
+  n_kinematic_q_ = n_q_ - n_centroidal_pos_;
+  n_kinematic_v_ = n_v_ - n_centroidal_vel_;
 
   for(int knot = 0; knot < n_knot_points; knot ++){
-    q_.push_back(prog_->NewContinuousVariables(n_revolute_joints_ * 2, "q_" + std::to_string(knot)));
-    r_.push_back(prog_->NewContinuousVariables(n_centroidal_pos_ * n_centroidal_vel_, "r_" + std::to_string(knot)));
+    x_vars_.push_back(prog_->NewContinuousVariables(n_q_ + n_v_, "x_vars_" + std::to_string(knot)));
     for(int contact = 0; contact < n_contact_points_; contact ++){
       contact_pos_[contact].push_back(prog_->NewContinuousVariables(3, "contact_pos_" + std::to_string(knot) + "_" + std::to_string(contact)));
       contact_force_[contact].push_back(prog_->NewContinuousVariables(3, "contact_force_" + std::to_string(knot) + "_" + std::to_string(contact)));
     }
   }
-
-  // Maybe do something dynamics cache
-
-}
-void KinematicCentroidalMPC::AddCentroidalTrackingReference(std::unique_ptr<drake::trajectories::Trajectory<double>> centroidal_ref_traj,
-                                                            const Eigen::Matrix<double, 13, 13> &Q_centroidal) {
-  centroidal_ref_traj_ = std::move(centroidal_ref_traj);
-  Q_centroidal_ = Q_centroidal;
 }
 
-void KinematicCentroidalMPC::AddKinematicTrackingReference(std::unique_ptr<drake::trajectories::Trajectory<double>> kinematic_ref_traj,
-                                                           const Eigen::MatrixXd &Q_kinematic) {
+void KinematicCentroidalMPC::AddStateReference(std::unique_ptr<drake::trajectories::Trajectory<double>> ref_traj,
+                                               const Eigen::MatrixXd &Q) {
   // Ensure matrix is square and has correct number of rows and columns
-  DRAKE_DEMAND(Q_kinematic.rows() == 2 * n_revolute_joints_);
-  DRAKE_DEMAND(Q_kinematic.cols() == 2 * n_revolute_joints_);
+  DRAKE_DEMAND(Q.rows() == n_q_ + n_v_);
+  DRAKE_DEMAND(Q.cols() == n_q_ + n_v_);
 
-  kinematic_ref_traj_ = std::move(kinematic_ref_traj);
-  Q_kinematic_ = Q_kinematic;
+  ref_traj_ = std::move(ref_traj);
+  Q_ = Q;
+
 }
 
 void KinematicCentroidalMPC::AddContactPosTrackingReference(std::unique_ptr<drake::trajectories::Trajectory<double>> contact_ref_traj,

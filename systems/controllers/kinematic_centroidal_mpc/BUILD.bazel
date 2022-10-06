@@ -7,6 +7,7 @@ cc_library(
     deps = [
         "//geometry:convex_foothold",
         "//solvers:constraints",
+        "//multibody/kinematic:kinematic",
         "@drake//:drake_shared_library",
     ],
 )
