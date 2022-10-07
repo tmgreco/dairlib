@@ -12,8 +12,6 @@
 #include "systems/controllers/kinematic_centroidal_mpc/kinematic_centroidal_mpc.h"
 #include "examples/Cassie/cassie_utils.h"
 #include "systems/primitives/subvector_pass_through.h"
-#include "multibody/com_pose_system.h"
-#include "multibody/visualization_utils.h"
 
 using drake::geometry::SceneGraph;
 using drake::multibody::MultibodyPlant;

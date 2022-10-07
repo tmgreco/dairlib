@@ -3,6 +3,7 @@
 //
 
 #include <drake/math/quaternion.h>
+#include <iostream>
 #include "kinematic_centroidal_constraints.h"
 #include "multibody/multibody_utils.h"
 
@@ -54,7 +55,7 @@ void CentroidalDynamicsConstraint<T>::EvaluateConstraint(
   const auto& xdot0Cent = CalcTimeDerivativesWithForce(context_, x0Cent,cj0, Fj0);
 
   // Cubic interpolation to get xcol and xdotcol.
-  const auto& x1Predict = x0Cent + xdot0Cent * dt_;
+  const auto x1Predict = x0Cent + xdot0Cent * dt_;
 
   *y = x1Cent - x1Predict;
 }
@@ -69,7 +70,8 @@ drake::VectorX<T> CentroidalDynamicsConstraint<T>::CalcTimeDerivativesWithForce(
   const auto& d_r = xCent.segment(10, 3);
 
   const auto& body_frame = plant_.get_body(*(plant_.GetFloatingBaseBodies().begin())).body_frame();
-  const drake::multibody::SpatialInertia< T >& spatial_inertia = plant_.CalcSpatialInertia(*context, body_frame, plant_.GetBodyIndices(drake::multibody::default_model_instance()));
+  const drake::multibody::SpatialInertia< T >& spatial_inertia =
+      plant_.CalcSpatialInertia(*context, body_frame, plant_.GetBodyIndices(drake::multibody::ModelInstanceIndex(2)));
   const auto& rotational_inertia = spatial_inertia.CalcRotationalInertia().CopyToFullMatrix3();
   const auto& mass = spatial_inertia.get_mass();
 
