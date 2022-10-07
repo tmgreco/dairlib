@@ -7,6 +7,7 @@
 #include "drake/systems/framework/context.h"
 #include "drake/common/trajectories/piecewise_polynomial.h"
 #include "multibody/multipose_visualizer.h"
+#include "multibody/kinematic/kinematic_evaluator_set.h"
 
 class KinematicCentroidalMPC {
  public:
@@ -88,6 +89,7 @@ class KinematicCentroidalMPC {
   double dt_;
 
   std::vector<std::shared_ptr<dairlib::multibody::WorldPointEvaluator<double>>> contact_points_;
+  std::vector<dairlib::multibody::KinematicEvaluatorSet<double>> contact_sets_;
 
   const int n_centroidal_pos_ = 7;
   const int n_centroidal_vel_ = 6;

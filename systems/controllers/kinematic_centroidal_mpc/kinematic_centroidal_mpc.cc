@@ -21,6 +21,10 @@ KinematicCentroidalMPC::KinematicCentroidalMPC(const drake::multibody::Multibody
   n_kinematic_v_ = n_v_ - n_centroidal_vel_;
   prog_ = std::make_unique<drake::solvers::MathematicalProgram>();
   solver_ = std::make_unique<drake::solvers::IpoptSolver>();
+  for(int contact = 0; contact < n_contact_points_; contact ++){
+    contact_sets_.emplace_back(plant_);
+    contact_sets_[contact].add_evaluator(contact_points_[contact].get());
+  }
 
   for(int knot = 0; knot < n_knot_points; knot ++){
     contexts_[knot] = plant_.CreateDefaultContext();
@@ -106,14 +110,12 @@ void KinematicCentroidalMPC::AddContactConstraints() {
   for (int knot_point = 0; knot_point < n_knot_points_; knot_point++) {
     for (int contact = 0; contact < n_contact_points_; contact++) {
       const auto &foot_evaluator = contact_points_[contact];
-      auto foot_evaluator_set = dairlib::multibody::KinematicEvaluatorSet<double>(plant_);
-      foot_evaluator_set.add_evaluator(foot_evaluator.get());
       // Ensure foot position line up with kinematics
       {
         std::set<int> full_constraint_relative = {0, 1, 2};
         auto foot_position_constraint =
             std::make_shared<dairlib::multibody::KinematicPositionConstraint<double>>(
-                plant_, foot_evaluator_set, Eigen::Vector3d::Zero(), Eigen::Vector3d::Zero(), full_constraint_relative);
+                plant_, contact_sets_[contact], Eigen::Vector3d::Zero(), Eigen::Vector3d::Zero(), full_constraint_relative);
         prog_->AddConstraint(foot_position_constraint, {state_vars(knot_point).head(n_q_),contact_pos_[knot_point][contact]});
       }
 
@@ -121,7 +123,7 @@ void KinematicCentroidalMPC::AddContactConstraints() {
       if(true){
         auto foot_velocity_constraint =
             std::make_shared<dairlib::multibody::KinematicVelocityConstraint<double>>(
-                plant_, foot_evaluator_set, Eigen::Vector3d::Zero(), Eigen::Vector3d::Zero());
+                plant_, contact_sets_[contact], Eigen::Vector3d::Zero(), Eigen::Vector3d::Zero());
         prog_->AddConstraint(foot_velocity_constraint, state_vars(knot_point));
         prog_->AddBoundingBoxConstraint(0, 0, contact_pos_[knot_point][contact][2]);
       } else {
