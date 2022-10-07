@@ -151,12 +151,12 @@ drake::solvers::VectorXDecisionVariable KinematicCentroidalMPC::kinematic_vel_va
 }
 void KinematicCentroidalMPC::Build(const drake::solvers::SolverOptions &solver_options) {
 
-//  std::cout<<"Adding Centroidal Dynamics \n";
-//  AddCentroidalDynamics();
-//  std::cout<<"Adding kinematics Dynamics \n";
-//  AddKinematicDynamics();
-//  std::cout<<"Adding contact constraints \n";
-//  AddContactConstraints();
+  std::cout<<"Adding Centroidal Dynamics \n";
+  AddCentroidalDynamics();
+  std::cout<<"Adding kinematics Dynamics \n";
+  AddKinematicDynamics();
+  std::cout<<"Adding contact constraints \n";
+  AddContactConstraints();
   std::cout<<"Adding cost \n";
   AddCosts();
   std::cout<<"setting options \n";
