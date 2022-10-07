@@ -1,3 +1,6 @@
+package(default_visibility = ["//visibility:public"])
+
+
 cc_library(
     name = "kinematic_centroidal_mpc",
     srcs = ["kinematic_centroidal_mpc.cc",
@@ -9,6 +12,7 @@ cc_library(
         "//solvers:constraints",
         "//multibody/kinematic:kinematic",
         "//multibody/kinematic:constraints",
+        "//multibody:multipose_visualizer",
         "@drake//:drake_shared_library",
     ],
 )

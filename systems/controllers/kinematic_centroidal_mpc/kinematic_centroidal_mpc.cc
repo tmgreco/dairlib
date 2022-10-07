@@ -5,12 +5,10 @@
 #include "multibody/kinematic/kinematic_constraints.h"
 
 KinematicCentroidalMPC::KinematicCentroidalMPC(const drake::multibody::MultibodyPlant<double> &plant,
-                                               drake::systems::Context<double> *context,
                                                int n_knot_points,
                                                double dt,
                                                const std::vector<std::shared_ptr<dairlib::multibody::WorldPointEvaluator<double>>>& contact_points):
                                                plant_(plant),
-                                               context_(context),
                                                n_knot_points_(n_knot_points),
                                                dt_(dt),
                                                contact_points_(contact_points),
@@ -106,16 +104,17 @@ void KinematicCentroidalMPC::AddContactConstraints() {
         prog_->AddConstraint(foot_position_constraint, {state_vars(knot_point),contact_pos_[knot_point][contact]});
       }
 
-      //Make sure feet in stance are not moving
+      //Make sure feet in stance are not moving and on the ground
       if(true){
         auto foot_velocity_constraint =
             std::make_shared<dairlib::multibody::KinematicPositionConstraint<double>>(
                 plant_, foot_evaluator_set, Eigen::Vector3d::Zero(), Eigen::Vector3d::Zero());
         prog_->AddConstraint(foot_velocity_constraint, state_vars(knot_point));
+        prog_->AddBoundingBoxConstraint(0, 0, contact_pos_[knot_point][contact][2]);
+      } else {
+        // Feet are above the ground
+        prog_->AddBoundingBoxConstraint(0, 10, contact_pos_[knot_point][contact][2]);
       }
-
-      // Feet are above the ground
-      prog_->AddBoundingBoxConstraint(0, 10, contact_pos_[knot_point][contact][2]);
     }
   }
 }
@@ -184,7 +183,9 @@ void KinematicCentroidalMPC::AddCosts() {
 }
 
 void KinematicCentroidalMPC::SetZeroInitialGuess() {
-  prog_->SetInitialGuessForAllVariables(Eigen::VectorXd::Zero(n_q_+n_v_+n_contact_points_*6));
+  Eigen::VectorXd initialGuess= Eigen::VectorXd::Zero(n_q_+n_v_+n_contact_points_*6);
+  initialGuess[0] = 1; // Unit quaternion
+  prog_->SetInitialGuessForAllVariables(initialGuess);
 }
 
 drake::trajectories::PiecewisePolynomial<double> KinematicCentroidalMPC::Solve() {

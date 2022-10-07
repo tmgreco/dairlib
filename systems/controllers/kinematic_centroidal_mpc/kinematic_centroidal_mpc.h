@@ -11,7 +11,6 @@
 class KinematicCentroidalMPC {
  public:
   KinematicCentroidalMPC(const drake::multibody::MultibodyPlant<double>& plant,
-                         drake::systems::Context<double>* context,
                          int n_knot_points,
                          double dt,
                          const std::vector<std::shared_ptr<dairlib::multibody::WorldPointEvaluator<double>>>& contact_points);
@@ -84,7 +83,6 @@ class KinematicCentroidalMPC {
   void AddCosts();
 
   const drake::multibody::MultibodyPlant<double>& plant_;
-  drake::systems::Context<double>* context_;
 
   int n_knot_points_;
   double dt_;
