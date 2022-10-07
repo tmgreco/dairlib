@@ -76,6 +76,8 @@ class KinematicCentroidalMPC {
    */
   void AddContactConstraints();
 
+  void AddCentroidalKinematicConsistency();
+
 //  void AddFrictionConeConstraints();
 
 //  void AddTorqueLimits();
@@ -115,6 +117,8 @@ class KinematicCentroidalMPC {
   //DecisionVariables
   // Full robot state
   std::vector<drake::solvers::VectorXDecisionVariable>  x_vars_;
+  // Centroidal position and orientation and velocity
+  std::vector<drake::solvers::VectorXDecisionVariable>  x_cent_vars_;
   // Contact position index by time, then by contact
   std::vector<std::vector<drake::solvers::VectorXDecisionVariable>>  contact_pos_;
   // Contact force index by time, then by contact

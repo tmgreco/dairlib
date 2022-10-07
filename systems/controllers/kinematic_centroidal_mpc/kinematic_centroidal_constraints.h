@@ -33,7 +33,49 @@ class CentroidalDynamicsConstraint : public dairlib::solvers::NonlinearConstrain
   int n_q_;
   int n_u_;
   int n_contact_;
+  int n_cent_ = 13;
   double dt_;
   const drake::VectorX<T> zero_control_;
 };
 
+template <typename T>
+class CenterofMassPositionConstraint : public dairlib::solvers::NonlinearConstraint<T> {
+
+ public:
+  CenterofMassPositionConstraint(const drake::multibody::MultibodyPlant<T>& plant,
+                               drake::systems::Context<T>* context,
+                               int knot_index);
+
+ public:
+  void EvaluateConstraint(const Eigen::Ref<const drake::VectorX<T>>& x,
+                          drake::VectorX<T>* y) const override;
+
+  const drake::multibody::MultibodyPlant<T>& plant_;
+  drake::systems::Context<T>* context_;
+  int n_x_;
+  int n_q_;
+  int n_u_;
+  int n_cent_ = 13;
+  const drake::VectorX<T> zero_control_;
+};
+
+template <typename T>
+class CenterofMassVelocityConstraint : public dairlib::solvers::NonlinearConstraint<T> {
+
+ public:
+  CenterofMassVelocityConstraint(const drake::multibody::MultibodyPlant<T>& plant,
+                                 drake::systems::Context<T>* context,
+                                 int knot_index);
+
+ public:
+  void EvaluateConstraint(const Eigen::Ref<const drake::VectorX<T>>& x,
+                          drake::VectorX<T>* y) const override;
+
+  const drake::multibody::MultibodyPlant<T>& plant_;
+  drake::systems::Context<T>* context_;
+  int n_x_;
+  int n_q_;
+  int n_u_;
+  int n_cent_ = 13;
+  const drake::VectorX<T> zero_control_;
+};
