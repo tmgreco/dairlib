@@ -19,14 +19,22 @@ KinematicCentroidalMPC::KinematicCentroidalMPC(const drake::multibody::Multibody
 
   n_kinematic_q_ = n_q_ - n_centroidal_pos_;
   n_kinematic_v_ = n_v_ - n_centroidal_vel_;
+  prog_ = std::make_unique<drake::solvers::MathematicalProgram>();
+  solver_ = std::make_unique<drake::solvers::IpoptSolver>();
 
   for(int knot = 0; knot < n_knot_points; knot ++){
     contexts_[knot] = plant_.CreateDefaultContext();
     x_vars_.push_back(prog_->NewContinuousVariables(n_q_ + n_v_, "x_vars_" + std::to_string(knot)));
+
+    std::vector<drake::solvers::VectorXDecisionVariable> knot_point_forces(n_contact_points_);
+    std::vector<drake::solvers::VectorXDecisionVariable> knot_point_contact_pos(n_contact_points_);
+
     for(int contact = 0; contact < n_contact_points_; contact ++){
-      contact_pos_[contact].push_back(prog_->NewContinuousVariables(3, "contact_pos_" + std::to_string(knot) + "_" + std::to_string(contact)));
-      contact_force_[contact].push_back(prog_->NewContinuousVariables(3, "contact_force_" + std::to_string(knot) + "_" + std::to_string(contact)));
+      knot_point_contact_pos[contact] =prog_->NewContinuousVariables(3, "contact_pos_" + std::to_string(knot) + "_" + std::to_string(contact));
+      knot_point_forces[contact] = prog_->NewContinuousVariables(3, "contact_force_" + std::to_string(knot) + "_" + std::to_string(contact));
     }
+    contact_pos_.push_back(knot_point_contact_pos);
+    contact_force_.push_back(knot_point_forces);
   }
 }
 
@@ -70,7 +78,12 @@ void KinematicCentroidalMPC::AddCentroidalDynamics() {
     for(const auto& contact_force : contact_force_[knot_point]){
       constraint_vars.emplace_back(contact_force);
     }
-    prog_->AddConstraint(constraint,constraint_vars);
+    // TODO make not hard coded
+    prog_->AddConstraint(constraint,{state_vars(knot_point), state_vars(knot_point + 1),
+                                     contact_pos_[knot_point][0], contact_pos_[knot_point][1],
+                                     contact_pos_[knot_point][2], contact_pos_[knot_point][3],
+                                     contact_force_[knot_point][0], contact_force_[knot_point][1],
+                                     contact_force_[knot_point][2], contact_force_[knot_point][3]});
   }
 }
 
@@ -101,13 +114,13 @@ void KinematicCentroidalMPC::AddContactConstraints() {
         auto foot_position_constraint =
             std::make_shared<dairlib::multibody::KinematicPositionConstraint<double>>(
                 plant_, foot_evaluator_set, Eigen::Vector3d::Zero(), Eigen::Vector3d::Zero(), full_constraint_relative);
-        prog_->AddConstraint(foot_position_constraint, {state_vars(knot_point),contact_pos_[knot_point][contact]});
+        prog_->AddConstraint(foot_position_constraint, {state_vars(knot_point).head(n_q_),contact_pos_[knot_point][contact]});
       }
 
       //Make sure feet in stance are not moving and on the ground
       if(true){
         auto foot_velocity_constraint =
-            std::make_shared<dairlib::multibody::KinematicPositionConstraint<double>>(
+            std::make_shared<dairlib::multibody::KinematicVelocityConstraint<double>>(
                 plant_, foot_evaluator_set, Eigen::Vector3d::Zero(), Eigen::Vector3d::Zero());
         prog_->AddConstraint(foot_velocity_constraint, state_vars(knot_point));
         prog_->AddBoundingBoxConstraint(0, 0, contact_pos_[knot_point][contact][2]);
@@ -138,11 +151,15 @@ drake::solvers::VectorXDecisionVariable KinematicCentroidalMPC::kinematic_vel_va
 }
 void KinematicCentroidalMPC::Build(const drake::solvers::SolverOptions &solver_options) {
 
-  AddCentroidalDynamics();
-  AddKinematicDynamics();
-  AddContactConstraints();
+//  std::cout<<"Adding Centroidal Dynamics \n";
+//  AddCentroidalDynamics();
+//  std::cout<<"Adding kinematics Dynamics \n";
+//  AddKinematicDynamics();
+//  std::cout<<"Adding contact constraints \n";
+//  AddContactConstraints();
+//  std::cout<<"Adding cost \n";
   AddCosts();
-
+  std::cout<<"setting options \n";
   prog_->SetSolverOptions(solver_options);
 }
 
@@ -185,7 +202,7 @@ void KinematicCentroidalMPC::AddCosts() {
 void KinematicCentroidalMPC::SetZeroInitialGuess() {
   Eigen::VectorXd initialGuess= Eigen::VectorXd::Zero(n_q_+n_v_+n_contact_points_*6);
   initialGuess[0] = 1; // Unit quaternion
-  prog_->SetInitialGuessForAllVariables(initialGuess);
+  prog_->SetInitialGuessForAllVariables(initialGuess.replicate(n_knot_points_, 1));
 }
 
 drake::trajectories::PiecewisePolynomial<double> KinematicCentroidalMPC::Solve() {

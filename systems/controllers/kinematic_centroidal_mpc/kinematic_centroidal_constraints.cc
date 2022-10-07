@@ -12,7 +12,7 @@ CentroidalDynamicsConstraint<T>::CentroidalDynamicsConstraint(const drake::multi
                                                               int n_contact,
                                                               double dt,
                                                               int knot_index): dairlib::solvers::NonlinearConstraint<T>(
-    13, 1 + 2 * plant.num_positions() + 2 * plant.num_velocities() + 2 * 3 * n_contact,
+    13, 2 * plant.num_positions() + 2 * plant.num_velocities() + 2 * 3 * n_contact,
     Eigen::VectorXd::Zero(13),
     Eigen::VectorXd::Zero(13),
     "centroidal_collocation[" +

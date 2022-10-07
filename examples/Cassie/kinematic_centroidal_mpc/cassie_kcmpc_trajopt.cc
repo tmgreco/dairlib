@@ -129,35 +129,6 @@ void DoMain(int n_knot_points, double duration, double com_height, double tol){
       to_pose->get_output_port(),
       scene_graph.get_source_pose_port(plant_vis.get_source_id().value()));
 
-  // *******Add COM visualization**********
-  bool plot_com = true;
-  bool com_on_ground = true;
-  auto ball_plant = dairlib::multibody::ConstructBallPlant(&scene_graph);
-  if (plot_com) {
-    // connect
-    auto q_passthrough = builder.AddSystem<dairlib::systems::SubvectorPassThrough>(
-        plant.num_positions() + plant.num_velocities(), 0,
-        plant.num_positions());
-    builder.Connect(traj_source->get_output_port(),
-                    q_passthrough->get_input_port());
-    auto rbt_passthrough = builder.AddSystem<dairlib::multibody::ComPoseSystem>(plant);
-
-    auto ball_to_pose =
-        builder.AddSystem<drake::systems::rendering::MultibodyPositionToGeometryPose<double>>(*ball_plant);
-    builder.Connect(*q_passthrough, *rbt_passthrough);
-    if (com_on_ground) {
-      builder.Connect(rbt_passthrough->get_xy_com_output_port(),
-                      ball_to_pose->get_input_port());
-    } else {
-      builder.Connect(rbt_passthrough->get_com_output_port(),
-                      ball_to_pose->get_input_port());
-    }
-    builder.Connect(
-        ball_to_pose->get_output_port(),
-        scene_graph.get_source_pose_port(ball_plant->get_source_id().value()));
-  }
-  // **************************************
-
   DrakeVisualizer<double>::AddToBuilder(&builder, scene_graph);
   auto diagram = builder.Build();
 
