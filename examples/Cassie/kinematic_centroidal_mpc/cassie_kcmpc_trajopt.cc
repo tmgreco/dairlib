@@ -109,8 +109,8 @@ void DoMain(int n_knot_points, double duration, double com_height, double tol){
 
   std::cout<<"Adding visualization callback"<<std::endl;
   double alpha = .2;
-  mpc.CreateVisualizationCallback(
-      "examples/Cassie/urdf/cassie_fixed_springs.urdf", alpha);
+//  mpc.CreateVisualizationCallback(
+//      "examples/Cassie/urdf/cassie_fixed_springs.urdf", alpha);
 
   std::cout << "Solving DIRCON\n\n";
   const auto pp_xtraj = mpc.Solve();

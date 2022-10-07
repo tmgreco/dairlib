@@ -157,7 +157,7 @@ void KinematicCentroidalMPC::Build(const drake::solvers::SolverOptions &solver_o
 //  AddKinematicDynamics();
 //  std::cout<<"Adding contact constraints \n";
 //  AddContactConstraints();
-//  std::cout<<"Adding cost \n";
+  std::cout<<"Adding cost \n";
   AddCosts();
   std::cout<<"setting options \n";
   prog_->SetSolverOptions(solver_options);
@@ -178,7 +178,7 @@ void KinematicCentroidalMPC::AddCosts() {
 
     if(ref_traj_){
       const auto& ref = ref_traj_->value(t);
-      prog_->AddQuadraticCost(2 * Q_,  - 2 * ref.transpose() * Q_, state_vars(knot_point));
+      prog_->AddQuadraticCost(2 * Q_,  -Q_ * ref , state_vars(knot_point));
     }
     if(contact_ref_traj_){
       const auto& ref = contact_ref_traj_->value(t);
@@ -186,7 +186,7 @@ void KinematicCentroidalMPC::AddCosts() {
       for(const auto& contact_pos : contact_pos_[knot_point]){
         contact_pos_vars.emplace_back(contact_pos);
       }
-      prog_->AddQuadraticCost(2 * Q_contact_,  - 2 * ref.transpose() * Q_contact_, contact_pos_vars);
+      prog_->AddQuadraticCost(2 * Q_contact_,  -Q_contact_ * ref , contact_pos_vars);
     }
     if(force_ref_traj_){
       const auto& ref = force_ref_traj_->value(t);
@@ -194,15 +194,22 @@ void KinematicCentroidalMPC::AddCosts() {
       for(const auto& force : contact_force_[knot_point]){
         force_vars.emplace_back(force);
       }
-      prog_->AddQuadraticCost(2 * Q_force_,  - 2 * ref.transpose() * Q_force_, force_vars);
+      prog_->AddQuadraticCost(2 * Q_force_, -Q_force_ * ref, force_vars);
     }
   }
 }
 
 void KinematicCentroidalMPC::SetZeroInitialGuess() {
   Eigen::VectorXd initialGuess= Eigen::VectorXd::Zero(n_q_+n_v_+n_contact_points_*6);
-  initialGuess[0] = 1; // Unit quaternion
   prog_->SetInitialGuessForAllVariables(initialGuess.replicate(n_knot_points_, 1));
+  // Make sure unit quaternions
+  for (int i = 0; i < n_knot_points_; i++) {
+    auto xi = state_vars(i);
+    prog_->SetInitialGuess(xi(0), 1);
+    prog_->SetInitialGuess(xi(1), 0);
+    prog_->SetInitialGuess(xi(2), 0);
+    prog_->SetInitialGuess(xi(3), 0);
+  }
 }
 
 drake::trajectories::PiecewisePolynomial<double> KinematicCentroidalMPC::Solve() {
