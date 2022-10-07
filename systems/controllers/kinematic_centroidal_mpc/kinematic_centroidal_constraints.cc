@@ -84,10 +84,13 @@ drake::VectorX<T> CentroidalDynamicsConstraint<T>::CalcTimeDerivativesWithForce(
   const auto d_quat = drake::math::CalculateQuaternionDtFromAngularVelocityExpressedInB(Eigen::Quaternion<T>(quat), omega);
   // Check to make sure the rotation is correct
   const auto d_omega = rotational_inertia.inverse()* (drake::math::RotationMatrix(Eigen::Quaternion<T>(quat)).transpose() * sum_moments - omega.cross(rotational_inertia * omega));
-  const auto dd_r = sum_forces/mass + drake::Vector3<T>(0, 0, 9.81);
+  const auto dd_r = sum_forces/mass - drake::Vector3<T>(0, 0, 9.81);
 
   drake::Vector<T, 13> rv;
-  rv << d_quat, d_r, d_omega, dd_r;
+  rv.head(4) = d_quat;
+  rv.segment(4,3) = d_r;
+  rv.segment(7,3) = d_omega;
+  rv.segment(10,3) = dd_r;
   return rv;
 }
 

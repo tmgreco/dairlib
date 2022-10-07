@@ -8,6 +8,7 @@
 #include "drake/common/trajectories/piecewise_polynomial.h"
 #include "multibody/multipose_visualizer.h"
 #include "multibody/kinematic/kinematic_evaluator_set.h"
+#include "systems/controllers/kinematic_centroidal_mpc/kinematic_centroidal_constraints.h"
 
 class KinematicCentroidalMPC {
  public:
@@ -20,6 +21,9 @@ class KinematicCentroidalMPC {
   void AddStateReference(std::unique_ptr<drake::trajectories::Trajectory<double>> ref_traj,
                                       const Eigen::MatrixXd& Q);
 
+  void AddCentroidalReference(std::unique_ptr<drake::trajectories::Trajectory<double>> ref_traj,
+                         const Eigen::MatrixXd& Q);
+
   void AddContactPosTrackingReference(std::unique_ptr<drake::trajectories::Trajectory<double>> contact_ref_traj,
                                      const Eigen::MatrixXd& Q_contact);
 
@@ -29,6 +33,8 @@ class KinematicCentroidalMPC {
   void AddConstantStateReference(const drake::VectorX<double>& value, const Eigen::MatrixXd& Q);
 
   void AddConstantForceTrackingReference(const drake::VectorX<double>& value, const Eigen::MatrixXd& Q_force);
+
+  void AddConstantCentroidalReference(const drake::VectorX<double>& value, const Eigen::MatrixXd& Q);
 
   drake::solvers::VectorXDecisionVariable state_vars(
       int knotpoint_index) const;
@@ -78,7 +84,7 @@ class KinematicCentroidalMPC {
 
   void AddCentroidalKinematicConsistency();
 
-//  void AddFrictionConeConstraints();
+  void AddFrictionConeConstraints();
 
 //  void AddTorqueLimits();
 //
@@ -103,6 +109,8 @@ class KinematicCentroidalMPC {
 
   std::unique_ptr<drake::trajectories::Trajectory<double>> ref_traj_;
   Eigen::MatrixXd Q_;
+  std::unique_ptr<drake::trajectories::Trajectory<double>> centroidal_ref_traj_;
+  Eigen::MatrixXd Q_cent_;
   std::unique_ptr<drake::trajectories::Trajectory<double>> contact_ref_traj_;
   Eigen::MatrixXd Q_contact_;
   std::unique_ptr<drake::trajectories::Trajectory<double>> force_ref_traj_;
@@ -113,6 +121,8 @@ class KinematicCentroidalMPC {
   // MathematicalProgram
   std::unique_ptr<drake::solvers::MathematicalProgram> prog_;
   std::unique_ptr<drake::solvers::IpoptSolver> solver_;
+
+  std::vector<drake::solvers::Binding<drake::solvers::Constraint>> centroidal_dynamics_binding;
 
   //DecisionVariables
   // Full robot state

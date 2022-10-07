@@ -18,6 +18,44 @@ using drake::multibody::MultibodyPlant;
 using drake::multibody::Parser;
 using drake::geometry::DrakeVisualizer;
 
+Eigen::VectorXd GenerateNominalStand(const drake::multibody::MultibodyPlant<double>& plant){
+  int n_q = plant.num_positions();
+  int n_v = plant.num_velocities();
+  int n_x = n_q + n_v;
+  std::map<std::string, int> positions_map = dairlib::multibody::MakeNameToPositionsMap(plant);
+
+  Eigen::VectorXd q_ik_guess = Eigen::VectorXd::Zero(n_x);
+
+  std::map<std::string, double> pos_value_map;
+  Eigen::Vector4d quat(2000.06, -0.339462, -0.609533, -0.760854);
+  quat.normalize();
+  pos_value_map["base_qw"] = quat(0);
+  pos_value_map["base_qx"] = quat(1);
+  pos_value_map["base_qy"] = quat(2);
+  pos_value_map["base_qz"] = quat(3);
+  pos_value_map["base_x"] = 0.000889849;
+  pos_value_map["base_y"] = 0.000626865;
+  pos_value_map["base_z"] = 1.0009;
+  pos_value_map["hip_roll_left"] = 0.00927845;
+  pos_value_map["hip_roll_right"] = 0.00927845;
+  pos_value_map["hip_yaw_left"] = -0.000895805;
+  pos_value_map["hip_yaw_right"] = -0.000895805;
+  pos_value_map["hip_pitch_left"] = 0.610808;
+  pos_value_map["hip_pitch_right"] = 0.610808;
+  pos_value_map["knee_left"] = -1.35926;
+  pos_value_map["knee_right"] = -1.35926;
+  pos_value_map["ankle_joint_left"] = 1.00716;
+  pos_value_map["ankle_joint_right"] = 1.00716;
+  pos_value_map["toe_left"] = -M_PI / 2;
+  pos_value_map["toe_right"] = -M_PI / 2;
+
+  for (auto pair : pos_value_map) {
+    q_ik_guess(positions_map.at(pair.first)) = pair.second;
+  }
+  return q_ik_guess;
+}
+
+
 void DoMain(int n_knot_points, double duration, double com_height, double tol){
   // Create fix-spring Cassie MBP
   drake::systems::DiagramBuilder<double> builder;
@@ -69,17 +107,35 @@ void DoMain(int n_knot_points, double duration, double com_height, double tol){
   std::cout<<"Setting initial guess"<<std::endl;
   mpc.SetZeroInitialGuess();
 
-  double cost_force = 1;
-  double cost_state = 1;
-  std::cout<<"Adding force cost"<<std::endl;
+  double cost_force = 0.01;
+
+  double cost_joint_pos = 0.1;
+  double cost_joint_vel = 1;
+
+  double cost_com_pos = 2;
+  double cost_com_vel = 4;
+  double cost_com_orientation = 8;
+  double cost_angular_vel = 2;
+
   mpc.AddConstantForceTrackingReference(Eigen::VectorXd::Zero(12), cost_force * Eigen::MatrixXd::Identity(12,12));
 
-  std::cout<<"Adding state cost"<<std::endl;
-  Eigen::VectorXd reference_state = Eigen::VectorXd::Zero(plant.num_positions() + plant.num_velocities());
-  reference_state[positions_map.at("base_qw")] = 1;
-  reference_state[positions_map.at("base_z")] = com_height;
-  mpc.AddConstantStateReference(reference_state,
-                                cost_state * Eigen::MatrixXd::Identity(plant.num_positions() + plant.num_velocities(),plant.num_positions() + plant.num_velocities()));
+  Eigen::VectorXd reference_state = GenerateNominalStand(plant);
+
+  Eigen::VectorXd Q_state(plant.num_positions() + plant.num_velocities());
+  Q_state.segment(7, plant.num_positions()-7) = cost_joint_pos * Eigen::VectorXd::Ones(plant.num_positions()-7);
+  Q_state.tail(plant.num_velocities() - 6) = cost_joint_vel * Eigen::VectorXd::Ones(plant.num_velocities() - 6);
+  mpc.AddConstantStateReference(reference_state,Q_state.asDiagonal());
+
+  Eigen::VectorXd reference_cent_state = Eigen::VectorXd::Zero(13);
+  reference_cent_state[0] = 1;
+  reference_cent_state[6] = com_height;
+
+  Eigen::VectorXd Q_cent(13);
+  Q_cent.head(4) = cost_com_orientation * Eigen::VectorXd::Ones(4);
+  Q_cent.segment(4,3) = cost_com_pos * Eigen::VectorXd::Ones(3);
+  Q_cent.segment(7,3) = cost_angular_vel * Eigen::VectorXd::Ones(3);
+  Q_cent.segment(10,3) = cost_com_vel * Eigen::VectorXd::Ones(3);
+  mpc.AddConstantCentroidalReference(reference_cent_state,Q_cent.asDiagonal());
 
   std::cout<<"Adding solver options"<<std::endl;
   {
@@ -140,5 +196,5 @@ void DoMain(int n_knot_points, double duration, double com_height, double tol){
 }
 
 int main(int argc, char* argv[]) {
-  DoMain(12, 0.5, 0.9,1e-4);
+  DoMain(12, 0.5, 1.8,1e-4);
 }
