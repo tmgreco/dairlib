@@ -27,8 +27,9 @@ Spirit<B,T>::Spirit(std::string dairlib_path, std::string yaml_path) :plant (std
                     behavior()
     {
     this->yaml_path=dairlib_path+yaml_path;
+    std::cout<<"YAML PATH: " << this->yaml_path << std::endl;
     YAML::Node config = YAML::LoadFile(this->yaml_path);
-    
+
     initial_guess=config[0]["initial_guess"].as<std::string>();
     saved_directory=dairlib_path+config[0]["saved_directory"].as<std::string>();
     num_perturbations=config[0]["num_perturbations"].as<int>();
@@ -40,11 +41,11 @@ Spirit<B,T>::Spirit(std::string dairlib_path, std::string yaml_path) :plant (std
     behavior.data_directory=dairlib_path+config[0]["data_directory"].as<std::string>();
     behavior.setGhosts(FLAGS_ghosts);
     // Create saved directory if it doesn't exist
-    if (!std::experimental::filesystem::is_directory(saved_directory) || !std::experimental::filesystem::exists(saved_directory)) { 
-        std::experimental::filesystem::create_directory(saved_directory); 
+    if (!std::experimental::filesystem::is_directory(saved_directory) || !std::experimental::filesystem::exists(saved_directory)) {
+        std::experimental::filesystem::create_directory(saved_directory);
     }
-    if (!std::experimental::filesystem::is_directory(behavior.data_directory) || !std::experimental::filesystem::exists(behavior.data_directory)) { 
-        std::experimental::filesystem::create_directory(behavior.data_directory); 
+    if (!std::experimental::filesystem::is_directory(behavior.data_directory) || !std::experimental::filesystem::exists(behavior.data_directory)) {
+        std::experimental::filesystem::create_directory(behavior.data_directory);
     }
     // Copy current yaml to saved directory
     std::ifstream  src(this->yaml_path, std::ios::binary);
@@ -60,7 +61,7 @@ Spirit<B,T>::Spirit(std::string dairlib_path, std::string yaml_path) :plant (std
         bool is_iterative=false;
         // std::cout<<config[0]["iterate"][0]["name"].as<std::string>()<<std::endl;
         for (std::size_t ite=0;ite<config[0]["iterate"].size();ite++){
-          if(config[i]["name"].as<std::string>()==config[0]["iterate"][ite]["name"].as<std::string>()){ // If this optimization is going to be expended 
+          if(config[i]["name"].as<std::string>()==config[0]["iterate"][ite]["name"].as<std::string>()){ // If this optimization is going to be expended
             is_iterative=true;
             std::cout<<"find iterative node: "<< config[i]["name"].as<std::string>()<<std::endl;
             std::string name_in=config[i]["file_name_in"].as<std::string>();
@@ -76,7 +77,7 @@ Spirit<B,T>::Spirit(std::string dairlib_path, std::string yaml_path) :plant (std
               int num=config[0]["iterate"][ite]["num"].as<int>();
               for (double v =config[0]["iterate"][ite]["for"]["start"].as<double>(); v < config[0]["iterate"][ite]["for"]["end"].as<double>();
                     v += config[0]["iterate"][ite]["for"]["step_size"].as<double>()){
-                // Need another nested for loop here. Push back the following configs 
+                // Need another nested for loop here. Push back the following configs
                 for (std::size_t k=i; k<i+num;k++){
                   OPTIMIZATIONS.push_back(Clone(config[k]));
                   OPTIMIZATIONS[OPTIMIZATIONS.size()-1][config[0]["iterate"][ite]["iteration_variable"].as<std::string>()]=v;
@@ -95,7 +96,7 @@ Spirit<B,T>::Spirit(std::string dairlib_path, std::string yaml_path) :plant (std
                     OPTIMIZATIONS[OPTIMIZATIONS.size()-1]["file_name_in"]= config[k-1]["file_name_out"].as<std::string>()+"_p"+std::to_string(p);
                   }
                   OPTIMIZATIONS[OPTIMIZATIONS.size()-1]["file_name_out"]= config[k]["file_name_out"].as<std::string>()+"_p"+std::to_string(p);
-                  
+
                 }
                 p++;
               }
@@ -159,9 +160,9 @@ void Spirit<B,T>::animate(){
       surface.thickness_surf,
       surface.color,
       surface.name);
-  } 
+  }
 
-  
+
   plant_vis->Finalize();
 
 
@@ -181,7 +182,7 @@ void Spirit<B,T>::animate(){
     //   ani.save("/home/feng/Downloads/dairlib/examples/Spirit_spine/animations/pend_playback.mp4", fps=30);
     // }
     sleep(2);
-    
+
   }
 }
 
@@ -194,13 +195,13 @@ void Spirit<B,T>::run(){
       break;
     }
     std::cout<<"Running optimization "<<i<<std::endl;
-    if (i==num_optimizations) behavior.enable_animate();   
+    if (i==num_optimizations) behavior.enable_animate();
     behavior.config(yaml_path,saved_directory,i,plant.get());
     if (i==FLAGS_skip_to){
       if(initial_guess=="") behavior.generateInitialGuess(*plant); //If we don't have a file for initial guess, then generate one.
       else behavior.loadOldTrajectory(initial_guess); //Otherwise, use the trajectory file we have.
-    } 
-    
+    }
+
     if (behavior.action=="expand"){
       // Create array of optimal costs
       double costs[num_perturbations];

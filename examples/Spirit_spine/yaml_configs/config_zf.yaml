@@ -3,32 +3,32 @@
   initial_guess: ""  #if it is empty, the program will generate initial guess. Otherwise, we use the file given here as the initial guess
   saved_directory: ../data-out/trot_search/rigid/saved_trajectories/
   data_directory: ../data-out/trot_search/rigid/data/
-  spine_type: rigid
-  urdf_path: examples/Spirit_spine/spirit_drake.urdf
+  # spine_type: rigid
+  # urdf_path: examples/Spirit_spine/spirit_drake.urdf
   # saved_directory: examples/Spirit_spine/saved_trajectories/trot_half/twisting_p20/
   # data_directory: examples/Spirit_spine/data/trot_half/twisting_p20/
-  # spine_type: twisting
-  # urdf_path: examples/Spirit_spine/spirit_with_spine_drake.urdf
-  num_perturbations: 2
+  spine_type: twisting
+  urdf_path: examples/Spirit_spine/spirit_with_spine_drake.urdf
+  num_perturbations: 3
   mean: 1
   var: 0.01
-  iterate:
-    -
-      name: trot_3
-      num: 1
-      iteration_variable: speed
-      for:
-        start: 0
-        end: 4.05
-        step_size: 2.0
-    -
-      name: trot_4
-      iteration_variable: speed
-      num: 2
-      for:
-        start: 0
-        end: 4.05
-        step_size: 2.0
+  # iterate:
+  #   -
+  #     name: trot_3
+  #     num: 1
+  #     iteration_variable: speed
+  #     for:
+  #       start: 0
+  #       end: 4.05
+  #       step_size: 2.0
+  #   -
+  #     name: trot_4
+  #     iteration_variable: speed
+  #     num: 2
+  #     for:
+  #       start: 0
+  #       end: 4.05
+  #       step_size: 2.0
 -
   name: trot_1
   ipopt: true
@@ -90,7 +90,8 @@
   pitch_magnitude_lo: 0.05
   max_spine_magnitude: 0
   apex_height: 0.38
-  speed: 0.1
+  # speed: 0.1
+  speed: 0.5
   max_duration: 0.7
   min_duration: 0.15
   lock_leg_apex: true
@@ -117,7 +118,8 @@
   pitch_magnitude_lo: 0.1
   max_spine_magnitude: 0
   apex_height: 0.38
-  speed: 0.7
+  # speed: 0.7
+  speed: 0.5
   max_duration: 0.7
   min_duration: 0.16
   lock_leg_apex: false
@@ -144,7 +146,8 @@
   pitch_magnitude_lo: 1
   max_spine_magnitude: 1.5
   apex_height: -1
-  speed: 0.7
+  # speed: 0.7
+  speed: 0.5
   max_duration: 0.7
   min_duration: 0.05
   lock_leg_apex: false
