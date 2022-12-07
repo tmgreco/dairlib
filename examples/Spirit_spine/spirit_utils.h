@@ -474,7 +474,7 @@ public:
                const double &cost_work,
                const double &alpha,
                const std::string &description = "")
-               { JointPowerCost(plant, trajopt, Q, cost_work, alpha, description }
+               : JointPowerCost(plant, trajopt, Q, cost_work, alpha, description)
                { };
   protected:
     void EvaluateCost(const Eigen::Ref<const drake::VectorX<double>> &x,
