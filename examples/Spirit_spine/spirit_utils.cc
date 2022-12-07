@@ -1208,12 +1208,18 @@ void CompliantJointPowerCost::EvaluateCost(const Eigen::Ref<const drake::VectorX
   //////////////////////////////////////////// FOR ELETRICAL POWER ///////////////////////////////////////////
   double efficiency=0; // electrical regen efficiency, set to zero for no regeneration
 
-  double pow_low =  (u_i * v_i + Q_ * u_i * u_i);
-  double pow_up =  (u_ip * v_ip + Q_ * u_ip * u_ip);
+  // Since there's now a spring-damper system,
+  // u_i = u_m - k*x_i - b*v_i
+  // where u_m is the motor torque, and k and b are constants.
+  // At some point, k and b will need to be variables, but let's hardcode for now.
+  // u_m = u_i + k*x_i + b*v_i
+  double k = 420;
+  double b = 69;
+  double pow_low =  ((u_i + k*x_i + b*v_i) * v_i + Q_ * (u_i + k*x_i + b*v_i) * (u_i + k*x_i + b*v_i));
+  double pow_up =  ((u_ip + k*x_ip + b*v_ip) * v_ip + Q_ * (u_ip + k*x_ip + b*v_ip) * (u_ip + k*x_ip + b*v_ip));
 
   double battery_pow_low = positivePart(pow_low) + efficiency * negativePart(pow_low);
   double battery_pow_up = positivePart(pow_up) + efficiency * negativePart(pow_up);
-
   // double battery_pow_low = relu_smooth(pow_low);
   // double battery_pow_up = relu_smooth(pow_up);
   drake::VectorX<double> rv(1);
