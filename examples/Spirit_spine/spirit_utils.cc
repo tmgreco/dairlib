@@ -907,6 +907,8 @@ std::vector<drake::solvers::Binding<drake::solvers::Cost>> AddPowerCost(drake::m
   int n_q = plant.num_positions();
   auto velocities_map = multibody::makeNameToVelocitiesMap(plant);
   auto actuator_map = multibody::makeNameToActuatorsMap(plant);
+  // adding positions_map, necessary for calculating the spring forces
+  auto positions_map = multibody::makeNameToPositionsMap(plant);
   double Q = 0;
   // Loop through each joint
   for (int joint = 0; joint < plant.num_actuators(); joint++) {
@@ -916,33 +918,53 @@ std::vector<drake::solvers::Binding<drake::solvers::Cost>> AddPowerCost(drake::m
       Q = Q_not_knee;
 
     if(joint == 12) { // DIFFERENT COST FOR SPINE
-        // auto joint_power_cost = std::make_shared<CompliantJointPowerCost>(plant, trajopt, Q, cost_power_gain,4);
-        auto joint_power_cost = std::make_shared<CompliantJointPowerCost>(plant, trajopt, Q, cost_power_gain,4);
+        auto compliant_joint_power_cost = std::make_shared<CompliantJointPowerCost>(plant, trajopt, Q, cost_power_gain,4);
+        // auto joint_power_cost = std::make_shared<CompliantJointPowerCost>(plant, trajopt, Q, 0.0 ,4);
         int act_int = actuator_map.at("motor_" + std::to_string(joint));
         int vel_int = n_q + velocities_map.at("joint_" + std::to_string(joint) +"dot");
+        // what is n_q and why is it here?
+        // n_q is the number of positions.  So we DON'T want it in pos_int
+        // Assuming sensible naming of joints
+        int pos_int = positions_map.at("joint_" + std::to_string(joint));
+        // std::cout << "Pos_int: " << pos_int << std::endl;
         // Loop through each mode
         for (int mode_index = 0; mode_index < trajopt.num_modes(); mode_index++) {
           for (int knot_index = 0; knot_index < trajopt.mode_length(mode_index)-1; knot_index++) {
+            // Renamed velocities to v_i from x_i, because for this we need position and velocity.
+            //
             auto u_i = trajopt.input(trajopt.get_mode_start(mode_index) + knot_index)(act_int);
-            auto x_i   = trajopt.state(trajopt.get_mode_start(mode_index) + knot_index)(vel_int);
+            auto x_i   = trajopt.state(trajopt.get_mode_start(mode_index) + knot_index)(pos_int);
+            auto v_i   = trajopt.state(trajopt.get_mode_start(mode_index) + knot_index)(vel_int);
             auto u_ip = trajopt.input(trajopt.get_mode_start(mode_index) + knot_index+1)(act_int);
-            auto x_ip   = trajopt.state(trajopt.get_mode_start(mode_index) + knot_index+1)(vel_int);
-
+            auto x_ip   = trajopt.state(trajopt.get_mode_start(mode_index) + knot_index+1)(pos_int);
+            auto v_ip   = trajopt.state(trajopt.get_mode_start(mode_index) + knot_index+1)(vel_int);
+            // std::cout << "Got x_i, x_ip" << std::endl;
             auto hi = trajopt.time_vars()(trajopt.get_mode_start(mode_index) + knot_index);
 
-            drake::solvers::VectorXDecisionVariable variables(trajopt.num_modes()+5);
+            drake::solvers::VectorXDecisionVariable variables(trajopt.num_modes()+7);
             variables(0) = u_i;
             variables(1) = u_ip;
-            variables(2) = x_i;
-            variables(3) = x_ip;
+            variables(2) = v_i;
+            variables(3) = v_ip;
             variables(4) = hi;
+            variables(5) = x_i;
+            variables(6) = x_ip;
+
+            // std::cout << "Defined variables" << std::endl;
             //
             // std::cout<<"Hindex: "<<trajopt.get_mode_start(mode_index)+ knot_index<<" N: "<<trajopt.N()<<std::endl;
             for (int i=0;i < trajopt.num_modes();i++){
-              variables((5+i))=trajopt.time_vars()(trajopt.get_mode_start(i) + 2);
-              joint_power_cost->addKnotPoints(trajopt.mode_length(i)-1);
+              variables((7+i))=trajopt.time_vars()(trajopt.get_mode_start(i) + 2);
+              compliant_joint_power_cost->addKnotPoints(trajopt.mode_length(i)-1);
             }
-            cost_joint_power_bindings.push_back(trajopt.AddCost(joint_power_cost, variables));
+            // std::cout << "After for loop" << std::endl;
+
+            // THIS IS WHERE IT FAILS
+            // std::cout << "trajopt.num_modes(): " << trajopt.num_modes() << std::endl;
+            // std::cout << "num_rows: " << variables.rows() << std::endl;
+            // std::cout << "num_vars: " << compliant_joint_power_cost->num_vars() << std::endl;
+            cost_joint_power_bindings.push_back(trajopt.AddCost(compliant_joint_power_cost, variables));
+            // std::cout << "Finished adding spine cost" << std::endl;
           } // knot point loop
         } // Mode loop
     } else { // Regular joints get regular cost
@@ -1069,8 +1091,9 @@ JointPowerCost::JointPowerCost(const drake::multibody::MultibodyPlant<double>& p
                              const double &Q,
                              const double &cost_work,
                              const double &alpha,
-                             const std::string &description)
-    :solvers::NonlinearCost<double>(5+trajopt.num_modes(),description), plant_(plant){
+                             const std::string &description,
+                             const int n_vars)
+    :solvers::NonlinearCost<double>(n_vars+trajopt.num_modes(),description), plant_(plant){
   N_=trajopt.num_modes();
   Q_ = Q;
   cost_work_ = cost_work;
@@ -1163,10 +1186,12 @@ void CompliantJointPowerCost::EvaluateCost(const Eigen::Ref<const drake::VectorX
   double v_i = x(2);
   double v_ip = x(3);
   double h_i = x(4);
+  double x_i = x(5);
+  double x_ip = x(6);
 
   double ht = 0;
   for (int i =0;i<N_;i++){
-    ht+=x(i+5)*num_nodes[i];
+    ht+=x(i+7)*num_nodes[i];
   }
   ////////////////////////////////////////// FOR MECHANICAL POWER ///////////////////////////////////////////
   // // double work_low = cost_work_ * relu_smooth(u_i * v_i + Q_ * u_i * u_i);

@@ -439,7 +439,8 @@ class JointPowerCost : public solvers::NonlinearCost<double> {
                 const double &Q,
                 const double &cost_work,
                 const double &alpha,
-                const std::string &description = "");
+                const std::string &description = "",
+                const int n_vars = 5);
   void SetHIndex(int i){
     h_index_=i;
   };
@@ -473,9 +474,10 @@ public:
                const double &Q,
                const double &cost_work,
                const double &alpha,
-               const std::string &description = "")
-               : JointPowerCost(plant, trajopt, Q, cost_work, alpha, description)
-               { };
+               const std::string &description = "",
+               const int n_vars = 7)
+     : JointPowerCost(plant,trajopt,Q,cost_work,alpha,description,n_vars)
+    {  };
   protected:
     void EvaluateCost(const Eigen::Ref<const drake::VectorX<double>> &x,
                     drake::VectorX<double> *y) const override;

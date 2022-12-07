@@ -1,8 +1,10 @@
 # YAML spirit jump configuration
 -
   initial_guess: ""  #if it is empty, the program will generate initial guess. Otherwise, we use the file given here as the initial guess
-  saved_directory: ../data-out/trot_search/rigid/saved_trajectories/
-  data_directory: ../data-out/trot_search/rigid/data/
+  # saved_directory: ../data-out/trot_search/rigid/saved_trajectories/
+  # data_directory: ../data-out/trot_search/rigid/data/
+  saved_directory: examples/Spirit_spine/saved_trajectories/free_spine/
+  data_directory: examples/Spirit_spine/data/free_spine/
   # spine_type: rigid
   # urdf_path: examples/Spirit_spine/spirit_drake.urdf
   # saved_directory: examples/Spirit_spine/saved_trajectories/trot_half/twisting_p20/
