@@ -83,7 +83,7 @@ public:
     /// \param trajopt trajectory optimization problem to be solved
     std::vector<drake::solvers::Binding<drake::solvers::Cost>> addCost(
             MultibodyPlant<Y>& plant,
-            dairlib::systems::trajectory_optimization::Dircon<Y>& trajopt);
+            dairlib::systems::trajectory_optimization::Dircon<Y>& trajopt, int k_i, int b_i);
 
     std::tuple<  std::vector<std::unique_ptr<dairlib::systems::trajectory_optimization::DirconMode<Y>>>,
     std::vector<std::unique_ptr<multibody::WorldPointEvaluator<Y>>> ,
