@@ -13,6 +13,7 @@ namespace dairlib {
 using systems::trajectory_optimization::DirconModeSequence;
 using systems::trajectory_optimization::Dircon;
 
+// using drake::symbolic::Variable;
 template <class Y>
 SpiritTrotHalf<Y>::SpiritTrotHalf(){
 }
@@ -50,6 +51,10 @@ void SpiritTrotHalf<Y>::config(std::string yaml_path, std::string saved_director
   if(!config[index]["file_name_in"].as<std::string>().empty()) this->file_name_in= saved_directory+config[index]["file_name_in"].as<std::string>();
   if(config[index]["action"]) this->action=config[index]["action"].as<std::string>();
   else this->action="";
+  if(config[index]["k_spine"]) this->k=config[index]["k_spine"].as<double>();
+  else this->k = 0;
+  if(config[index]["b_spine"]) this->b=config[index]["b_spine"].as<double>();
+  else this->b = 0;
 
 }
 
@@ -528,6 +533,11 @@ void SpiritTrotHalf<Y>::run(MultibodyPlant<Y>& plant,
   ///Setup trajectory optimization
   auto trajopt = Dircon<Y>(sequence);
 
+  const auto k_spine = trajopt.NewContinuousVariables(1, "k_spine");
+  const auto b_spine = trajopt.NewContinuousVariables(1, "b_spine");
+  trajopt.SetInitialGuess(k_spine[0], k);
+  trajopt.SetInitialGuess(b_spine[0], b);
+
   if (this->ipopt) {
     // Ipopt settings adapted from CaSaDi and FROST
     auto id = drake::solvers::IpoptSolver::id();
@@ -597,6 +607,12 @@ void SpiritTrotHalf<Y>::run(MultibodyPlant<Y>& plant,
   }
 
   addConstraints(plant, trajopt);
+  // need to add a decision variable
+  // symbolic::Variable k_spine, b_spine;
+  // const Vector2<symbolic::Variable> k_spine;
+  // const Vector1<symbolic::Variable> b_spine;
+  auto k_constraint_binding = trajopt.AddLinearEqualityConstraint(k_spine[0], k);
+  auto b_constraint_binding = trajopt.AddLinearEqualityConstraint(b_spine[0], b);
 
   /// Setup the visualization during the optimization
   if (this->ghosts){
