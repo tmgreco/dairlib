@@ -919,7 +919,6 @@ std::vector<drake::solvers::Binding<drake::solvers::Cost>> AddPowerCost(drake::m
 
     if(joint == 12) { // DIFFERENT COST FOR SPINE
         auto compliant_joint_power_cost = std::make_shared<CompliantJointPowerCost>(plant, trajopt, Q, cost_power_gain,4);
-        // auto joint_power_cost = std::make_shared<CompliantJointPowerCost>(plant, trajopt, Q, 0.0 ,4);
         int act_int = actuator_map.at("motor_" + std::to_string(joint));
         int vel_int = n_q + velocities_map.at("joint_" + std::to_string(joint) +"dot");
         // what is n_q and why is it here?
@@ -1213,8 +1212,8 @@ void CompliantJointPowerCost::EvaluateCost(const Eigen::Ref<const drake::VectorX
   // where u_m is the motor torque, and k and b are constants.
   // At some point, k and b will need to be variables, but let's hardcode for now.
   // u_m = u_i + k*x_i + b*v_i
-  double k = 420;
-  double b = 69;
+  double k = 4.0;//
+  double b = 0.7; //
   double pow_low =  ((u_i + k*x_i + b*v_i) * v_i + Q_ * (u_i + k*x_i + b*v_i) * (u_i + k*x_i + b*v_i));
   double pow_up =  ((u_ip + k*x_ip + b*v_ip) * v_ip + Q_ * (u_ip + k*x_ip + b*v_ip) * (u_ip + k*x_ip + b*v_ip));
 

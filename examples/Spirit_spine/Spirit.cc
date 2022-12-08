@@ -27,7 +27,6 @@ Spirit<B,T>::Spirit(std::string dairlib_path, std::string yaml_path) :plant (std
                     behavior()
     {
     this->yaml_path=dairlib_path+yaml_path;
-    std::cout<<"YAML PATH: " << this->yaml_path << std::endl;
     YAML::Node config = YAML::LoadFile(this->yaml_path);
 
     initial_guess=config[0]["initial_guess"].as<std::string>();
@@ -247,7 +246,7 @@ void Spirit<B,T>::run(){
       const int N = sizeof(costs) / sizeof(double);
 
       for (int j=0;j<num_perturbations;j++){
-        std::cout<<"Running "<<j+1<<"(th) trail in "<<i<<"(th) optimization; action: "<<behavior.action<<std::endl;
+        std::cout<<"Running "<<j+1<<"(th) trial in "<<i<<"(th) optimization; action: "<<behavior.action<<std::endl;
         if (j!=0) behavior.setMeanAndVar(mean,var);
         behavior.setFileNameIn(org_file_name_in+"_s"+std::to_string(j+1));
         behavior.setFileNameOut(org_file_name_out+"_s"+std::to_string(j+1));

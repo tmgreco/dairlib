@@ -13,7 +13,7 @@ namespace dairlib {
 using systems::trajectory_optimization::DirconModeSequence;
 using systems::trajectory_optimization::Dircon;
 
-template <class Y> 
+template <class Y>
 SpiritTrotHalf<Y>::SpiritTrotHalf(){
 }
 
@@ -65,7 +65,7 @@ void SpiritTrotHalf<Y>::generateInitialGuess(MultibodyPlant<Y>& plant){
   std::vector<MatrixXd> x_points;
   VectorXd x_const;
 
-  
+
   //Flight 1
   dairlib::ikSpiritStand(plant, x_const, {false, false, false, false}, apex_height, stand_height, 0, 0);
   x_points.push_back(x_const);
@@ -193,7 +193,7 @@ std::vector<drake::solvers::Binding<drake::solvers::Cost>> SpiritTrotHalf<Y>::ad
             dairlib::systems::trajectory_optimization::Dircon<Y>& trajopt){
   auto u   = trajopt.input();
   auto x   = trajopt.state();
-  
+
   // Setup the traditional cost function
   trajopt.AddRunningCost( u.transpose()*this->cost_actuation*u);
   trajopt.AddVelocityCost(this->cost_velocity);
@@ -224,7 +224,7 @@ void SpiritTrotHalf<Y>::addConstraints(
   // Get position and velocity dictionaries
   auto positions_map = multibody::makeNameToPositionsMap(plant);
   auto velocities_map = multibody::makeNameToVelocitiesMap(plant);
-  
+
   auto actuators_map = multibody::makeNameToActuatorsMap(plant);
   // // Print joint dictionary
   // std::cout<<"**********************Actuators***********************"<<std::endl;
@@ -298,7 +298,7 @@ void SpiritTrotHalf<Y>::addConstraints(
   // }
   if (this->spine_type=="rigid") max_spine_new*=0.3;
   std::cout<<"MAX SPINE: "<<max_spine_new<<"  MAX PITCH: "<< pitch_magnitude<<"SPINE TYPE: "<<this->spine_type<<std::endl;
-  
+
 
   // /// Toes constraints
   toe_height=0.05+0.02;
@@ -320,12 +320,12 @@ void SpiritTrotHalf<Y>::addConstraints(
                           (upperLegLength*sin(xmid(positions_map.at("joint_2"))-pitch)+lowerLegLength*sin(xmid(positions_map.at("joint_3"))
                           -xmid(positions_map.at("joint_2"))+pitch))+abOffs*sin(xmid(positions_map.at("joint_9"))+roll),toe_height, toe_height+0.3);
     // Toe 3
-    if (this->spine_type=="twisting") 
+    if (this->spine_type=="twisting")
       trajopt.AddConstraint(xmid(positions_map.at("base_z"))-0.5*bodyWidth*sin(xmid(positions_map.at("joint_12"))+roll)-0.5*bodyLength*sin(pitch)
                           -cos(xmid(positions_map.at("joint_10"))+xmid(positions_map.at("joint_12"))+roll)*(upperLegLength*sin(xmid(positions_map.at("joint_4"))-pitch)
                           +lowerLegLength*sin(pitch+xmid(positions_map.at("joint_5"))-xmid(positions_map.at("joint_4"))))
                           -abOffs*sin(xmid(positions_map.at("joint_12"))+xmid(positions_map.at("joint_10"))+roll),toe_height, toe_height+0.3);
-    else 
+    else
       trajopt.AddConstraint(xmid(positions_map.at("base_z"))-0.5*bodyWidth*sin(roll)-0.5*bodyLength*sin(pitch)
                           -cos(xmid(positions_map.at("joint_10"))+roll)*(upperLegLength*sin(xmid(positions_map.at("joint_4"))-pitch)
                           +lowerLegLength*sin(pitch+xmid(positions_map.at("joint_5"))-xmid(positions_map.at("joint_4"))))
@@ -364,7 +364,7 @@ void SpiritTrotHalf<Y>::addConstraints(
     trajopt.AddConstraint(xf(n_q+velocities_map.at("base_vz"))-x0(n_q+velocities_map.at("base_vz")),0,eps);
     /// angular velocity
     trajopt.AddConstraint(xf(n_q+velocities_map.at("base_wx"))+x0(n_q+velocities_map.at("base_wx")),-eps,eps); //opposite wx
-    trajopt.AddConstraint(xf(n_q+velocities_map.at("base_wy"))-x0(n_q+velocities_map.at("base_wy")),-eps,eps); 
+    trajopt.AddConstraint(xf(n_q+velocities_map.at("base_wy"))-x0(n_q+velocities_map.at("base_wy")),-eps,eps);
     trajopt.AddConstraint(xf(n_q+velocities_map.at("base_wz"))+x0(n_q+velocities_map.at("base_wz")),0,eps); //opposite wz
     /// joint velocities
     trajopt.AddConstraint(xf(n_q+velocities_map.at("joint_0dot"))-x0(n_q+velocities_map.at("joint_4dot")),-eps,eps);
@@ -401,11 +401,11 @@ void SpiritTrotHalf<Y>::addConstraints(
     if (this->spine_type=="twisting") trajopt.AddBoundingBoxConstraint( -max_spine_new-eps, max_spine_new+eps, xi( positions_map.at("joint_12")));
 
     //Toes
-    
+
     // Compute roll angle
     auto roll_i = atan2(2.0 * (xi(0) * xi(1) + xi(2) * xi(3)), 1.0 - 2.0 * (xi(1) * xi(1) + xi(2) * xi(2)));
     auto pitch_i = asin(2.0 * (xi(0) * xi(2) + xi(3) * xi(1)));
-    // Toe 2 
+    // Toe 2
     trajopt.AddConstraint(xi(positions_map.at("base_z"))+0.5*bodyWidth*sin(roll_i)+0.5*(bodyLength)*sin(pitch_i)-cos(xi(positions_map.at("joint_9"))+roll_i)*
                           (upperLegLength*sin(xi(positions_map.at("joint_2"))-pitch_i)+lowerLegLength*sin(xi(positions_map.at("joint_3"))
                         -xi(positions_map.at("joint_2"))+pitch_i)) +abOffs*cos(pitch_i)*sin(xi(positions_map.at("joint_9"))+roll_i),toeRadius, 0.3);
@@ -415,7 +415,7 @@ void SpiritTrotHalf<Y>::addConstraints(
                             -cos(xi(positions_map.at("joint_10"))+xi(positions_map.at("joint_12"))+roll_i)*(upperLegLength*sin(xi(positions_map.at("joint_4"))-pitch_i)
                             +lowerLegLength*sin(pitch_i+xi(positions_map.at("joint_5"))-xi(positions_map.at("joint_4"))))
                             -abOffs*cos(pitch_i)*sin(xi(positions_map.at("joint_12"))+xi(positions_map.at("joint_10"))+roll_i),toeRadius, 0.3);
-    else 
+    else
       trajopt.AddConstraint(xi(positions_map.at("base_z"))-0.5*bodyWidth*sin(roll_i)-0.5*bodyLength*sin(pitch_i)
                             -cos(xi(positions_map.at("joint_10"))+roll_i)*(upperLegLength*sin(xi(positions_map.at("joint_4"))-pitch_i)
                             +lowerLegLength*sin(pitch_i+xi(positions_map.at("joint_5"))-xi(positions_map.at("joint_4"))))
@@ -427,13 +427,13 @@ void SpiritTrotHalf<Y>::addConstraints(
     //                       (upperLegLength*sin(xi(positions_map.at("joint_2")))+lowerLegLength*sin(xi(positions_map.at("joint_3"))
     //                       -xi(positions_map.at("joint_2")))),-0.5*bodyWidth, 0.15);
     // // Toe 3
-    // if (this->spine_type=="twisting") 
+    // if (this->spine_type=="twisting")
     //   trajopt.AddConstraint(sin(xi(positions_map.at("joint_10"))+xi(positions_map.at("joint_12"))+roll_i)*(upperLegLength*sin(xi(positions_map.at("joint_4")))
     //                       +lowerLegLength*sin(xi(positions_map.at("joint_5"))-xi(positions_map.at("joint_4")))),-0.15, 0.5*bodyWidth);
-    // else 
+    // else
     //   trajopt.AddConstraint(sin(xi(positions_map.at("joint_10"))+roll_i)*(upperLegLength*sin(xi(positions_map.at("joint_4")))
     //                       +lowerLegLength*sin(xi(positions_map.at("joint_5"))-xi(positions_map.at("joint_4")))),-0.15, 0.5*bodyWidth);
-    
+
     // Limit knee joints' angular accelerations
     if(i>0){
         // auto fi=trajopt.input(i);
@@ -458,7 +458,7 @@ void SpiritTrotHalf<Y>::addConstraints(
 
 /// add cost for legs
 /// \param joints add cost for which joint of the legs
-/// \param mode_index add most for which mode 
+/// \param mode_index add most for which mode
 template <class Y>
 void SpiritTrotHalf<Y>::addCostLegs(MultibodyPlant<Y>& plant,
                  dairlib::systems::trajectory_optimization::Dircon<Y>& trajopt,
@@ -524,7 +524,7 @@ void SpiritTrotHalf<Y>::run(MultibodyPlant<Y>& plant,
   auto sequence = DirconModeSequence<Y>(plant);
   setUpModeSequence();
   auto [modeVector, toeEvals, toeEvalSets] = getModeSequence(plant, sequence);
-  
+
   ///Setup trajectory optimization
   auto trajopt = Dircon<Y>(sequence);
 
@@ -603,11 +603,11 @@ void SpiritTrotHalf<Y>::run(MultibodyPlant<Y>& plant,
     int num_ghosts = 1;// Number of ghosts in visualization. NOTE: there are limitations on number of ghosts based on modes and knotpoints
     std::vector<unsigned int> visualizer_poses; // Ghosts for visualizing during optimization
     for(int i = 0; i < sequence.num_modes(); i++){
-        visualizer_poses.push_back(num_ghosts); 
+        visualizer_poses.push_back(num_ghosts);
     }
     trajopt.CreateVisualizationCallback(
         dairlib::FindResourceOrThrow(this->urdf_path),
-        visualizer_poses, 0.2); // setup which URDF, how many poses, and alpha transparency 
+        visualizer_poses, 0.2); // setup which URDF, how many poses, and alpha transparency
   }
 
   drake::solvers::SolverId solver_id("");
@@ -636,6 +636,7 @@ void SpiritTrotHalf<Y>::run(MultibodyPlant<Y>& plant,
   // this->saveContactForceData(this->speed,contect_force_fname);
   // Writing contact force data
   double cost_power_val = solvers::EvalCostGivenSolution(result, work_binding);
+  std::cout << "Power Cost: " << cost_power_val << std::endl;
   int beginIdx = this->file_name_out.rfind('/');
   std::string filename = this->file_name_out.substr(beginIdx + 1);
   std::string contact_force_fname=this->data_directory+filename +".csv";
@@ -651,12 +652,12 @@ void SpiritTrotHalf<Y>::run(MultibodyPlant<Y>& plant,
   //   std::cout<<"ReLu Work = " << cost_power_val/this->cost_power << std::endl;
   // }
 
-  
+
   /////////////////////////////////////// Build up animation ///////////////////////
   /////// Create whole-period trajectory
   PiecewisePolynomial<Y> org_x_traj=trajopt.ReconstructStateTrajectory(result);
   PiecewisePolynomial<Y> flipped_x_traj=trajopt.ReconstructFlippedStateTrajectory(result,this->spine_type);
-  // Create half 
+  // Create half
   std::vector<double> breaks_half=flipped_x_traj.get_breaks();
   std::vector<Eigen::MatrixXd> samples_half(breaks_half.size());
   int nq;
@@ -692,10 +693,9 @@ void SpiritTrotHalf<Y>::run(MultibodyPlant<Y>& plant,
     pp_xtraj->ConcatenateInTime(x_traj_i);
   }
 
-  
-  
+
+
 }
 
 template class SpiritTrotHalf<double>;
 }  // namespace dairlib
-
