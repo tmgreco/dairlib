@@ -264,14 +264,14 @@ void Spirit<B,T>::run(){
     else behavior.run(*plant,&pp_xtraj,&surface_vector);
   }
 }
-template class Spirit<dairlib::SpiritJump,double>;
-template class Spirit<dairlib::SpiritBound,double>;
-template class Spirit<dairlib::SpiritTrot,double>;
+// template class Spirit<dairlib::SpiritJump,double>;
+// template class Spirit<dairlib::SpiritBound,double>;
+// template class Spirit<dairlib::SpiritTrot,double>;
 template class Spirit<dairlib::SpiritTrotHalf,double>;
-template class Spirit<dairlib::SpiritBoundingGait,double>;
-template class Spirit<dairlib::SpiritTurn,double>;
-template class Spirit<dairlib::SpiritBoxJump,double>;
-template class Spirit<dairlib::SpiritParkourJump,double>;
-template class Spirit<dairlib::SpiritParkourWallRun,double>;
-template class Spirit<dairlib::SpiritParkourWallPronk,double>;
+// template class Spirit<dairlib::SpiritBoundingGait,double>;
+// template class Spirit<dairlib::SpiritTurn,double>;
+// template class Spirit<dairlib::SpiritBoxJump,double>;
+// template class Spirit<dairlib::SpiritParkourJump,double>;
+// template class Spirit<dairlib::SpiritParkourWallRun,double>;
+// template class Spirit<dairlib::SpiritParkourWallPronk,double>;/////
 }

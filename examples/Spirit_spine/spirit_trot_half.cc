@@ -108,10 +108,10 @@ void SpiritTrotHalf<Y>::config(std::string yaml_path, std::string saved_director
   if(!config[index]["file_name_in"].as<std::string>().empty()) this->file_name_in= saved_directory+config[index]["file_name_in"].as<std::string>();
   if(config[index]["action"]) this->action=config[index]["action"].as<std::string>();
   else this->action="";
-  if(config[index]["k_spine"]) this->k=config[index]["k_spine"].as<double>();
-  else this->k = 0;
-  if(config[index]["b_spine"]) this->b=config[index]["b_spine"].as<double>();
-  else this->b = 0;
+  // if(config[index]["k_spine"]) this->k=config[index]["k_spine"].as<double>();
+  // else this->k = 0;
+  // if(config[index]["b_spine"]) this->b=config[index]["b_spine"].as<double>();
+  // else this->b = 0;
 
 }
 
@@ -680,59 +680,59 @@ void SpiritTrotHalf<Y>::run(MultibodyPlant<Y>& plant,
     solver_id = drake::solvers::ChooseBestSolver(trajopt);
     std::cout << "\nChose the best solver: " << solver_id.name() << std::endl;
   }
-/*
-  // ALEX: Outer gradient descent loop.
-  // Uncomment to use.
-  double k_prev = 0;
-  double b_prev = 0;
-  double step_converge_k = 0.05;  // Convergence criterion for k.
-  double step_converge_b = 0.05;  // Convergence criterion for b.
-  double grad_step = 0.5;         // Step size for gradient descent.
-  double dJ_dk_sum = 0;           // Sum of partial derivatives wrt to k.
-  double dJ_db_sum = 0;           // Sum of partial derivatives wrt to k.
+  //
+  // // ALEX: Outer gradient descent loop.
+  // // Uncomment to use.
+  // double k_prev = 9999999999;
+  // double b_prev = 999999999;
+  // double step_converge_k = 0.05;  // Convergence criterion for k.
+  // double step_converge_b = 0.05;  // Convergence criterion for b.
+  // double grad_step = 0.5;         // Step size for gradient descent.
+  // double dJ_dk_sum = 0;           // Sum of partial derivatives wrt to k.
+  // double dJ_db_sum = 0;           // Sum of partial derivatives wrt to k.
+  //
+  // while((abs(k-k_prev)<step_converge_k) && (abs(b-b_prev)<step_converge_b)){
+  //   // Reset dJ_dk, dJ_db.
+  //   double dJ_dk = 0;
+  //   double dJ_db = 0;
+  //
+  //   // TODO: Get list of trajectories, somehow. Enumerate them with num_traj.
+  //
+  //   for (int ii = 0; ii<num_traj; ii++){
+  //     // Run the optimization using your initial guess.
+  //     auto start = std::chrono::high_resolution_clock::now();
+  //     auto solver = drake::solvers::MakeSolver(solver_id);
+  //     drake::solvers::MathematicalProgramResult result;
+  //     solver->Solve(trajopt, trajopt.initial_guess(), trajopt.solver_options(),
+  //                 &result);  auto finish = std::chrono::high_resolution_clock::now();
+  //       std::chrono::duration<double> elapsed = finish - start;
+  //     std::cout << "Solve time: " << elapsed.count() <<std::endl;
+  //     std::cout << "Cost: " << result.get_optimal_cost() <<std::endl;
+  //     std::cout << (result.is_success() ? "Optimization Success" : "Optimization Fail") << std::endl;
+  //     /// Save trajectory
+  //     this->saveTrajectory(plant, trajopt, result);
+  //     // Print power cost.
+  //     double cost_power_val = solvers::EvalCostGivenSolution(result, work_binding);
+  //     std::cout << "Power Cost: " << cost_power_val << std::endl;
+  //
+  //     // TODO: Get dJ_dk, dJ_db from ^ step
+  //
+  //     dJ_dk_sum = dJ_dk_sum + dJ_dk;
+  //     dJ_db_sum = dJ_db_sum + dJ_db;
+  //   }
+  //   // QUESTION: We can access k and b members like this, right?
+  //   k_prev = k;
+  //   b_prev = b;
+  //
+  //   // Average derivatives and descend over k and b.
+  //   k = k_prev + (dJ_dk_sum/num_traj)*grad_step;
+  //   b = b_prev + (dJ_db_sum/num_traj)*grad_step;
+  // }
+  //
+  // std::cout << "k: " << k << std::endl;
+  // std::cout << "b: " << b << std::endl;
+  // // End outer gradient descent loop. Comment out stuff after this if using this stuff above.
 
-  while((abs(k-k_prev)<step_converge_k) && (abs(b-b_prev)<step_converge_b)){
-    // Reset dJ_dk, dJ_db.
-    double dJ_dk = 0;
-    double dJ_db = 0;
-
-    // TODO: Get list of trajectories, somehow. Enumerate them with num_traj.
-
-    for (int ii = 0; ii<num_traj; ii++){
-      // Run the optimization using your initial guess.
-      auto start = std::chrono::high_resolution_clock::now();
-      auto solver = drake::solvers::MakeSolver(solver_id);
-      drake::solvers::MathematicalProgramResult result;
-      solver->Solve(trajopt, trajopt.initial_guess(), trajopt.solver_options(),
-                  &result);  auto finish = std::chrono::high_resolution_clock::now();
-        std::chrono::duration<double> elapsed = finish - start;
-      std::cout << "Solve time: " << elapsed.count() <<std::endl;
-      std::cout << "Cost: " << result.get_optimal_cost() <<std::endl;
-      std::cout << (result.is_success() ? "Optimization Success" : "Optimization Fail") << std::endl;
-      /// Save trajectory
-      this->saveTrajectory(plant, trajopt, result);
-      // Print power cost.
-      double cost_power_val = solvers::EvalCostGivenSolution(result, work_binding);
-      std::cout << "Power Cost: " << cost_power_val << std::endl;
-
-      // TODO: Get dJ_dk, dJ_db from ^ step
-
-      dJ_dk_sum = dJ_dk_sum + dJ_dk;
-      dJ_db_sum = dJ_db_sum + dJ_db;
-    }
-    // QUESTION: We can access k and b members like this, right?
-    k_prev = k;
-    b_prev = b;
-
-    // Average derivatives and descend over k and b.
-    k = k_prev + (dJ_dk_sum/num_traj)*grad_step;
-    b = b_prev + (dJ_db_sum/num_traj)*grad_step;
-  }
-
-  std::cout << "k: " << k << std::endl;
-  std::cout << "b: " << b << std::endl;
-  // End outer gradient descent loop. Comment out stuff after this if using this stuff above.
- */
   /// Run the optimization using your initial guess
   auto start = std::chrono::high_resolution_clock::now();
   auto solver = drake::solvers::MakeSolver(solver_id);
