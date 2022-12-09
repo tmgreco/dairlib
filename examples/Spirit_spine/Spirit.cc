@@ -201,6 +201,10 @@ void Spirit<B,T>::run(){
   double arr[] = {0.1, 0.5, 1.0, 1.5}; // Speed samples.
   int num_traj = 4;
 
+  double grad_k;
+  double grad_b;
+  int best_index_ = -99;
+
   // ALEX/KATIE: Gradient descent stuff.
   while ((abs(k_in-k_prev) < step_converge_k) && abs(b_in-b_prev)<step_converge_b) {
     // Reset dJ_dk, dJ_db.
@@ -218,6 +222,8 @@ void Spirit<B,T>::run(){
         behavior.config(yaml_path,saved_directory,i,plant.get()); //pull parameters from yaml
         behavior.setB(b_in);
         behavior.setK(k_in);
+        grad_k = 0;
+        grad_b = 0;
 
         if (i==FLAGS_skip_to){
           if(initial_guess=="") behavior.generateInitialGuess(*plant); //If we don't have a file for initial guess, then generate one.
@@ -228,6 +234,8 @@ void Spirit<B,T>::run(){
           // Create array of optimal costs
           double costs[num_perturbations];
           const int N = sizeof(costs) / sizeof(double);
+          double grad_ks[num_perturbations];
+          double grad_bs[num_perturbations];
 
           std::string org_file_name_out=behavior.getFileNameOut();
           for (int j=0;j<num_perturbations;j++){
@@ -238,6 +246,8 @@ void Spirit<B,T>::run(){
             if (j!=0) behavior.setMeanAndVar(mean,var);
             behavior.run(*plant,&pp_xtraj,&surface_vector);
             costs[j]=behavior.getCost();
+            grad_ks[j] = behavior.getGradK();
+            grad_bs[j] = behavior.getGradB();
           }
           behavior.setMeanAndVar(1,0);
           behavior.setFileNameOut(org_file_name_out);
@@ -246,6 +256,9 @@ void Spirit<B,T>::run(){
           std::ifstream src(org_file_name_out+"_s"+std::to_string(best_index+1), std::ios::binary);
           std::ofstream dst(org_file_name_out, std::ios::binary);
           dst << src.rdbuf();
+          grad_k = grad_ks[best_index];
+          grad_b = grad_bs[best_index];
+          best_index_ = best_index;
         }
         else if (behavior.action=="keep"){
           std::string org_file_name_in=behavior.getFileNameIn();
@@ -257,6 +270,8 @@ void Spirit<B,T>::run(){
             behavior.setFileNameOut(org_file_name_out+"_s"+std::to_string(j+1));
             behavior.setPerturbationIndex(j+1);
             behavior.run(*plant,&pp_xtraj,&surface_vector);
+            grad_k += behavior.getGradK()/num_perturbations;
+            grad_b += behavior.getGradB()/num_perturbations;
             }
         }
         else if (behavior.action=="shrink"){
@@ -266,6 +281,8 @@ void Spirit<B,T>::run(){
 
           // Create array of optimal costs
           double costs[num_perturbations];
+          double grad_ks[num_perturbations];
+          double grad_bs[num_perturbations];
           const int N = sizeof(costs) / sizeof(double);
 
           for (int j=0;j<num_perturbations;j++){
@@ -276,6 +293,8 @@ void Spirit<B,T>::run(){
             behavior.setPerturbationIndex(j+1);
             behavior.run(*plant,&pp_xtraj,&surface_vector);
             costs[j]=behavior.getCost();
+            grad_ks[j] = behavior.getGradK();
+            grad_bs[j] = behavior.getGradB();
           }
           behavior.setMeanAndVar(1,0);
           // Copy the best traj to saved directory
@@ -283,13 +302,19 @@ void Spirit<B,T>::run(){
           std::ifstream src(org_file_name_out+"_s"+std::to_string(best_index+1), std::ios::binary);
           std::ofstream dst(org_file_name_out, std::ios::binary);
           dst << src.rdbuf();
+          grad_k = grad_ks[best_index];
+          grad_b = grad_bs[best_index];
+          best_index_ = best_index;
+        } else {
+        behavior.run(*plant,&pp_xtraj,&surface_vector);
+        grad_k = behavior.getGradK();
+        grad_b = behavior.getGradB();
         }
-        else behavior.run(*plant,&pp_xtraj,&surface_vector);
       }
 
       // Get gradient values.
-      double dJ_dk = behavior.getGradK();
-      double dJ_db = behavior.getGradB();
+      double dJ_dk = grad_k; // behavior.getGradK();
+      double dJ_db = grad_b; // behavior.getGradB();
 
       // Sum gradient.
       dJ_dk_sum = dJ_dk_sum + dJ_dk;
