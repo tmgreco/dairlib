@@ -397,7 +397,7 @@ std::vector<drake::solvers::Binding<drake::solvers::Cost>> AddWorkCost(drake::mu
 template <typename T>
 std::vector<drake::solvers::Binding<drake::solvers::Cost>> AddPowerCost(drake::multibody::MultibodyPlant<T> & plant,
                  dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,
-                 double cost_work_gain, int k_i = 0, int b_i = 0);
+                 double cost_work_gain);
 
 /// Adds a cost on the integral of electrical power
 ///     @param plant, the robot model
@@ -475,7 +475,7 @@ public:
                const double &cost_work,
                const double &alpha,
                const std::string &description = "",
-               const int n_vars = 9)
+               const int n_vars = 7)
      : JointPowerCost(plant,trajopt,Q,cost_work,alpha,description,n_vars)
     {  };
   protected:

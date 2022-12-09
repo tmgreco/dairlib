@@ -902,7 +902,7 @@ std::vector<drake::solvers::Binding<drake::solvers::Cost>> AddWorkCost(drake::mu
 template <typename T>
 std::vector<drake::solvers::Binding<drake::solvers::Cost>> AddPowerCost(drake::multibody::MultibodyPlant<T> & plant,
                  dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,
-                 double cost_power_gain, int k_i, int b_i){
+                 double cost_power_gain){
   std::vector<drake::solvers::Binding<drake::solvers::Cost>> cost_joint_power_bindings;
   int n_q = plant.num_positions();
   auto velocities_map = multibody::makeNameToVelocitiesMap(plant);
@@ -937,14 +937,10 @@ std::vector<drake::solvers::Binding<drake::solvers::Cost>> AddPowerCost(drake::m
             auto u_ip = trajopt.input(trajopt.get_mode_start(mode_index) + knot_index+1)(act_int);
             auto x_ip   = trajopt.state(trajopt.get_mode_start(mode_index) + knot_index+1)(pos_int);
             auto v_ip   = trajopt.state(trajopt.get_mode_start(mode_index) + knot_index+1)(vel_int);
-            // std::cout << "about to get variables from indices" << std::endl;
-            auto k   = trajopt.decision_variable(k_i);
-            auto b   = trajopt.decision_variable(b_i);
-            // std::cout << "got variables from indices" << std::endl;
             // std::cout << "Got x_i, x_ip" << std::endl;
             auto hi = trajopt.time_vars()(trajopt.get_mode_start(mode_index) + knot_index);
 
-            drake::solvers::VectorXDecisionVariable variables(trajopt.num_modes()+9);
+            drake::solvers::VectorXDecisionVariable variables(trajopt.num_modes()+7);
             variables(0) = u_i;
             variables(1) = u_ip;
             variables(2) = v_i;
@@ -952,15 +948,12 @@ std::vector<drake::solvers::Binding<drake::solvers::Cost>> AddPowerCost(drake::m
             variables(4) = hi;
             variables(5) = x_i;
             variables(6) = x_ip;
-            variables(7) = k;
-            variables(8) = b;
-            // std::cout << "put variables in array" << std::endl;
 
             // std::cout << "Defined variables" << std::endl;
             //
             // std::cout<<"Hindex: "<<trajopt.get_mode_start(mode_index)+ knot_index<<" N: "<<trajopt.N()<<std::endl;
             for (int i=0;i < trajopt.num_modes();i++){
-              variables((9+i))=trajopt.time_vars()(trajopt.get_mode_start(i) + 2);
+              variables((7+i))=trajopt.time_vars()(trajopt.get_mode_start(i) + 2);
               compliant_joint_power_cost->addKnotPoints(trajopt.mode_length(i)-1);
             }
             // std::cout << "After for loop" << std::endl;
@@ -1438,7 +1431,7 @@ template std::vector<drake::solvers::Binding<drake::solvers::Cost>> AddWorkCost(
 
 template std::vector<drake::solvers::Binding<drake::solvers::Cost>> AddPowerCost(drake::multibody::MultibodyPlant<double> & plant,
                  dairlib::systems::trajectory_optimization::Dircon<double>& trajopt,
-                 double cost_work_gain, int k_i, int b_i);
+                 double cost_work_gain);
 
 template std::vector<drake::solvers::Binding<drake::solvers::Cost>> AddDeltaTorqueRegularizationCost(drake::multibody::MultibodyPlant<double> & plant,
                  dairlib::systems::trajectory_optimization::Dircon<double>& trajopt,

@@ -13,7 +13,6 @@ namespace dairlib {
 using systems::trajectory_optimization::DirconModeSequence;
 using systems::trajectory_optimization::Dircon;
 
-// using drake::symbolic::Variable;
 template <class Y>
 SpiritTrotHalf<Y>::SpiritTrotHalf(){
 }
@@ -51,10 +50,6 @@ void SpiritTrotHalf<Y>::config(std::string yaml_path, std::string saved_director
   if(!config[index]["file_name_in"].as<std::string>().empty()) this->file_name_in= saved_directory+config[index]["file_name_in"].as<std::string>();
   if(config[index]["action"]) this->action=config[index]["action"].as<std::string>();
   else this->action="";
-  if(config[index]["k_spine"]) this->k=config[index]["k_spine"].as<double>();
-  else this->k = 0;
-  if(config[index]["b_spine"]) this->b=config[index]["b_spine"].as<double>();
-  else this->b = 0;
 
 }
 
@@ -195,7 +190,7 @@ void SpiritTrotHalf<Y>::generateInitialGuess(MultibodyPlant<Y>& plant){
 template <class Y>
 std::vector<drake::solvers::Binding<drake::solvers::Cost>> SpiritTrotHalf<Y>::addCost(
             MultibodyPlant<Y>& plant,
-            dairlib::systems::trajectory_optimization::Dircon<Y>& trajopt, int k_i, int b_i){
+            dairlib::systems::trajectory_optimization::Dircon<Y>& trajopt){
   auto u   = trajopt.input();
   auto x   = trajopt.state();
 
@@ -217,7 +212,7 @@ std::vector<drake::solvers::Binding<drake::solvers::Cost>> SpiritTrotHalf<Y>::ad
   // return AddPowerCostByStrideLength(plant, trajopt, this->cost_power);
   // return AddPowerCostByStrideLength(plant, trajopt, this->cost_power);
   AddDeltaTorqueRegularizationCost(plant, trajopt, 0.00001);
-  return AddPowerCost(plant, trajopt, this->cost_power, k_i, b_i);
+  return AddPowerCost(plant, trajopt, this->cost_power);
 }
 /// Adds constraints to the trajopt bound problem
 /// \param plant robot model
@@ -533,13 +528,6 @@ void SpiritTrotHalf<Y>::run(MultibodyPlant<Y>& plant,
   ///Setup trajectory optimization
   auto trajopt = Dircon<Y>(sequence);
 
-  const auto k_spine = trajopt.NewContinuousVariables(1, "k_spine");
-  const auto b_spine = trajopt.NewContinuousVariables(1, "b_spine");
-  int k_spine_ind = trajopt.FindDecisionVariableIndex(k_spine[0]);
-  int b_spine_ind = trajopt.FindDecisionVariableIndex(b_spine[0]);
-  trajopt.SetInitialGuess(k_spine[0], k);
-  trajopt.SetInitialGuess(b_spine[0], b);
-
   if (this->ipopt) {
     // Ipopt settings adapted from CaSaDi and FROST
     auto id = drake::solvers::IpoptSolver::id();
@@ -587,7 +575,7 @@ void SpiritTrotHalf<Y>::run(MultibodyPlant<Y>& plant,
   }
 
   // Setting up cost
-  auto work_binding = addCost(plant, trajopt, k_spine_ind, b_spine_ind);
+  auto work_binding = addCost(plant, trajopt);
 
 
   // Initialize the trajectory control state and forces
@@ -609,12 +597,6 @@ void SpiritTrotHalf<Y>::run(MultibodyPlant<Y>& plant,
   }
 
   addConstraints(plant, trajopt);
-  // need to add a decision variable
-  // symbolic::Variable k_spine, b_spine;
-  // const Vector2<symbolic::Variable> k_spine;
-  // const Vector1<symbolic::Variable> b_spine;
-  auto k_constraint_binding = trajopt.AddLinearEqualityConstraint(k_spine[0], k);
-  auto b_constraint_binding = trajopt.AddLinearEqualityConstraint(b_spine[0], b);
 
   /// Setup the visualization during the optimization
   if (this->ghosts){

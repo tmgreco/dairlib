@@ -37,7 +37,7 @@ namespace dairlib {
     using systems::trajectory_optimization::Dircon;
 
 
-template <class Y>
+template <class Y>  
 class SpiritTrotHalf : public Behavior<Y> {
 public:
 
@@ -56,7 +56,7 @@ public:
     /// Adds constraints to the trajopt bound problem
     /// \param plant robot model
     /// \param trajopt trajectory optimization problem to be solved
-    void addConstraints(MultibodyPlant<Y>& plant,
+    void addConstraints(MultibodyPlant<Y>& plant, 
                         dairlib::systems::trajectory_optimization::Dircon<Y>& trajopt
                         );
 
@@ -67,12 +67,12 @@ public:
     void run(MultibodyPlant<Y>& plant,
             PiecewisePolynomial<Y>* pp_xtraj,
             std::vector<SurfaceConf>* surface_vector);
-
+    
     void setUpModeSequence();
 
     /// add cost for legs
     /// \param joints add cost for which joint of the legs
-    /// \param mode_index add most for which mode
+    /// \param mode_index add most for which mode 
     void addCostLegs(MultibodyPlant<Y>& plant,
                 dairlib::systems::trajectory_optimization::Dircon<Y>& trajopt,
                 const std::vector<double>& joints,
@@ -83,7 +83,7 @@ public:
     /// \param trajopt trajectory optimization problem to be solved
     std::vector<drake::solvers::Binding<drake::solvers::Cost>> addCost(
             MultibodyPlant<Y>& plant,
-            dairlib::systems::trajectory_optimization::Dircon<Y>& trajopt, int k_i, int b_i);
+            dairlib::systems::trajectory_optimization::Dircon<Y>& trajopt);
 
     std::tuple<  std::vector<std::unique_ptr<dairlib::systems::trajectory_optimization::DirconMode<Y>>>,
     std::vector<std::unique_ptr<multibody::WorldPointEvaluator<Y>>> ,
@@ -95,14 +95,14 @@ public:
     this->getModeSequenceHelper(msh);
 
     auto [modeVector, toeEvals, toeEvalSets] = createSpiritModeSequence(plant, msh);
-
-
+    
+    
     for (auto& mode : modeVector){
         for (int i = 0; i < mode->evaluators().num_evaluators(); i++ ){
         mode->MakeConstraintRelative(i,0);
         mode->MakeConstraintRelative(i,1);
         }
-
+        
         if (this->spine_type=="twisting") {
             // mode->SetDynamicsScale( {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17,18, 19}, 150);
             mode->SetImpactScale({1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18},1000);
@@ -116,7 +116,7 @@ public:
         }
         // std::unordered_map<int, double> dynamic_map= mode->GetDynamicsScale();
         // for (auto const& element : dynamic_map) std::cout << element.first << " = " << element.second << std::endl;
-
+  
         if (mode->evaluators().num_evaluators() == 4)
         {
             // mode->SetKinVelocityScale(
@@ -125,7 +125,7 @@ public:
             //     {0, 1, 2, 3}, {0, 1, 2}, 150.0);
             mode->SetKinVelocityScale(
                 {0, 1, 2, 3}, {0, 1, 2}, 0.01);
-
+            
         }
         else if (mode->evaluators().num_evaluators() == 2){
             // mode->SetKinVelocityScale(
@@ -147,7 +147,7 @@ private:
     double max_spine_magnitude;
     double max_spine_new;
     double pitch_magnitude;
-    double apex_height;
+    double apex_height; 
     double cost_power;
     double speed;
     double eps; //!< tolerance for the constraints
@@ -156,17 +156,15 @@ private:
     double max_duration; //!< maximum duration of the bounding behavior
     double min_duration;
     double toe_height;
-    double k;
-    double b;
 
     void saveContactForceData(dairlib::systems::trajectory_optimization::Dircon<Y>& trajopt,
                             const drake::solvers::MathematicalProgramResult& result,
                             double speed, double max_pitch_magnitude, std::string file_path, bool is_success,
                             double power_cost_percentage){
         drake::trajectories::PiecewisePolynomial<Y> state_traj=trajopt.ReconstructStateTrajectory(result);
-        std::ofstream myfile; //
+        std::ofstream myfile; // 
         myfile.open(file_path);
-        myfile << "Speed,"<<speed <<",spine magnitude max,"<<max_pitch_magnitude<< ",Electrical work," << this->electrical_work
+        myfile << "Speed,"<<speed <<",spine magnitude max,"<<max_pitch_magnitude<< ",Electrical work," << this->electrical_work 
                 <<",Electrical power,"<<this->electrical_power <<",success?,"<<is_success<<",%PowerCost,"<<power_cost_percentage<<
                 ",Mech Power,"<<this->mechanical_power  << "\n";
         myfile<< "Time, Front L ,,, Back L ,,, Front R ,,, Back R ,,,, x, y, z, vx, vy, vz,";
@@ -185,7 +183,7 @@ private:
             for (int i=0;i<this->mode_vector.size();i++){
             Y start_time=this->l_traj[i].start_time();
             Y end_time=this->l_traj[i].end_time();
-            if (abs(start_time)!=std::numeric_limits<Y>::infinity() && abs(end_time)!=std::numeric_limits<Y>::infinity()
+            if (abs(start_time)!=std::numeric_limits<Y>::infinity() && abs(end_time)!=std::numeric_limits<Y>::infinity() 
                 && current_time>=start_time && current_time<end_time){
                 mode=i;
             }
@@ -251,7 +249,7 @@ private:
         double mass=10.5;
         double g=9.81;
         std::vector<drake::solvers::Binding<drake::solvers::Cost>> cost_impact_bindings;
-
+        
         for (int knot_index = 0; knot_index < trajopt.mode_length(1); knot_index++) {
             auto force=trajopt.force_vars(1,knot_index);
             for(int i=0;i< 2;i++){
@@ -267,9 +265,9 @@ private:
                             double speed, double max_pitch_magnitude, std::string file_path, bool is_success,
                             double power_cost_percentage){
         auto state_trajs = trajopt.ReconstructDiscontinuousStateTrajectory(result);
-        std::ofstream myfile; //
+        std::ofstream myfile; // 
         myfile.open(file_path);
-        myfile << "Speed,"<<speed <<",spine magnitude max,"<<max_pitch_magnitude<< ",Electrical work," << this->electrical_work
+        myfile << "Speed,"<<speed <<",spine magnitude max,"<<max_pitch_magnitude<< ",Electrical work," << this->electrical_work 
                 <<",Electrical power,"<<this->electrical_power <<",success?,"<<is_success<<",%PowerCost,"<<power_cost_percentage<<
                 ",Mech Power,"<<this->mechanical_power  << "\n";
         myfile<< "Time, Front L ,,, Back L ,,, Front R ,,, Back R ,,,, x, y, z, vx, vy, vz,";
@@ -330,3 +328,4 @@ private:
 }
 
 #endif
+
