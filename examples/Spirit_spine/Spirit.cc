@@ -191,7 +191,10 @@ void Spirit<B,T>::run(){
   // drake::solvers::MathematicalProgramResult result;
   double grad_k;
   double grad_b;
+  int best_index_ = -99;
   for (int i=FLAGS_skip_to;i<=num_optimizations;i++){
+    grad_k = 0;
+    grad_b = 0;
     if (i>FLAGS_end_at) {
       std::cout<<"stop after running optimization "<<i-1<<std::endl;
       break;
@@ -232,6 +235,8 @@ void Spirit<B,T>::run(){
       dst << src.rdbuf();
       grad_k = grad_ks[best_index];
       grad_b = grad_bs[best_index];
+      best_index_ = best_index;
+      std::cout << "Finished running expand" << std::endl;
     }
     else if (behavior.action=="keep"){
       std::string org_file_name_in=behavior.getFileNameIn();
@@ -247,6 +252,7 @@ void Spirit<B,T>::run(){
         // we'll just average these and call it a day.
         grad_k += behavior.getGradK()/num_perturbations;
         grad_b += behavior.getGradB()/num_perturbations;
+        std::cout << "Finished running keep" << std::endl;
       }
     }
     else if (behavior.action=="shrink"){
@@ -279,11 +285,16 @@ void Spirit<B,T>::run(){
       dst << src.rdbuf();
       grad_k = grad_ks[best_index];
       grad_b = grad_bs[best_index];
-    }
-    else behavior.run(*plant,&pp_xtraj,&surface_vector);
+      best_index_ = best_index;
+      std::cout << "Finished running shrink" << std::endl;
+    } else {
+    behavior.run(*plant,&pp_xtraj,&surface_vector);
     grad_k = behavior.getGradK();
     grad_b = behavior.getGradB();
+    std::cout << "Finished running regularly" << std::endl;}
   }
+  std::cout << "OPTIMIZATION FINISHED" << std::endl;
+  std::cout << "Best index: " << best_index_ << std::endl;
   std::cout << "Gradient with respect to K: " << grad_k << std::endl;
   std::cout << "Gradient with respect to B: " << grad_b << std::endl;
   // After the final iteration,

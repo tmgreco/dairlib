@@ -165,5 +165,3 @@
   file_name_out: trot5
   file_name_in: trot4
   action: shrink
-  k_spine: 40
-  b_spine: 7
