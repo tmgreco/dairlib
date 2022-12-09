@@ -145,7 +145,17 @@ public:
     void getObjectiveGradientByKB(const drake::solvers::MathematicalProgramResult& result,
           const drake::solvers::Binding<drake::solvers::Cost>& cost_binding,
           drake::Vector2<double>& kb_result_vector);
+
+    // void getResult(drake::solvers::MathematicalProgramResult& result_out) {
+    //   result_out = result;
+    // };
+    double getGradK() { return grad_k;};
+    double getGradB() { return grad_b;};
 private:
+
+    double grad_k = 0;
+    double grad_b = 0;
+    // drake::solvers::MathematicalProgramResult result;
     vector<PiecewisePolynomial<Y>> x_traj; //!< vector of initial and solution state trajectory
 
     bool lock_leg_apex;

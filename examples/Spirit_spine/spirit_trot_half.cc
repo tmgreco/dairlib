@@ -757,6 +757,8 @@ void SpiritTrotHalf<Y>::run(MultibodyPlant<Y>& plant,
   getObjectiveGradientByKB(result, work_binding, grad_k_and_b);
   std::cout << "Grad K" << grad_k_and_b[0] << std::endl;
   std::cout << "Grad B" << grad_k_and_b[1] << std::endl;
+  grad_k = grad_k_and_b[0];
+  grad_b = grad_k_and_b[1];
   int beginIdx = this->file_name_out.rfind('/');
   std::string filename = this->file_name_out.substr(beginIdx + 1);
   std::string contact_force_fname=this->data_directory+filename +".csv";
