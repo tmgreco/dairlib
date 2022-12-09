@@ -50,6 +50,10 @@ void SpiritTrotHalf<Y>::config(std::string yaml_path, std::string saved_director
   if(!config[index]["file_name_in"].as<std::string>().empty()) this->file_name_in= saved_directory+config[index]["file_name_in"].as<std::string>();
   if(config[index]["action"]) this->action=config[index]["action"].as<std::string>();
   else this->action="";
+  if(config[index]["k_spine"]) this->k=config[index]["k_spine"].as<double>();
+  else this->k = 0;
+  if(config[index]["b_spine"]) this->b=config[index]["b_spine"].as<double>();
+  else this->b = 0;
 
 }
 
