@@ -902,7 +902,7 @@ std::vector<drake::solvers::Binding<drake::solvers::Cost>> AddWorkCost(drake::mu
 template <typename T>
 std::vector<drake::solvers::Binding<drake::solvers::Cost>> AddPowerCost(drake::multibody::MultibodyPlant<T> & plant,
                  dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,
-                 double cost_power_gain){
+                 double cost_power_gain, double k, double b){
   std::vector<drake::solvers::Binding<drake::solvers::Cost>> cost_joint_power_bindings;
   int n_q = plant.num_positions();
   auto velocities_map = multibody::makeNameToVelocitiesMap(plant);
@@ -925,6 +925,8 @@ std::vector<drake::solvers::Binding<drake::solvers::Cost>> AddPowerCost(drake::m
         // n_q is the number of positions.  So we DON'T want it in pos_int
         // Assuming sensible naming of joints
         int pos_int = positions_map.at("joint_" + std::to_string(joint));
+        compliant_joint_power_cost->set_k(k);
+        compliant_joint_power_cost->set_b(b);
         // std::cout << "Pos_int: " << pos_int << std::endl;
         // Loop through each mode
         for (int mode_index = 0; mode_index < trajopt.num_modes(); mode_index++) {
@@ -1212,8 +1214,8 @@ void CompliantJointPowerCost::EvaluateCost(const Eigen::Ref<const drake::VectorX
   // where u_m is the motor torque, and k and b are constants.
   // At some point, k and b will need to be variables, but let's hardcode for now.
   // u_m = u_i + k*x_i + b*v_i
-  double k = 4.0;//
-  double b = 0.7; //
+  // double k = 4.0;//
+  // double b = 0.7; //
   double pow_low =  ((u_i + k*x_i + b*v_i) * v_i + Q_ * (u_i + k*x_i + b*v_i) * (u_i + k*x_i + b*v_i));
   double pow_up =  ((u_ip + k*x_ip + b*v_ip) * v_ip + Q_ * (u_ip + k*x_ip + b*v_ip) * (u_ip + k*x_ip + b*v_ip));
 
@@ -1431,7 +1433,7 @@ template std::vector<drake::solvers::Binding<drake::solvers::Cost>> AddWorkCost(
 
 template std::vector<drake::solvers::Binding<drake::solvers::Cost>> AddPowerCost(drake::multibody::MultibodyPlant<double> & plant,
                  dairlib::systems::trajectory_optimization::Dircon<double>& trajopt,
-                 double cost_work_gain);
+                 double cost_work_gain, double k, double b);
 
 template std::vector<drake::solvers::Binding<drake::solvers::Cost>> AddDeltaTorqueRegularizationCost(drake::multibody::MultibodyPlant<double> & plant,
                  dairlib::systems::trajectory_optimization::Dircon<double>& trajopt,

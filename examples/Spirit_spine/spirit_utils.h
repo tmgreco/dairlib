@@ -397,7 +397,7 @@ std::vector<drake::solvers::Binding<drake::solvers::Cost>> AddWorkCost(drake::mu
 template <typename T>
 std::vector<drake::solvers::Binding<drake::solvers::Cost>> AddPowerCost(drake::multibody::MultibodyPlant<T> & plant,
                  dairlib::systems::trajectory_optimization::Dircon<T>& trajopt,
-                 double cost_work_gain);
+                 double cost_work_gain, double k = 0, double b = 0);
 
 /// Adds a cost on the integral of electrical power
 ///     @param plant, the robot model
@@ -478,9 +478,14 @@ public:
                const int n_vars = 7)
      : JointPowerCost(plant,trajopt,Q,cost_work,alpha,description,n_vars)
     {  };
+    void set_k(double k_in) { k = k_in; };
+    double get_k() { return k; }
+    void set_b(double b_in) { b = b_in; };
+    double get_b() { return b; }
   protected:
     void EvaluateCost(const Eigen::Ref<const drake::VectorX<double>> &x,
                     drake::VectorX<double> *y) const override;
+    double k,b;
 };
 
 class JointDeltaTorqueRegularizationCost : public solvers::NonlinearCost<double> {

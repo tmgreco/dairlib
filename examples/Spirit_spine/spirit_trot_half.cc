@@ -274,7 +274,7 @@ std::vector<drake::solvers::Binding<drake::solvers::Cost>> SpiritTrotHalf<Y>::ad
   // return AddPowerCostByStrideLength(plant, trajopt, this->cost_power);
   // return AddPowerCostByStrideLength(plant, trajopt, this->cost_power);
   AddDeltaTorqueRegularizationCost(plant, trajopt, 0.00001);
-  return AddPowerCost(plant, trajopt, this->cost_power);
+  return AddPowerCost(plant, trajopt, this->cost_power, k, b);
 }
 /// Adds constraints to the trajopt bound problem
 /// \param plant robot model
@@ -680,7 +680,7 @@ void SpiritTrotHalf<Y>::run(MultibodyPlant<Y>& plant,
     solver_id = drake::solvers::ChooseBestSolver(trajopt);
     std::cout << "\nChose the best solver: " << solver_id.name() << std::endl;
   }
-/* 
+/*
   // ALEX: Outer gradient descent loop.
   // Uncomment to use.
   double k_prev = 0;
@@ -721,7 +721,7 @@ void SpiritTrotHalf<Y>::run(MultibodyPlant<Y>& plant,
       dJ_db_sum = dJ_db_sum + dJ_db;
     }
     // QUESTION: We can access k and b members like this, right?
-    k_prev = k; 
+    k_prev = k;
     b_prev = b;
 
     // Average derivatives and descend over k and b.
