@@ -42,7 +42,6 @@ class SpiritTrotHalf : public Behavior<Y> {
 public:
 
     SpiritTrotHalf();
-
     /// Assigns values to member variables according to input yaml file
     /// \param yaml_path path of the yaml file
     /// \param saved_directory directory for saving the output trajectories (namely for setting file_name_out)
@@ -140,6 +139,12 @@ public:
     return {std::move(modeVector), std::move(toeEvals), std::move(toeEvalSets)};
     }
 
+    void getObjectiveGradientByKB(const drake::solvers::MathematicalProgramResult& result,
+          const std::vector<drake::solvers::Binding<drake::solvers::Cost>>& c,
+          drake::Vector2<double>& kb_result_vector);
+    void getObjectiveGradientByKB(const drake::solvers::MathematicalProgramResult& result,
+          const drake::solvers::Binding<drake::solvers::Cost>& cost_binding,
+          drake::Vector2<double>& kb_result_vector);
 private:
     vector<PiecewisePolynomial<Y>> x_traj; //!< vector of initial and solution state trajectory
 

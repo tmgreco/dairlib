@@ -2,7 +2,6 @@
 #include <yaml-cpp/yaml.h>
 
 
-
 using drake::multibody::MultibodyPlant;
 using drake::trajectories::PiecewisePolynomial;
 using Eigen::VectorXd;
@@ -12,6 +11,65 @@ using drake::multibody::Parser;
 namespace dairlib {
 using systems::trajectory_optimization::DirconModeSequence;
 using systems::trajectory_optimization::Dircon;
+
+
+// Evaluate the gradient of the objective function with respect to K and B.
+// Modeled on EvalCostGivenSolution, but with HARDCODED derivative.
+// IF YOU CHANGE THE COST, CHANGE THIS METHOD TOO
+// Probably poor practice to define it here, but we can fix that later.
+
+template <class Y>
+void SpiritTrotHalf<Y>::getObjectiveGradientByKB(const drake::solvers::MathematicalProgramResult& result,
+      const drake::solvers::Binding<drake::solvers::Cost>& cost_binding,
+      drake::Vector2<double>& kb_result_vector) {
+          auto variables = cost_binding.variables();
+          drake::VectorX<double> sol = result.GetSolution(variables);
+          double u_i = sol(0);
+          double u_ip = sol(1);
+          double v_i = sol(2);
+          double v_ip = sol(3);
+          double h_i = sol(4);
+          double x_i = sol(5);
+          double x_ip = sol(6);
+          // TODO CHANGE THESE TO REFERENCE THE PARAMETERS!!!
+          // Parameters needed: Q, k, p.
+          // Can probably get away with hardcoding Q to match Q_not_knee; should be in scope???
+          double Q = Q_not_knee;
+          // double k = 4.0;//
+          // double b = 0.7; //
+          double pow_low =  ((u_i + k*x_i + b*v_i) * v_i + Q * (u_i + k*x_i + b*v_i) * (u_i + k*x_i + b*v_i));
+          double pow_up =  ((u_ip + k*x_ip + b*v_ip) * v_ip + Q * (u_ip + k*x_ip + b*v_ip) * (u_ip + k*x_ip + b*v_ip));
+          kb_result_vector[0] = 0;
+          kb_result_vector[1] = 0;
+          if (pow_low > 0) {
+              kb_result_vector[0] += v_i*x_i + 2*Q*x_i*(u_i + b*v_i + k*x_i);
+              kb_result_vector[1] += v_i*v_i + 2*Q*v_i*(u_i * b*v_i + k*x_i);
+          }
+          if (pow_up > 0) {
+              kb_result_vector[0] += v_ip*x_ip + 2*Q*x_ip*(u_ip + b*v_ip + k*x_ip);
+              kb_result_vector[1] += v_ip*v_ip + 2*Q*v_ip*(u_ip * b*v_ip + k*x_ip);
+          }
+      }
+
+template <class Y>
+void SpiritTrotHalf<Y>::getObjectiveGradientByKB(const drake::solvers::MathematicalProgramResult& result,
+      const std::vector<drake::solvers::Binding<drake::solvers::Cost>>& c,
+      drake::Vector2<double>& kb_result_vector) {
+        drake::Vector2<double> increment;
+        kb_result_vector[0] = 0;
+        kb_result_vector[1] = 0;
+
+        // hardcoding trimming work_binding vector by size.
+        // ideally this would type check each cost object, fix later.
+        int num_costs = c.size();
+        int num_spine_costs = num_costs/13;
+        for (int i = 0; i < num_spine_costs; i++) {
+        // for (const auto& cost_binding : c) {
+          const auto& cost_binding = c[num_spine_costs*12 + i];
+          getObjectiveGradientByKB(result, cost_binding, increment);
+          kb_result_vector += increment;
+        }
+      }
 
 template <class Y>
 SpiritTrotHalf<Y>::SpiritTrotHalf(){
@@ -641,6 +699,12 @@ void SpiritTrotHalf<Y>::run(MultibodyPlant<Y>& plant,
   // Writing contact force data
   double cost_power_val = solvers::EvalCostGivenSolution(result, work_binding);
   std::cout << "Power Cost: " << cost_power_val << std::endl;
+
+  // Take the gradient with respect to k and b (TODO add flag to turn this on and off)
+  drake::Vector2<double> grad_k_and_b;
+  getObjectiveGradientByKB(result, work_binding, grad_k_and_b);
+  std::cout << "Grad K" << grad_k_and_b[0] << std::endl;
+  std::cout << "Grad B" << grad_k_and_b[1] << std::endl;
   int beginIdx = this->file_name_out.rfind('/');
   std::string filename = this->file_name_out.substr(beginIdx + 1);
   std::string contact_force_fname=this->data_directory+filename +".csv";
@@ -700,6 +764,7 @@ void SpiritTrotHalf<Y>::run(MultibodyPlant<Y>& plant,
 
 
 }
+
 
 template class SpiritTrotHalf<double>;
 }  // namespace dairlib
