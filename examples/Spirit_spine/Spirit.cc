@@ -185,6 +185,129 @@ void Spirit<B,T>::animate(){
   }
 }
 
+
+template <template<class> class B,class T>
+void Spirit<B,T>::run(){
+  behavior.setMeanAndVar(1,0);
+  //set variables
+  double k_prev = 99999;
+  double b_prev = 99999;
+  double step_converge_k = 0.05;  // Convergence criterion for k.
+  double step_converge_b = 0.05;  // Convergence criterion for b.
+  double grad_step = 0.5;         // Step size for gradient descent.
+  double k_in = 0;                // Initial k value
+  double b_in = 0;                // Initial b value
+  int iterations = 0;
+  double arr[] = {0.1, 0.5, 1.0, 1.5}; // Speed samples.
+  int num_traj = 4;
+
+  // ALEX/KATIE: Gradient descent stuff.
+  while ((abs(k_in-k_prev) < step_converge_k) && abs(b_in-b_prev)<step_converge_b) {
+    // Reset dJ_dk, dJ_db.
+    double dJ_dk_sum = 0;
+    double dJ_db_sum = 0;
+
+    for (double s : arr) {
+      for (int i=FLAGS_skip_to;i<=num_optimizations;i++){
+        if (i>FLAGS_end_at) {
+          std::cout<<"stop after running optimization "<<i-1<<std::endl;
+          break;
+        }
+        std::cout<<"Running optimization "<<i<<std::endl;
+        if (i==num_optimizations) behavior.enable_animate();
+        behavior.config(yaml_path,saved_directory,i,plant.get()); //pull parameters from yaml
+        behavior.setB(b_in);
+        behavior.setK(k_in);
+
+        if (i==FLAGS_skip_to){
+          if(initial_guess=="") behavior.generateInitialGuess(*plant); //If we don't have a file for initial guess, then generate one.
+          else behavior.loadOldTrajectory(initial_guess); //Otherwise, use the trajectory file we have.
+        }
+
+        if (behavior.action=="expand"){
+          // Create array of optimal costs
+          double costs[num_perturbations];
+          const int N = sizeof(costs) / sizeof(double);
+
+          std::string org_file_name_out=behavior.getFileNameOut();
+          for (int j=0;j<num_perturbations;j++){
+            std::cout<<"Running "<<j+1<<"(th) trail in "<<i<<"(th) optimization; action: "<<behavior.action<<std::endl;
+            std::cout<<"Mean: "<< mean <<"; Var: "<< var << std::endl;
+            behavior.setFileNameOut(org_file_name_out+"_s"+std::to_string(j+1));
+            behavior.setPerturbationIndex(j+1);
+            if (j!=0) behavior.setMeanAndVar(mean,var);
+            behavior.run(*plant,&pp_xtraj,&surface_vector);
+            costs[j]=behavior.getCost();
+          }
+          behavior.setMeanAndVar(1,0);
+          behavior.setFileNameOut(org_file_name_out);
+          // Copy the best traj to saved directory
+          int best_index=std::distance(costs, std::min_element(costs, costs + N));
+          std::ifstream src(org_file_name_out+"_s"+std::to_string(best_index+1), std::ios::binary);
+          std::ofstream dst(org_file_name_out, std::ios::binary);
+          dst << src.rdbuf();
+        }
+        else if (behavior.action=="keep"){
+          std::string org_file_name_in=behavior.getFileNameIn();
+          std::string org_file_name_out=behavior.getFileNameOut();
+          behavior.setMeanAndVar(1,0);
+          for (int j=0;j<num_perturbations;j++){
+            std::cout<<"Running "<<j+1<<"(th) trail in "<<i<<"(th) optimization; action: "<<behavior.action<<std::endl;
+            behavior.setFileNameIn(org_file_name_in+"_s"+std::to_string(j+1));
+            behavior.setFileNameOut(org_file_name_out+"_s"+std::to_string(j+1));
+            behavior.setPerturbationIndex(j+1);
+            behavior.run(*plant,&pp_xtraj,&surface_vector);
+            }
+        }
+        else if (behavior.action=="shrink"){
+          std::string org_file_name_in=behavior.getFileNameIn();
+          std::string org_file_name_out=behavior.getFileNameOut();
+          behavior.setMeanAndVar(1,0);
+
+          // Create array of optimal costs
+          double costs[num_perturbations];
+          const int N = sizeof(costs) / sizeof(double);
+
+          for (int j=0;j<num_perturbations;j++){
+            std::cout<<"Running "<<j+1<<"(th) trial in "<<i<<"(th) optimization; action: "<<behavior.action<<std::endl;
+            if (j!=0) behavior.setMeanAndVar(mean,var);
+            behavior.setFileNameIn(org_file_name_in+"_s"+std::to_string(j+1));
+            behavior.setFileNameOut(org_file_name_out+"_s"+std::to_string(j+1));
+            behavior.setPerturbationIndex(j+1);
+            behavior.run(*plant,&pp_xtraj,&surface_vector);
+            costs[j]=behavior.getCost();
+          }
+          behavior.setMeanAndVar(1,0);
+          // Copy the best traj to saved directory
+          int best_index=std::distance(costs, std::min_element(costs, costs + N));
+          std::ifstream src(org_file_name_out+"_s"+std::to_string(best_index+1), std::ios::binary);
+          std::ofstream dst(org_file_name_out, std::ios::binary);
+          dst << src.rdbuf();
+        }
+        else behavior.run(*plant,&pp_xtraj,&surface_vector);
+      }
+
+      // Get gradient values.
+      double dJ_dk = behavior.getGradK();
+      double dJ_db = behavior.getGradB();
+
+      // Sum gradient.
+      dJ_dk_sum = dJ_dk_sum + dJ_dk;
+      dJ_db_sum = dJ_db_sum + dJ_db;
+    }
+    // QUESTION: We can access k and b members like this, right?
+    k_prev = k_in;
+    b_prev = b_in;
+
+    // Average derivatives and descend over k and b.
+    k_in = k_prev + (dJ_dk_sum/num_traj)*grad_step;
+    b_in = b_prev + (dJ_db_sum/num_traj)*grad_step;
+    iterations++;
+  }
+}
+
+
+/*
 template <template<class> class B,class T>
 void Spirit<B,T>::run(){
   behavior.setMeanAndVar(1,0);
@@ -299,6 +422,8 @@ void Spirit<B,T>::run(){
   std::cout << "Gradient with respect to B: " << grad_b << std::endl;
   // After the final iteration,
 }
+
+*/
 // template class Spirit<dairlib::SpiritJump,double>;
 // template class Spirit<dairlib::SpiritBound,double>;
 // template class Spirit<dairlib::SpiritTrot,double>;

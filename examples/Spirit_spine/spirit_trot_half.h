@@ -151,6 +151,10 @@ public:
     // };
     double getGradK() { return grad_k;};
     double getGradB() { return grad_b;};
+    double getB() {return b;};
+    double getK() {return k;};
+    void setB(double b_in ) {b = b_in;};
+    void setK(double k_in) {k = k_in;};
 private:
 
     double grad_k = 0;
