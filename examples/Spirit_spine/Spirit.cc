@@ -190,28 +190,38 @@ template <template<class> class B,class T>
 void Spirit<B,T>::run(){
   behavior.setMeanAndVar(1,0);
   //set variables
-  double k_prev = 99999;
-  double b_prev = 99999;
+  double k_prev = 99;
+  double b_prev = 99;
   double step_converge_k = 0.05;  // Convergence criterion for k.
   double step_converge_b = 0.05;  // Convergence criterion for b.
   double grad_step = 0.5;         // Step size for gradient descent.
   double k_in = 0;                // Initial k value
   double b_in = 0;                // Initial b value
   int iterations = 0;
-  double arr[] = {0.1, 0.5, 1.0, 1.5}; // Speed samples.
+  // double arr[] = {0.1, 0.5, 1.0, 1.5}; // Speed samples.
+  // testing with only one sample
+  double arr[] = {0.5};
   int num_traj = 4;
+  num_traj = 1;
 
   double grad_k;
   double grad_b;
   int best_index_ = -99;
 
   // ALEX/KATIE: Gradient descent stuff.
-  while ((abs(k_in-k_prev) < step_converge_k) && abs(b_in-b_prev)<step_converge_b) {
+  std::cout << "outside while loop" << std::endl;
+  // std::cout << ""
+  // while ((abs(k_in-k_prev) > step_converge_k) !! abs(b_in-b_prev) > step_converge_b) {
+  while ( iterations < 1 ) {
     // Reset dJ_dk, dJ_db.
+    std::cout << "inside while loop" << std::endl;
     double dJ_dk_sum = 0;
     double dJ_db_sum = 0;
 
+    std::cout << "starting outer for loop" << std::endl;
     for (double s : arr) {
+
+      std::cout << "starting inner for loop" << std::endl;
       for (int i=FLAGS_skip_to;i<=num_optimizations;i++){
         if (i>FLAGS_end_at) {
           std::cout<<"stop after running optimization "<<i-1<<std::endl;
@@ -224,11 +234,12 @@ void Spirit<B,T>::run(){
         behavior.setK(k_in);
         grad_k = 0;
         grad_b = 0;
-
+        std::cout<<"checking skip_to; initial guess is " << initial_guess << std::endl;
         if (i==FLAGS_skip_to){
           if(initial_guess=="") behavior.generateInitialGuess(*plant); //If we don't have a file for initial guess, then generate one.
           else behavior.loadOldTrajectory(initial_guess); //Otherwise, use the trajectory file we have.
         }
+        std::cout<<"finished looking at initial guess" << std::endl;
 
         if (behavior.action=="expand"){
           // Create array of optimal costs
@@ -328,7 +339,12 @@ void Spirit<B,T>::run(){
     k_in = k_prev + (dJ_dk_sum/num_traj)*grad_step;
     b_in = b_prev + (dJ_db_sum/num_traj)*grad_step;
     iterations++;
+    std::cout << "next k: " << k_in << std::endl;
+    std::cout << "next b: " << b_in << std::endl;
+    std::cout << "orig k: " << k_prev << std::endl;
+    std::cout << "orig b: " << b_prev << std::endl;
   }
+  std::cout << "while loop finished" << std::endl;
 }
 
 
