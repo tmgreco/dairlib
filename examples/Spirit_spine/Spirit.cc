@@ -194,15 +194,16 @@ void Spirit<B,T>::run(){
   double b_prev = 99;
   double step_converge_k = 0.05;  // Convergence criterion for k.
   double step_converge_b = 0.05;  // Convergence criterion for b.
-  double grad_step = 0.5;         // Step size for gradient descent.
-  double k_in = 0;                // Initial k value
-  double b_in = 0;                // Initial b value
+  double grad_step_k = 0.5;         // Step size for gradient descent.
+  double grad_step_b = 0.05;         // Step size for gradient descent.
+  double k_in = 40.2;// 40;                // Initial k value
+  double b_in = 2; // 10;                // Initial b value
   int iterations = 0;
-  // double arr[] = {0.1, 0.5, 1.0, 1.5}; // Speed samples.
+  double arr[] = {0.1, 0.5, 1.0, 1.5}; // Speed samples.
   // testing with only one sample
-  double arr[] = {0.5};
+  // double arr[] = {0.5};
   int num_traj = 4;
-  num_traj = 1;
+  // num_traj = 1;
 
   double grad_k;
   double grad_b;
@@ -211,8 +212,8 @@ void Spirit<B,T>::run(){
   // ALEX/KATIE: Gradient descent stuff.
   std::cout << "outside while loop" << std::endl;
   // std::cout << ""
-  // while ((abs(k_in-k_prev) > step_converge_k) !! abs(b_in-b_prev) > step_converge_b) {
-  while ( iterations < 1 ) {
+  while (((abs(k_in-k_prev) > step_converge_k) || abs(b_in-b_prev) > step_converge_b) && iterations < 200) {
+  // while ( iterations < 1 ) {
     // Reset dJ_dk, dJ_db.
     std::cout << "inside while loop" << std::endl;
     double dJ_dk_sum = 0;
@@ -336,15 +337,23 @@ void Spirit<B,T>::run(){
     b_prev = b_in;
 
     // Average derivatives and descend over k and b.
-    k_in = k_prev + (dJ_dk_sum/num_traj)*grad_step;
-    b_in = b_prev + (dJ_db_sum/num_traj)*grad_step;
+    k_in = k_prev - (dJ_dk_sum/num_traj)*grad_step_k;
+    b_in = b_prev - (dJ_db_sum/num_traj)*grad_step_b;
+    if (k_in < 0) {
+      k_in = 0;
+    }
+    if (b_in < 0) {
+      b_in = 0;
+    }
     iterations++;
+    std::cout << "grad k: " << grad_k << std::endl;
+    std::cout << "grad b: " << grad_b << std::endl;
     std::cout << "next k: " << k_in << std::endl;
     std::cout << "next b: " << b_in << std::endl;
     std::cout << "orig k: " << k_prev << std::endl;
     std::cout << "orig b: " << b_prev << std::endl;
   }
-  std::cout << "while loop finished" << std::endl;
+  std::cout << "while loop finished after " << iterations << std::endl;
 }
 
 
