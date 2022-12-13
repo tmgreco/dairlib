@@ -155,6 +155,8 @@ public:
     double getK() {return k;};
     void setB(double b_in ) {b = b_in;};
     void setK(double k_in) {k = k_in;};
+
+    void setSpeed(double speed_in) {speed = speed_in;};
 private:
 
     double grad_k = 0;

@@ -3,8 +3,8 @@
   initial_guess: ""  #if it is empty, the program will generate initial guess. Otherwise, we use the file given here as the initial guess
   # saved_directory: ../data-out/trot_search/rigid/saved_trajectories/
   # data_directory: ../data-out/trot_search/rigid/data/
-  saved_directory: examples/Spirit_spine/saved_trajectories/k_and_b/
-  data_directory: examples/Spirit_spine/data/k_and_b/
+  saved_directory: examples/Spirit_spine/saved_trajectories/vel_sweep2/
+  data_directory: examples/Spirit_spine/data/vel_sweep2/
   # spine_type: rigid
   # urdf_path: examples/Spirit_spine/spirit_drake.urdf
   # saved_directory: examples/Spirit_spine/saved_trajectories/trot_half/twisting_p20/
@@ -14,23 +14,23 @@
   num_perturbations: 3
   mean: 1
   var: 0.01
-  # iterate:
-  #   -
-  #     name: trot_3
-  #     num: 1
-  #     iteration_variable: speed
-  #     for:
-  #       start: 0
-  #       end: 4.05
-  #       step_size: 2.0
-  #   -
-  #     name: trot_4
-  #     iteration_variable: speed
-  #     num: 2
-  #     for:
-  #       start: 0
-  #       end: 4.05
-  #       step_size: 2.0
+#  iterate:
+#    -
+#      name: trot_3
+#      num: 1
+#      iteration_variable: speed
+#      for:
+#        start: 0.5
+#        end: 1.5
+#        step_size: 0.5
+#    -
+#      name: trot_4
+#      iteration_variable: speed
+#      num: 2
+#      for:
+#        start: 0.5
+#        end: 1.5
+#        step_size: 0.5
 -
   name: trot_1
   ipopt: true
@@ -149,7 +149,7 @@
   max_spine_magnitude: 1.5
   apex_height: -1
   # speed: 0.7
-  speed: 0.5
+  speed: 1.5
   max_duration: 0.7
   min_duration: 0.05
   lock_leg_apex: false

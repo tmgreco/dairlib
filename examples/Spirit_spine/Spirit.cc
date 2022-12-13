@@ -190,20 +190,20 @@ template <template<class> class B,class T>
 void Spirit<B,T>::run(){
   behavior.setMeanAndVar(1,0);
   //set variables
-  double k_prev = 99;
+  double k_prev = 45.0103;
   double b_prev = 99;
   double step_converge_k = 0.05;  // Convergence criterion for k.
   double step_converge_b = 0.05;  // Convergence criterion for b.
   double grad_step_k = 0.5;         // Step size for gradient descent.
   double grad_step_b = 0.05;         // Step size for gradient descent.
-  double k_in = 40.2;// 40;                // Initial k value
-  double b_in = 2; // 10;                // Initial b value
+  double k_in = 45.0103;// 40;                // Initial k value
+  double b_in = 0; // 10;                // Initial b value
   int iterations = 0;
-  double arr[] = {0.1, 0.5, 1.0, 1.5}; // Speed samples.
+  // double arr[] = {0.5, 1.0, 1.5}; // Speed samples.
   // testing with only one sample
-  // double arr[] = {0.5};
-  int num_traj = 4;
-  // num_traj = 1;
+  double arr[] = {1.0};
+  int num_traj = 3;
+  num_traj = 1;
 
   double grad_k;
   double grad_b;
@@ -212,17 +212,17 @@ void Spirit<B,T>::run(){
   // ALEX/KATIE: Gradient descent stuff.
   std::cout << "outside while loop" << std::endl;
   // std::cout << ""
-  while (((abs(k_in-k_prev) > step_converge_k) || abs(b_in-b_prev) > step_converge_b) && iterations < 200) {
-  // while ( iterations < 1 ) {
+  // while (((abs(k_in-k_prev) > step_converge_k) || abs(b_in-b_prev) > step_converge_b) && iterations < 200) {
+  while ( iterations < 1 ) {
     // Reset dJ_dk, dJ_db.
-    std::cout << "inside while loop" << std::endl;
+    // std::cout << "inside while loop" << std::endl;
     double dJ_dk_sum = 0;
     double dJ_db_sum = 0;
 
-    std::cout << "starting outer for loop" << std::endl;
+    // std::cout << "starting outer for loop" << std::endl;
     for (double s : arr) {
 
-      std::cout << "starting inner for loop" << std::endl;
+      // std::cout << "starting inner for loop" << std::endl;
       for (int i=FLAGS_skip_to;i<=num_optimizations;i++){
         if (i>FLAGS_end_at) {
           std::cout<<"stop after running optimization "<<i-1<<std::endl;
@@ -231,16 +231,19 @@ void Spirit<B,T>::run(){
         std::cout<<"Running optimization "<<i<<std::endl;
         if (i==num_optimizations) behavior.enable_animate();
         behavior.config(yaml_path,saved_directory,i,plant.get()); //pull parameters from yaml
+        // if (i > 1) {
+        //   behavior.setSpeed(s);
+        // }
         behavior.setB(b_in);
         behavior.setK(k_in);
         grad_k = 0;
         grad_b = 0;
-        std::cout<<"checking skip_to; initial guess is " << initial_guess << std::endl;
+        // std::cout<<"checking skip_to; initial guess is " << initial_guess << std::endl;
         if (i==FLAGS_skip_to){
           if(initial_guess=="") behavior.generateInitialGuess(*plant); //If we don't have a file for initial guess, then generate one.
           else behavior.loadOldTrajectory(initial_guess); //Otherwise, use the trajectory file we have.
         }
-        std::cout<<"finished looking at initial guess" << std::endl;
+        // std::cout<<"finished looking at initial guess" << std::endl;
 
         if (behavior.action=="expand"){
           // Create array of optimal costs
@@ -251,7 +254,7 @@ void Spirit<B,T>::run(){
 
           std::string org_file_name_out=behavior.getFileNameOut();
           for (int j=0;j<num_perturbations;j++){
-            std::cout<<"Running "<<j+1<<"(th) trail in "<<i<<"(th) optimization; action: "<<behavior.action<<std::endl;
+            std::cout<<"Running "<<j+1<<"(th) trial in "<<i<<"(th) optimization; action: "<<behavior.action<<std::endl;
             std::cout<<"Mean: "<< mean <<"; Var: "<< var << std::endl;
             behavior.setFileNameOut(org_file_name_out+"_s"+std::to_string(j+1));
             behavior.setPerturbationIndex(j+1);
@@ -333,11 +336,11 @@ void Spirit<B,T>::run(){
       dJ_db_sum = dJ_db_sum + dJ_db;
     }
     // QUESTION: We can access k and b members like this, right?
-    k_prev = k_in;
+    // k_prev = k_in;
     b_prev = b_in;
 
     // Average derivatives and descend over k and b.
-    k_in = k_prev - (dJ_dk_sum/num_traj)*grad_step_k;
+    // k_in = k_prev - (dJ_dk_sum/num_traj)*grad_step_k;
     b_in = b_prev - (dJ_db_sum/num_traj)*grad_step_b;
     if (k_in < 0) {
       k_in = 0;
@@ -345,13 +348,19 @@ void Spirit<B,T>::run(){
     if (b_in < 0) {
       b_in = 0;
     }
+    if (b_in > 100) {
+      b_in = b_prev;
+      std::cout << "It's solving for rigid spine, capping b at 100" << std::endl;
+    }
+    std::cout << "finished iteration " << iterations << std::endl;
     iterations++;
-    std::cout << "grad k: " << grad_k << std::endl;
-    std::cout << "grad b: " << grad_b << std::endl;
-    std::cout << "next k: " << k_in << std::endl;
-    std::cout << "next b: " << b_in << std::endl;
-    std::cout << "orig k: " << k_prev << std::endl;
-    std::cout << "orig b: " << b_prev << std::endl;
+    std::cout << "resulting grad k: " << dJ_dk_sum << std::endl;
+    std::cout << "resulting grad b: " << dJ_db_sum << std::endl;
+    std::cout << "resulting next k: " << k_in << std::endl;
+    std::cout << "resulting next b: " << b_in << std::endl;
+    std::cout << "resulting orig k: " << k_prev << std::endl;
+    std::cout << "resulting orig b: " << b_prev << std::endl;
+
   }
   std::cout << "while loop finished after " << iterations << std::endl;
 }

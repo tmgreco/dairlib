@@ -3,12 +3,12 @@
   initial_guess: ""  #if it is empty, the program will generate initial guess. Otherwise, we use the file given here as the initial guess
   # saved_directory: ../data-out/trot_search/rigid/saved_trajectories/
   # data_directory: ../data-out/trot_search/rigid/data/
-  saved_directory: examples/Spirit_spine/saved_trajectories/comp_spine2/
-  data_directory: examples/Spirit_spine/data/comp_spine2/
+  saved_directory: examples/Spirit_spine/saved_trajectories/vel_twist2/
+  data_directory: examples/Spirit_spine/data/vel_twist2/
   # spine_type: rigid
   # urdf_path: examples/Spirit_spine/spirit_drake.urdf
-  # saved_directory: examples/Spirit_spine/saved_trajectories/trot_half/twisting_p20/
-  # data_directory: examples/Spirit_spine/data/trot_half/twisting_p20/
+  # saved_directory: examples/Spirit_spine/saved_trajectories/trot_half/vel_twist/
+  # data_directory: examples/Spirit_spine/data/trot_half/vel_twist/
   spine_type: twisting
   urdf_path: examples/Spirit_spine/spirit_with_spine_drake.urdf
   num_perturbations: 3
@@ -98,7 +98,7 @@
   max_spine_magnitude: 1.5
   apex_height: -1
   # speed: 0.7
-  speed: 0.5
+  speed: 1.5
   max_duration: 0.7
   min_duration: 0.05
   lock_leg_apex: false

@@ -727,6 +727,7 @@ double calcElectricalWork(
 
   auto velocities_map = multibody::makeNameToVelocitiesMap(plant);
   auto actuator_map = multibody::makeNameToActuatorsMap(plant);
+  auto positions_map = multibody::makeNameToPositionsMap(plant);
   int n_q = plant.num_positions();
 
   double work = 0;
@@ -751,8 +752,17 @@ double calcElectricalWork(
         double actuation_low = u_low(actuator_map.at("motor_" + std::to_string(joint)));
         double actuation_up = u_up(actuator_map.at("motor_" + std::to_string(joint)));
 
+        double position_low = x_low(positions_map.at("joint_" + std::to_string(joint)));
+        double position_up = x_up(positions_map.at("joint_" + std::to_string(joint)));
+
         double velocity_low = x_low(n_q + velocities_map.at("joint_" + std::to_string(joint) + "dot"));
         double velocity_up = x_up(n_q + velocities_map.at("joint_" + std::to_string(joint) + "dot"));
+        if (joint == 12) {
+            double k = 45.01;
+            double b = 0;
+            actuation_low += b*velocity_low + k*position_low;
+            actuation_up += b*velocity_up + k*position_up;
+        }
 
         double pow_low = actuation_low * velocity_low + Q * actuation_low * actuation_low;
         double pow_up = actuation_up * velocity_up+ Q * actuation_up * actuation_up;
